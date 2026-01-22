@@ -1,1 +1,19 @@
+# Arquivos de Ambiente e Senhas (NUNCA ENVIE ESTES)
+.env
+*.env
+config.yml
+credentials.json
 
+# Pastas de dependências e builds (Isso a gente baixa/gera na hora, não precisa subir)
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+
+# Arquivos do sistema e IDE
+.DS_Store
+.vscode/
+
+#Arquivos de teste
+worker/relatorios

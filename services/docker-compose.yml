@@ -1,1 +1,9 @@
+version: "3.8"
 
+services:
+  web:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    container_name: vite-react-ts-app
+    restart: always
