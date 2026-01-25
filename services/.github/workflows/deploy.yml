@@ -1,0 +1,76 @@
+name: Deploy Automático Saira
+
+on:
+  push:
+    branches:
+      - main      # Gatilho para Produção
+      - develop   # Gatilho para Teste
+
+jobs:
+  # --- JOB DE TESTE (Roda quando mexe na develop) ---
+  deploy-test:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy no Ambiente de Teste
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            
+            echo "--- INICIANDO DEPLOY DE TESTE (SAIRA) ---"
+            
+            # 1. Atualizar o Código (Na raiz do projeto)
+            cd /home/ubuntu/saira-project
+            echo "1. Atualizando repositório..."
+            git fetch origin develop
+            git reset --hard origin/develop
+            
+            # 2. Docker (Na pasta dos serviços)
+            cd saira/services
+            echo "2. Reiniciando Containers de Teste..."
+            
+            # Derruba o ambiente antigo (remove volumes para garantir limpeza no teste)
+            # Se quiser manter os dados do banco de teste, remova o flag '-v'
+            docker compose down -v
+            
+            echo "3. Construindo e Subindo..."
+            # O docker compose automaticamente lê o docker-compose.yml + override.yml
+            docker compose up -d --build --force-recreate
+            
+            echo "--- SUCESSO: AMBIENTE DE TESTE ATUALIZADO ---"
+
+  # --- JOB DE PRODUÇÃO (Roda quando mexe na main) ---
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy no Ambiente de Produção
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            
+            echo "--- INICIANDO DEPLOY DE PRODUÇÃO (SAIRA) ---"
+            
+            # 1. Atualizar o Código
+            cd /home/ubuntu/saira-project
+            echo "1. Atualizando repositório..."
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # 2. Docker
+            cd saira/services
+            echo "2. Atualizando Containers de Produção..."
+            
+            # Em produção, não rodamos down para evitar downtime desnecessário.
+            # Usamos o arquivo específico de produção.
+            docker compose -f docker-compose.prod.yml up -d --build --force-recreate
+            
+            echo "--- SUCESSO: PRODUÇÃO ATUALIZADA ---"
