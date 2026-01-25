@@ -1,9 +1,68 @@
 version: "3.8"
 
 services:
+  # Frontend (React + Vite)
   web:
     build: ./frontend
     ports:
-      - "8080:80"
+      - "3000:80"
     container_name: vite-react-ts-app
     restart: always
+    depends_on:
+      - backend
+
+  # Backend API (FastAPI)
+  backend:
+    build: ./backend
+    container_name: saira-backend-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - ENVIRONMENT=production
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+
+  # PostgreSQL + PostGIS
+  db:
+    image: postgis/postgis:15-3.4
+    container_name: saira-postgres-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=saira_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # pgAdmin (opcional, para desenvolvimento)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: saira-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@saira.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data:
