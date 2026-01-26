@@ -18,8 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código
 COPY . .
 
+# Tornar script de inicialização executável
+RUN chmod +x start.sh
+
 # Expor porta
 EXPOSE 8001
 
-# Comando padrão
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Comando padrão - executa migrações e inicia o servidor
+CMD ["./start.sh"]

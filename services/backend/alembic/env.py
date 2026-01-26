@@ -57,14 +57,38 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+# Tables to exclude from autogenerate (PostGIS Tiger geocoder tables)
+EXCLUDE_TABLES = {
+    'spatial_ref_sys', 'topology', 'layer',
+    # Tiger geocoder tables
+    'addr', 'addrfeat', 'bg', 'county', 'county_lookup', 'countysub_lookup',
+    'cousub', 'direction_lookup', 'edges', 'faces', 'featnames',
+    'geocode_settings', 'geocode_settings_default', 'loader_lookuptables',
+    'loader_platform', 'loader_variables', 'pagc_gaz', 'pagc_lex', 'pagc_rules',
+    'place', 'place_lookup', 'secondary_unit_lookup', 'state', 'state_lookup',
+    'street_type_lookup', 'tabblock', 'tabblock20', 'tract', 'zcta5',
+    'zip_lookup', 'zip_lookup_all', 'zip_lookup_base', 'zip_state', 'zip_state_loc',
+}
+
+
+def include_object(obj, name, type_, reflected, compare_to):
+    """Filter function to exclude PostGIS system tables from autogenerate."""
+    if type_ == "table":
+        # Exclude tables in the exclusion list
+        if name in EXCLUDE_TABLES:
+            return False
+        # Only include tables in public schema or no schema
+        if hasattr(obj, 'schema') and obj.schema not in (None, 'public'):
+            return False
+    return True
+
+
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
         include_schemas=True,
-        include_object=lambda obj, name, type_, reflected, compare_to: (
-            type_ != "table" or obj.schema in (None, "public")
-        )
+        include_object=include_object,
     )
 
     with context.begin_transaction():
