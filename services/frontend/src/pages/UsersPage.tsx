@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "../components/Sidebar";
 import {
   UserPlus,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { UserModal } from "../components/UserModal";
 import { DeleteModal } from "../components/DeleteModal";
+import api from "../services/api";
 
 // Mock Data based on screenshots
 const INITIAL_USERS = [
@@ -89,11 +90,27 @@ const INITIAL_USERS = [
 ];
 
 export const UsersPage: React.FC = () => {
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState<any[]>([]);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get("/users");
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handlers
   const handleOpenCreate = () => {
@@ -112,20 +129,33 @@ export const UsersPage: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleSaveUser = () => {
-    // Logic to add/update user would go here
-    setIsUserModalOpen(false);
-
-    // Show Success Toast
-    setShowSuccessToast(true);
-    setTimeout(() => setShowSuccessToast(false), 3000);
+  const handleSaveUser = async () => {
+    try {
+      // If selectedUser exists, it's an update; otherwise, it's a create
+      if (selectedUser) {
+        await api.patch(`/users/${selectedUser.id}`, selectedUser);
+      } else {
+        await api.post("/users", selectedUser);
+      }
+      await fetchUsers();
+      setIsUserModalOpen(false);
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+    } catch (error) {
+      console.error("Erro ao salvar usuário:", error);
+    }
   };
 
-  const handleDeleteUser = () => {
+  const handleDeleteUser = async () => {
     if (selectedUser) {
-      setUsers(users.filter((u) => u.id !== selectedUser.id));
+      try {
+        await api.delete(`/users/${selectedUser.id}`);
+        await fetchUsers();
+        setIsDeleteModalOpen(false);
+      } catch (error) {
+        console.error("Erro ao deletar usuário:", error);
+      }
     }
-    setIsDeleteModalOpen(false);
   };
 
   return (

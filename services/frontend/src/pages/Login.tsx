@@ -1,32 +1,39 @@
 import React, { useState } from "react";
-import { User, Lock, Check } from "lucide-react";
+import { User, Lock, Check, AlertCircle } from "lucide-react";
 import { InputField } from "../components/InputField";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   // --- State Management ---
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userError, setUserError] = useState(false);
-  const [passError, setPassError] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // --- Event Handlers ---
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUserError(false);
-    setPassError(false);
+    setError("");
 
-    if (username !== "admin") {
-      setUserError(true);
+    if (!email || !password) {
+      setError("Por favor, preencha todos os campos");
       return;
     }
-    if (password !== "12345") {
-      setPassError(true);
-      return;
+
+    setLoading(true);
+
+    try {
+      await signIn({ email, password });
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Erro ao fazer login. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    navigate("/dashboard");
   };
 
   return (
@@ -57,16 +64,24 @@ export const Login: React.FC = () => {
             onSubmit={handleLogin}
             className="flex flex-col gap-6 lg:gap-7 max-w-md w-full"
           >
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
+                <AlertCircle size={20} className="text-red-500 shrink-0" />
+                <span className="text-sm text-red-400">{error}</span>
+              </div>
+            )}
+
             <InputField
-              id="username"
-              label="Usuário"
-              type="text"
-              placeholder="nome-user"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              label="Email"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               icon={User}
-              error={userError}
-              errorMessage="Usuário Inválido!"
+              error={false}
+              errorMessage=""
             />
 
             {/* --- Password Field Group --- */}
@@ -79,13 +94,14 @@ export const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 icon={Lock}
-                error={passError}
-                errorMessage="Senha inválida!"
+                error={false}
+                errorMessage=""
+                isPassword
               />
 
               <div className="flex justify-end pt-2">
                 <a
-                  href="#"
+                  href="mailto:suporte@saira.com?subject=Recuperação de Senha"
                   className="text-sm text-zinc-400 hover:text-[#d9f99d] transition-colors"
                 >
                   Esqueceu a senha?
@@ -118,6 +134,7 @@ export const Login: React.FC = () => {
             {/* --- Submit Action --- */}
             <button
               type="submit"
+              disabled={loading}
               className="
                 w-full py-4 mt-6
                 bg-gradient-to-r from-[#efffc8] to-[#ccff33]
@@ -125,17 +142,18 @@ export const Login: React.FC = () => {
                 shadow-[0_0_30px_rgba(217,249,157,0.4)]
                 hover:shadow-[0_0_40px_rgba(217,249,157,0.6)]
                 hover:scale-[1.02] active:scale-[0.98]
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
                 transition-all duration-300
               "
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </button>
 
             {/* --- Footer Links --- */}
             <div className="mt-8 text-center text-sm text-zinc-500">
               Está sem acesso?{" "}
               <a
-                href="#"
+                href="mailto:suporte@saira.com?subject=Solicitação de Cadastro"
                 className="text-[#d9f99d] hover:text-[#c4f07a] transition-colors ml-1 hover:underline"
               >
                 Solicite seu cadastro

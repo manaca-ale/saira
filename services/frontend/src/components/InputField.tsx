@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 // --- Type Definitions ---
 interface InputFieldProps {
@@ -12,6 +13,7 @@ interface InputFieldProps {
   icon: LucideIcon;
   error?: boolean;
   errorMessage?: string;
+  isPassword?: boolean;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -24,13 +26,20 @@ export const InputField: React.FC<InputFieldProps> = ({
   icon: Icon,
   error,
   errorMessage,
+  isPassword = false,
 }) => {
+  // --- State for password visibility ---
+  const [showPassword, setShowPassword] = useState(false);
+
   // --- Dynamic Style Calculations ---
   const labelColor = error ? "text-[#ff3366]" : "text-[#d9f99d]";
   const borderColor = error
     ? "border-[#ff3366]"
     : "border-zinc-600 focus:border-[#ccff33]";
   const iconColor = error ? "text-[#ff3366]" : "text-zinc-500";
+
+  // Determine actual input type
+  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
 
   return (
     // --- Component Container ---
@@ -47,20 +56,35 @@ export const InputField: React.FC<InputFieldProps> = ({
       <div className="relative">
         <input
           id={id}
-          type={type}
+          type={inputType}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           className={`
-            w-full bg-transparent border-[1px] rounded-2xl py-4 pl-5 pr-12 
+            w-full bg-transparent border-[1px] rounded-2xl py-4 pl-5 ${isPassword ? 'pr-20' : 'pr-12'}
             text-white placeholder-zinc-600 outline-none transition-all duration-300
             hover:border-zinc-500
             ${borderColor}
           `}
         />
-        <Icon
-          className={`absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${iconColor}`}
-        />
+        {isPassword ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className={`absolute right-12 top-1/2 -translate-y-1/2 transition-colors duration-200 hover:text-[#d9f99d] ${iconColor}`}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+            <Icon
+              className={`absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${iconColor}`}
+            />
+          </>
+        ) : (
+          <Icon
+            className={`absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${iconColor}`}
+          />
+        )}
       </div>
 
       {/* --- Error Feedback --- */}

@@ -58,7 +58,14 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+        include_object=lambda obj, name, type_, reflected, compare_to: (
+            type_ != "table" or obj.schema in (None, "public")
+        )
+    )
 
     with context.begin_transaction():
         context.run_migrations()

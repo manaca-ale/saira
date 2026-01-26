@@ -1,24 +1,67 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MapWidget, OccurrencesChart } from "../components/DashboardCharts";
-import { Filter, Trash2, AlertTriangle, ChevronDown } from "lucide-react";
+import { Filter, Trash2, AlertTriangle, ChevronDown, Info } from "lucide-react";
+import api from "../services/api";
+
+interface DashboardStats {
+  total_occurrences: number;
+  daily_volume_m3: number;
+  pending_count: number;
+  in_analysis_count: number;
+  resolved_count: number;
+}
+
+interface RecurrentLocation {
+  logradouro: string;
+  bairro: string;
+  rpa: string;
+  count: number;
+}
+
+interface VolumeByRPA {
+  rpa: string;
+  avg_volume_m3: number;
+  total_volume_m3: number;
+  count: number;
+}
 
 export const Dashboard: React.FC = () => {
-  // --- State Management ---
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recurrentLocations, setRecurrentLocations] = useState<RecurrentLocation[]>([]);
+  const [volumeByRPA, setVolumeByRPA] = useState<VolumeByRPA[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [statsRes, locationsRes, volumeRes] = await Promise.all([
+          api.get("/dashboard/stats"),
+          api.get("/dashboard/recurrent-locations"),
+          api.get("/dashboard/volume-by-rpa"),
+        ]);
+
+        setStats(statsRes.data);
+        setRecurrentLocations(locationsRes.data);
+        setVolumeByRPA(volumeRes.data);
+      } catch (error) {
+        console.error("Erro ao carregar dados do dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   return (
-    // --- Main Layout Container ---
     <div className="flex h-full bg-[#f8f9fa] font-sans relative">
-      {/* --- Sidebar Navigation --- */}
       <Sidebar />
 
-      {/* --- Main Content Area --- */}
       <main className="flex-1 ml-20 p-4 md:p-8 h-full overflow-y-auto">
-        {/* --- Page Header --- */}
         <h1 className="text-3xl font-bold text-[#1a1a1a] mb-6">Dashboard</h1>
 
-        {/* --- Tab Navigation Section --- */}
         <div className="flex flex-wrap items-center gap-1 bg-white p-1 rounded-xl w-fit mb-8 border border-gray-200 shadow-sm">
           <button className="px-6 py-2 bg-[#e9fbc0] text-[#1a1a1a] font-semibold rounded-lg text-sm whitespace-nowrap">
             Dashboard de ocorrências
@@ -28,7 +71,6 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* --- Filter Controls Section --- */}
         <div className="flex flex-wrap gap-4 mb-8">
           {["Periodo", "Status", "Logradouro", "Bairro", "RPA"].map(
             (label, idx) => (
@@ -56,9 +98,7 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* --- Upper Dashboard Grid: Map & Statistics --- */}
         <div className="grid grid-cols-12 gap-6 mb-8 lg:h-[500px] h-auto">
-          {/* Map Component Container */}
           <div
             className={`col-span-12 lg:col-span-7 transition-all ${mapExpanded ? "fixed inset-0 z-50 w-full h-full" : "relative h-[400px] lg:h-full"}`}
           >
@@ -68,35 +108,49 @@ export const Dashboard: React.FC = () => {
             />
           </div>
 
-          {/* Statistics & Charts Container */}
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 h-full">
-            {/* KPI Cards Row */}
             <div className="flex flex-col sm:flex-row gap-6 h-auto sm:h-32">
-              {/* Total Occurrences Card */}
               <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[120px]">
-                <span className="text-gray-500 text-xs font-medium uppercase">
-                  Total de ocorrências
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500 text-xs font-medium uppercase">
+                    Total de ocorrências
+                  </span>
+                  <div
+                    className="w-4 h-4 border border-gray-300 rounded-full text-[10px] flex items-center justify-center text-gray-400 cursor-help"
+                    title="Total acumulado de ocorrências detectadas"
+                  >
+                    <Info size={12} />
+                  </div>
+                </div>
                 <div className="flex items-center gap-4 mt-2 sm:mt-0">
                   <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
                     <AlertTriangle size={24} />
                   </div>
-                  <span className="text-4xl font-bold text-[#1a1a1a]">450</span>
+                  <span className="text-4xl font-bold text-[#1a1a1a]">
+                    {loading ? "..." : stats?.total_occurrences || 0}
+                  </span>
                 </div>
               </div>
 
-              {/* Volume Metric Card */}
               <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[120px]">
-                <span className="text-gray-500 text-xs font-medium uppercase">
-                  Volume diário de resíduos
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500 text-xs font-medium uppercase">
+                    Volume diário de resíduos
+                  </span>
+                  <div
+                    className="w-4 h-4 border border-gray-300 rounded-full text-[10px] flex items-center justify-center text-gray-400 cursor-help"
+                    title="Volume total de resíduos detectados hoje"
+                  >
+                    <Info size={12} />
+                  </div>
+                </div>
                 <div className="flex items-center gap-4 mt-2 sm:mt-0">
                   <div className="w-12 h-12 rounded-full bg-[#ecfccb] flex items-center justify-center text-[#65a30d]">
                     <Trash2 size={24} />
                   </div>
                   <div className="flex items-baseline">
                     <span className="text-4xl font-bold text-[#1a1a1a]">
-                      150
+                      {loading ? "..." : Math.round(stats?.daily_volume_m3 || 0)}
                     </span>
                     <span className="text-sm text-gray-500 font-medium ml-1">
                       m³
@@ -106,7 +160,6 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Monthly Occurrences Chart */}
             <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 min-h-[300px]">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-gray-800 text-sm">
@@ -123,9 +176,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* --- Lower Dashboard Grid: Data Lists --- */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
-          {/* List 1: Recurrent Locations */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-bold text-gray-800 text-sm">
@@ -136,57 +187,42 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="p-2 overflow-x-auto">
-              {[
-                {
-                  id: "1º",
-                  name: "Rua do Sossego, Boa Vista",
-                  val: "350 atividades",
-                  color: "bg-red-200 text-red-700",
-                },
-                {
-                  id: "2º",
-                  name: "Av. Norte Miguel Arraes de Alencar",
-                  val: "250 atividades",
-                  color: "bg-red-200 text-red-700",
-                },
-                {
-                  id: "3º",
-                  name: "Rua Imperial, São José",
-                  val: "150 atividades",
-                  color: "bg-red-200 text-red-700",
-                },
-                {
-                  id: "4º",
-                  name: "Rua da Aurora, Santo Amaro",
-                  val: "100 atividades",
-                  color: "bg-orange-100 text-orange-600",
-                },
-                {
-                  id: "5º",
-                  name: "Av. Recife, Estância",
-                  val: "50 atividades",
-                  color: "bg-orange-100 text-orange-600",
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg text-sm min-w-[300px]"
-                >
-                  <div className="flex items-center gap-3 text-gray-700 font-medium truncate">
-                    <span className="text-gray-400 w-6">{item.id}</span>
-                    <span className="truncate max-w-[200px]">{item.name}</span>
-                  </div>
-                  <span
-                    className={`px-3 py-1 rounded-md text-xs font-bold ${item.color}`}
-                  >
-                    {item.val}
-                  </span>
-                </div>
-              ))}
+              {loading ? (
+                <div className="text-center py-8 text-gray-500">Carregando...</div>
+              ) : recurrentLocations.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">Nenhum local reincidente encontrado</div>
+              ) : (
+                recurrentLocations.slice(0, 5).map((location, i) => {
+                  const position = `${i + 1}º`;
+                  const getColorClass = (count: number) => {
+                    if (count >= 10) return "bg-red-200 text-red-700";
+                    if (count >= 5) return "bg-orange-100 text-orange-600";
+                    return "bg-yellow-100 text-yellow-600";
+                  };
+
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg text-sm min-w-[300px]"
+                    >
+                      <div className="flex items-center gap-3 text-gray-700 font-medium truncate">
+                        <span className="text-gray-400 w-6">{position}</span>
+                        <span className="truncate max-w-[200px]">
+                          {location.logradouro}, {location.bairro}
+                        </span>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-md text-xs font-bold ${getColorClass(location.count)}`}
+                      >
+                        {location.count} ocorrências
+                      </span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
-          {/* List 2: Volumetry per RPA */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-bold text-gray-800 text-sm">
@@ -197,45 +233,34 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="p-2 overflow-x-auto">
-              {[
-                {
-                  name: "RPA 1",
-                  val: "350m³",
-                  color: "bg-red-200 text-red-700",
-                },
-                {
-                  name: "RPA 2",
-                  val: "250m³",
-                  color: "bg-red-200 text-red-700",
-                },
-                {
-                  name: "RPA 3",
-                  val: "150m³",
-                  color: "bg-red-200 text-red-700",
-                },
-                {
-                  name: "RPA 4",
-                  val: "100m³",
-                  color: "bg-orange-100 text-orange-600",
-                },
-                {
-                  name: "RPA 5",
-                  val: "50m³",
-                  color: "bg-orange-100 text-orange-600",
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg text-sm min-w-[200px]"
-                >
-                  <span className="text-gray-700 font-medium">{item.name}</span>
-                  <span
-                    className={`px-3 py-1 rounded-md text-xs font-bold ${item.color}`}
-                  >
-                    {item.val}
-                  </span>
-                </div>
-              ))}
+              {loading ? (
+                <div className="text-center py-8 text-gray-500">Carregando...</div>
+              ) : volumeByRPA.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">Nenhum dado de volumetria encontrado</div>
+              ) : (
+                volumeByRPA.map((item, i) => {
+                  const avgVolume = Math.round(item.avg_volume_m3);
+                  const getColorClass = (avg: number) => {
+                    if (avg >= 10) return "bg-red-200 text-red-700";
+                    if (avg >= 5) return "bg-orange-100 text-orange-600";
+                    return "bg-yellow-100 text-yellow-600";
+                  };
+
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg text-sm min-w-[200px]"
+                    >
+                      <span className="text-gray-700 font-medium">{item.rpa}</span>
+                      <span
+                        className={`px-3 py-1 rounded-md text-xs font-bold ${getColorClass(avgVolume)}`}
+                      >
+                        {avgVolume}m³
+                      </span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

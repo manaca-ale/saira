@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from app.api.deps import get_db, get_current_user
 from app.core.security import get_password_hash
 from app.models.user import User
@@ -14,6 +14,8 @@ router = APIRouter()
 async def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
+    q: Optional[str] = None,
+    search: Optional[str] = None,
     rpa: Optional[str] = None,
     cargo: Optional[str] = None,
     is_active: Optional[bool] = None,
@@ -24,6 +26,16 @@ async def get_users(
     query = select(User)
 
     filters = []
+
+    # Filtro de busca por nome ou email (q ou search)
+    search_term = q or search
+    if search_term:
+        search_filter = or_(
+            User.name.ilike(f"%{search_term}%"),
+            User.email.ilike(f"%{search_term}%")
+        )
+        filters.append(search_filter)
+
     if rpa:
         filters.append(User.rpa == rpa)
     if cargo:

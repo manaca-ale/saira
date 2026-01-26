@@ -1,19 +1,24 @@
 import React from "react";
-import { LayoutDashboard, Map, Users, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Camera, Users, Settings, LogOut } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const menuItems = [
     { icon: LayoutDashboard, path: "/dashboard" },
-    { icon: Map, path: "/detections" },
+    { icon: Camera, path: "/detections" },
     { icon: Users, path: "/users" },
   ];
 
   const handleLogout = () => {
-    navigate("/");
+    if (window.confirm("Tem certeza que deseja sair?")) {
+      signOut();
+      navigate("/");
+    }
   };
 
   return (
