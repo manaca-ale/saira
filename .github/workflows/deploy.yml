@@ -1,76 +1,79 @@
-name: Deploy Automático Saira
+name: Deploy Automático Saira (Padrão Flora)
 
 on:
   push:
     branches:
-      - main      # Gatilho para Produção
-      - develop   # Gatilho para Teste
+      - main      # Produção
+      - develop   # Teste
 
 jobs:
-  # --- JOB DE TESTE (Roda quando mexe na develop) ---
+  # --- AMBIENTE DE TESTE ---
   deploy-test:
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy no Ambiente de Teste
+      - name: Deploy Teste
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
             set -e
-            
             echo "--- INICIANDO DEPLOY DE TESTE (SAIRA) ---"
             
-            # 1. Atualizar o Código (Na raiz do projeto)
+            # 1. Atualizar Código
             cd /home/ubuntu/saira-project
-            echo "1. Atualizando repositório..."
             git fetch origin develop
             git reset --hard origin/develop
             
-            # 2. Docker (Na pasta dos serviços)
+            # 2. Docker
             cd saira/services
-            echo "2. Reiniciando Containers de Teste..."
             
-            # Derruba o ambiente antigo (remove volumes para garantir limpeza no teste)
-            # Se quiser manter os dados do banco de teste, remova o flag '-v'
-            docker compose down -v
+            echo "2. Reiniciando Ambiente de Teste..."
+            # Padrão Flora: Define explicitamente o projeto (-p test) e os arquivos (-f)
+            # O override é usado automaticamente aqui para definir portas de teste (3001/8002)
             
-            echo "3. Construindo e Subindo..."
-            # O docker compose automaticamente lê o docker-compose.yml + override.yml
-            docker compose up -d --build --force-recreate
+            # Derruba o ambiente antigo (limpeza)
+            docker compose -p test -f docker-compose.yml -f docker-compose.override.yml down
             
-            echo "--- SUCESSO: AMBIENTE DE TESTE ATUALIZADO ---"
+            # Sobe o novo
+            docker compose -p test -f docker-compose.yml -f docker-compose.override.yml up -d --build --force-recreate
+            
+            echo "✅ Teste rodando (Projeto: test)"
 
-  # --- JOB DE PRODUÇÃO (Roda quando mexe na main) ---
+  # --- AMBIENTE DE PRODUÇÃO ---
   deploy-production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy no Ambiente de Produção
+      - name: Deploy Produção
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
             set -e
-            
             echo "--- INICIANDO DEPLOY DE PRODUÇÃO (SAIRA) ---"
             
-            # 1. Atualizar o Código
+            # 1. Atualizar Código
             cd /home/ubuntu/saira-project
-            echo "1. Atualizando repositório..."
             git fetch origin main
             git reset --hard origin/main
             
             # 2. Docker
             cd saira/services
-            echo "2. Atualizando Containers de Produção..."
             
-            # Em produção, não rodamos down para evitar downtime desnecessário.
-            # Usamos o arquivo específico de produção.
-            docker compose -f docker-compose.prod.yml up -d --build --force-recreate
+            echo "2. Atualizando Produção..."
+            # Padrão Flora: Define projeto (-p prod) e arquivos de produção (-f ...prod.yml)
             
-            echo "--- SUCESSO: PRODUÇÃO ATUALIZADA ---"
+            # Build separado (boa prática da Flora para garantir cache e imagem nova antes de mexer nos containers)
+            docker compose -p prod -f docker-compose.yml -f docker-compose.prod.yml build
+            
+            # Up sem 'down' (Zero Downtime Deployment)
+            docker compose -p prod -f docker-compose.yml -f docker-compose.prod.yml up -d
+            
+            echo "✅ Produção rodando (Projeto: prod)"

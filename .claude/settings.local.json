@@ -19,7 +19,9 @@
       "Bash(docker start:*)",
       "Bash(timeout:*)",
       "Bash(docker restart:*)",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps:*)"
     ]
   }
 }
