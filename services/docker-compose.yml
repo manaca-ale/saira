@@ -62,5 +62,18 @@ services:
       - db
     restart: always
 
+  # Ingester Service (Modo de Captura Local via ADB)
+  ingester:
+    build:
+      context: ./ingester
+    container_name: saira-ingester-local
+    environment:
+      - INGESTER_MODE=local
+    volumes:
+      # Monta o diretório de dados para que as capturas sejam salvas no host
+      - ./ingester/data:/data
+    # 'no' para não reiniciar, pois é uma tarefa de execução única por enquanto
+    restart: "no"
+
 volumes:
   postgres_data:
