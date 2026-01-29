@@ -38,8 +38,6 @@ services:
       db:
         condition: service_healthy
     restart: always
-    volumes:
-      - ./backend:/app
     command: ./start.sh --workers 4
 
   # PostgreSQL + PostGIS
