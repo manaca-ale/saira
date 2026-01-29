@@ -24,12 +24,12 @@ jobs:
             echo "--- INICIANDO DEPLOY DE TESTE (SAIRA) ---"
             
             # 1. Atualizar Código
-            cd services
+            cd /home/ubuntu/saira
             git fetch origin develop
             git reset --hard origin/develop
             
             # 2. Docker
-            cd saira/services
+            cd services
             
             echo "2. Reiniciando Ambiente de Teste..."
             # Padrão Flora: Define explicitamente o projeto (-p test) e os arquivos (-f)
@@ -60,12 +60,12 @@ jobs:
             echo "--- INICIANDO DEPLOY DE PRODUÇÃO (SAIRA) ---"
             
             # 1. Atualizar Código
-            cd services
+            cd /home/ubuntu/saira
             git fetch origin main
             git reset --hard origin/main
             
             # 2. Docker
-            cd saira/services
+            cd services
             
             echo "2. Atualizando Produção..."
             # Padrão Flora: Define projeto (-p prod) e arquivos de produção (-f ...prod.yml)
