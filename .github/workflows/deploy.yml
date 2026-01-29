@@ -24,7 +24,7 @@ jobs:
             echo "--- INICIANDO DEPLOY DE TESTE (SAIRA) ---"
             
             # 1. Atualizar Código
-            Cd services
+            cd services
             git fetch origin develop
             git reset --hard origin/develop
             
