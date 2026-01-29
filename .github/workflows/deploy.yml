@@ -24,7 +24,7 @@ jobs:
             echo "--- INICIANDO DEPLOY DE TESTE (SAIRA) ---"
             
             # 1. Atualizar Código
-            cd /home/ubuntu/saira-project
+            cd /home/ubuntu/saira
             git fetch origin develop
             git reset --hard origin/develop
             
@@ -60,7 +60,7 @@ jobs:
             echo "--- INICIANDO DEPLOY DE PRODUÇÃO (SAIRA) ---"
             
             # 1. Atualizar Código
-            cd /home/ubuntu/saira-project
+            cd /home/ubuntu/saira
             git fetch origin main
             git reset --hard origin/main
             
