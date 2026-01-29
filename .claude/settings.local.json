@@ -21,7 +21,15 @@
       "Bash(docker restart:*)",
       "Bash(ping:*)",
       "Bash(docker compose:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(adb version:*)",
+      "Bash(adb devices:*)",
+      "Bash(powershell -Command \"Measure-Command { adb -s 1073e8400412 shell sh -c ''dumpsys battery'' 2>&1 | Out-Null } | Select-Object -Property TotalSeconds | Format-List\")",
+      "Bash(powershell -Command \"Measure-Command { adb -s 1073e8400412 shell dumpsys battery 2>&1 | Out-Null } | Select-Object -Property TotalSeconds | Format-List\")",
+      "Bash(powershell -Command:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m ingester.main:*)",
+      "Bash(python:*)"
     ]
   }
 }

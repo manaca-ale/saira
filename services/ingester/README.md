@@ -30,6 +30,21 @@ python -m ingester.main
 
 As capturas de tela serão salvas no diretório `services/ingester/data/captures`.
 
+### Validação rápida do parser de dumpsys
+
+```powershell
+python - << 'PY'
+from ingester.local.adb_adapter import parse_window_dump
+
+sample = """
+  imeLayeringTarget Window{97e2dda u0 com.xm.csee/com.xworld.MainActivity}
+  mCurrentFocus=Window{97e2dda u0 com.xm.csee/com.xworld.MainActivity}
+  mContentInsets=[0,76][0,130]
+"""
+print(parse_window_dump(sample))
+PY
+```
+
 ### 2. Produção / Implantação (Linux/Mini-PC)
 
 Para implantação em um ambiente Linux (como o mini-PC alvo do projeto), o serviço é executado via Docker, garantindo um ambiente consistente e autocontido.
