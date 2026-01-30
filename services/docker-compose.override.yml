@@ -38,7 +38,7 @@ services:
       db:
         condition: service_healthy
     restart: always
-    command: ./start.sh --workers 4
+    command: ["bash", "/app/start.sh", "--workers", "4"]
 
   # PostgreSQL + PostGIS
   db:
