@@ -103,6 +103,7 @@ LOG_MAX_BYTES = 5 * 1024 * 1024
 LOG_BACKUP_COUNT = 5
 HEALTH_JSONL_FILENAME = "health.jsonl"
 CYCLES_JSONL_PATH = os.path.join(LOG_DIR, "cycles.jsonl")
+CONTROL_JSON_PATH = os.path.join(LOG_DIR, "control.json")
 
 # --- Output ---
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "data", "captures")

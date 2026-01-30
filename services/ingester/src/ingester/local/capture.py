@@ -1,5 +1,6 @@
 # src/ingester/local/capture.py
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import time
 import json
@@ -15,6 +16,30 @@ from .. import config
 
 logger = logging.getLogger(__name__)
 
+
+def _ensure_logging() -> None:
+    if logging.getLogger().handlers:
+        return
+    os.makedirs(config.LOG_DIR, exist_ok=True)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+
+    file_handler = RotatingFileHandler(
+        os.path.join(config.LOG_DIR, "ingester.log"),
+        maxBytes=config.LOG_MAX_BYTES,
+        backupCount=config.LOG_BACKUP_COUNT,
+        encoding="utf-8",
+    )
+    file_handler.setFormatter(formatter)
+    root_logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+
+
 def _now_iso() -> str:
     return datetime.utcnow().isoformat()
 
@@ -23,6 +48,28 @@ def _append_jsonl(path: str, payload: dict) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, ensure_ascii=True) + "\n")
+
+
+def _read_control_state() -> dict:
+    path = config.CONTROL_JSON_PATH
+    if not os.path.exists(path):
+        return {"pause": False, "stop": False, "run_once": False}
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return {"pause": False, "stop": False, "run_once": False}
+    return {
+        "pause": bool(data.get("pause", False)),
+        "stop": bool(data.get("stop", False)),
+        "run_once": bool(data.get("run_once", False)),
+    }
+
+
+def _write_control_state(state: dict) -> None:
+    os.makedirs(config.LOG_DIR, exist_ok=True)
+    with open(config.CONTROL_JSON_PATH, "w", encoding="utf-8") as handle:
+        json.dump(state, handle, ensure_ascii=True, indent=2)
 
 
 def _step_start(name: str) -> dict:
@@ -566,12 +613,23 @@ def run_capture_batch(device_id: str | None = None, steps: list[dict] | None = N
 
 
 def run_forever_loop():
+    _ensure_logging()
     cycle_id = 0
     max_cycles = config.MAX_CYCLES
     if max_cycles == 0:
         max_cycles = None
 
     while True:
+        control = _read_control_state()
+        if control.get("stop"):
+            logger.info("Controle: stop solicitado. Encerrando loop.")
+            break
+        if control.get("pause") and not control.get("run_once"):
+            logger.info("Controle: pausa ativa. Aguardando para retomar...")
+            time.sleep(5)
+            continue
+        run_once = control.get("run_once", False)
+
         cycle_id += 1
         cycle_start = time.time()
         cycle_id_str = f"{cycle_id}"
@@ -649,6 +707,10 @@ def run_forever_loop():
                 if sleep_seconds > 0:
                     logger.info(f"[cycle_id={cycle_id}] Dormindo {sleep_seconds:.1f}s ate o proximo ciclo.")
                     time.sleep(sleep_seconds)
+
+        if run_once:
+            control["run_once"] = False
+            _write_control_state(control)
 
         if not config.RUN_FOREVER and max_cycles and cycle_id >= max_cycles:
             logger.info(f"[cycle_id={cycle_id}] Encerrando loop (MAX_CYCLES atingido).")

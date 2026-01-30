@@ -29,7 +29,9 @@
       "Bash(powershell -Command:*)",
       "Bash(pip install:*)",
       "Bash(python -m ingester.main:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(dir \"c:\\\\saira\\\\services\\\\ingester\\\\src\" /s /b)",
+      "Bash(dir:*)"
     ]
   }
 }
