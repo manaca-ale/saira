@@ -86,8 +86,13 @@ def upgrade() -> None:
 
     # Create detections table if not exists
     if not table_exists('detections'):
-        # Create enum type if not exists
+        # Create enum type if not exists (SQLAlchemy won't try to re-create it)
         op.execute(text("DO $$ BEGIN CREATE TYPE detectionstatus AS ENUM ('PENDENTE', 'EM_ANALISE', 'RESOLVIDO'); EXCEPTION WHEN duplicate_object THEN null; END $$;"))
+        detectionstatus_enum = postgresql.ENUM(
+            'PENDENTE', 'EM_ANALISE', 'RESOLVIDO',
+            name='detectionstatus',
+            create_type=False,
+        )
 
         op.create_table('detections',
         sa.Column('id', sa.UUID(), nullable=False),
@@ -103,7 +108,7 @@ def upgrade() -> None:
         sa.Column('material_type', sa.String(length=100), nullable=True),
         sa.Column('volume_m3', sa.Numeric(precision=10, scale=2), nullable=True),
         sa.Column('offenders', sa.String(length=255), nullable=True),
-        sa.Column('status', sa.Enum('PENDENTE', 'EM_ANALISE', 'RESOLVIDO', name='detectionstatus', create_type=False), nullable=True),
+        sa.Column('status', detectionstatus_enum, nullable=True),
         sa.Column('image_url', sa.String(length=512), nullable=True),
         sa.Column('confidence_score', sa.Numeric(precision=3, scale=2), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=True),

@@ -13,6 +13,10 @@ RUN npm ci
 # Copy the rest of the source code
 COPY . .
 
+# Build-time env for Vite
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build the project (output will be in /app/dist)
 RUN npm run build
 

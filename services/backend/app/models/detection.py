@@ -8,9 +8,9 @@ from app.core.database import Base
 
 
 class DetectionStatus(str, enum.Enum):
-    PENDENTE = "Pendente"
-    EM_ANALISE = "Em análise"
-    RESOLVIDO = "Resolvido"
+    PENDENTE = "PENDENTE"
+    EM_ANALISE = "EM_ANALISE"
+    RESOLVIDO = "RESOLVIDO"
 
 
 class Detection(Base):

@@ -43,7 +43,7 @@ export const Detections: React.FC = () => {
 
   const fetchDetections = async () => {
     try {
-      const response = await api.get("/detections");
+      const response = await api.get("/detections/");
       setDetections(response.data);
     } catch (error) {
       console.error("Erro ao carregar detecções:", error);

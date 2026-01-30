@@ -1,13 +1,16 @@
 services:
   # Frontend (React + Vite)
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=https://api-test-saira.manaca.tech/api/v1
     ports:
       - "3001:80"
     container_name: vite-react-ts-app-test
     restart: always
     environment:
-      - VITE_API_URL=https://api-test-saira.manaca.tech
+      - VITE_API_URL=https://api-test-saira.manaca.tech/api/v1
     depends_on:
       - backend
 
@@ -58,6 +61,7 @@ services:
       timeout: 5s
       retries: 5
     restart: always
+
 
 volumes:
   postgres_data_test:

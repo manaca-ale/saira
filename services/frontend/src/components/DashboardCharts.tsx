@@ -106,7 +106,7 @@ export const MapWidget: React.FC<MapWidgetProps> = ({
   useEffect(() => {
     const fetchCameras = async () => {
       try {
-        const response = await api.get("/cameras");
+        const response = await api.get("/cameras/");
         setCameras(response.data);
       } catch (error) {
         console.error("Erro ao carregar câmeras:", error);
