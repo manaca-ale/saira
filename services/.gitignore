@@ -22,6 +22,21 @@ ingester/data/logs/
 # Arquivos do sistema e IDE
 .DS_Store
 .vscode/
+.claude/
+
+# Python virtualenv / caches
+.venv/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# SQLite / local dbs
+*.sqlite
+*.db
 
 #Arquivos de teste
 worker/relatorios
+
+# Ingester tool outputs (local diagnostics)
+ingester/tools/recon_output/

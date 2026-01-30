@@ -5,6 +5,8 @@ on:
     branches:
       - main      # Produção
       - develop   # Teste
+    paths-ignore:
+      - "services/ingester/**"
 
 jobs:
   # --- AMBIENTE DE TESTE ---

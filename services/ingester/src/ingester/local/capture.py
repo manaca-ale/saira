@@ -154,11 +154,19 @@ def _write_error_artifacts(cycle_id: str, device_id: str, health: dict | None, s
     except Exception as exc:
         logger.error(f"Failed to write health.json: {exc}", exc_info=True)
 
+    screenshot_dest = os.path.join(base_dir, "screenshot.png")
     if screenshot_path and os.path.exists(screenshot_path):
         try:
-            shutil.copyfile(screenshot_path, os.path.join(base_dir, "screenshot.png"))
+            shutil.copyfile(screenshot_path, screenshot_dest)
         except Exception as exc:
             logger.error(f"Failed to copy screenshot: {exc}", exc_info=True)
+    else:
+        # No existing screenshot — capture a fresh one for diagnostics
+        try:
+            fresh_path = adb_adapter.screencap(device_id, screenshot_dest, timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+            logger.info(f"Fresh error screenshot saved: {fresh_path}")
+        except Exception as exc:
+            logger.error(f"Failed to capture error screenshot: {exc}", exc_info=True)
 
     return base_dir
 
@@ -612,9 +620,38 @@ def run_capture_batch(device_id: str | None = None, steps: list[dict] | None = N
             logger.info("Fluxo de captura para todas as cameras finalizado.")
 
 
+def _restart_app(device_id: str, reason: str, steps: list[dict]) -> None:
+    """Force-stop and relaunch the ICSee app.
+
+    After relaunch, presses BACK to dismiss any overlay (CloudWebActivity,
+    ads, webviews) that ICSee may show on cold start.
+    """
+    step = _step_start(f"app_restart:{reason}")
+    logger.info(f"Reiniciando app: {reason}...")
+    try:
+        adb_adapter.close_app(device_id, config.ICSEE_PACKAGE_NAME, timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+        time.sleep(2)
+        adb_adapter.go_home_keyevent(device_id, timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+        time.sleep(1)
+        adb_adapter.launch_app(device_id, timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+
+        # Dismiss overlays (CloudWebActivity) that appear after cold start
+        for i in range(config.APP_LAUNCH_DISMISS_BACK_PRESSES):
+            logger.info(f"Dismiss overlay: BACK ({i+1}/{config.APP_LAUNCH_DISMISS_BACK_PRESSES})")
+            adb_adapter.press_key(device_id, "KEYCODE_BACK", timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+            time.sleep(config.APP_LAUNCH_DISMISS_DELAY_SECONDS)
+
+        steps.append(_step_end(step, True))
+        logger.info("App reiniciado com sucesso.")
+    except Exception as exc:
+        steps.append(_step_end(step, False, str(exc)))
+        logger.error(f"Falha ao reiniciar app: {exc}", exc_info=True)
+
+
 def run_forever_loop():
     _ensure_logging()
     cycle_id = 0
+    consecutive_failures = 0
     max_cycles = config.MAX_CYCLES
     if max_cycles == 0:
         max_cycles = None
@@ -650,6 +687,15 @@ def run_forever_loop():
             if not devices:
                 raise RuntimeError("Nenhum dispositivo encontrado para captura.")
             device_id = devices[0]
+
+            # --- Periodic app restart ---
+            if config.APP_RESTART_EVERY_N_CYCLES > 0 and cycle_id % config.APP_RESTART_EVERY_N_CYCLES == 0:
+                _restart_app(device_id, f"periodic_every_{config.APP_RESTART_EVERY_N_CYCLES}_cycles", steps)
+
+            # --- Circuit breaker: restart app after N consecutive failures ---
+            if consecutive_failures > 0 and consecutive_failures % config.CIRCUIT_BREAKER_THRESHOLD == 0:
+                _restart_app(device_id, f"circuit_breaker_after_{consecutive_failures}_failures", steps)
+
             if config.ENABLE_HEALTHCHECK:
                 try:
                     health_snapshot = adb_adapter.get_health_snapshot(
@@ -670,16 +716,25 @@ def run_forever_loop():
             screenshot_info = run_capture_batch(device_id=device_id, steps=steps)
             focus_info = screenshot_info.get("focus") if screenshot_info else None
             steps.append(_step_end(step, True))
+            consecutive_failures = 0
 
         except Exception as exc:
             cycle_error = str(exc)
             cycle_error_type = type(exc).__name__
             cycle_trace = traceback.format_exc()
-            logger.error(f"[cycle_id={cycle_id}] Erro no ciclo: {exc}", exc_info=True)
-            logger.info(f"[cycle_id={cycle_id}] Aplicando backoff de {config.ERROR_BACKOFF_SECONDS}s.")
+            consecutive_failures += 1
+            logger.error(f"[cycle_id={cycle_id}] Erro no ciclo (falha consecutiva #{consecutive_failures}): {exc}", exc_info=True)
+
+            # Exponential backoff
+            backoff = min(
+                config.ERROR_BACKOFF_BASE_SECONDS * (2 ** (consecutive_failures - 1)),
+                config.ERROR_BACKOFF_MAX_SECONDS,
+            )
+            logger.info(f"[cycle_id={cycle_id}] Aplicando backoff exponencial de {backoff:.0f}s.")
+
             if device_id:
                 _write_error_artifacts(cycle_id_str, device_id, health_snapshot, screenshot_info.get("path") if screenshot_info else None)
-            time.sleep(config.ERROR_BACKOFF_SECONDS)
+            time.sleep(backoff)
         finally:
             cycle_end = time.time()
             cycle_duration_s = round(cycle_end - cycle_start, 3)
@@ -707,6 +762,14 @@ def run_forever_loop():
                 if sleep_seconds > 0:
                     logger.info(f"[cycle_id={cycle_id}] Dormindo {sleep_seconds:.1f}s ate o proximo ciclo.")
                     time.sleep(sleep_seconds)
+
+        # --- Max consecutive failures: stop loop entirely ---
+        if consecutive_failures >= config.MAX_CONSECUTIVE_FAILURES:
+            logger.critical(
+                f"[cycle_id={cycle_id}] {consecutive_failures} falhas consecutivas atingiram o limite "
+                f"de {config.MAX_CONSECUTIVE_FAILURES}. Encerrando loop para evitar danos ao dispositivo."
+            )
+            break
 
         if run_once:
             control["run_once"] = False

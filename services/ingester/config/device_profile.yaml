@@ -1,0 +1,31 @@
+# Device Profile — Dados específicos do dispositivo/setup.
+# Edite este arquivo para ajustar coordenadas, câmeras e thresholds
+# sem precisar alterar o código Python.
+
+cameras:
+  camera_quarto_1:
+    tap_coords: {x: 277, y: 478}
+  camera_quarto_2:
+    tap_coords: {x: 803, y: 478}
+
+ui_coords:
+  fullscreen_btn: {x: 994, y: 706}
+  dismiss_controls: {x: 500, y: 500}
+  app_icon: {x: 150, y: 1150}
+
+# Thresholds calibrados com dados reais de screen_profiles.json.
+# Árvore de decisão (avaliada nesta ordem):
+#   1. camera_normal:     dark_ratio_top >= 0.5
+#   2. camera_fullscreen: dark_ratio_left >= 0.7
+#   3. home:              h_line_status_bottom <= 0.3
+#   4. camera_list:       dark ratios baixos
+#   5. UNKNOWN:           nenhuma regra se encaixou
+screen_thresholds:
+  camera_normal:
+    dark_ratio_top_min: 0.5
+  camera_fullscreen:
+    dark_ratio_left_min: 0.7
+  home:
+    h_line_status_bottom_max: 0.3
+  sanity:
+    camera_list_max_dark: 0.3

@@ -142,30 +142,25 @@ h1 {
   margin: 0 0 6px;
 }
 
-.shots-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.shot-card {
-  border-radius: 14px;
-  border: 1px solid rgba(18, 18, 23, 0.12);
-  background: #fff;
+.shot-frame {
+  border-radius: 16px;
+  border: 1px dashed rgba(18, 18, 23, 0.2);
+  background: #f8f0e6;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
   overflow: hidden;
 }
 
-.shot-card img {
+.shot-frame img {
   width: 100%;
-  height: 140px;
-  object-fit: cover;
+  height: 260px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #111113;
   display: block;
-}
-
-.shot-card .meta {
-  padding: 8px 10px;
-  font-size: 12px;
-  color: var(--ink-soft);
 }
 
 .section-title {

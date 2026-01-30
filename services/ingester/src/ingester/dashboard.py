@@ -3,7 +3,7 @@ import json
 import os
 import threading
 import shutil
-from datetime import datetime
+from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlparse
@@ -97,14 +97,14 @@ def _write_control_state(state: dict) -> None:
 
 def _archive_logs() -> dict:
     os.makedirs(ARCHIVES_DIR, exist_ok=True)
-    stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     target = os.path.join(ARCHIVES_DIR, f"archive_{stamp}")
     os.makedirs(target, exist_ok=True)
 
     moved = 0
     skipped = []
     for name in os.listdir(LOG_DIR):
-        if name in ("archives", os.path.basename(CONTROL_PATH)):
+        if name in ("archives", os.path.basename(CONTROL_PATH), "screen_profiles.json"):
             continue
         src = os.path.join(LOG_DIR, name)
         dst = os.path.join(target, name)
@@ -113,6 +113,13 @@ def _archive_logs() -> dict:
             moved += 1
         except OSError:
             skipped.append(name)
+    captures_target = os.path.join(target, "captures")
+    if os.path.isdir(CAPTURES_DIR):
+        try:
+            shutil.move(CAPTURES_DIR, captures_target)
+            os.makedirs(CAPTURES_DIR, exist_ok=True)
+        except OSError:
+            skipped.append("captures")
     return {"moved": moved, "target": target, "skipped": skipped}
 
 
@@ -145,25 +152,25 @@ def _find_last_screenshot(cycles_path: str) -> dict | None:
     return None
 
 
-def _last_screenshot_per_camera(cycles_path: str) -> list[dict]:
-    items = _read_jsonl_tail(cycles_path, 400)
-    result: dict[str, dict] = {}
-    for item in reversed(items):
-        screenshot = item.get("screenshot") or {}
-        path = screenshot.get("path")
-        if not path or not os.path.exists(path):
+def _last_screenshot_per_camera_from_disk() -> list[dict]:
+    result = []
+    for name in config.CAMERAS.keys():
+        camera_dir = os.path.join(CAPTURES_DIR, name)
+        if not os.path.isdir(camera_dir):
+            result.append({"camera": name, "path": None, "ts_end": None})
             continue
-        for name in config.CAMERAS.keys():
-            if name in path and name not in result:
-                result[name] = {
-                    "camera": name,
-                    "path": path,
-                    "ts_end": item.get("ts_end"),
-                    "cycle_id": item.get("cycle_id"),
-                }
-        if len(result) >= len(config.CAMERAS):
-            break
-    return list(result.values())
+        files = [
+            os.path.join(camera_dir, f)
+            for f in os.listdir(camera_dir)
+            if f.lower().endswith((".png", ".jpg", ".jpeg"))
+        ]
+        if not files:
+            result.append({"camera": name, "path": None, "ts_end": None})
+            continue
+        latest = max(files, key=lambda p: os.path.getmtime(p))
+        ts = datetime.fromtimestamp(os.path.getmtime(latest), timezone.utc).isoformat()
+        result.append({"camera": name, "path": latest, "ts_end": ts})
+    return result
 
 
 def _active_cameras_from_cycle(cycle: dict | None) -> tuple[int, list[str]]:
@@ -269,14 +276,20 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.wfile.write(body)
+        except ConnectionAbortedError:
+            return
 
     def _send_bytes(self, body: bytes, content_type: str, status: int = 200) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.wfile.write(body)
+        except ConnectionAbortedError:
+            return
 
     def _send_text(self, text: str, status: int = 200) -> None:
         body = text.encode("utf-8")
@@ -314,7 +327,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if last_cycle and last_cycle.get("ts_end"):
                 try:
                     ts = datetime.fromisoformat(last_cycle["ts_end"])
-                    last_cycle_age_s = int((datetime.utcnow() - ts).total_seconds())
+                    if ts.tzinfo is None:
+                        ts = ts.replace(tzinfo=timezone.utc)
+                    last_cycle_age_s = int((datetime.now(timezone.utc) - ts).total_seconds())
                 except ValueError:
                     last_cycle_age_s = None
             payload = {
@@ -327,7 +342,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "last_cycle": last_cycle,
                 "last_health": last_health,
                 "last_screenshot": last_screenshot,
-                "last_screenshots": _last_screenshot_per_camera(CYCLES_PATH),
+                "last_screenshots": _last_screenshot_per_camera_from_disk(),
                 "capture_interval_s": config.CAPTURE_INTERVAL_SECONDS,
                 "control": control_state,
                 "last_action": last_action,

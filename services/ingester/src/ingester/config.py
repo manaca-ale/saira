@@ -1,11 +1,17 @@
 # src/ingester/config.py
 """
 Centralized configuration for the Ingester service.
+
+Device-specific data (cameras, coordinates, thresholds) is loaded from
+config/device_profile.yaml when available; otherwise built-in defaults are used.
 """
+import logging
 import os
 from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"), override=True)
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_bool_env(value: str | None, default: bool) -> bool:
@@ -19,81 +25,106 @@ def _parse_bool_env(value: str | None, default: bool) -> bool:
     return default
 
 
-# --- Application and Device Settings ---
+# ---------------------------------------------------------------------------
+# Device profile loader (YAML)
+# ---------------------------------------------------------------------------
 
-# Nova premissa: o fluxo de automação assume que o aplicativo alvo já está aberto.
-# Isso desativa a necessidade de navegar para a Home e abrir o app.
-ASSUME_APP_OPEN = True
+_DEVICE_PROFILE_PATH = os.path.join(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")),
+    "config",
+    "device_profile.yaml",
+)
 
-# Package name for the ICSee application.
-ICSEE_PACKAGE_NAME = "com.icsee.pro"
+
+def _load_device_profile() -> dict:
+    """Load device_profile.yaml if it exists. Returns empty dict on failure."""
+    if not os.path.isfile(_DEVICE_PROFILE_PATH):
+        logger.info("device_profile.yaml not found; using built-in defaults.")
+        return {}
+    try:
+        import yaml
+        with open(_DEVICE_PROFILE_PATH, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        logger.info(f"Loaded device profile from {_DEVICE_PROFILE_PATH}")
+        return data
+    except ImportError:
+        logger.warning("pyyaml not installed; using built-in defaults.")
+        return {}
+    except Exception as exc:
+        logger.warning(f"Failed to load device_profile.yaml: {exc}; using built-in defaults.")
+        return {}
 
 
-# --- Camera Configurations ---
-# Coordenadas para acessar a visualização da câmera dentro do app.
-CAMERAS = {
+_profile = _load_device_profile()
+
+# ---------------------------------------------------------------------------
+# Built-in defaults (used when YAML is absent or incomplete)
+# ---------------------------------------------------------------------------
+
+_DEFAULT_CAMERAS = {
     "camera_quarto_1": {
-        "tap_coords": {
-            "x": 833,
-            "y": 480
-        }
+        "tap_coords": {"x": 833, "y": 480}
     },
     "camera_quarto_2": {
-        "tap_coords": {
-            "x": 250,
-            "y": 480  # Coordenada Y ajustada para diferenciar da primeira câmera
-        }
+        "tap_coords": {"x": 250, "y": 480}
     }
 }
 
-# --- Ritual de Estabilização Pré-Captura ---
-# Sequência de ações a serem executadas para estabilizar o stream de vídeo
-# antes de realizar a captura do screenshot.
-PRE_CAPTURE_WAIT_SECONDS = 2  # Tempo de espera (em segundos) entre os taps do ritual.
+_DEFAULT_UI_COORDS = {
+    "fullscreen_btn": {"x": 994, "y": 706},
+    "dismiss_controls": {"x": 500, "y": 500},
+    "app_icon": {"x": 150, "y": 1150},
+}
+
+_DEFAULT_SCREEN_THRESHOLDS = {
+    "camera_normal": {"dark_ratio_top_min": 0.5},
+    "camera_fullscreen": {"dark_ratio_left_min": 0.7},
+    "home": {"h_line_status_bottom_max": 0.3},
+    "sanity": {"camera_list_max_dark": 0.3},
+}
+
+# ---------------------------------------------------------------------------
+# Application and Device Settings
+# ---------------------------------------------------------------------------
+
+ASSUME_APP_OPEN = True
+ICSEE_PACKAGE_NAME = "com.icsee.pro"
+
+# --- Camera Configurations (from YAML or defaults) ---
+CAMERAS = _profile.get("cameras", _DEFAULT_CAMERAS)
+
+# --- UI Coordinates (from YAML or defaults) ---
+_ui = _profile.get("ui_coords", _DEFAULT_UI_COORDS)
+FULLSCREEN_TAP_COORDS = _ui.get("fullscreen_btn", _DEFAULT_UI_COORDS["fullscreen_btn"])
+MENU_TAP_COORDS = _ui.get("dismiss_controls", _DEFAULT_UI_COORDS["dismiss_controls"])
+APP_ICON_TAP_COORDS = _ui.get("app_icon", _DEFAULT_UI_COORDS["app_icon"])
+
+# --- Pre-capture sequence (derived from UI coords) ---
+PRE_CAPTURE_WAIT_SECONDS = 2
 PRE_CAPTURE_SEQUENCE = [
-    {"type": "tap", "coords": {"x": 994, "y": 706}, "label": "fullscreen_btn"},
+    {"type": "tap", "coords": FULLSCREEN_TAP_COORDS, "label": "fullscreen_btn"},
     {"type": "wait", "duration": PRE_CAPTURE_WAIT_SECONDS},
-    {"type": "tap", "coords": {"x": 500, "y": 500}, "label": "dismiss_controls"},
+    {"type": "tap", "coords": MENU_TAP_COORDS, "label": "dismiss_controls"},
 ]
 
-# --- Fullscreen Controls ---
-FULLSCREEN_TAP_COORDS = {"x": 994, "y": 706}
-MENU_TAP_COORDS = {"x": 500, "y": 500}
-
 # --- Timing Delays (in seconds) ---
-# Delays para garantir que a UI responda adequadamente.
-
-# Delay entre a finalização de uma câmera e o início da próxima.
-# Essencial para permitir que a UI (lista de câmeras) se estabilize.
 INTER_CAMERA_DELAY_SECONDS = 1.0
+WAIT_STREAM_LOAD_SECONDS = 25
 
-# Tempo de espera para o stream da câmera carregar após selecioná-la.
-WAIT_STREAM_LOAD_SECONDS = 15
-
-# --- Ações Pós-Captura ---
-# Define o comportamento ao final do fluxo.
-
-# Número de vezes que a tecla BACK será pressionada.
+# --- Post-capture ---
 POST_CAPTURE_BACK_COUNT = 2
-# Delay entre os pressionamentos da tecla BACK.
 POST_BACK_DELAY_SECONDS = 0.5
 
 # --- Capture Loop (Cadence) ---
-# Default cadence is 5 minutes.
 CAPTURE_INTERVAL_SECONDS = int(os.getenv("INGESTER_CAPTURE_INTERVAL_SECONDS", "300"))
-# Health cadence.
 HEALTH_INTERVAL_SECONDS = 60
-# Allow infinite loop in local mode.
 RUN_FOREVER = _parse_bool_env(os.getenv("INGESTER_RUN_FOREVER"), True)
-# None or 0 means infinite cycles.
 MAX_CYCLES = int(os.getenv("INGESTER_MAX_CYCLES", "0")) or None
-# Backoff after a failed cycle.
+# Legacy fixed backoff (replaced by exponential backoff — see ERROR_BACKOFF_BASE_SECONDS).
 ERROR_BACKOFF_SECONDS = 30
-# ADB timeouts (seconds).
 CAPTURE_ADB_TIMEOUT_SECONDS = 30
 HEALTH_ADB_TIMEOUT_SECONDS = 30
 
-# Optional heavy dumpsys for debugging only.
 ENABLE_CONNECTIVITY_DUMPSYS = False
 
 # --- Logging ---
@@ -146,31 +177,29 @@ ENABLE_SCREEN_STATE_DETECTION = _parse_bool_env(
 # App launch configuration
 APP_LAUNCH_ACTIVITY = "com.xworld.MainActivity"
 APP_LAUNCH_WAIT_SECONDS = 8.0
-APP_ICON_TAP_COORDS = {"x": 150, "y": 1150}  # Fallback: ícone do ICSee na Home
 
 # Recovery settings
 MAX_STATE_RECOVERY_ATTEMPTS = 2
 PRE_CAPTURE_RETRY_MAX = 2
 STATE_CHECK_WAIT_SECONDS = 1.0
 
-# Screen state thresholds — calibrados com dados reais de screen_profiles.json.
-# Árvore de decisão (avaliada nesta ordem):
-#   1. camera_normal:     dark_ratio_top >= 0.5  (topo escuro, exclusivo desta tela)
-#   2. camera_fullscreen: dark_ratio_left >= 0.7  (borda esquerda escura = vídeo cheio)
-#   3. home:              h_line_status_bottom <= 0.3  (sem linha de status do app)
-#   4. camera_list:       h_line alto + dark ratios baixos
-#   5. UNKNOWN:           nenhuma regra se encaixou → tenta voltar para HOME
-SCREEN_STATE_THRESHOLDS = {
-    "camera_normal": {
-        "dark_ratio_top_min": 0.5,       # home=0.02, list=0.01, normal=0.76, full=0.04
-    },
-    "camera_fullscreen": {
-        "dark_ratio_left_min": 0.7,      # home=0.004, list=0, normal=0.15, full=0.86
-    },
-    "home": {
-        "h_line_status_bottom_max": 0.3, # home=0.11, list=0.79, normal=0.80, full=0.3-0.6
-    },
-    "sanity": {
-        "camera_list_max_dark": 0.3,     # dark_top e dark_left devem ser < 0.3 para camera_list
-    },
-}
+# Periodic app restart to prevent memory leaks (ICSee heap exhaustion).
+APP_RESTART_EVERY_N_CYCLES = int(os.getenv("INGESTER_APP_RESTART_EVERY_N_CYCLES", "50"))
+
+# Circuit breaker: after N consecutive cycle failures, force-stop the app.
+CIRCUIT_BREAKER_THRESHOLD = int(os.getenv("INGESTER_CIRCUIT_BREAKER_THRESHOLD", "3"))
+
+# Exponential backoff on consecutive failures (seconds).
+ERROR_BACKOFF_BASE_SECONDS = 10
+ERROR_BACKOFF_MAX_SECONDS = 300
+
+# Max consecutive failures before stopping the loop entirely.
+MAX_CONSECUTIVE_FAILURES = int(os.getenv("INGESTER_MAX_CONSECUTIVE_FAILURES", "10"))
+
+# Number of BACK presses after app launch to dismiss overlays (CloudWebActivity, ads, etc.)
+APP_LAUNCH_DISMISS_BACK_PRESSES = 2
+APP_LAUNCH_DISMISS_DELAY_SECONDS = 1.0
+
+# Screen state thresholds (from YAML or defaults)
+SCREEN_STATE_THRESHOLDS = _profile.get("screen_thresholds", _DEFAULT_SCREEN_THRESHOLDS)
+

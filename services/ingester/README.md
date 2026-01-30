@@ -1,60 +1,99 @@
 # Ingester Service
 
-Este serviço é responsável por capturar imagens de dispositivos.
+Serviço responsável por capturar screenshots de câmeras via app Android (ICSee) usando ADB.
 
-## Modos de Execução
+## Estrutura de pastas importante
 
-O Ingester foi projetado para operar em dois ambientes distintos:
+- Logs: `services/ingester/logs/`
+- Capturas: `services/ingester/data/captures/<camera_name>/`
+- Dashboard estático: `services/ingester/src/ingester/dashboard_static/`
 
-### 1. Desenvolvimento Local (Windows/macOS)
+## Execução local (Windows/macOS)
 
-Devido às limitações de acesso a dispositivos USB do Docker Desktop, o modo de desenvolvimento e teste no Windows ou macOS deve ser executado diretamente no host.
+> No Windows/macOS, execute direto no host (Docker Desktop não expõe USB bem).
 
-**Pré-requisitos:**
-- Python 3.11+ instalado
-- Android SDK Platform-Tools (ADB) instalado e adicionado ao `PATH` do sistema.
-- Um dispositivo Android (físico ou emulador) conectado e visível via `adb devices`.
-- Dependências Python instaladas via `poetry install`.
+**Pré-requisitos**
+- Python 3.11+
+- ADB (Android SDK Platform-Tools) no PATH
+- Dispositivo Android conectado (`adb devices`)
+- Dependências instaladas (Poetry)
 
-**Execução:**
-
-Navegue até o diretório `services/ingester` e execute o módulo:
+**Instalar dependências**
 
 ```powershell
-# Instalar dependências (apenas na primeira vez)
+cd C:\saira\services\ingester
 poetry install
+```
 
-# Executar o processo de captura
+**Executar ingester (modo local)**
+
+```powershell
+cd C:\saira\services\ingester
+$env:PYTHONPATH = "$PWD\src"
 python -m ingester.main
 ```
 
-As capturas de tela serão salvas no diretório `services/ingester/data/captures`.
+> O loop de captura grava ciclos em `logs/cycles.jsonl` e screenshots em `data/captures/<camera_name>/`.
 
-### Validação rápida do parser de dumpsys
+## Dashboard
+
+**Subir o dashboard**
 
 ```powershell
-python - << 'PY'
-from ingester.local.adb_adapter import parse_window_dump
-
-sample = """
-  imeLayeringTarget Window{97e2dda u0 com.xm.csee/com.xworld.MainActivity}
-  mCurrentFocus=Window{97e2dda u0 com.xm.csee/com.xworld.MainActivity}
-  mContentInsets=[0,76][0,130]
-"""
-print(parse_window_dump(sample))
-PY
+cd C:\saira\services\ingester
+$env:PYTHONPATH = "$PWD\src"
+python -m ingester.dashboard
 ```
 
-### 2. Produção / Implantação (Linux/Mini-PC)
+Abra: `http://127.0.0.1:8088`
 
-Para implantação em um ambiente Linux (como o mini-PC alvo do projeto), o serviço é executado via Docker, garantindo um ambiente consistente e autocontido.
+### Controles disponíveis
 
-**Execução:**
+- **Rodar 1 ciclo**: executa um ciclo (mesmo em pausa)
+- **Pausar / Retomar**: pausa/retoma o loop
+- **Stop**: encerra o loop no próximo checkpoint
+- **Arquivar logs**: move logs e capturas para `logs/archives/archive_<timestamp>` (somente com Stop ativo)
 
-Use o Docker Compose a partir do diretório `services`:
+> O estado do controle fica em `logs/control.json`.
+
+## Logs
+
+- Log principal: `logs/ingester.log`
+- Ciclos: `logs/cycles.jsonl`
+- Health checks: `logs/health.jsonl`
+
+Acompanhar em tempo real:
+
+```powershell
+Get-Content C:\saira\services\ingester\logs\ingester.log -Wait
+```
+
+## Configuração
+
+- Config principal: `services/ingester/src/ingester/config.py`
+- Variáveis de ambiente (opcional): `services/ingester/.env`
+
+**Câmeras**
+
+As câmeras são definidas em `config.py` usando o nome da câmera como pasta de captura:
+
+```python
+CAMERAS = {
+    "camera_quarto_1": {"tap_coords": {"x": 833, "y": 480}},
+    "camera_quarto_2": {"tap_coords": {"x": 250, "y": 480}},
+}
+```
+
+## Produção / Docker (Linux)
 
 ```bash
 docker compose up ingester --build
 ```
 
-O Dockerfile se encarrega de instalar o `adb` e todas as dependências necessárias dentro do container.
+O container instala `adb` e dependências automaticamente.
+
+## Troubleshooting rápido
+
+- **Botões não fazem nada**: o ingester precisa estar rodando; os botões só alteram `control.json`.
+- **404 em /api/archive**: o dashboard rodando não é o correto. Verifique `/api/version`.
+- **Acentos quebrados**: faça hard refresh (Ctrl+F5) e confirme UTF-8.

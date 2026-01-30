@@ -1,6 +1,8 @@
 const summaryCards = document.getElementById("summary-cards");
 const indicatorCards = document.getElementById("indicator-cards");
-const cameraShots = document.getElementById("camera-shots");
+const cameraSelect = document.getElementById("camera-select");
+const cameraShotFrame = document.getElementById("camera-shot-frame");
+const cameraShotMeta = document.getElementById("camera-shot-meta");
 const statusChip = document.getElementById("status-chip");
 const statusText = document.getElementById("status-text");
 const errorsList = document.getElementById("errors-list");
@@ -19,6 +21,8 @@ const btnArchive = document.getElementById("btn-archive");
 
 let cyclesData = [];
 let errorsData = [];
+let cameraShotsData = [];
+let cameraList = [];
 
 const fmtDate = (iso) => {
   if (!iso) return "-";
@@ -114,24 +118,8 @@ const renderSummary = (data) => {
     controlStatus.textContent = `Controle: pause=${control.pause} stop=${control.stop} run_once=${control.run_once} • Último ciclo há ${age}`;
   }
 
-  if (cameraShots) {
-    const shots = data.last_screenshots || [];
-    cameraShots.innerHTML = "";
-    if (!shots.length) {
-      cameraShots.innerHTML = '<span class="muted">Sem capturas recentes.</span>';
-    } else {
-      shots.forEach((shot) => {
-        const card = document.createElement("div");
-        card.className = "shot-card";
-        const imgSrc = `/media?path=${encodeURIComponent(shot.path)}`;
-        card.innerHTML = `
-          <img src="${imgSrc}" alt="${shot.camera}" />
-          <div class="meta">Último screenshot - ${shot.camera} • ${fmtDate(shot.ts_end)}</div>
-        `;
-        cameraShots.appendChild(card);
-      });
-    }
-  }
+  cameraShotsData = data.last_screenshots || [];
+  renderCameraShot();
 };
 
 const renderIndicators = () => {
@@ -266,6 +254,46 @@ const loadSummary = async () => {
   renderSummary(data);
 };
 
+const loadCameras = async () => {
+  const res = await fetch("/api/cameras");
+  if (!res.ok) return;
+  const data = await res.json();
+  cameraList = data.items || [];
+  renderCameraShot();
+};
+
+const renderCameraShot = () => {
+  if (!cameraShotFrame || !cameraShotMeta || !cameraSelect) return;
+  const previous = cameraSelect.value;
+  cameraSelect.innerHTML = "";
+
+  const list = cameraList.length ? cameraList : cameraShotsData.map((s) => s.camera);
+  if (!list.length) {
+    cameraShotFrame.innerHTML = '<span class="muted">Sem câmeras configuradas.</span>';
+    cameraShotMeta.textContent = "";
+    return;
+  }
+
+  list.forEach((camera) => {
+    const option = document.createElement("option");
+    option.value = camera;
+    option.textContent = camera;
+    if (previous && previous === camera) option.selected = true;
+    cameraSelect.appendChild(option);
+  });
+
+  const selected = cameraSelect.value || list[0];
+  const shot = cameraShotsData.find((s) => s.camera === selected);
+  if (!shot) {
+    cameraShotFrame.innerHTML = '<span class="muted">Sem captura para esta câmera.</span>';
+    cameraShotMeta.textContent = `Último screenshot - ${selected} • sem dados`;
+    return;
+  }
+  const imgSrc = `/media?path=${encodeURIComponent(shot.path)}`;
+  cameraShotFrame.innerHTML = `<img src="${imgSrc}" alt="${shot.camera}" />`;
+  cameraShotMeta.textContent = `Último screenshot - ${shot.camera} • ${fmtDate(shot.ts_end)}`;
+};
+
 const loadErrors = async () => {
   const res = await fetch("/api/errors?limit=120");
   if (!res.ok) return;
@@ -337,6 +365,7 @@ const refreshAll = () => {
 };
 
 refreshAll();
+loadCameras();
 setInterval(refreshAll, 20000);
 
 const loadVersion = async () => {
@@ -347,6 +376,8 @@ const loadVersion = async () => {
 };
 
 loadVersion();
+
+cameraSelect?.addEventListener("change", renderCameraShot);
 
 const wireButton = (id, fn) => {
   const btn = document.getElementById(id);

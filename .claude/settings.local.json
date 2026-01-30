@@ -31,7 +31,14 @@
       "Bash(python -m ingester.main:*)",
       "Bash(python:*)",
       "Bash(dir \"c:\\\\saira\\\\services\\\\ingester\\\\src\" /s /b)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(powershell.exe -Command \"Set-Location C:\\\\saira\\\\services\\\\ingester; python -c ''from ingester.local.screen_classifier import quick_detect; print\\(chr\\(79\\)+chr\\(75\\)\\)''\")",
+      "Bash(powershell.exe -Command \"Set-Location C:\\\\saira\\\\services\\\\ingester; python -c ''from ingester.local.ui_selector import tap_element; print\\(chr\\(79\\)+chr\\(75\\)\\)''\")",
+      "Bash(powershell.exe -Command \"Set-Location C:\\\\saira\\\\services\\\\ingester; python -c ''from ingester.local.capture import run_forever_loop; print\\(chr\\(79\\)+chr\\(75\\)\\)''\")",
+      "Bash(powershell.exe -Command \"Set-Location C:\\\\saira\\\\services\\\\ingester; python -c ''from ingester import config; print\\(config.ACTIVITY_MAP_HOME_PACKAGES, config.ACTIVITY_MAP_CAMERA_LIST, config.CAMERAS\\)''\")",
+      "Bash(git checkout:*)",
+      "Bash(findstr:*)",
+      "Bash(python3:*)"
     ]
   }
 }
