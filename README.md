@@ -61,7 +61,14 @@ docker-compose -p saira-dev exec backend python seed_db.py
 | API Docs (Swagger) | http://localhost:8001/docs |
 | pgAdmin | http://localhost:5050 |
 
-**Credenciais de teste:** `admin@saira.com` / `admin123`
+**Credenciais de teste:**
+
+| Servico | Email | Senha |
+| ------- | ----- | ----- |
+| Frontend (hardcoded) | `admin@gmail.com` | `12345` |
+| Backend API | `admin@saira.com` | `admin123` |
+
+> O frontend ainda nao esta integrado ao backend. Usa login hardcoded temporario.
 
 ## Ambientes
 

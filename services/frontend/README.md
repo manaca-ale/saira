@@ -93,6 +93,16 @@ npm run build
 npm run lint
 ```
 
+## Credenciais de Acesso
+
+O backend ainda nao esta integrado ao frontend. Enquanto isso, o login utiliza credenciais hardcoded em `src/pages/Login.tsx`:
+
+| Email | Senha |
+| ----- | ----- |
+| `admin@gmail.com` | `12345` |
+
+> **Nota:** quando a integracao com o backend estiver ativa, o login passara a usar o endpoint `POST /api/v1/auth/login` via OAuth2 password flow, e essas credenciais deixarao de funcionar. O usuario padrao do backend e `admin@saira.com` / `admin123`.
+
 ## Variaveis de Ambiente
 
 Criar `.env` na raiz do frontend:

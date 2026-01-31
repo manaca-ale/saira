@@ -41,6 +41,12 @@ services:
     restart: always
     command: ["bash", "/app/start.sh", "--workers", "4"]
 
+  # pgAdmin (nome distinto para evitar conflito com ambiente de dev/prod)
+  pgadmin:
+    container_name: saira-pgadmin-test
+    ports:
+      - "5051:80"
+
   # PostgreSQL + PostGIS
   db:
     image: postgis/postgis:15-3.4
