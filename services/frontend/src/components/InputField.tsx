@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+﻿import React from "react";
 import type { LucideIcon } from "lucide-react";
-import { Eye, EyeOff } from "lucide-react";
 
 // --- Type Definitions ---
 interface InputFieldProps {
@@ -10,10 +9,10 @@ interface InputFieldProps {
   placeholder: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   error?: boolean;
   errorMessage?: string;
-  isPassword?: boolean;
+  required?: boolean; // Added optional prop definition for safety
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -26,11 +25,8 @@ export const InputField: React.FC<InputFieldProps> = ({
   icon: Icon,
   error,
   errorMessage,
-  isPassword = false,
+  ...props // Spread remaining props like required
 }) => {
-  // --- State for password visibility ---
-  const [showPassword, setShowPassword] = useState(false);
-
   // --- Dynamic Style Calculations ---
   const labelColor = error ? "text-[#ff3366]" : "text-[#d9f99d]";
   const borderColor = error
@@ -38,16 +34,14 @@ export const InputField: React.FC<InputFieldProps> = ({
     : "border-zinc-600 focus:border-[#ccff33]";
   const iconColor = error ? "text-[#ff3366]" : "text-zinc-500";
 
-  // Determine actual input type
-  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
-
   return (
     // --- Component Container ---
     <div className="flex flex-col gap-2 w-full group">
       {/* --- Label Section --- */}
+      {/* FIX: Added 'select-none' to prevent text selection */}
       <label
         htmlFor={id}
-        className={`text-base font-normal tracking-wide transition-colors duration-200 ${labelColor}`}
+        className={`text-base font-normal tracking-wide transition-colors duration-200 select-none ${labelColor}`}
       >
         {label}
       </label>
@@ -56,31 +50,20 @@ export const InputField: React.FC<InputFieldProps> = ({
       <div className="relative">
         <input
           id={id}
-          type={inputType}
+          type={type}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           className={`
-            w-full bg-transparent border-[1px] rounded-2xl py-4 pl-5 ${isPassword ? 'pr-20' : 'pr-12'}
+            w-full bg-transparent border-[1px] rounded-2xl py-4 pl-5 pr-12 
             text-white placeholder-zinc-600 outline-none transition-all duration-300
             hover:border-zinc-500
             ${borderColor}
           `}
+          {...props}
         />
-        {isPassword ? (
-          <>
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className={`absolute right-12 top-1/2 -translate-y-1/2 transition-colors duration-200 hover:text-[#d9f99d] ${iconColor}`}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-            <Icon
-              className={`absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${iconColor}`}
-            />
-          </>
-        ) : (
+        {/* Only render Icon if it exists */}
+        {Icon && (
           <Icon
             className={`absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${iconColor}`}
           />
@@ -89,7 +72,7 @@ export const InputField: React.FC<InputFieldProps> = ({
 
       {/* --- Error Feedback --- */}
       {error && errorMessage && (
-        <span className="text-sm text-[#ff3366] font-medium mt-1 pl-1">
+        <span className="text-sm text-[#ff3366] font-medium mt-1 pl-1 select-none">
           {errorMessage}
         </span>
       )}

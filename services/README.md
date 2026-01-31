@@ -1,85 +1,80 @@
-# 🗺️ SAIRA - Sistema de Monitoramento de Descarte Irregular
+# services/
 
-## ✅ Status: PRONTO PARA EXECUÇÃO
+Diretorio principal contendo todos os servicos da aplicacao SAIRA.
 
-> **Implementação 100% Completa** - Frontend React + Backend FastAPI + PostgreSQL/PostGIS
+## Composicao
 
----
+| Servico | Porta | Descricao |
+|---------|-------|-----------|
+| `web` (frontend) | 3000 | SPA React servida via Nginx |
+| `backend` | 8001 | API REST FastAPI |
+| `db` | 5432 | PostgreSQL 15 + PostGIS 3.4 |
+| `pgadmin` | 5050 | Interface de administracao do banco (dev) |
+| `api-gateway` | 5000 | Nginx reverse proxy (prod/test) |
 
-## 🚀 INÍCIO RÁPIDO - LEIA PRIMEIRO
+## Docker Compose
 
-### 📖 Guia Principal de Execução
-**👉 [EXECUTAR_AGORA.md](./EXECUTAR_AGORA.md) 👈**
+Tres arquivos de composicao para ambientes distintos:
 
-Este é o guia completo passo a passo. Siga-o na ordem!
+- **`docker-compose.yml`** - Desenvolvimento local. Frontend em hot-reload, backend com volume montado.
+- **`docker-compose.override.yml`** - Ambiente de teste. Portas alternativas (3001, 5433, 5001).
+- **`docker-compose.prod.yml`** - Producao simulada. Inclui API gateway Nginx na porta 5000.
 
-### ⚡ Comandos Resumidos
+### Comandos
+
 ```bash
-cd c:\saira\services
-docker-compose down -v
-docker-compose up -d --build
-docker-compose exec backend alembic upgrade head
-docker-compose exec backend python seed_db.py
+# Dev
+docker-compose -p saira-dev up -d --build
+
+# Rebuild de um servico especifico
+docker-compose -p saira-dev up -d --build web
+
+# Logs em tempo real
+docker-compose -p saira-dev logs -f backend
+
+# Migracoes
+docker-compose -p saira-dev exec backend alembic upgrade head
+
+# Seed do banco
+docker-compose -p saira-dev exec backend python seed_db.py
+
+# Derrubar tudo (mantendo dados)
+docker-compose -p saira-dev down
+
+# Derrubar tudo + apagar volumes
+docker-compose -p saira-dev down -v
 ```
 
-**Acesse:** http://localhost:3000  
-**Login:** admin@saira.com / admin123
+## Variaveis de Ambiente
 
----
+Copie `.env.example` para `.env` e configure:
 
-## 📚 Documentação Disponível
+| Variavel | Descricao | Padrao |
+|----------|-----------|--------|
+| `SECRET_KEY` | Chave para assinatura JWT | (obrigatoria) |
+| `DATABASE_URL` | Connection string PostgreSQL | via docker-compose |
+| `AWS_ACCESS_KEY_ID` | Credencial AWS (S3) | (opcional) |
+| `AWS_SECRET_ACCESS_KEY` | Credencial AWS (S3) | (opcional) |
+| `S3_BUCKET_NAME` | Bucket para imagens | (opcional) |
+| `VITE_API_URL` | URL da API para o frontend | `http://localhost:8001/api/v1` |
 
-| Documento | Quando Usar |
-|-----------|-------------|
-| **[EXECUTAR_AGORA.md](./EXECUTAR_AGORA.md)** | 🎯 Primeira execução - Guia completo |
-| [START.md](./START.md) | ⚡ Comandos rápidos |
-| [RESUMO_CORRECOES.md](./RESUMO_CORRECOES.md) | 📋 O que foi corrigido |
-| [README_IMPLEMENTACAO.md](./README_IMPLEMENTACAO.md) | 📖 Documentação técnica |
+## Estrutura de Diretorios
 
----
-
-## 🏗️ Tecnologias
-
-- **Frontend:** React 19 + Vite + TypeScript + Tailwind CSS + Leaflet
-- **Backend:** FastAPI + PostgreSQL 15 + PostGIS + JWT
-- **DevOps:** Docker + Docker Compose + Nginx
-
----
-
-## 🎯 Funcionalidades
-
-✅ Dashboard com KPIs em tempo real  
-✅ Mapa interativo com câmeras (Leaflet)  
-✅ Gerenciamento de detecções  
-✅ CRUD completo de usuários  
-✅ Autenticação JWT  
-✅ Filtros e buscas  
-
----
-
-## 🌐 URLs
-
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8001/docs
-- pgAdmin: http://localhost:5050
-
----
-
-## 🔐 Credenciais
-
-**Login na Aplicação:**
-- Email: admin@saira.com
-- Senha: admin123
-
----
-
-## 🐛 Problemas?
-
-Consulte [EXECUTAR_AGORA.md](./EXECUTAR_AGORA.md) seção "Resolução de Problemas"
-
----
-
-## ✅ Tudo Pronto!
-
-Todos os arquivos estão configurados e testados.  
-Siga o [EXECUTAR_AGORA.md](./EXECUTAR_AGORA.md) e o sistema funcionará! 🚀
+```
+services/
+├── frontend/           # React + Vite + TypeScript
+├── backend/            # FastAPI + SQLAlchemy
+├── yolo-worker-vm/     # Worker YOLO (EC2)
+├── nginx/              # Configuracao do gateway
+├── infra/              # Terraform (AWS)
+├── db/                 # Migracoes SQL manuais
+├── docs/               # Documentacao e runbooks
+│   ├── architecture.md
+│   └── runbooks/
+├── scripts/            # Scripts de utilidade
+│   ├── install.sh
+│   └── download_weights.sh
+├── docker-compose.yml
+├── docker-compose.override.yml
+└── docker-compose.prod.yml
+```

@@ -38,7 +38,8 @@
       "Bash(powershell.exe -Command \"Set-Location C:\\\\saira\\\\services\\\\ingester; python -c ''from ingester import config; print\\(config.ACTIVITY_MAP_HOME_PACKAGES, config.ACTIVITY_MAP_CAMERA_LIST, config.CAMERAS\\)''\")",
       "Bash(git checkout:*)",
       "Bash(findstr:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(cmd /c \"cd /d c:\\\\saira\\\\services\\\\frontend && npx tsc --noEmit 2>&1\")"
     ]
   }
 }

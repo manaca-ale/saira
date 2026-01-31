@@ -1,21 +1,17 @@
 # Stage 1: Build the application
-FROM node:18-alpine as builder
+FROM node:20-alpine as builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy package.json (lockfile may not exist in repo)
+COPY package.json ./
 
-# Install dependencies (use ci for deterministic installs)
-RUN npm ci
+# Install dependencies - using 'npm install' to resolve lockfile mismatches
+RUN npm install
 
 # Copy the rest of the source code
 COPY . .
-
-# Build-time env for Vite
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
 
 # Build the project (output will be in /app/dist)
 RUN npm run build

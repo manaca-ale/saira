@@ -1,73 +1,108 @@
-# React + TypeScript + Vite
+# Frontend - SAIRA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SPA (Single Page Application) para gestao de ocorrencias de descarte irregular de residuos.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 18** + TypeScript
+- **Vite 7** (build e dev server)
+- **Tailwind CSS 4** (estilizacao)
+- **React Router 7** (rotas)
+- **Axios** (HTTP client com interceptors JWT)
+- **Recharts** (graficos do dashboard)
+- **React Leaflet** + Leaflet.heat (mapas interativos e heatmap)
+- **Framer Motion** (animacoes)
+- **Lucide React** (icones)
+- **jsPDF** (exportacao de relatorios em PDF)
 
-## React Compiler
+## Estrutura
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+├── main.tsx                    # Entry point (React + AuthProvider)
+├── App.tsx                     # Definicao de rotas
+│
+├── pages/
+│   ├── Login.tsx               # Tela de autenticacao
+│   ├── Dashboard.tsx           # Painel com KPIs, graficos e mapa de calor
+│   ├── Detections.tsx          # Listagem e gestao de ocorrencias
+│   └── UsersPage.tsx           # CRUD de usuarios do sistema
+│
+├── components/
+│   ├── Sidebar.tsx             # Barra lateral de navegacao
+│   ├── DashboardCharts.tsx     # Graficos (ocorrencias/mes, volume/RPA, reincidencias)
+│   ├── OccurrenceModal.tsx     # Modal de detalhes da ocorrencia + exportacao PNG/PDF
+│   ├── DeleteModal.tsx         # Modal de confirmacao de exclusao
+│   ├── UserModal.tsx           # Modal de criacao/edicao de usuario
+│   ├── InputField.tsx          # Campo de input reutilizavel
+│   ├── SharedFilters.tsx       # Componente de filtros compartilhados
+│   └── Tooltip.tsx             # Tooltip generico
+│
+├── contexts/
+│   └── AuthContext.tsx         # Context de autenticacao (login, logout, token JWT)
+│
+├── services/
+│   ├── api.ts                  # Instancia Axios com interceptors (JWT auto-inject, 401 redirect)
+│   └── mockData.ts             # Dados mock para desenvolvimento
+│
+└── assets/                     # Imagens estaticas
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Paginas
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Login (`/`)
+Formulario de autenticacao com email/senha. Envia credenciais via `POST /api/v1/auth/login` (OAuth2 password flow) e armazena o token JWT em `localStorage`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Dashboard (`/dashboard`)
+Painel principal com:
+- **KPIs**: total de ocorrencias, volume diario, contagem por status (pendente, em analise, resolvido)
+- **Graficos**: ocorrencias por mes, volumetria por RPA, locais reincidentes
+- **Mapa de calor**: visualizacao geoespacial das deteccoes via Leaflet + heatmap
+
+### Detections (`/detections`)
+Tabela de ocorrencias com filtros por RPA, status, bairro e periodo. Cada linha abre o `OccurrenceModal` com detalhes completos e opcao de exportar como PNG ou PDF.
+
+### Users (`/users`)
+CRUD completo de usuarios: listagem, criacao, edicao e exclusao. Campos: nome, email, telefone, secretaria, cargo, RPA.
+
+## Componentes Principais
+
+### OccurrenceModal
+Modal de detalhes de uma ocorrencia. Exibe imagem de evidencia, status, localizacao, tipo de residuo, volumetria e infratores. Possui exportacao programatica via **Canvas API** (PNG) e **jsPDF** (PDF), sem dependencia de `html2canvas`.
+
+### AuthContext
+Context provider que gerencia o ciclo de autenticacao:
+- `login(email, password)`: autentica e salva token + dados do usuario
+- `logout()`: limpa localStorage e redireciona para `/`
+- `validateToken()`: valida token existente no carregamento da aplicacao
+- Interceptor Axios automatico para injetar `Bearer` token e tratar 401
+
+## Desenvolvimento
+
+```bash
+# Instalar dependencias
+npm install
+
+# Dev server (hot reload)
+npm run dev
+
+# Build de producao
+npm run build
+
+# Lint
+npm run lint
 ```
+
+## Variaveis de Ambiente
+
+Criar `.env` na raiz do frontend:
+
+```env
+VITE_API_URL=http://localhost:8001/api/v1
+```
+
+## Docker
+
+O Dockerfile usa multi-stage build:
+1. **Stage build**: Node.js compila a aplicacao com Vite
+2. **Stage serve**: Nginx serve os arquivos estaticos com configuracao customizada (`nginx.conf`)

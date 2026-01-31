@@ -1,4 +1,5 @@
-import axios from 'axios';
+﻿import axios from 'axios';
+import type { InternalAxiosRequestConfig, AxiosError } from 'axios';
 
 // Criar instância do axios com configuração base
 const api = axios.create({
@@ -10,14 +11,14 @@ const api = axios.create({
 
 // Interceptor de Request - Adicionar token JWT
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('@Saira:token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
@@ -25,7 +26,7 @@ api.interceptors.request.use(
 // Interceptor de Response - Tratar erro 401
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Limpar token e redirecionar para login
       localStorage.removeItem('@Saira:token');

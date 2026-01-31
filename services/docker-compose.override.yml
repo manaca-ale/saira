@@ -9,8 +9,6 @@ services:
       - "3001:80"
     container_name: vite-react-ts-app-test
     restart: always
-    environment:
-      - VITE_API_URL=https://api-test-saira.manaca.tech/api/v1
     depends_on:
       - backend
 

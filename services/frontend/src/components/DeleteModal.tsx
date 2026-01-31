@@ -1,40 +1,57 @@
-import React from "react";
+﻿import React from "react";
+import { AlertTriangle } from "lucide-react";
 
 interface DeleteModalProps {
-  isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isClosing: boolean; // Animation state
 }
 
 export const DeleteModal: React.FC<DeleteModalProps> = ({
-  isOpen,
   onClose,
   onConfirm,
+  isClosing,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 text-center animate-in fade-in zoom-in duration-200">
-        <h3 className="text-xl font-bold text-[#1a1a1a] mb-2">
-          Tem certeza que deseja excluir este usuário?
+    <div
+      className={`
+        fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4
+        transition-opacity duration-500
+        ${isClosing ? "opacity-0" : "opacity-100"}
+      `}
+    >
+      <div
+        className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 relative text-center"
+        style={{
+          animation: isClosing
+            ? "modalPopExit 0.5s ease-in forwards"
+            : "modalPop 0.5s ease-out forwards",
+        }}
+      >
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle size={32} className="text-red-500" />
+        </div>
+
+        <h3 className="text-xl font-bold text-[#1a1a1a] mb-2 select-none">
+          Excluir Usuário?
         </h3>
-        <p className="text-gray-500 mb-8">
-          Essa ação removerá o acesso ao sistema.
+        <p className="text-gray-500 text-sm mb-8 select-none leading-relaxed">
+          Essa ação não pode ser desfeita. O usuário perderá acesso ao sistema
+          imediatamente.
         </p>
 
-        <div className="flex justify-center gap-3">
+        <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="px-6 py-2 rounded-lg bg-gray-200 text-gray-600 font-bold hover:bg-gray-300 transition-colors"
+            className="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors select-none"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            className="px-6 py-2 rounded-lg bg-[#f43f5e] text-white font-bold hover:bg-[#e11d48] transition-colors shadow-lg shadow-red-200"
+            className="flex-1 py-3 rounded-xl font-bold bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 transition-all select-none"
           >
-            Excluir usuário
+            Excluir
           </button>
         </div>
       </div>
