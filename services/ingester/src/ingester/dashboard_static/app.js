@@ -37,6 +37,17 @@ const fmtDuration = (ms) => {
   return `${s}s`;
 };
 
+const fmtSeconds = (seconds) => {
+  if (seconds == null) return "-";
+  const total = Math.max(0, Math.floor(seconds));
+  const days = Math.floor(total / 86400);
+  const hours = Math.floor((total % 86400) / 3600);
+  const mins = Math.floor((total % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h ${mins}m`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
+};
+
 const buildCard = (label, value, sub) => {
   const card = document.createElement("div");
   card.className = "card";
@@ -84,6 +95,11 @@ const renderSummary = (data) => {
     buildCard("Câmeras configuradas", data.cameras_configured ?? "-", "mapa do config"),
     buildCard("Ciclos totais", data.cycles_total ?? "-", "desde o início"),
     buildCard("Erros", data.cycles_error ?? "-", "ciclos com falha"),
+    buildCard(
+      "Tempo ligado",
+      fmtSeconds(data.program_uptime_s),
+      "uptime do dashboard"
+    ),
     buildCard(
       "Último ciclo",
       data.last_cycle?.cycle_id ?? "-",

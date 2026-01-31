@@ -1,4 +1,5 @@
 # src/ingester/local/capture.py
+import concurrent.futures
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -438,7 +439,55 @@ def _wait_for_stream(device_id: str, camera_name: str, cam_coords: dict) -> bool
     return False
 
 
-def run_capture_batch(device_id: str | None = None, steps: list[dict] | None = None) -> dict | None:
+class CameraCircuitBreaker:
+    """Per-camera circuit breaker. Disables a camera after N consecutive failures for a cooldown period."""
+
+    def __init__(self, threshold: int, cooldown_s: float):
+        self._threshold = threshold
+        self._cooldown_s = cooldown_s
+        self._failures: dict[str, int] = {}
+        self._disabled_until: dict[str, float] = {}
+
+    def record_success(self, camera_name: str) -> None:
+        self._failures[camera_name] = 0
+        self._disabled_until.pop(camera_name, None)
+
+    def record_failure(self, camera_name: str) -> None:
+        count = self._failures.get(camera_name, 0) + 1
+        self._failures[camera_name] = count
+        if count >= self._threshold:
+            until = time.monotonic() + self._cooldown_s
+            self._disabled_until[camera_name] = until
+            logger.warning(
+                f"[CB] {camera_name} desabilitada por {self._cooldown_s}s "
+                f"apos {count} falhas consecutivas"
+            )
+
+    def is_available(self, camera_name: str) -> bool:
+        until = self._disabled_until.get(camera_name)
+        if until is None:
+            return True
+        if time.monotonic() >= until:
+            self._disabled_until.pop(camera_name, None)
+            self._failures[camera_name] = 0
+            logger.info(f"[CB] {camera_name} reabilitada apos cooldown")
+            return True
+        remaining = until - time.monotonic()
+        logger.info(f"[CB] {camera_name} ainda desabilitada ({remaining:.0f}s restantes)")
+        return False
+
+    def status(self) -> dict:
+        return {
+            "failures": dict(self._failures),
+            "disabled": {k: round(v - time.monotonic(), 1) for k, v in self._disabled_until.items()},
+        }
+
+
+def run_capture_batch(
+    device_id: str | None = None,
+    steps: list[dict] | None = None,
+    camera_cb: CameraCircuitBreaker | None = None,
+) -> dict | None:
     """
     Executa um fluxo de captura para todas as cameras configuradas no app ICSee.
     Inclui verificacao de estado de tela e recuperacao automatica quando habilitado.
@@ -477,7 +526,16 @@ def run_capture_batch(device_id: str | None = None, steps: list[dict] | None = N
         logger.info(f"Encontradas {total_cameras} cameras para capturar.")
 
         last_screenshot_info = None
+        cameras_skipped = 0
+        cameras_failed = 0
         for i, (camera_name, camera_conf) in enumerate(config.CAMERAS.items()):
+            # --- Circuit breaker: skip disabled cameras ---
+            if camera_cb and not camera_cb.is_available(camera_name):
+                cameras_skipped += 1
+                if steps is not None:
+                    steps.append(_step_end(_step_start(f"camera:{camera_name}:skipped_cb"), True, "circuit_breaker_open"))
+                continue
+
             logger.info(f"--- [Camera {i+1}/{total_cameras}] Iniciando captura para: {camera_name} ---")
 
             try:
@@ -590,15 +648,26 @@ def run_capture_batch(device_id: str | None = None, steps: list[dict] | None = N
                     steps.append(_step_end(post_step, True))
 
                 logger.info(f"--- [Camera {i+1}/{total_cameras}] Captura para {camera_name} concluida. ---")
+                if camera_cb:
+                    camera_cb.record_success(camera_name)
 
             except Exception as e:
-                logger.error(f"--- [Camera {i+1}/{total_cameras}] Ocorreu um erro inesperado ao processar '{camera_name}': {e} ---", exc_info=True)
-                raise
+                logger.error(f"--- [Camera {i+1}/{total_cameras}] Erro ao processar '{camera_name}': {e} ---", exc_info=True)
+                cameras_failed += 1
+                if camera_cb:
+                    camera_cb.record_failure(camera_name)
+                continue
 
             # Adiciona um delay entre as cameras para estabilizacao da UI, exceto apos a ultima.
             if i < total_cameras - 1:
                 logger.info(f"Aguardando {config.INTER_CAMERA_DELAY_SECONDS}s antes de prosseguir para a proxima camera...")
                 time.sleep(config.INTER_CAMERA_DELAY_SECONDS)
+
+        # --- Check: at least one camera must have succeeded ---
+        if last_screenshot_info is None:
+            if cameras_skipped == total_cameras:
+                raise RuntimeError(f"Todas as {total_cameras} cameras desabilitadas pelo circuit breaker")
+            raise RuntimeError(f"Nenhuma camera capturada com sucesso ({cameras_failed} falhas, {cameras_skipped} puladas)")
 
         # --- CHECKPOINT C: verificar se voltamos para a lista de cameras ---
         if config.ENABLE_SCREEN_STATE_DETECTION:
@@ -648,6 +717,71 @@ def _restart_app(device_id: str, reason: str, steps: list[dict]) -> None:
         logger.error(f"Falha ao reiniciar app: {exc}", exc_info=True)
 
 
+def _detect_and_recover_app(device_id: str, reason: str, steps: list[dict]) -> bool:
+    """Detect if ICSee is in a bad state (OOM/ANR/crash) and force-restart if needed."""
+    try:
+        focus = adb_adapter.get_focus_info(device_id, timeout_s=config.HEALTH_ADB_TIMEOUT_SECONDS)
+        pkg = focus.get("package", "") or ""
+
+        is_launcher = any(lp in pkg for lp in config.LAUNCHER_PACKAGES)
+        is_anr = "Application Not Responding" in focus.get("raw", "") or (pkg == "android")
+
+        if is_launcher or is_anr:
+            logger.warning(f"App em estado ruim detectado: pkg={pkg}, launcher={is_launcher}, anr={is_anr}. Motivo: {reason}")
+            _restart_app(device_id, f"recovery:{reason}:pkg={pkg}", steps)
+            return True
+        return False
+    except Exception as exc:
+        logger.warning(f"Nao foi possivel verificar estado do app para recovery: {exc}")
+        return False
+
+
+def _run_cycle_body(
+    cycle_id: int,
+    steps: list[dict],
+    camera_cb: CameraCircuitBreaker,
+    consecutive_failures: int,
+) -> tuple:
+    """Cycle body extracted for watchdog wrapping. Returns (health_snapshot, screenshot_info, focus_info, device_id)."""
+    step = _step_start("health_check")
+    devices = adb_adapter.list_devices(timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+    if not devices:
+        raise RuntimeError("Nenhum dispositivo encontrado para captura.")
+    device_id = devices[0]
+
+    # --- Periodic app restart ---
+    if config.APP_RESTART_EVERY_N_CYCLES > 0 and cycle_id % config.APP_RESTART_EVERY_N_CYCLES == 0:
+        _restart_app(device_id, f"periodic_every_{config.APP_RESTART_EVERY_N_CYCLES}_cycles", steps)
+
+    # --- Circuit breaker: restart app after N consecutive failures ---
+    if consecutive_failures > 0 and consecutive_failures % config.CIRCUIT_BREAKER_THRESHOLD == 0:
+        _restart_app(device_id, f"circuit_breaker_after_{consecutive_failures}_failures", steps)
+
+    health_snapshot: dict | None = None
+    if config.ENABLE_HEALTHCHECK:
+        try:
+            health_snapshot = adb_adapter.get_health_snapshot(
+                device_id,
+                timeout_s=config.HEALTH_ADB_TIMEOUT_SECONDS,
+            )
+            steps.append(_step_end(step, True))
+        except Exception as exc:
+            steps.append(_step_end(step, False, f"health_error:{exc}"))
+            health_snapshot = {"error": str(exc)}
+            logger.exception("Health check failed.")
+    else:
+        logger.info("Health check desabilitado por config; pulando coleta.")
+        health_snapshot = {"disabled": True}
+        steps.append(_step_end(step, True, "disabled_by_config"))
+
+    step = _step_start("capture_batch")
+    screenshot_info = run_capture_batch(device_id=device_id, steps=steps, camera_cb=camera_cb)
+    focus_info = screenshot_info.get("focus") if screenshot_info else None
+    steps.append(_step_end(step, True))
+
+    return health_snapshot, screenshot_info, focus_info, device_id
+
+
 def run_forever_loop():
     _ensure_logging()
     cycle_id = 0
@@ -655,6 +789,11 @@ def run_forever_loop():
     max_cycles = config.MAX_CYCLES
     if max_cycles == 0:
         max_cycles = None
+
+    camera_cb = CameraCircuitBreaker(
+        threshold=config.CAMERA_CB_FAILURE_THRESHOLD,
+        cooldown_s=config.CAMERA_CB_COOLDOWN_SECONDS,
+    )
 
     while True:
         control = _read_control_state()
@@ -682,40 +821,23 @@ def run_forever_loop():
         device_id = None
 
         try:
-            step = _step_start("health_check")
-            devices = adb_adapter.list_devices(timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
-            if not devices:
-                raise RuntimeError("Nenhum dispositivo encontrado para captura.")
-            device_id = devices[0]
-
-            # --- Periodic app restart ---
-            if config.APP_RESTART_EVERY_N_CYCLES > 0 and cycle_id % config.APP_RESTART_EVERY_N_CYCLES == 0:
-                _restart_app(device_id, f"periodic_every_{config.APP_RESTART_EVERY_N_CYCLES}_cycles", steps)
-
-            # --- Circuit breaker: restart app after N consecutive failures ---
-            if consecutive_failures > 0 and consecutive_failures % config.CIRCUIT_BREAKER_THRESHOLD == 0:
-                _restart_app(device_id, f"circuit_breaker_after_{consecutive_failures}_failures", steps)
-
-            if config.ENABLE_HEALTHCHECK:
+            # --- Watchdog: run cycle body with global timeout ---
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    _run_cycle_body, cycle_id, steps, camera_cb, consecutive_failures,
+                )
                 try:
-                    health_snapshot = adb_adapter.get_health_snapshot(
-                        device_id,
-                        timeout_s=config.HEALTH_ADB_TIMEOUT_SECONDS,
+                    health_snapshot, screenshot_info, focus_info, device_id = future.result(
+                        timeout=config.CYCLE_TIMEOUT_SECONDS,
                     )
-                    steps.append(_step_end(step, True))
-                except Exception as exc:
-                    steps.append(_step_end(step, False, f"health_error:{exc}"))
-                    health_snapshot = {"error": str(exc)}
-                    logger.exception("Health check failed.")
-            else:
-                logger.info("Health check desabilitado por config; pulando coleta.")
-                health_snapshot = {"disabled": True}
-                steps.append(_step_end(step, True, "disabled_by_config"))
+                except concurrent.futures.TimeoutError:
+                    logger.error(
+                        f"[cycle_id={cycle_id}] Watchdog timeout! Ciclo excedeu {config.CYCLE_TIMEOUT_SECONDS}s. "
+                        f"Reiniciando ADB server para desbloquear."
+                    )
+                    adb_adapter._restart_adb_server()
+                    raise RuntimeError(f"Watchdog timeout apos {config.CYCLE_TIMEOUT_SECONDS}s")
 
-            step = _step_start("capture_batch")
-            screenshot_info = run_capture_batch(device_id=device_id, steps=steps)
-            focus_info = screenshot_info.get("focus") if screenshot_info else None
-            steps.append(_step_end(step, True))
             consecutive_failures = 0
 
         except Exception as exc:
@@ -724,6 +846,10 @@ def run_forever_loop():
             cycle_trace = traceback.format_exc()
             consecutive_failures += 1
             logger.error(f"[cycle_id={cycle_id}] Erro no ciclo (falha consecutiva #{consecutive_failures}): {exc}", exc_info=True)
+
+            # --- App recovery: detect OOM/ANR/crash and force-restart ---
+            if device_id:
+                _detect_and_recover_app(device_id, f"cycle_error:{cycle_error_type}", steps)
 
             # Exponential backoff
             backoff = min(
@@ -751,6 +877,7 @@ def run_forever_loop():
                 "focus": focus_info,
                 "health": health_snapshot,
                 "screenshot": screenshot_info,
+                "camera_cb": camera_cb.status(),
             }
             _append_jsonl(config.CYCLES_JSONL_PATH, event)
 

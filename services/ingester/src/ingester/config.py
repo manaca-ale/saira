@@ -123,7 +123,7 @@ MAX_CYCLES = int(os.getenv("INGESTER_MAX_CYCLES", "0")) or None
 # Legacy fixed backoff (replaced by exponential backoff — see ERROR_BACKOFF_BASE_SECONDS).
 ERROR_BACKOFF_SECONDS = 30
 CAPTURE_ADB_TIMEOUT_SECONDS = 30
-HEALTH_ADB_TIMEOUT_SECONDS = 30
+HEALTH_ADB_TIMEOUT_SECONDS = 15
 
 ENABLE_CONNECTIVITY_DUMPSYS = False
 
@@ -199,6 +199,19 @@ MAX_CONSECUTIVE_FAILURES = int(os.getenv("INGESTER_MAX_CONSECUTIVE_FAILURES", "1
 # Number of BACK presses after app launch to dismiss overlays (CloudWebActivity, ads, etc.)
 APP_LAUNCH_DISMISS_BACK_PRESSES = 2
 APP_LAUNCH_DISMISS_DELAY_SECONDS = 1.0
+
+# --- Per-camera circuit breaker ---
+CAMERA_CB_FAILURE_THRESHOLD = int(os.getenv("INGESTER_CAMERA_CB_FAILURE_THRESHOLD", "3"))
+CAMERA_CB_COOLDOWN_SECONDS = int(os.getenv("INGESTER_CAMERA_CB_COOLDOWN_SECONDS", "600"))
+
+# --- Cycle watchdog (global timeout per cycle) ---
+CYCLE_TIMEOUT_SECONDS = int(os.getenv("INGESTER_CYCLE_TIMEOUT_SECONDS", "180"))
+
+# --- Health check total timeout budget ---
+HEALTH_CHECK_TOTAL_TIMEOUT_SECONDS = int(os.getenv("INGESTER_HEALTH_TOTAL_TIMEOUT", "60"))
+
+# --- App recovery: known launcher packages ---
+LAUNCHER_PACKAGES = ["com.android.launcher", "com.android.launcher3", "com.sec.android.app.launcher"]
 
 # Screen state thresholds (from YAML or defaults)
 SCREEN_STATE_THRESHOLDS = _profile.get("screen_thresholds", _DEFAULT_SCREEN_THRESHOLDS)

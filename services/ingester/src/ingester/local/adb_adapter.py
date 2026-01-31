@@ -196,56 +196,82 @@ def get_device_state(device_id: str, timeout_s: float | None = None) -> str:
     return (result.stdout or "").strip()
 
 
-def get_health_snapshot(device_id: str, timeout_s: float) -> dict[str, Any]:
+def get_health_snapshot(
+    device_id: str,
+    timeout_s: float,
+    total_timeout_s: float | None = None,
+) -> dict[str, Any]:
     if not config.ENABLE_HEALTHCHECK:
         logger.info("Health check disabled by config; skipping device health collection.")
         return {"disabled": True, "device_id": device_id}
 
+    budget = total_timeout_s or config.HEALTH_CHECK_TOTAL_TIMEOUT_SECONDS
+    deadline = time.monotonic() + budget
     errors: list[str] = []
     snapshot: dict[str, Any] = {"device_id": device_id}
     warn_exc = logger.isEnabledFor(logging.DEBUG)
 
-    try:
-        snapshot["adb_state"] = get_device_state(device_id, timeout_s=timeout_s)
-        snapshot["adb_ok"] = True
-    except Exception as exc:
-        errors.append(f"adb_state: {exc}")
-        snapshot["adb_ok"] = False
-        logger.warning(f"ADB state check failed: {exc}", exc_info=warn_exc)
+    def _remaining() -> float:
+        return max(0, deadline - time.monotonic())
 
-    try:
-        snapshot.update(get_battery_info(device_id, timeout_s))
-    except Exception as exc:
-        errors.append(f"battery: {exc}")
-        logger.warning(f"Battery check failed: {exc}", exc_info=warn_exc)
+    def _cmd_timeout() -> float:
+        return min(timeout_s, _remaining()) if _remaining() > 0 else 0.1
 
-    try:
-        snapshot.update(get_uptime_info(device_id, timeout_s))
-    except Exception as exc:
-        errors.append(f"uptime: {exc}")
-        logger.warning(f"Uptime check failed: {exc}", exc_info=warn_exc)
+    def _budget_exceeded() -> bool:
+        if _remaining() <= 0:
+            errors.append("total_timeout_exceeded")
+            snapshot["_timeout"] = True
+            logger.warning(f"Health check total timeout ({budget}s) exceeded; returning partial snapshot.")
+            return True
+        return False
 
-    try:
-        snapshot.update(get_storage_info(device_id, timeout_s, "/data"))
-    except Exception as exc:
-        errors.append(f"storage: {exc}")
-        logger.warning(f"Storage check failed: {exc}", exc_info=warn_exc)
-
-    try:
-        snapshot.update(get_network_info(device_id, timeout_s))
-    except Exception as exc:
-        errors.append(f"network: {exc}")
-        logger.warning(f"Network check failed: {exc}", exc_info=warn_exc)
-
-    try:
-        snapshot.update(get_mem_info(device_id, timeout_s))
-    except Exception as exc:
-        errors.append(f"mem: {exc}")
-        logger.warning(f"Mem check failed: {exc}", exc_info=warn_exc)
-
-    if config.ENABLE_CONNECTIVITY_DUMPSYS:
+    if not _budget_exceeded():
         try:
-            result = _run_shell_cmd(device_id, "dumpsys connectivity | head -n 80", timeout_s=timeout_s, check=False)
+            snapshot["adb_state"] = get_device_state(device_id, timeout_s=_cmd_timeout())
+            snapshot["adb_ok"] = True
+        except Exception as exc:
+            errors.append(f"adb_state: {exc}")
+            snapshot["adb_ok"] = False
+            logger.warning(f"ADB state check failed: {exc}", exc_info=warn_exc)
+
+    if not _budget_exceeded():
+        try:
+            snapshot.update(get_battery_info(device_id, _cmd_timeout()))
+        except Exception as exc:
+            errors.append(f"battery: {exc}")
+            logger.warning(f"Battery check failed: {exc}", exc_info=warn_exc)
+
+    if not _budget_exceeded():
+        try:
+            snapshot.update(get_uptime_info(device_id, _cmd_timeout()))
+        except Exception as exc:
+            errors.append(f"uptime: {exc}")
+            logger.warning(f"Uptime check failed: {exc}", exc_info=warn_exc)
+
+    if not _budget_exceeded():
+        try:
+            snapshot.update(get_storage_info(device_id, _cmd_timeout(), "/data"))
+        except Exception as exc:
+            errors.append(f"storage: {exc}")
+            logger.warning(f"Storage check failed: {exc}", exc_info=warn_exc)
+
+    if not _budget_exceeded():
+        try:
+            snapshot.update(get_network_info(device_id, _cmd_timeout()))
+        except Exception as exc:
+            errors.append(f"network: {exc}")
+            logger.warning(f"Network check failed: {exc}", exc_info=warn_exc)
+
+    if not _budget_exceeded():
+        try:
+            snapshot.update(get_mem_info(device_id, _cmd_timeout()))
+        except Exception as exc:
+            errors.append(f"mem: {exc}")
+            logger.warning(f"Mem check failed: {exc}", exc_info=warn_exc)
+
+    if not _budget_exceeded() and config.ENABLE_CONNECTIVITY_DUMPSYS:
+        try:
+            result = _run_shell_cmd(device_id, "dumpsys connectivity | head -n 80", timeout_s=_cmd_timeout(), check=False)
             snapshot["connectivity_dumpsys"] = (result.stdout or "").splitlines()
         except Exception as exc:
             errors.append(f"connectivity_dumpsys: {exc}")

@@ -20,6 +20,7 @@ ARCHIVES_DIR = os.path.join(LOG_DIR, "archives")
 CYCLES_PATH = config.CYCLES_JSONL_PATH
 HEALTH_PATH = os.path.join(LOG_DIR, config.HEALTH_JSONL_FILENAME)
 CONTROL_PATH = config.CONTROL_JSON_PATH
+START_TIME = datetime.now(timezone.utc)
 
 ALLOWED_MEDIA_ROOTS = [LOG_DIR, CAPTURES_DIR]
 
@@ -347,6 +348,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "control": control_state,
                 "last_action": last_action,
                 "last_cycle_age_s": last_cycle_age_s,
+                "program_uptime_s": int((datetime.now(timezone.utc) - START_TIME).total_seconds()),
             }
             return self._send_json(payload)
 
