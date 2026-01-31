@@ -1,9 +1,9 @@
-name: Deploy Automático Saira (Padrão Flora)
+name: Deploy Automatico Saira
 
 on:
   push:
     branches:
-      - main      # Produção
+      - main      # Producao
       - develop   # Teste
     paths-ignore:
       - "services/ingester/**"
@@ -24,33 +24,25 @@ jobs:
           script: |
             set -e
             echo "--- INICIANDO DEPLOY DE TESTE (SAIRA) ---"
-            
-            # 1. Atualizar Código
+
             cd /home/ubuntu/saira
             git fetch origin develop
             git reset --hard origin/develop
-            
-            # 2. Docker
-            cd services
-            
-            echo "2. Reiniciando Ambiente de Teste..."
-            # Padrão Flora: Define explicitamente o projeto (-p test) e os arquivos (-f)
-            # O override é usado automaticamente aqui para definir portas de teste (3001/8002)
-            
-            # Derruba o ambiente antigo (limpeza)
-            docker compose -p test -f docker-compose.yml -f docker-compose.override.yml down
-            
-            # Sobe o novo
-            docker compose -p test -f docker-compose.yml -f docker-compose.override.yml up -d --build --force-recreate
-            
-            echo "✅ Teste rodando (Projeto: test)"
 
-  # --- AMBIENTE DE PRODUÇÃO ---
+            cd services
+
+            echo "Reiniciando Ambiente de Teste..."
+            docker compose -p saira-test -f docker-compose.test.yml down
+            docker compose -p saira-test -f docker-compose.test.yml up -d --build --force-recreate
+
+            echo "Teste rodando (Projeto: saira-test)"
+
+  # --- AMBIENTE DE PRODUCAO ---
   deploy-production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy Produção
+      - name: Deploy Producao
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -59,23 +51,16 @@ jobs:
           port: 22
           script: |
             set -e
-            echo "--- INICIANDO DEPLOY DE PRODUÇÃO (SAIRA) ---"
-            
-            # 1. Atualizar Código
+            echo "--- INICIANDO DEPLOY DE PRODUCAO (SAIRA) ---"
+
             cd /home/ubuntu/saira
             git fetch origin main
             git reset --hard origin/main
-            
-            # 2. Docker
+
             cd services
-            
-            echo "2. Atualizando Produção..."
-            # Padrão Flora: Define projeto (-p prod) e arquivos de produção (-f ...prod.yml)
-            
-            # Build separado (boa prática da Flora para garantir cache e imagem nova antes de mexer nos containers)
-            docker compose -p prod -f docker-compose.yml -f docker-compose.prod.yml build
-            
-            # Up sem 'down' (Zero Downtime Deployment)
-            docker compose -p prod -f docker-compose.yml -f docker-compose.prod.yml up -d
-            
-            echo "✅ Produção rodando (Projeto: prod)"
+
+            echo "Atualizando Producao..."
+            docker compose -p saira-prod -f docker-compose.prod.yml build
+            docker compose -p saira-prod -f docker-compose.prod.yml up -d
+
+            echo "Producao rodando (Projeto: saira-prod)"

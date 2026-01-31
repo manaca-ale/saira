@@ -39,7 +39,13 @@
       "Bash(git checkout:*)",
       "Bash(findstr:*)",
       "Bash(python3:*)",
-      "Bash(cmd /c \"cd /d c:\\\\saira\\\\services\\\\frontend && npx tsc --noEmit 2>&1\")"
+      "Bash(cmd /c \"cd /d c:\\\\saira\\\\services\\\\frontend && npx tsc --noEmit 2>&1\")",
+      "Bash(cmd /c \"cd /d c:\\\\saira\\\\services && ren docker-compose.override.yml docker-compose.test.yml\")",
+      "Bash(cmd /c \"dir c:\\\\saira\\\\services\\\\docker-compose*\")",
+      "Bash(cmd /c \"dir /b c:\\\\saira\\\\services\\\\docker-compose*\")",
+      "Bash(cmd /c \"cd /d c:\\\\saira && git mv services\\\\docker-compose.override.yml services\\\\docker-compose.test.yml\")",
+      "Bash(cmd /c \"cd /d c:\\\\saira && git status services\\\\docker-compose* 2>&1\")",
+      "Bash(cmd /c \"cd /d c:\\\\saira && git status --short 2>&1\")"
     ]
   }
 }

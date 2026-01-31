@@ -6,7 +6,6 @@ import {
   Trash2,
   AlertTriangle,
   Info,
-  Download,
   Disc,
 } from "lucide-react";
 import {
@@ -855,9 +854,6 @@ export const Dashboard: React.FC = () => {
                   <FilterIcon size={22} />
                 </button>
               </div>
-              <button className="h-[50px] px-6 py-2 bg-[#ccff33] rounded-xl hover:bg-[#b8e62e] transition-colors flex items-center justify-center text-black shadow-sm">
-                <Download size={24} />
-              </button>
             </div>
           </div>
         </div>

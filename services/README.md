@@ -16,33 +16,29 @@ Diretorio principal contendo todos os servicos da aplicacao SAIRA.
 
 Tres arquivos de composicao para ambientes distintos:
 
-- **`docker-compose.yml`** - Desenvolvimento local. Frontend em hot-reload, backend com volume montado.
-- **`docker-compose.override.yml`** - Ambiente de teste. Portas alternativas (3001, 5433, 5001).
-- **`docker-compose.prod.yml`** - Producao simulada. Inclui API gateway Nginx na porta 5000.
+Cada arquivo e **standalone** (nao depende de merge com outro). Isso evita conflitos de `container_name` e portas.
+
+- **`docker-compose.yml`** - Desenvolvimento local. Portas 3000, 8001, 5432, 5050.
+- **`docker-compose.test.yml`** - Teste (servidor). Portas 3001, 8002, 5433, 5001, 5051.
+- **`docker-compose.prod.yml`** - Producao (servidor). Portas 3000, 8001, 5432, 5000.
 
 ### Comandos
 
 ```bash
-# Dev
-docker-compose -p saira-dev up -d --build
+# Dev (local)
+docker compose up -d --build
+docker compose logs -f backend
+docker compose exec backend alembic upgrade head
+docker compose exec backend python seed_db.py
+docker compose down
 
-# Rebuild de um servico especifico
-docker-compose -p saira-dev up -d --build web
+# Teste (servidor)
+docker compose -p saira-test -f docker-compose.test.yml up -d --build
+docker compose -p saira-test -f docker-compose.test.yml down
 
-# Logs em tempo real
-docker-compose -p saira-dev logs -f backend
-
-# Migracoes
-docker-compose -p saira-dev exec backend alembic upgrade head
-
-# Seed do banco
-docker-compose -p saira-dev exec backend python seed_db.py
-
-# Derrubar tudo (mantendo dados)
-docker-compose -p saira-dev down
-
-# Derrubar tudo + apagar volumes
-docker-compose -p saira-dev down -v
+# Producao (servidor)
+docker compose -p saira-prod -f docker-compose.prod.yml up -d --build
+docker compose -p saira-prod -f docker-compose.prod.yml down
 ```
 
 ## Variaveis de Ambiente
@@ -74,7 +70,7 @@ services/
 ├── scripts/            # Scripts de utilidade
 │   ├── install.sh
 │   └── download_weights.sh
-├── docker-compose.yml
-├── docker-compose.override.yml
-└── docker-compose.prod.yml
+├── docker-compose.yml          # Dev
+├── docker-compose.test.yml     # Teste
+└── docker-compose.prod.yml     # Producao
 ```

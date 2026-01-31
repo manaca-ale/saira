@@ -8,17 +8,16 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "leaflet.heat";
 import { masterPois } from "../services/mockData";
-import type { PoiData, WasteType } from "../services/mockData";
+import type { PoiData } from "../services/mockData";
 
 // --- ENVIRONMENT VARIABLE ---
 const mapMode = import.meta.env.VITE_MAP_MODE || 'heatmap';
 
 // --- COLOR MAPPING for BUBBLE MAP ---
-const wasteTypeColors: Record<WasteType, string> = {
-  "Entulho": "#ef4444",        // Red
-  "Lixo domiciliar": "#3b82f6", // Blue
-  "Poda": "#22c55e",           // Green
-  "Pl\u00E1stico": "#f97316",      // Orange
+const statusColors: Record<PoiData["status"], string> = {
+  "Pendente": "#ef4444",
+  "Em an\u00E1lise": "#f97316",
+  "Resolvido": "#22c55e",
 };
 
 // --- ICON FIX ---
@@ -90,7 +89,7 @@ const BubbleMapLayer: React.FC<{ points: PoiData[]; scaleFactor: number; onMarke
     return <> {points.map(point => (
         <CircleMarker key={point.id} center={[point.latitude, point.longitude]}
             radius={Math.sqrt(point.volume) * scaleFactor}
-            pathOptions={{ color: wasteTypeColors[point.wasteType], fillColor: wasteTypeColors[point.wasteType], fillOpacity: 0.6, weight: 1 }}
+            pathOptions={{ color: statusColors[point.status], fillColor: statusColors[point.status], fillOpacity: 0.6, weight: 1 }}
         >
             <LeafletTooltip>
                 <div className="font-bold">{point.bairro}</div>
@@ -126,13 +125,17 @@ const Legend: React.FC<{ map: L.Map | null; points: PoiData[] }> = ({ map, point
                     </div>
                 `;
             } else { // bubble mode
-                const presentWasteTypes = Array.from(new Set(points.map((p) => p.wasteType))) as WasteType[];
-                let content = '<h4 class="font-bold text-sm mb-2">Tipo de Resíduo</h4>';
-                presentWasteTypes.forEach(type => {
+                const statusEntries: Array<PoiData["status"]> = [
+                  "Pendente",
+                  "Em an\u00E1lise",
+                  "Resolvido",
+                ];
+                let content = '<h4 class="font-bold text-sm mb-2">Status</h4>';
+                statusEntries.forEach((status) => {
                     content += `
                         <div class="flex items-center gap-2 mt-1">
-                            <i class="w-3 h-3 rounded-full" style="background-color: ${wasteTypeColors[type]}"></i>
-                            <span class="text-xs">${type}</span>
+                            <i class="w-3 h-3 rounded-full" style="background-color: ${statusColors[status]}"></i>
+                            <span class="text-xs">${status}</span>
                         </div>
                     `;
                 });

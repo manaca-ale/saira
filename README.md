@@ -44,13 +44,13 @@ Sistema de monitoramento urbano para deteccao automatica de descarte irregular d
 cd services
 
 # Subir todos os servicos
-docker-compose -p saira-dev up -d --build
+docker compose up -d --build
 
 # Executar migracoes
-docker-compose -p saira-dev exec backend alembic upgrade head
+docker compose exec backend alembic upgrade head
 
 # Popular banco com dados de teste
-docker-compose -p saira-dev exec backend python seed_db.py
+docker compose exec backend python seed_db.py
 ```
 
 **Acessos:**
@@ -72,16 +72,26 @@ docker-compose -p saira-dev exec backend python seed_db.py
 
 ## Ambientes
 
+Cada ambiente usa um arquivo standalone (`-f`) com nomes de container e portas unicos, permitindo coexistencia no mesmo servidor.
+
 ```bash
-# Desenvolvimento (padrao)
-docker-compose -p saira-dev up -d --build
+# Desenvolvimento (local)
+docker compose up -d --build
 
-# Teste
-docker-compose -f docker-compose.override.yml -p saira-test up -d --build
+# Teste (servidor)
+docker compose -p saira-test -f docker-compose.test.yml up -d --build
 
-# Producao (simulado)
-docker-compose -f docker-compose.prod.yml -p saira-prod up -d --build
+# Producao (servidor)
+docker compose -p saira-prod -f docker-compose.prod.yml up -d --build
 ```
+
+| Recurso | Dev | Teste | Producao |
+| ------- | --- | ----- | -------- |
+| Frontend | :3000 | :3001 | :3000 |
+| Backend | :8001 | :8002 | :8001 |
+| DB | :5432 | :5433 | :5432 |
+| Gateway | - | :5001 | :5000 |
+| pgAdmin | :5050 | :5051 | - |
 
 ## Estrutura do Repositorio
 
@@ -96,9 +106,9 @@ saira/
 │   ├── db/                # Migracoes SQL
 │   ├── docs/              # Documentacao tecnica
 │   ├── scripts/           # Scripts de utilidade
-│   ├── docker-compose.yml
-│   ├── docker-compose.override.yml
-│   └── docker-compose.prod.yml
+│   ├── docker-compose.yml          # Dev (local)
+│   ├── docker-compose.test.yml     # Teste (servidor)
+│   └── docker-compose.prod.yml     # Producao (servidor)
 └── README.md
 ```
 
