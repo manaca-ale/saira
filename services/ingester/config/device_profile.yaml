@@ -5,8 +5,8 @@
 cameras:
   camera_quarto_1:
     tap_coords: {x: 277, y: 478}
-  camera_quarto_2:
-    tap_coords: {x: 803, y: 478}
+  #camera_quarto_2:
+   # tap_coords: {x: 803, y: 478}
 
 ui_coords:
   fullscreen_btn: {x: 994, y: 706}

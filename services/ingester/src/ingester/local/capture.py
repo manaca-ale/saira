@@ -439,6 +439,88 @@ def _wait_for_stream(device_id: str, camera_name: str, cam_coords: dict) -> bool
     return False
 
 
+class CameraBatteryMonitor:
+    """Per-camera battery level tracking with warning/critical state management.
+
+    States:
+        NORMAL  (>15%): capture at normal interval
+        WARNING (≤15%): capture at 2× interval
+        CRITICAL(≤10%): pause capture, check battery every 30min
+    """
+
+    def __init__(self):
+        self._levels: dict[str, int | None] = {}
+        self._last_check: dict[str, float] = {}
+        self._state: dict[str, str] = {}  # "normal", "warning", "critical"
+
+    def should_check(self, camera_name: str) -> bool:
+        last = self._last_check.get(camera_name)
+        if last is None:
+            return True  # never checked
+        state = self._state.get(camera_name, "normal")
+        interval = (
+            config.BATTERY_CHECK_INTERVAL_LOW_SECONDS
+            if state == "critical"
+            else config.BATTERY_CHECK_INTERVAL_SECONDS
+        )
+        return (time.monotonic() - last) >= interval
+
+    def any_needs_check(self) -> bool:
+        for cam_name in config.CAMERAS:
+            if self.should_check(cam_name):
+                return True
+        return False
+
+    def update(self, camera_name: str, level: int | None) -> None:
+        self._levels[camera_name] = level
+        self._last_check[camera_name] = time.monotonic()
+        if level is None:
+            return
+
+        old_state = self._state.get(camera_name, "normal")
+
+        if level <= config.CAMERA_BATTERY_CRITICAL_LEVEL:
+            new_state = "critical"
+        elif level <= config.CAMERA_BATTERY_WARNING_LEVEL:
+            new_state = "warning"
+        else:
+            new_state = "normal"
+
+        # Transition from critical/warning back to normal only when ≥ RESUME level
+        if old_state in ("critical", "warning") and level < config.CAMERA_BATTERY_RESUME_LEVEL:
+            if new_state == "normal":
+                new_state = old_state  # keep current state until resume level reached
+
+        if new_state != old_state:
+            logger.info(
+                f"[BATTERY] {camera_name}: {old_state} -> {new_state} (level={level}%)"
+            )
+        self._state[camera_name] = new_state
+
+    def is_capture_paused(self, camera_name: str) -> bool:
+        # Block capture if battery is critical OR if we never got a reading
+        if camera_name not in self._levels:
+            return True  # no reading yet — block until first check succeeds
+        return self._state.get(camera_name) == "critical"
+
+    def get_interval_multiplier(self) -> int:
+        """Return 2 if any active camera is in warning state, else 1."""
+        for cam_name in config.CAMERAS:
+            state = self._state.get(cam_name, "normal")
+            if state == "warning":
+                return 2
+        return 1
+
+    def status(self) -> dict:
+        return {
+            cam: {
+                "level": self._levels.get(cam),
+                "state": self._state.get(cam, "unknown"),
+            }
+            for cam in config.CAMERAS
+        }
+
+
 class CameraCircuitBreaker:
     """Per-camera circuit breaker. Disables a camera after N consecutive failures for a cooldown period."""
 
@@ -483,10 +565,94 @@ class CameraCircuitBreaker:
         }
 
 
+def _check_cameras_battery(
+    device_id: str,
+    battery_monitor: CameraBatteryMonitor,
+    steps: list[dict],
+) -> None:
+    """Navigate to each camera's settings screen and read the battery level via uiautomator dump.
+
+    Flow per camera (from camera_list):
+      0. Verify we are on camera_list (recover if not)
+      1. Tap camera thumbnail → enters preview
+      2. Tap settings icon (X:1015, Y:150)
+      3. Wait for settings screen to load
+      4. uiautomator dump → parse battery
+      5. BACK → BACK → back to camera_list
+      6. Verify we returned to camera_list (recover if not)
+    """
+    settings_coords = config.CAMERA_SETTINGS_TAP_COORDS
+
+    # --- Verify starting screen ---
+    ok, state, _ = _check_screen(device_id, ScreenState.CAMERA_LIST, "battery_pre_check")
+    if not ok:
+        logger.warning(f"[BATTERY] Not on camera_list (state={state.value}), recovering...")
+        if not _recover_to_camera_list(device_id, state):
+            logger.error("[BATTERY] Failed to recover to camera_list, aborting battery check.")
+            steps.append(_step_end(_step_start("battery_pre_check"), False, f"recovery_failed:{state.value}"))
+            return
+
+    for camera_name, camera_conf in config.CAMERAS.items():
+        if not battery_monitor.should_check(camera_name):
+            continue
+
+        step = _step_start(f"battery_check:{camera_name}")
+        level = None
+        try:
+            cam_coords = camera_conf["tap_coords"]
+
+            # 1. Tap camera thumbnail
+            logger.info(f"[BATTERY] {camera_name}: tap camera at ({cam_coords['x']}, {cam_coords['y']})")
+            adb_adapter.tap(device_id, cam_coords["x"], cam_coords["y"], timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+            time.sleep(config.BATTERY_CHECK_SETTINGS_WAIT_SECONDS)
+
+            # 2. Tap settings icon
+            logger.info(f"[BATTERY] {camera_name}: tap settings at ({settings_coords['x']}, {settings_coords['y']})")
+            adb_adapter.tap(device_id, settings_coords["x"], settings_coords["y"], timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+            time.sleep(config.BATTERY_CHECK_SETTINGS_WAIT_SECONDS)
+
+            # 3. UI dump and parse
+            logger.info(f"[BATTERY] {camera_name}: running uiautomator dump...")
+            xml_content = adb_adapter.dump_ui_hierarchy(device_id, timeout_s=config.UIAUTOMATOR_DUMP_TIMEOUT_SECONDS)
+            level = adb_adapter.parse_camera_battery_from_settings(xml_content)
+
+            if level is not None:
+                logger.info(f"[BATTERY] {camera_name}: battery level = {level}%")
+            else:
+                logger.warning(f"[BATTERY] {camera_name}: could not read battery level from settings screen")
+
+            battery_monitor.update(camera_name, level)
+            steps.append(_step_end(step, True, f"level={level}%"))
+
+        except Exception as exc:
+            logger.error(f"[BATTERY] {camera_name}: battery check failed: {exc}", exc_info=True)
+            battery_monitor.update(camera_name, level)
+            steps.append(_step_end(step, False, str(exc)))
+        finally:
+            # 4. Navigate back to camera_list (BACK × 2)
+            try:
+                for _ in range(2):
+                    adb_adapter.press_key(device_id, "KEYCODE_BACK", timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+                    time.sleep(config.POST_BACK_DELAY_SECONDS)
+            except Exception as exc:
+                logger.warning(f"[BATTERY] {camera_name}: failed to navigate back: {exc}")
+
+            # 5. Verify we returned to camera_list
+            ok, state, _ = _check_screen(device_id, ScreenState.CAMERA_LIST, f"battery_post:{camera_name}")
+            if not ok:
+                logger.warning(f"[BATTERY] {camera_name}: not on camera_list after BACK (state={state.value}), recovering...")
+                if not _recover_to_camera_list(device_id, state):
+                    logger.error(f"[BATTERY] {camera_name}: recovery failed, aborting remaining cameras.")
+                    break
+
+    logger.info(f"[BATTERY] Check complete: {battery_monitor.status()}")
+
+
 def run_capture_batch(
     device_id: str | None = None,
     steps: list[dict] | None = None,
     camera_cb: CameraCircuitBreaker | None = None,
+    battery_monitor: CameraBatteryMonitor | None = None,
 ) -> dict | None:
     """
     Executa um fluxo de captura para todas as cameras configuradas no app ICSee.
@@ -529,6 +695,21 @@ def run_capture_batch(
         cameras_skipped = 0
         cameras_failed = 0
         for i, (camera_name, camera_conf) in enumerate(config.CAMERAS.items()):
+            # --- Battery: skip cameras without reading or with critically low battery ---
+            if battery_monitor and battery_monitor.is_capture_paused(camera_name):
+                cameras_skipped += 1
+                cam_status = battery_monitor.status().get(camera_name, {})
+                level = cam_status.get("level")
+                if level is None:
+                    reason = "no_battery_reading"
+                    logger.warning(f"[{camera_name}] Captura bloqueada: sem leitura de bateria ainda")
+                else:
+                    reason = f"battery_critical:{level}%"
+                    logger.warning(f"[{camera_name}] Captura pausada: bateria critica ({level}%)")
+                if steps is not None:
+                    steps.append(_step_end(_step_start(f"camera:{camera_name}:skipped_battery"), True, reason))
+                continue
+
             # --- Circuit breaker: skip disabled cameras ---
             if camera_cb and not camera_cb.is_available(camera_name):
                 cameras_skipped += 1
@@ -741,6 +922,7 @@ def _run_cycle_body(
     steps: list[dict],
     camera_cb: CameraCircuitBreaker,
     consecutive_failures: int,
+    battery_monitor: CameraBatteryMonitor | None = None,
 ) -> tuple:
     """Cycle body extracted for watchdog wrapping. Returns (health_snapshot, screenshot_info, focus_info, device_id)."""
     step = _step_start("health_check")
@@ -748,6 +930,40 @@ def _run_cycle_body(
     if not devices:
         raise RuntimeError("Nenhum dispositivo encontrado para captura.")
     device_id = devices[0]
+
+    # --- Memory pre-check before starting cycle ---
+    if config.MEMORY_CHECK_ENABLED:
+        mem_step = _step_start("memory_pre_check")
+        try:
+            mem_info = adb_adapter.get_mem_info(device_id, timeout_s=config.HEALTH_ADB_TIMEOUT_SECONDS)
+            mem_kb = mem_info.get("mem_available_kb")
+            if mem_kb is not None:
+                if mem_kb < config.MEMORY_CRITICAL_THRESHOLD_KB:
+                    logger.critical(
+                        f"[cycle_id={cycle_id}] MEMORY CRITICAL pre-check: {mem_kb}KB. "
+                        f"Rebooting device before cycle."
+                    )
+                    adb_adapter.reboot_device(device_id)
+                    adb_adapter.wait_for_device(device_id, max_wait_s=config.MEMORY_POST_REBOOT_WAIT_SECONDS)
+                    time.sleep(config.APP_LAUNCH_WAIT_SECONDS)
+                    adb_adapter.launch_app(device_id, timeout_s=config.CAPTURE_ADB_TIMEOUT_SECONDS)
+                    time.sleep(config.APP_LAUNCH_WAIT_SECONDS)
+                    steps.append(_step_end(mem_step, True, f"rebooted:mem={mem_kb}KB"))
+                elif mem_kb < config.MEMORY_WARNING_THRESHOLD_KB:
+                    logger.warning(
+                        f"[cycle_id={cycle_id}] MEMORY WARNING pre-check: {mem_kb}KB. "
+                        f"Restarting app to free memory."
+                    )
+                    _restart_app(device_id, f"memory_warning:{mem_kb}KB", steps)
+                    time.sleep(5)
+                    steps.append(_step_end(mem_step, True, f"app_restarted:mem={mem_kb}KB"))
+                else:
+                    steps.append(_step_end(mem_step, True, f"ok:mem={mem_kb}KB"))
+            else:
+                steps.append(_step_end(mem_step, True, "mem_unavailable"))
+        except Exception as exc:
+            logger.warning(f"[cycle_id={cycle_id}] Memory pre-check failed: {exc}")
+            steps.append(_step_end(mem_step, False, str(exc)))
 
     # --- Periodic app restart ---
     if config.APP_RESTART_EVERY_N_CYCLES > 0 and cycle_id % config.APP_RESTART_EVERY_N_CYCLES == 0:
@@ -774,8 +990,16 @@ def _run_cycle_body(
         health_snapshot = {"disabled": True}
         steps.append(_step_end(step, True, "disabled_by_config"))
 
+    # --- Camera battery check ---
+    if battery_monitor and battery_monitor.any_needs_check():
+        logger.info(f"[cycle_id={cycle_id}] Running camera battery check...")
+        _check_cameras_battery(device_id, battery_monitor, steps)
+
     step = _step_start("capture_batch")
-    screenshot_info = run_capture_batch(device_id=device_id, steps=steps, camera_cb=camera_cb)
+    screenshot_info = run_capture_batch(
+        device_id=device_id, steps=steps, camera_cb=camera_cb,
+        battery_monitor=battery_monitor,
+    )
     focus_info = screenshot_info.get("focus") if screenshot_info else None
     steps.append(_step_end(step, True))
 
@@ -794,6 +1018,7 @@ def run_forever_loop():
         threshold=config.CAMERA_CB_FAILURE_THRESHOLD,
         cooldown_s=config.CAMERA_CB_COOLDOWN_SECONDS,
     )
+    battery_monitor = CameraBatteryMonitor()
 
     while True:
         control = _read_control_state()
@@ -825,6 +1050,7 @@ def run_forever_loop():
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(
                     _run_cycle_body, cycle_id, steps, camera_cb, consecutive_failures,
+                    battery_monitor,
                 )
                 try:
                     health_snapshot, screenshot_info, focus_info, device_id = future.result(
@@ -878,6 +1104,7 @@ def run_forever_loop():
                 "health": health_snapshot,
                 "screenshot": screenshot_info,
                 "camera_cb": camera_cb.status(),
+                "camera_battery": battery_monitor.status(),
             }
             _append_jsonl(config.CYCLES_JSONL_PATH, event)
 
@@ -885,7 +1112,13 @@ def run_forever_loop():
 
             if not cycle_error:
                 elapsed = cycle_end - cycle_start
-                sleep_seconds = max(0, config.CAPTURE_INTERVAL_SECONDS - elapsed)
+                interval = config.CAPTURE_INTERVAL_SECONDS * battery_monitor.get_interval_multiplier()
+                sleep_seconds = max(0, interval - elapsed)
+                if battery_monitor.get_interval_multiplier() > 1:
+                    logger.info(
+                        f"[cycle_id={cycle_id}] Intervalo dobrado por bateria baixa "
+                        f"({config.CAPTURE_INTERVAL_SECONDS}s -> {interval}s)"
+                    )
                 if sleep_seconds > 0:
                     logger.info(f"[cycle_id={cycle_id}] Dormindo {sleep_seconds:.1f}s ate o proximo ciclo.")
                     time.sleep(sleep_seconds)

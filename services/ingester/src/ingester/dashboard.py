@@ -333,6 +333,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     last_cycle_age_s = int((datetime.now(timezone.utc) - ts).total_seconds())
                 except ValueError:
                     last_cycle_age_s = None
+            camera_battery = last_cycle.get("camera_battery") if last_cycle else None
+            camera_battery_ts = last_cycle.get("ts_end") if (last_cycle and camera_battery) else None
             payload = {
                 "cameras_configured": len(config.CAMERAS),
                 "cameras_active": active_count,
@@ -349,6 +351,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "last_action": last_action,
                 "last_cycle_age_s": last_cycle_age_s,
                 "program_uptime_s": int((datetime.now(timezone.utc) - START_TIME).total_seconds()),
+                "camera_battery": camera_battery,
+                "camera_battery_ts": camera_battery_ts,
             }
             return self._send_json(payload)
 
@@ -471,6 +475,6 @@ def run_dashboard(host: str = "127.0.0.1", port: int = 8088) -> None:
 
 
 if __name__ == "__main__":
-    host = os.environ.get("INGESTER_DASHBOARD_HOST", "127.0.0.1")
+    host = os.environ.get("INGESTER_DASHBOARD_HOST", "0.0.0.0")
     port = _safe_int(os.environ.get("INGESTER_DASHBOARD_PORT"), 8088)
     run_dashboard(host=host, port=port)

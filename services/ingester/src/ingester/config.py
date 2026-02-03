@@ -64,10 +64,10 @@ _profile = _load_device_profile()
 _DEFAULT_CAMERAS = {
     "camera_quarto_1": {
         "tap_coords": {"x": 833, "y": 480}
-    },
-    "camera_quarto_2": {
-        "tap_coords": {"x": 250, "y": 480}
-    }
+    }#,
+   # "camera_quarto_2": {
+    #    "tap_coords": {"x": 250, "y": 480}
+        #}
 }
 
 _DEFAULT_UI_COORDS = {
@@ -210,9 +210,26 @@ CYCLE_TIMEOUT_SECONDS = int(os.getenv("INGESTER_CYCLE_TIMEOUT_SECONDS", "180"))
 # --- Health check total timeout budget ---
 HEALTH_CHECK_TOTAL_TIMEOUT_SECONDS = int(os.getenv("INGESTER_HEALTH_TOTAL_TIMEOUT", "60"))
 
+# --- Memory watchdog thresholds ---
+MEMORY_CHECK_ENABLED = _parse_bool_env(os.getenv("INGESTER_MEMORY_CHECK_ENABLED"), True)
+MEMORY_WARNING_THRESHOLD_KB = int(os.getenv("INGESTER_MEMORY_WARNING_KB", "400000"))    # ~400MB
+MEMORY_CRITICAL_THRESHOLD_KB = int(os.getenv("INGESTER_MEMORY_CRITICAL_KB", "200000"))  # ~200MB
+MEMORY_POST_REBOOT_WAIT_SECONDS = int(os.getenv("INGESTER_MEMORY_POST_REBOOT_WAIT", "120"))
+
 # --- App recovery: known launcher packages ---
 LAUNCHER_PACKAGES = ["com.android.launcher", "com.android.launcher3", "com.sec.android.app.launcher"]
 
 # Screen state thresholds (from YAML or defaults)
 SCREEN_STATE_THRESHOLDS = _profile.get("screen_thresholds", _DEFAULT_SCREEN_THRESHOLDS)
+
+# --- Camera Battery Monitoring (IP cameras via ICSee app) ---
+BATTERY_CHECK_INTERVAL_SECONDS = int(os.getenv("INGESTER_BATTERY_CHECK_INTERVAL", "3600"))       # 1 hora
+BATTERY_CHECK_INTERVAL_LOW_SECONDS = int(os.getenv("INGESTER_BATTERY_CHECK_LOW_INTERVAL", "1800"))  # 30 min quando critical
+CAMERA_BATTERY_WARNING_LEVEL = int(os.getenv("INGESTER_BATTERY_WARNING_LEVEL", "15"))   # ≤15%: dobra intervalo
+CAMERA_BATTERY_CRITICAL_LEVEL = int(os.getenv("INGESTER_BATTERY_CRITICAL_LEVEL", "10"))  # ≤10%: pausa captura
+CAMERA_BATTERY_RESUME_LEVEL = int(os.getenv("INGESTER_BATTERY_RESUME_LEVEL", "15"))     # ≥15%: retoma normal
+CAMERA_SETTINGS_TAP_COORDS = {"x": 1015, "y": 150}
+UIAUTOMATOR_DUMP_PATH = "/data/local/tmp/ui_dump.xml"
+UIAUTOMATOR_DUMP_TIMEOUT_SECONDS = 15
+BATTERY_CHECK_SETTINGS_WAIT_SECONDS = 2.0
 

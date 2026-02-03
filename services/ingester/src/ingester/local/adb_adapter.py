@@ -535,6 +535,69 @@ def _tail_text(text: str, max_chars: int) -> str:
     return text[-max_chars:].strip()
 
 
+def reboot_device(device_id: str, timeout_s: float | None = 30) -> None:
+    """Reboot the Android device via ADB."""
+    logger.warning(f"Rebooting device {device_id}...")
+    _run_command(["-s", device_id, "reboot"], timeout_s=timeout_s, check=False)
+
+
+def wait_for_device(device_id: str, max_wait_s: float = 120, poll_interval_s: float = 5) -> bool:
+    """Wait until the device comes back online after a reboot.
+
+    Returns True if device reconnected within *max_wait_s*, False otherwise.
+    """
+    logger.info(f"Waiting for device {device_id} to come back online (max {max_wait_s}s)...")
+    deadline = time.monotonic() + max_wait_s
+    while time.monotonic() < deadline:
+        try:
+            devices = list_devices(timeout_s=5)
+            if device_id in devices:
+                logger.info(f"Device {device_id} is back online.")
+                return True
+        except Exception:
+            pass
+        time.sleep(poll_interval_s)
+    logger.error(f"Device {device_id} did not come back within {max_wait_s}s.")
+    return False
+
+
+def dump_ui_hierarchy(device_id: str, timeout_s: float | None = None) -> str:
+    """Run uiautomator dump and return the XML content as a string."""
+    dump_path = config.UIAUTOMATOR_DUMP_PATH
+    t = timeout_s or config.UIAUTOMATOR_DUMP_TIMEOUT_SECONDS
+    _run_shell_cmd(device_id, f"uiautomator dump {dump_path}", timeout_s=t, check=False)
+    result = _run_shell_cmd(device_id, f"cat {dump_path}", timeout_s=t, check=True)
+    return result.stdout or ""
+
+
+def parse_camera_battery_from_settings(xml_content: str) -> int | None:
+    """Extract battery percentage from the ICSee settings screen UI dump.
+
+    Looks for the node with resource-id 'com.xm.csee:id/lis_battery_manager',
+    then finds the 'tv_right' TextView inside it which contains text like '48%'.
+    """
+    import xml.etree.ElementTree as ET
+    try:
+        root = ET.fromstring(xml_content)
+    except ET.ParseError:
+        logger.warning("Failed to parse UI dump XML for battery extraction.")
+        return None
+
+    for node in root.iter("node"):
+        rid = node.get("resource-id", "")
+        if rid == "com.xm.csee:id/lis_battery_manager":
+            for child in node.iter("node"):
+                if child.get("resource-id", "") == "com.xm.csee:id/tv_right":
+                    text = child.get("text", "").strip()
+                    match = re.search(r"(\d+)", text)
+                    if match:
+                        return int(match.group(1))
+            break
+
+    logger.warning("Battery field (lis_battery_manager/tv_right) not found in UI dump.")
+    return None
+
+
 def _restart_adb_server() -> None:
     try:
         subprocess.run(["adb", "kill-server"], capture_output=True, text=True, check=False)

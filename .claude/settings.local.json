@@ -45,7 +45,10 @@
       "Bash(cmd /c \"dir /b c:\\\\saira\\\\services\\\\docker-compose*\")",
       "Bash(cmd /c \"cd /d c:\\\\saira && git mv services\\\\docker-compose.override.yml services\\\\docker-compose.test.yml\")",
       "Bash(cmd /c \"cd /d c:\\\\saira && git status services\\\\docker-compose* 2>&1\")",
-      "Bash(cmd /c \"cd /d c:\\\\saira && git status --short 2>&1\")"
+      "Bash(cmd /c \"cd /d c:\\\\saira && git status --short 2>&1\")",
+      "Bash(cmd /c:*)",
+      "Bash(MSYS_NO_PATHCONV=1 adb pull:*)",
+      "Bash(MSYS_NO_PATHCONV=1 adb shell:*)"
     ]
   }
 }

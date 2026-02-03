@@ -168,6 +168,52 @@ h1 {
   font-size: 16px;
 }
 
+.battery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.battery-card {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--paper);
+  border: 1px solid rgba(18, 18, 23, 0.1);
+}
+
+.battery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.battery-cam {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.battery-level {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.battery-bar-bg {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(18, 18, 23, 0.08);
+  overflow: hidden;
+}
+
+.battery-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
 .stack {
   display: grid;
   gap: 12px;

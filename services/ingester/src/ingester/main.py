@@ -37,8 +37,40 @@ def _append_health_jsonl(payload: dict) -> None:
     with open(filepath, "a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, ensure_ascii=True) + "\n")
 
+def _check_memory_watchdog(serial: str, snapshot: dict | None, health_cycle_id: int) -> None:
+    """Evaluate memory level and take preventive action if needed."""
+    if not config.MEMORY_CHECK_ENABLED or not snapshot:
+        return
+    mem_kb = snapshot.get("mem_available_kb")
+    if mem_kb is None:
+        return
+
+    if mem_kb < config.MEMORY_CRITICAL_THRESHOLD_KB:
+        logging.critical(
+            f"[health_cycle_id={health_cycle_id}] MEMORY CRITICAL: {mem_kb}KB available "
+            f"(threshold={config.MEMORY_CRITICAL_THRESHOLD_KB}KB). Rebooting device {serial}."
+        )
+        try:
+            adb_adapter.reboot_device(serial)
+            adb_adapter.wait_for_device(serial, max_wait_s=config.MEMORY_POST_REBOOT_WAIT_SECONDS)
+        except Exception as exc:
+            logging.error(f"[health_cycle_id={health_cycle_id}] Failed to reboot device: {exc}")
+        return
+
+    if mem_kb < config.MEMORY_WARNING_THRESHOLD_KB:
+        logging.warning(
+            f"[health_cycle_id={health_cycle_id}] MEMORY WARNING: {mem_kb}KB available "
+            f"(threshold={config.MEMORY_WARNING_THRESHOLD_KB}KB). Force-stopping ICSee on {serial}."
+        )
+        try:
+            adb_adapter.close_app(serial, config.ICSEE_PACKAGE_NAME, timeout_s=config.HEALTH_ADB_TIMEOUT_SECONDS)
+        except Exception as exc:
+            logging.error(f"[health_cycle_id={health_cycle_id}] Failed to force-stop app: {exc}")
+
+
 def run_health_loop() -> None:
     health_cycle_id = 0
+    last_uptime: float | None = None
     while True:
         start = time.time()
         health_cycle_id += 1
@@ -57,6 +89,17 @@ def run_health_loop() -> None:
             errors.append(str(exc))
             logging.error(f"[health_cycle_id={health_cycle_id}] Health loop error: {exc}", exc_info=True)
 
+        # --- Reboot detection (uptime drop) ---
+        if snapshot:
+            current_uptime = snapshot.get("uptime_s")
+            if current_uptime is not None and last_uptime is not None and current_uptime < last_uptime:
+                logging.warning(
+                    f"[health_cycle_id={health_cycle_id}] REBOOT DETECTED: uptime dropped "
+                    f"from {last_uptime:.0f}s to {current_uptime:.0f}s"
+                )
+            if current_uptime is not None:
+                last_uptime = current_uptime
+
         payload = {
             "timestamp": datetime.utcnow().isoformat(),
             "serial": serial,
@@ -65,6 +108,10 @@ def run_health_loop() -> None:
             "errors": errors,
         }
         _append_health_jsonl(payload)
+
+        # --- Memory watchdog ---
+        if serial and snapshot:
+            _check_memory_watchdog(serial, snapshot, health_cycle_id)
 
         elapsed = time.time() - start
         sleep_seconds = max(0, config.HEALTH_INTERVAL_SECONDS - elapsed)

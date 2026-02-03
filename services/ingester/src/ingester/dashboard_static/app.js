@@ -1,3 +1,4 @@
+const batteryCards = document.getElementById("battery-cards");
 const summaryCards = document.getElementById("summary-cards");
 const indicatorCards = document.getElementById("indicator-cards");
 const cameraSelect = document.getElementById("camera-select");
@@ -28,7 +29,7 @@ const fmtDate = (iso) => {
   if (!iso) return "-";
   const d = new Date(iso + "Z");
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("pt-BR");
+  return d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 };
 
 const fmtDuration = (ms) => {
@@ -136,6 +137,59 @@ const renderSummary = (data) => {
 
   cameraShotsData = data.last_screenshots || [];
   renderCameraShot();
+  renderBattery(data.camera_battery, data.camera_battery_ts);
+};
+
+const renderBattery = (battery, ts) => {
+  if (!batteryCards) return;
+  batteryCards.innerHTML = "";
+  const tsEl = document.getElementById("battery-ts");
+  if (tsEl) {
+    if (ts) {
+      const d = new Date(ts);
+      tsEl.textContent = `• última checagem: ${d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`;
+    } else {
+      tsEl.textContent = "";
+    }
+  }
+  if (!battery || !Object.keys(battery).length) {
+    batteryCards.innerHTML = '<span class="muted">Sem dados de bateria.</span>';
+    return;
+  }
+  Object.entries(battery).forEach(([cam, info]) => {
+    const level = info.level != null ? info.level : null;
+    const state = info.state || "unknown";
+    let stateLabel, badgeClass;
+    if (state === "critical") {
+      stateLabel = "critico";
+      badgeClass = "badge error";
+    } else if (state === "warning") {
+      stateLabel = "alerta";
+      badgeClass = "badge warn";
+    } else if (state === "normal") {
+      stateLabel = "normal";
+      badgeClass = "badge";
+    } else {
+      stateLabel = "desconhecido";
+      badgeClass = "badge";
+    }
+    const levelText = level != null ? `${level}%` : "-";
+    const barWidth = level != null ? Math.max(0, Math.min(100, level)) : 0;
+    const barColor = level != null
+      ? (level <= 10 ? "var(--rose)" : level <= 15 ? "var(--accent)" : "var(--teal)")
+      : "var(--ink-soft)";
+    const card = document.createElement("div");
+    card.className = "battery-card";
+    card.innerHTML = `
+      <div class="battery-header">
+        <span class="battery-cam">${cam}</span>
+        <span class="${badgeClass}">${stateLabel}</span>
+      </div>
+      <div class="battery-level">${levelText}</div>
+      <div class="battery-bar-bg"><div class="battery-bar" style="width:${barWidth}%;background:${barColor}"></div></div>
+    `;
+    batteryCards.appendChild(card);
+  });
 };
 
 const renderIndicators = () => {
