@@ -1,5 +1,12 @@
 ﻿import React, { useState } from "react";
-import { LayoutDashboard, Cctv, Users, Settings, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Cctv,
+  Users,
+  Settings,
+  LogOut,
+  History,
+} from "lucide-react"; // Added History
 import { useNavigate, useLocation } from "react-router-dom";
 
 export const Sidebar: React.FC = () => {
@@ -8,10 +15,11 @@ export const Sidebar: React.FC = () => {
 
   // --- Modal State ---
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [isClosing, setIsClosing] = useState(false); // NEW: Track closing state
+  const [isClosing, setIsClosing] = useState(false);
 
   const menuItems = [
     { icon: LayoutDashboard, path: "/dashboard" },
+    { icon: History, path: "/history" }, // NEW: History Page Link
     { icon: Cctv, path: "/detections" },
     { icon: Users, path: "/users" },
   ];
@@ -20,48 +28,32 @@ export const Sidebar: React.FC = () => {
     setShowLogoutConfirm(true);
   };
 
-  // Helper to animate closing
   const closeModal = () => {
     setIsClosing(true);
     setTimeout(() => {
       setShowLogoutConfirm(false);
       setIsClosing(false);
-    }, 500); // 500ms matches the animation duration
+    }, 500);
   };
 
   const confirmLogout = () => {
-    // No need to animate exit on confirm, as we navigate away immediately
     navigate("/");
   };
 
   return (
     <>
-      {/* --- CSS Animation Definitions --- */}
       <style>{`
         @keyframes modalPop {
-          0% {
-            opacity: 0;
-            transform: scale(0.8) translateY(50px);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
+          0% { opacity: 0; transform: scale(0.8) translateY(50px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
         }
         @keyframes modalPopExit {
-          0% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(0.8) translateY(50px);
-          }
+          0% { opacity: 1; transform: scale(1) translateY(0); }
+          100% { opacity: 0; transform: scale(0.8) translateY(50px); }
         }
       `}</style>
 
       <div className="h-full w-20 bg-[#1a1a1a] flex flex-col items-center py-6 absolute left-0 top-0 z-40 border-r border-gray-800">
-        {/* Navigation Section */}
         <nav className="flex-1 flex flex-col justify-center gap-8 w-full">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -73,7 +65,6 @@ export const Sidebar: React.FC = () => {
                             ${isActive ? "text-[#d9f99d]" : "text-gray-500 hover:text-gray-300"}
                         `}
               >
-                {/* Static indicator inside the button */}
                 {isActive && (
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#d9f99d] rounded-r-md shadow-[0_0_10px_#d9f99d]" />
                 )}
@@ -83,7 +74,6 @@ export const Sidebar: React.FC = () => {
           })}
         </nav>
 
-        {/* Bottom Actions */}
         <div className="flex flex-col gap-6 w-full items-center mb-4">
           <button className="text-gray-500 hover:text-white transition-colors">
             <Settings size={24} />
@@ -104,7 +94,6 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Logout Modal */}
       {showLogoutConfirm && (
         <div
           className={`
@@ -129,7 +118,7 @@ export const Sidebar: React.FC = () => {
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
-                onClick={closeModal} // Use animated close
+                onClick={closeModal}
                 className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-lg transition-colors select-none"
               >
                 Cancelar

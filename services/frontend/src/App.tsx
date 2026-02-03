@@ -8,6 +8,7 @@ import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Detections } from "./pages/Detections";
 import { UsersPage } from "./pages/UsersPage";
+import { HistoryPage } from "./pages/HistoryPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/detections" element={<Detections />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/history" element={<HistoryPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
