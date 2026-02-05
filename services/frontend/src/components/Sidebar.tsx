@@ -97,7 +97,7 @@ export const Sidebar: React.FC = () => {
       {showLogoutConfirm && (
         <div
           className={`
-                fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 
+                fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 
                 transition-opacity duration-500 
                 ${isClosing ? "opacity-0" : "opacity-100"}
             `}

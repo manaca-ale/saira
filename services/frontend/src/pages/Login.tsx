@@ -9,13 +9,15 @@ import {
   Mail,
   X,
   Info,
-} from "lucide-react"; // Added Info
+} from "lucide-react";
 import { InputField } from "../components/InputField";
 import { useNavigate } from "react-router-dom";
 import { Tooltip } from "../components/Tooltip";
+import { useAuth } from "../contexts/AuthContext";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   // --- Login Form State ---
   const [email, setEmail] = useState("");
@@ -41,7 +43,7 @@ export const Login: React.FC = () => {
   const [toastMessage, setToastMessage] = useState("");
 
   // --- Event Handlers ---
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -52,14 +54,14 @@ export const Login: React.FC = () => {
 
     setLoading(true);
 
-    setTimeout(() => {
-      if (email === "admin@gmail.com" && password === "12345") {
-        navigate("/dashboard");
-      } else {
-        setError("Email ou senha incorretos.");
-        setLoading(false);
-      }
-    }, 1000);
+    try {
+      await signIn({ email, password });
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Email ou senha incorretos.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- Helper to Trigger Toast ---

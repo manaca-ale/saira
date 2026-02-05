@@ -50,7 +50,8 @@
       "Bash(.yaml)",
       "Bash(.yml)",
       "Bash(Dockerfile)",
-      "Bash(.py \")"
+      "Bash(.py \")",
+      "Bash(poetry install:*)"
     ]
   }
 }

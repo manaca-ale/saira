@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { Tooltip } from "../components/Tooltip";
-import { masterPois } from "../services/mockData";
-import type { PoiData, WasteType } from "../services/mockData";
+import { getDetections } from "../services/detectionService";
+import type { PoiData } from "../services/detectionService";
+import type { WasteType } from "../services/mockData";
 import {
   Info,
   Filter as FilterIcon,
@@ -110,6 +111,7 @@ const StatCard: React.FC<{
 
 export const HistoryPage: React.FC = () => {
   // --- STATE ---
+  const [detections, setDetections] = useState<PoiData[]>([]);
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [activePopover, setActivePopover] = useState<
     "period" | "volumetry" | null
@@ -127,6 +129,37 @@ export const HistoryPage: React.FC = () => {
     volMax: "",
     infratores: [],
   });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDetections() {
+      try {
+        const all: PoiData[] = [];
+        const pageSize = 100;
+        let skip = 0;
+
+        while (true) {
+          const page = await getDetections({ skip, limit: pageSize });
+          all.push(...page);
+          if (page.length < pageSize) break;
+          skip += pageSize;
+          if (skip > 10000) break;
+        }
+
+        if (isMounted) {
+          setDetections(all);
+        }
+      } catch (e) {
+        console.error("Failed to load history detections:", e);
+      }
+    }
+
+    loadDetections();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // --- FILTERING LOGIC ---
   const matchesFilters = useCallback(
@@ -195,17 +228,17 @@ export const HistoryPage: React.FC = () => {
 
   // --- MEMOIZED DATA ---
   const filteredData = useMemo(
-    () => masterPois.filter((item) => matchesFilters(item)),
-    [matchesFilters],
+    () => detections.filter((item) => matchesFilters(item)),
+    [detections, matchesFilters],
   );
 
   const bairroOptions = useMemo(
-    () => Array.from(new Set(masterPois.map((i) => i.bairro))).sort(),
-    [],
+    () => Array.from(new Set(detections.map((i) => i.bairro))).sort(),
+    [detections],
   );
   const logradouroOptions = useMemo(
-    () => Array.from(new Set(masterPois.map((i) => i.logradouro))).sort(),
-    [],
+    () => Array.from(new Set(detections.map((i) => i.logradouro))).sort(),
+    [detections],
   );
 
   // --- CHART DATA CALCULATIONS ---

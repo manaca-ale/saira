@@ -1,34 +1,143 @@
-"""
-Script para popular o banco de dados com dados fictícios para desenvolvimento.
+﻿"""
+Script para popular o banco com os mesmos dados-base usados no frontend
+(services/frontend/src/services/mockData.ts).
 Uso: python seed_db.py
 """
+
 import asyncio
-from faker import Faker
-from datetime import datetime, timedelta
+import calendar
 import random
-from sqlalchemy import select
-from app.core.database import AsyncSessionLocal
-from app.models.user import User
-from app.models.camera import Camera
-from app.models.detection import Detection, DetectionStatus
-from app.core.security import get_password_hash
+from datetime import datetime, timedelta
+
+from faker import Faker
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
+from sqlalchemy import delete, select
 
-fake = Faker('pt_BR')
+from app.core.database import AsyncSessionLocal
+from app.core.security import get_password_hash
+from app.models.camera import Camera
+from app.models.detection import Detection, DetectionStatus
+from app.models.user import User
+
+fake = Faker("pt_BR")
+
+SEED_LOCATIONS = [
+    {
+        "bairro": "Imbiribeira",
+        "logradouro": "Rua Visconde de Suassuna",
+        "latitude": -8.1122,
+        "longitude": -34.9026,
+    },
+    {
+        "bairro": "Brasília Teimosa",
+        "logradouro": "Av. Brasília Formosa",
+        "latitude": -8.0848,
+        "longitude": -34.8876,
+    },
+    {
+        "bairro": "Santo Amaro",
+        "logradouro": "Rua do Pombal",
+        "latitude": -8.0435,
+        "longitude": -34.8906,
+    },
+    {
+        "bairro": "Prado",
+        "logradouro": "Rua Abdias de Carvalho",
+        "latitude": -8.0617,
+        "longitude": -34.9123,
+    },
+    {
+        "bairro": "Porto da Madeira",
+        "logradouro": "Av. Beberibe",
+        "latitude": -8.0163,
+        "longitude": -34.8856,
+    },
+    {
+        "bairro": "Ilha de Deus",
+        "logradouro": "Ponte Paulo Guerra",
+        "latitude": -8.0934,
+        "longitude": -34.9073,
+    },
+    {
+        "bairro": "Torrões",
+        "logradouro": "Rua Onze de Fevereiro",
+        "latitude": -8.0673,
+        "longitude": -34.9318,
+    },
+    {
+        "bairro": "Várzea",
+        "logradouro": "Praça da Várzea",
+        "latitude": -8.0531,
+        "longitude": -34.9545,
+    },
+    {
+        "bairro": "Jiquiá",
+        "logradouro": "Rua João Teixeira",
+        "latitude": -8.0825,
+        "longitude": -34.9213,
+    },
+]
+
+WASTE_TYPES = ["Entulho", "Lixo domiciliar", "Poda", "Plástico"]
+PHOTO_URLS = [
+    "https://placehold.co/600x400/ef4444/FFFFFF?text=Foto+1",
+    "https://placehold.co/600x400/3b82f6/FFFFFF?text=Foto+2",
+    "https://placehold.co/600x400/f97316/FFFFFF?text=Foto+3",
+    "https://placehold.co/600x400/22c55e/FFFFFF?text=Foto+4",
+    "https://placehold.co/600x400/8b5cf6/FFFFFF?text=Foto+5",
+    "https://placehold.co/600x400/0ea5e9/FFFFFF?text=Foto+6",
+    "https://placehold.co/600x400/facc15/1f2937?text=Foto+7",
+    "https://placehold.co/600x400/14b8a6/FFFFFF?text=Foto+8",
+    "https://placehold.co/600x400/64748b/FFFFFF?text=Foto+9",
+]
 
 
-async def seed():
-    """Função principal para popular o banco de dados"""
+def _random_month_timestamp(year: int, month_index: int) -> datetime:
+    month = month_index + 1
+    last_day = calendar.monthrange(year, month)[1]
+    start = datetime(year, month, 1, 0, 0, 0)
+    end = datetime(year, month, last_day, 23, 59, 59)
+    delta_seconds = int((end - start).total_seconds())
+    return start + timedelta(seconds=random.randint(0, delta_seconds))
+
+
+def _status_for_date(year: int, month_index: int) -> DetectionStatus:
+    if year == 2025:
+        return DetectionStatus.RESOLVIDO
+    if year == 2026 and month_index == 0:
+        return random.choice(
+            [
+                DetectionStatus.PENDENTE,
+                DetectionStatus.EM_ANALISE,
+                DetectionStatus.RESOLVIDO,
+            ]
+        )
+    return DetectionStatus.RESOLVIDO
+
+
+def _compute_rpa(bairro: str, logradouro: str) -> str:
+    key = f"{bairro}-{logradouro}"
+    hash_value = 0
+    for char in key:
+        hash_value = (hash_value * 31 + ord(char)) & 0xFFFFFFFF
+        if hash_value >= 0x80000000:
+            hash_value -= 0x100000000
+    index = abs(hash_value) % 6
+    return f"RPA {index + 1}"
+
+
+async def seed() -> None:
+    random.seed(42)
+
     async with AsyncSessionLocal() as db:
-        print("🌱 Iniciando seeding do banco de dados...")
+        print("[seed] Iniciando seeding...")
 
-        # Verificar se já existe o admin
+        # Admin padrao
         result = await db.execute(select(User).where(User.email == "admin@saira.com"))
-        admin_exists = result.scalar_one_or_none()
+        admin = result.scalar_one_or_none()
 
-        if not admin_exists:
-            print("👤 Criando usuário Admin...")
+        if admin is None:
             admin = User(
                 name="Administrador",
                 email="admin@saira.com",
@@ -37,144 +146,84 @@ async def seed():
                 cargo="Administrador",
                 rpa="RPA-6",
                 password_hash=get_password_hash("admin123"),
-                is_active=True
+                is_active=True,
             )
             db.add(admin)
+            print("[seed] Usuario admin criado")
         else:
-            print("✓ Usuário Admin já existe")
+            print("[seed] Usuario admin ja existe")
 
-        # Criar usuários aleatórios
-        print("👥 Criando usuários aleatórios...")
-        secretarias = ["EMLURB", "CTTU", "URB", "Secretaria de Meio Ambiente", "Secretaria de Infraestrutura"]
-        cargos = ["Fiscal", "Coordenador", "Analista", "Supervisor", "Técnico"]
-        rpas = ["RPA-1", "RPA-2", "RPA-3", "RPA-4", "RPA-5", "RPA-6"]
-
-        for i in range(5):
-            user = User(
-                name=fake.name(),
-                email=fake.email(),
-                phone=fake.phone_number(),
-                secretaria=random.choice(secretarias),
-                cargo=random.choice(cargos),
-                rpa=random.choice(rpas),
-                password_hash=get_password_hash("senha123"),
-                is_active=random.choice([True, True, True, False])  # 75% ativos
-            )
-            db.add(user)
-
+        # Recria cameras/detections para manter o dataset alinhado ao mockData.ts
+        await db.execute(delete(Detection))
+        await db.execute(delete(Camera))
         await db.commit()
-        print("✓ Usuários criados com sucesso")
+        print("[seed] Cameras e deteccoes antigas removidas")
 
-        # Criar câmeras com coordenadas reais de Recife
-        print("📷 Criando câmeras...")
-        cameras_data = [
-            {
-                "name": "Câmera Boa Viagem",
-                "logradouro": "Av. Boa Viagem",
-                "bairro": "Boa Viagem",
-                "rpa": "RPA-6",
-                "latitude": -8.1287,
-                "longitude": -34.8988,
-            },
-            {
-                "name": "Câmera Derby",
-                "logradouro": "Av. Agamenon Magalhães",
-                "bairro": "Derby",
-                "rpa": "RPA-1",
-                "latitude": -8.0592,
-                "longitude": -34.8843,
-            },
-            {
-                "name": "Câmera Casa Forte",
-                "logradouro": "Praça de Casa Forte",
-                "bairro": "Casa Forte",
-                "rpa": "RPA-3",
-                "latitude": -8.0223,
-                "longitude": -34.9287,
-            },
-            {
-                "name": "Câmera Recife Antigo",
-                "logradouro": "Rua do Bom Jesus",
-                "bairro": "Recife",
-                "rpa": "RPA-1",
-                "latitude": -8.0631,
-                "longitude": -34.8711,
-            },
-            {
-                "name": "Câmera Piedade",
-                "logradouro": "Av. Caxangá",
-                "bairro": "Piedade",
-                "rpa": "RPA-4",
-                "latitude": -8.0478,
-                "longitude": -34.9194,
-            },
-        ]
+        camera_by_key: dict[tuple[str, str], Camera] = {}
 
-        created_cameras = []
-        for cam_data in cameras_data:
-            point = Point(cam_data["longitude"], cam_data["latitude"])
+        for idx, loc in enumerate(SEED_LOCATIONS, start=1):
+            point = Point(loc["longitude"], loc["latitude"])
+            rpa = _compute_rpa(loc["bairro"], loc["logradouro"])
+
             camera = Camera(
-                name=cam_data["name"],
-                logradouro=cam_data["logradouro"],
-                bairro=cam_data["bairro"],
-                rpa=cam_data["rpa"],
-                latitude=cam_data["latitude"],
-                longitude=cam_data["longitude"],
+                name=f"Camera {idx:02d} - {loc['bairro']}",
+                logradouro=loc["logradouro"],
+                bairro=loc["bairro"],
+                rpa=rpa,
+                latitude=loc["latitude"],
+                longitude=loc["longitude"],
                 geom=from_shape(point, srid=4326),
-                rtsp_url=f"rtsp://example.com/stream/{fake.uuid4()}",
-                capture_interval_seconds=random.choice([30, 60, 120]),
+                rtsp_url=f"rtsp://example.com/camera/{idx:02d}",
+                capture_interval_seconds=30,
                 is_active=True,
-                last_capture_at=datetime.utcnow() - timedelta(minutes=random.randint(1, 60))
+                last_capture_at=datetime.utcnow(),
             )
             db.add(camera)
-            created_cameras.append(camera)
+            await db.flush()
+            camera_by_key[(loc["bairro"], loc["logradouro"])] = camera
+
+        total = 0
+        for loc in SEED_LOCATIONS:
+            camera = camera_by_key[(loc["bairro"], loc["logradouro"])]
+            rpa = _compute_rpa(loc["bairro"], loc["logradouro"])
+
+            for year in (2025, 2026):
+                start_month = 0
+                end_month = 11 if year == 2025 else 0
+
+                for month in range(start_month, end_month + 1):
+                    for _ in range(10):
+                        has_offender = random.random() < 0.5
+                        det_point = Point(loc["longitude"], loc["latitude"])
+
+                        detection = Detection(
+                            camera_id=camera.id,
+                            timestamp=_random_month_timestamp(year, month),
+                            logradouro=loc["logradouro"],
+                            bairro=loc["bairro"],
+                            rpa=rpa,
+                            latitude=loc["latitude"],
+                            longitude=loc["longitude"],
+                            geom=from_shape(det_point, srid=4326),
+                            waste_type=random.choice(WASTE_TYPES),
+                            material_type="Misto",
+                            volume_m3=random.randint(10, 100),
+                            offenders=fake.name() if has_offender else None,
+                            status=_status_for_date(year, month),
+                            image_url=random.choice(PHOTO_URLS),
+                            confidence_score=round(random.uniform(0.75, 0.99), 2),
+                        )
+                        db.add(detection)
+                        total += 1
 
         await db.commit()
-        print("✓ Câmeras criadas com sucesso")
 
-        # Criar detecções
-        print("🔍 Criando detecções...")
-        waste_types = ["Entulho", "Móveis", "Lixo doméstico", "Resíduos de construção", "Eletrônicos"]
-        material_types = ["Concreto", "Madeira", "Plástico", "Metal", "Misto"]
-        statuses = [DetectionStatus.PENDENTE, DetectionStatus.EM_ANALISE, DetectionStatus.RESOLVIDO]
-
-        for i in range(25):
-            camera = random.choice(created_cameras)
-            # Adicionar pequena variação nas coordenadas da câmera
-            lat_offset = random.uniform(-0.002, 0.002)
-            lng_offset = random.uniform(-0.002, 0.002)
-            det_lat = float(camera.latitude) + lat_offset
-            det_lng = float(camera.longitude) + lng_offset
-
-            point = Point(det_lng, det_lat)
-
-            detection = Detection(
-                camera_id=camera.id,
-                timestamp=datetime.utcnow() - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23)),
-                logradouro=camera.logradouro,
-                bairro=camera.bairro,
-                rpa=camera.rpa,
-                latitude=det_lat,
-                longitude=det_lng,
-                geom=from_shape(point, srid=4326),
-                waste_type=random.choice(waste_types),
-                material_type=random.choice(material_types),
-                volume_m3=round(random.uniform(0.5, 15.0), 2),
-                offenders=fake.name() if random.random() > 0.5 else None,
-                status=random.choice(statuses),
-                image_url=f"https://picsum.photos/seed/{fake.uuid4()}/800/600",
-                confidence_score=round(random.uniform(0.75, 0.99), 2)
-            )
-            db.add(detection)
-
-        await db.commit()
-        print("✓ Detecções criadas com sucesso")
-
-        print("\n✅ Seeding concluído com sucesso!")
-        print("\n📝 Credenciais de acesso:")
-        print("   Email: admin@saira.com")
-        print("   Senha: admin123")
+        print(f"[seed] {len(SEED_LOCATIONS)} cameras criadas")
+        print(f"[seed] {total} deteccoes criadas")
+        print("[seed] Concluido")
+        print("[seed] Login admin: admin@saira.com / admin123")
 
 
 if __name__ == "__main__":
     asyncio.run(seed())
+

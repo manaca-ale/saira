@@ -1,7 +1,9 @@
 ﻿import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { masterPois } from "../services/mockData";
-import type { PoiData, WasteType } from "../services/mockData";
+import { getDetections } from "../services/detectionService";
+import type { PoiData } from "../services/detectionService";
 import { Sidebar } from "../components/Sidebar";
+
+type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 import {
   Filter as FilterIcon,
   ChevronDown,
@@ -272,11 +274,19 @@ export const Detections: React.FC = () => {
   ]);
 
   useEffect(() => {
-    const formattedDetections = masterPois.map((poi) => ({
-      ...poi,
-      rpa: getRpaForPoi(poi),
-    }));
-    setDetections(formattedDetections);
+    async function loadDetections() {
+      try {
+        const data = await getDetections({ limit: 1000 });
+        const formattedDetections = data.map((poi) => ({
+          ...poi,
+          rpa: getRpaForPoi(poi),
+        }));
+        setDetections(formattedDetections);
+      } catch (e) {
+        console.error("Failed to load detections:", e);
+      }
+    }
+    loadDetections();
   }, []);
 
   useEffect(() => {

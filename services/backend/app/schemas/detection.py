@@ -8,7 +8,7 @@ from enum import Enum
 
 class DetectionStatus(str, Enum):
     PENDENTE = "Pendente"
-    EM_ANALISE = "Em análise"
+    EM_ANALISE = "Em analise"
     RESOLVIDO = "Resolvido"
 
 

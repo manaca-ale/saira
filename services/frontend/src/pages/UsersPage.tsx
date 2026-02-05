@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useMemo } from "react";
+﻿import React, { useState, useEffect, useMemo } from "react";
 import { Sidebar } from "../components/Sidebar";
 import {
   UserPlus,
@@ -16,123 +16,34 @@ import {
   FilterAutocomplete,
   FilterMultiSelect,
 } from "../components/SharedFilters";
+import { getUsers, deleteUser, createUser, updateUser } from "../services/userService";
+import type { User, CreateUserData } from "../services/userService";
+import type { UserFormData } from "../components/UserModal";
 
-// Mock Data
-const INITIAL_USERS = [
-  {
-    id: 1,
-    name: "João Victor Almeida Santos",
-    email: "joao.santos@recife.pe.gov.br",
-    phone: "(81) 9 8765-4321",
-    secretaria: "EMLURB",
-    cargo: "Analista de Fiscalização Urbana",
-    rpa: "RPA 1",
-    status: "Ativo",
-  },
-  {
-    id: 2,
-    name: "Maria Eduarda Ferreira Lima",
-    email: "maria.lima@recife.pe.gov.br",
-    phone: "(81) 9 9123-7788",
-    secretaria: "EMLURB",
-    cargo: "Fiscal Ambiental",
-    rpa: "RPA 6",
-    status: "Ativo",
-  },
-  {
-    id: 3,
-    name: "Pedro Henrique Silva",
-    email: "pedro.silva@recife.pe.gov.br",
-    phone: "(81) 9 8888-9999",
-    secretaria: "EMLURB",
-    cargo: "Gerente Operacional",
-    rpa: "RPA 3",
-    status: "Inativo",
-  },
-  {
-    id: 4,
-    name: "Ana Clara Souza",
-    email: "ana.souza@recife.pe.gov.br",
-    phone: "(81) 9 7777-6666",
-    secretaria: "EMLURB",
-    cargo: "Analista de Fiscalização Urbana",
-    rpa: "RPA 1",
-    status: "Ativo",
-  },
-  {
-    id: 5,
-    name: "Lucas Oliveira",
-    email: "lucas.oliveira@recife.pe.gov.br",
-    phone: "(81) 9 5555-4444",
-    secretaria: "EMLURB",
-    cargo: "Fiscal Ambiental",
-    rpa: "RPA 2",
-    status: "Ativo",
-  },
-  {
-    id: 6,
-    name: "Fernanda Lima",
-    email: "fernanda.lima@recife.pe.gov.br",
-    phone: "(81) 9 1111-2222",
-    secretaria: "EMLURB",
-    cargo: "Engenheira Civil",
-    rpa: "RPA 4",
-    status: "Inativo",
-  },
-  {
-    id: 7,
-    name: "Roberto Campos",
-    email: "roberto.campos@recife.pe.gov.br",
-    phone: "(81) 9 3333-4444",
-    secretaria: "EMLURB",
-    cargo: "Analista de Sistemas",
-    rpa: "RPA 5",
-    status: "Ativo",
-  },
-  {
-    id: 8,
-    name: "Juliana Martins",
-    email: "juliana.martins@recife.pe.gov.br",
-    phone: "(81) 9 6666-7777",
-    secretaria: "EMLURB",
-    cargo: "Fiscal Ambiental",
-    rpa: "RPA 1",
-    status: "Ativo",
-  },
-  {
-    id: 9,
-    name: "Carlos Eduardo",
-    email: "carlos.eduardo@recife.pe.gov.br",
-    phone: "(81) 9 9999-8888",
-    secretaria: "EMLURB",
-    cargo: "Gerente de Projetos",
-    rpa: "RPA 3",
-    status: "Inativo",
-  },
-  {
-    id: 10,
-    name: "Beatriz Costa",
-    email: "beatriz.costa@recife.pe.gov.br",
-    phone: "(81) 9 2222-1111",
-    secretaria: "EMLURB",
-    cargo: "Analista Administrativa",
-    rpa: "RPA 2",
-    status: "Ativo",
-  },
-  {
-    id: 11,
-    name: "Ricardo Alves",
-    email: "ricardo.alves@recife.pe.gov.br",
-    phone: "(81) 9 4444-5555",
-    secretaria: "EMLURB",
-    cargo: "Fiscal de Obras",
-    rpa: "RPA 6",
-    status: "Ativo",
-  },
-];
+interface UserWithStatus extends User {
+  status: string;
+  cargo?: string;
+}
 
 export const UsersPage: React.FC = () => {
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState<UserWithStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // --- Load users from API ---
+  const loadUsers = async () => {
+    try {
+      const data = await getUsers({ limit: 100 });
+      setUsers(data as UserWithStatus[]);
+    } catch (e) {
+      console.error("Failed to load users:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   // --- Filter States ---
   const [filterName, setFilterName] = useState("");
@@ -182,7 +93,13 @@ export const UsersPage: React.FC = () => {
 
   const roleOptions = useMemo(() => {
     const filtered = users.filter((user) => matchesFilters(user, "role"));
-    return Array.from(new Set(filtered.map((user) => user.cargo))).sort();
+    return Array.from(
+      new Set(
+        filtered
+          .map((user) => user.cargo)
+          .filter((cargo): cargo is string => Boolean(cargo)),
+      ),
+    ).sort();
   }, [filterEmail, filterName, filterRoles, filterStatus, users]);
 
   const statusOptions = useMemo(() => {
@@ -239,15 +156,73 @@ export const UsersPage: React.FC = () => {
     }, 500);
   };
 
-  const handleSaveUser = () => {
-    handleCloseUserModal();
-    setShowSuccessToast(true);
-    setTimeout(() => setShowSuccessToast(false), 3000);
+  const handleSaveUser = async (data: UserFormData) => {
+    const payload: Partial<CreateUserData> = {
+      name: data.name.trim(),
+      email: data.email.trim(),
+      phone: data.phone.trim() || undefined,
+      secretaria: data.secretaria.trim() || undefined,
+      cargo: data.cargo.trim() || undefined,
+      rpa: data.rpa.trim() || undefined,
+    };
+
+    if (selectedUser) {
+      if (data.password.trim()) {
+        payload.password = data.password.trim();
+      }
+
+      try {
+        await updateUser(selectedUser.id, payload);
+        await loadUsers();
+        handleCloseUserModal();
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 3000);
+      } catch (e) {
+        const detail = (e as any)?.response?.data?.detail;
+        if (typeof detail === "string") {
+          throw new Error(detail === "Email already registered" ? "E-mail já cadastrado." : detail);
+        }
+        throw new Error("Não foi possível atualizar o usuário.");
+      }
+      return;
+    }
+
+    if (!data.password || data.password.trim().length < 8) {
+      throw new Error("A senha deve ter pelo menos 8 caracteres.");
+    }
+
+    try {
+      await createUser({
+        name: payload.name || "",
+        email: payload.email || "",
+        password: data.password.trim(),
+        phone: payload.phone,
+        secretaria: payload.secretaria,
+        cargo: payload.cargo,
+        rpa: payload.rpa,
+        is_active: true,
+      });
+      await loadUsers();
+      handleCloseUserModal();
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+    } catch (e) {
+      const detail = (e as any)?.response?.data?.detail;
+      if (typeof detail === "string") {
+        throw new Error(detail === "Email already registered" ? "E-mail já cadastrado." : detail);
+      }
+      throw new Error("Não foi possível criar o usuário.");
+    }
   };
 
-  const handleDeleteUser = () => {
+  const handleDeleteUser = async () => {
     if (selectedUser) {
-      setUsers(users.filter((u) => u.id !== selectedUser.id));
+      try {
+        await deleteUser(selectedUser.id);
+        setUsers(users.filter((u) => u.id !== selectedUser.id));
+      } catch (e) {
+        console.error("Failed to delete user:", e);
+      }
     }
     handleCloseDeleteModal();
   };

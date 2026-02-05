@@ -1,0 +1,12 @@
+cameras:
+  - id: "cam_01_coque"
+    rpa: 1
+    rtsp_url: "rtsp://admin:saira123@10.8.0.5:554/cam/realmonitor?channel=1&subtype=0"
+    capture_interval_seconds: 300
+    active: true
+
+  - id: "cam_02_ilha_de_deus"
+    rpa: 6
+    rtsp_url: "rtsp://admin:saira123@10.8.0.6:554/live/ch0"
+    capture_interval_seconds: 300
+    active: true

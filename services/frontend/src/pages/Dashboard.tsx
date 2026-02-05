@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useCallback } from "react";
+﻿import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MapWidget, OccurrencesChart } from "../components/DashboardCharts";
 import {
@@ -13,10 +13,12 @@ import {
   FilterMultiSelect,
   FilterAutocomplete,
 } from "../components/SharedFilters";
-import { masterPois } from "../services/mockData";
-import type { PoiData, WasteType } from "../services/mockData";
+import { getDetections } from "../services/detectionService";
+import type { PoiData } from "../services/detectionService";
 import { Tooltip } from "../components/Tooltip";
 import { OccurrenceModal } from "../components/OccurrenceModal";
+
+type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 
 // --- DATA INTERFACE AND STATUS ---
 interface FilterState {
@@ -194,6 +196,8 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
 
 export const Dashboard: React.FC = () => {
   // --- State Management ---
+  const [detections, setDetections] = useState<PoiData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     dateStart: "",
@@ -216,6 +220,21 @@ export const Dashboard: React.FC = () => {
   const [selectedOccurrence, setSelectedOccurrence] = useState<PoiData | null>(null);
   const [isOccurrenceModalOpen, setIsOccurrenceModalOpen] = useState(false);
 
+  // --- Load Data from API ---
+  useEffect(() => {
+    async function loadDetections() {
+      try {
+        const data = await getDetections({ limit: 1000 });
+        setDetections(data);
+      } catch (e) {
+        console.error("Failed to load detections:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDetections();
+  }, []);
+
   const toDateInput = (date: Date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
       date.getDate(),
@@ -235,7 +254,7 @@ export const Dashboard: React.FC = () => {
   const baseData = useMemo(() => {
     const dateRange = buildDateRange(filters.dateStart, filters.dateEnd);
 
-    return masterPois.filter((item) => {
+    return detections.filter((item) => {
       const itemDate = new Date(item.timestamp);
       if (dateRange) {
         if (itemDate < dateRange.start || itemDate > dateRange.end) return false;
@@ -251,7 +270,7 @@ export const Dashboard: React.FC = () => {
 
       return true;
     });
-  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
+  }, [detections, filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
 
   const matchesFilters = useCallback((item: PoiData, exclude?: keyof FilterState) => {
     const rpa = getRpaForPoi(item);
