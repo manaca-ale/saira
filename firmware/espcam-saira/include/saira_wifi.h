@@ -50,6 +50,7 @@ static inline bool sairaConnectWiFi(const char* ssid, const char* password, cons
   sairaSetupWifiEventLogs();
 
   WiFi.mode(WIFI_STA);
+  WiFi.persistent(false);
   WiFi.setSleep(false);         // Improves stability for some ESP32-CAM setups
   WiFi.setAutoReconnect(true);
   if (hostname && *hostname) {
@@ -58,6 +59,11 @@ static inline bool sairaConnectWiFi(const char* ssid, const char* password, cons
 
   Serial.print("WiFi: SSID=");
   Serial.println(ssid ? ssid : "(null)");
+
+  // Ensure we are not stuck with a previous static IP config.
+  WiFi.disconnect(true /*wifioff*/, true /*eraseap*/);
+  delay(200);
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
   WiFi.begin(ssid, password);
 
@@ -75,6 +81,10 @@ static inline bool sairaConnectWiFi(const char* ssid, const char* password, cons
   if (WiFi.status() == WL_CONNECTED) {
     Serial.print("WiFi online. IP: ");
     Serial.println(WiFi.localIP());
+    Serial.print("WiFi gateway: ");
+    Serial.println(WiFi.gatewayIP());
+    Serial.print("WiFi DNS: ");
+    Serial.println(WiFi.dnsIP());
     Serial.print("WiFi RSSI: ");
     Serial.println(WiFi.RSSI());
     return true;
