@@ -1,6 +1,7 @@
 from flask import Flask, request, send_from_directory
 from datetime import datetime
 import os
+import hashlib
 
 app = Flask(__name__)
 
@@ -15,6 +16,20 @@ def _get_upload_root() -> str:
 
 UPLOAD_ROOT = _get_upload_root()
 os.makedirs(UPLOAD_ROOT, exist_ok=True)
+
+def _get_ota_root() -> str:
+    return os.getenv(
+        "OTA_DIR",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "ota"),
+    )
+
+
+OTA_ROOT = _get_ota_root()
+os.makedirs(OTA_ROOT, exist_ok=True)
+
+
+def _admin_token() -> str:
+    return os.getenv("ADMIN_TOKEN", "")
 
 
 def _public_base_url() -> str:
@@ -31,6 +46,95 @@ def _relative_path_for_now(filename: str) -> str:
 @app.route("/uploads/<path:filepath>", methods=["GET"])
 def get_uploaded_file(filepath: str):
     return send_from_directory(UPLOAD_ROOT, filepath)
+
+def _sha256_file(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _ota_bin_path() -> str:
+    return os.path.join(OTA_ROOT, "latest.bin")
+
+
+def _ota_version_path() -> str:
+    return os.path.join(OTA_ROOT, "version.txt")
+
+
+def _ota_version() -> str:
+    # Prefer explicit version file, fallback to env var, else "0".
+    vp = _ota_version_path()
+    if os.path.isfile(vp):
+        try:
+            with open(vp, "r", encoding="utf-8") as f:
+                return (f.read() or "").strip() or "0"
+        except OSError:
+            pass
+    return (os.getenv("OTA_VERSION", "") or "0").strip()
+
+
+@app.route("/ota/latest.bin", methods=["GET"])
+def get_ota_firmware():
+    bin_path = _ota_bin_path()
+    if not os.path.isfile(bin_path):
+        return {"error": "No firmware uploaded"}, 404
+    return send_from_directory(OTA_ROOT, "latest.bin", mimetype="application/octet-stream")
+
+
+@app.route("/ota/manifest.txt", methods=["GET"])
+def get_ota_manifest():
+    bin_path = _ota_bin_path()
+    version = _ota_version()
+    base = _public_base_url()
+    if base:
+        bin_url = f"{base}/ota/latest.bin"
+        manifest_url = f"{base}/ota/manifest.txt"
+    else:
+        bin_url = "/ota/latest.bin"
+        manifest_url = "/ota/manifest.txt"
+
+    sha = _sha256_file(bin_path) if os.path.isfile(bin_path) else ""
+    body = (
+        f"version={version}\n"
+        f"bin_url={bin_url}\n"
+        f"sha256={sha}\n"
+        f"manifest_url={manifest_url}\n"
+    )
+    return body, 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
+@app.route("/ota/upload", methods=["POST"])
+def upload_ota_firmware():
+    token = _admin_token()
+    if token:
+        got = request.headers.get("X-Admin-Token", "")
+        if got != token:
+            return {"error": "Unauthorized"}, 401
+
+    if "firmware" not in request.files:
+        return {"error": "Missing firmware file field"}, 400
+
+    fw = request.files["firmware"]
+    if fw.filename == "":
+        return {"error": "Empty filename"}, 400
+
+    bin_path = _ota_bin_path()
+    fw.save(bin_path)
+
+    version = (request.form.get("version") or "").strip()
+    if not version:
+        version = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+
+    try:
+        with open(_ota_version_path(), "w", encoding="utf-8") as f:
+            f.write(version)
+    except OSError:
+        pass
+
+    # Return the updated manifest for convenience
+    return get_ota_manifest()
 
 @app.route("/upload", methods=["POST"])
 def upload_file():

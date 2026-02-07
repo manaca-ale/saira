@@ -7,6 +7,11 @@ services:
       - UPLOAD_DIR=/app/uploads
       # Optional: used to return absolute URLs in the JSON response.
       # - PUBLIC_BASE_URL=http://YOUR_EC2_PUBLIC_IP:5000
+      # OTA support (ESP pulls firmware from /ota/latest.bin)
+      - OTA_DIR=/app/ota
+      # Optional: protect /ota/upload
+      # - ADMIN_TOKEN=change-me
     volumes:
       - ./uploads:/app/uploads
+      - ./ota:/app/ota
     restart: unless-stopped

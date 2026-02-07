@@ -5,6 +5,7 @@
 #include "soc/rtc_cntl_reg.h"
 #include "esp_camera.h"
 #include "saira_config.h"
+#include "saira_ota.h"
 
 // =============================================================================
 // 1. CREDENCIAIS DE REDE (ATUALIZADO)
@@ -97,45 +98,59 @@ void configCamera(){
   }
 }
 
-String getHost(String url) {
-  String host = url;
-  host.replace("http://", "");
-  host.replace("https://", "");
-  int pathIndex = host.indexOf("/");
-  if (pathIndex != -1) {
-    host = host.substring(0, pathIndex);
-  }
-  return host;
-}
 
 void sendStatus(String msg) {
   if(WiFi.status() != WL_CONNECTED) return;
 
-  WiFiClient client;
-
-  String host = getHost(serverBase);
-  
-  if (client.connect(host.c_str(), 80)) {
-    String postData = "message=" + msg;
-    client.println("POST /status HTTP/1.1");
-    client.println("Host: " + host);
-    client.println("Content-Type: application/x-www-form-urlencoded");
-    client.println("Content-Length: " + String(postData.length()));
-    client.println("Connection: close");
-    client.println();
-    client.print(postData);
-    
-    unsigned long timeout = millis();
-    while (client.connected() && millis() - timeout < 1000) {
-      if (client.available()) {
-        String statusLine = client.readStringUntil('\n');
-        Serial.print("Status /status -> ");
-        Serial.println(statusLine);
-        break;
-      }
-    }
-    client.stop();
+  String url = sairaJoinPath(serverBase, "/status");
+  SairaParsedUrl u = sairaParseHttpUrl(url);
+  if (!u.ok) {
+    Serial.println("Status: serverBase invalido (precisa http:// ou https://).");
+    return;
   }
+
+  WiFiClient plain;
+  WiFiClientSecure tls;
+  Stream* sock = nullptr;
+
+  if (u.https) {
+    if (SAIRA_TLS_INSECURE) tls.setInsecure();
+    if (!tls.connect(u.host.c_str(), u.port)) {
+      Serial.println("Status: falha conectando TLS.");
+      return;
+    }
+    sock = &tls;
+  } else {
+    if (!plain.connect(u.host.c_str(), u.port)) {
+      Serial.println("Status: falha conectando.");
+      return;
+    }
+    sock = &plain;
+  }
+
+  String postData = "message=" + msg;
+  sock->println(String("POST ") + u.path + " HTTP/1.1");
+  sock->println(String("Host: ") + u.host);
+  sock->println("Content-Type: application/x-www-form-urlencoded");
+  sock->println(String("Content-Length: ") + String(postData.length()));
+  sock->println("Connection: close");
+  sock->println();
+  sock->print(postData);
+
+  unsigned long timeout = millis();
+  while ((u.https ? tls.connected() : plain.connected()) && millis() - timeout < 1000) {
+    if (u.https ? tls.available() : plain.available()) {
+      String statusLine = u.https ? tls.readStringUntil('
+') : plain.readStringUntil('
+');
+      Serial.print("Status /status -> ");
+      Serial.println(statusLine);
+      break;
+    }
+  }
+
+  if (u.https) tls.stop();
+  else plain.stop();
 }
 
 void sendPhoto() {
@@ -150,50 +165,81 @@ void sendPhoto() {
     return;
   }
 
-  WiFiClient client;
-  String host = getHost(serverBase);
-
-  if (client.connect(host.c_str(), 80)) {
-    String head = "--RandomBoundary\r\nContent-Disposition: form-data; name=\"imageFile\"; filename=\"cam.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
-    String tail = "\r\n--RandomBoundary--\r\n";
-    uint32_t totalLen = fb->len + head.length() + tail.length();
-
-    client.println("POST /upload HTTP/1.1");
-    client.println("Host: " + host);
-    client.println("Content-Length: " + String(totalLen));
-    client.println("Content-Type: multipart/form-data; boundary=RandomBoundary");
-    client.println("Connection: close");
-    client.println();
-    client.print(head);
-
-    uint8_t *fbBuf = fb->buf;
-    size_t fbLen = fb->len;
-    for (size_t n=0; n<fbLen; n=n+1024) {
-      if (n+1024 < fbLen) {
-        client.write(fbBuf, 1024);
-        fbBuf += 1024;
-      } else if (fbLen%1024>0) {
-        client.write(fbBuf, fbLen%1024);
-      }
-    }
-    client.print(tail);
-    
-    // Leitura rápida da resposta para garantir envio
-    unsigned long timeout = millis();
-    while (client.connected() && millis() - timeout < 5000) {
-      if (client.available()) {
-        String statusLine = client.readStringUntil('\n');
-        Serial.print("Status /upload -> ");
-        Serial.println(statusLine);
-        break;
-      }
-    }
-    client.stop();
-    Serial.println("Foto enviada.");
-  } else {
-    Serial.println("Erro conexao Ngrok");
+  String url = sairaJoinPath(serverBase, "/upload");
+  SairaParsedUrl u = sairaParseHttpUrl(url);
+  if (!u.ok) {
+    Serial.println("Upload: serverBase invalido (precisa http:// ou https://).");
+    esp_camera_fb_return(fb);
+    return;
   }
-  
+
+  WiFiClient plain;
+  WiFiClientSecure tls;
+  Stream* sock = nullptr;
+
+  if (u.https) {
+    if (SAIRA_TLS_INSECURE) tls.setInsecure();
+    if (!tls.connect(u.host.c_str(), u.port)) {
+      Serial.println("Upload: falha conectando TLS.");
+      esp_camera_fb_return(fb);
+      return;
+    }
+    sock = &tls;
+  } else {
+    if (!plain.connect(u.host.c_str(), u.port)) {
+      Serial.println("Upload: falha conectando.");
+      esp_camera_fb_return(fb);
+      return;
+    }
+    sock = &plain;
+  }
+
+  String head = "--RandomBoundary
+Content-Disposition: form-data; name="imageFile"; filename="cam.jpg"
+Content-Type: image/jpeg
+
+";
+  String tail = "
+--RandomBoundary--
+";
+  uint32_t totalLen = fb->len + head.length() + tail.length();
+
+  sock->println(String("POST ") + u.path + " HTTP/1.1");
+  sock->println(String("Host: ") + u.host);
+  sock->println(String("Content-Length: ") + String(totalLen));
+  sock->println("Content-Type: multipart/form-data; boundary=RandomBoundary");
+  sock->println("Connection: close");
+  sock->println();
+  sock->print(head);
+
+  uint8_t *fbBuf = fb->buf;
+  size_t fbLen = fb->len;
+  for (size_t n=0; n<fbLen; n=n+1024) {
+    if (n+1024 < fbLen) {
+      sock->write(fbBuf, 1024);
+      fbBuf += 1024;
+    } else if (fbLen%1024>0) {
+      sock->write(fbBuf, fbLen%1024);
+    }
+  }
+  sock->print(tail);
+
+  unsigned long timeout = millis();
+  while ((u.https ? tls.connected() : plain.connected()) && millis() - timeout < 5000) {
+    if (u.https ? tls.available() : plain.available()) {
+      String statusLine = u.https ? tls.readStringUntil('
+') : plain.readStringUntil('
+');
+      Serial.print("Status /upload -> ");
+      Serial.println(statusLine);
+      break;
+    }
+  }
+
+  if (u.https) tls.stop();
+  else plain.stop();
+  Serial.println("Foto enviada.");
+
   esp_camera_fb_return(fb);
 }
 
@@ -238,6 +284,9 @@ void setup() {
 void loop() {
   // Verificação silenciosa de segurança (não imprime nada a menos que dê erro)
   checkAndManageHeat(false);
+
+  // OTA check is cheap (rate-limited) and safe to call frequently.
+  sairaMaybeCheckOta();
 
   if ((millis() - lastTime) > timerDelay) {
     // Agora sim, imprime a temperatura junto com a foto

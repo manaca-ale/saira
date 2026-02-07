@@ -9,6 +9,7 @@
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "saira_config.h"
+#include "saira_ota.h"
 
 // =============================================================================
 // 1. WI-FI
@@ -547,6 +548,9 @@ void setup() {
 }
 
 void loop() {
+  // OTA check is cheap (rate-limited) and safe to call frequently.
+  sairaMaybeCheckOta();
+
   // Agenda o proximo ciclo contando a partir do INICIO do ciclo (nao soma tempo de processamento + delay).
   // Isso evita virar ~1 minuto quando download/upload levam 20-30s.
   if (nextRunAt == 0) nextRunAt = millis();
