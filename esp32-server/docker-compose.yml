@@ -2,11 +2,12 @@ services:
   esp32-receiver:
     build: .
     ports:
-      - "5000:5000"
+      # Default local port aligns with production mapping.
+      - "5001:5000"
     environment:
       - UPLOAD_DIR=/app/uploads
       # Optional: used to return absolute URLs in the JSON response.
-      # - PUBLIC_BASE_URL=http://YOUR_EC2_PUBLIC_IP:5000
+      # - PUBLIC_BASE_URL=http://YOUR_EC2_PUBLIC_IP:5001
       # OTA support (ESP pulls firmware from /ota/latest.bin)
       - OTA_DIR=/app/ota
       # Remote config storage (per-device)

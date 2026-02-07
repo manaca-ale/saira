@@ -2,7 +2,8 @@ services:
   esp32-receiver:
     build: .
     ports:
-      - "5000:5000"
+      # Production uses 5001 to avoid colliding with services/api-gateway on 5000.
+      - "5001:5000"
     env_file:
       - .env
     environment:
@@ -16,4 +17,3 @@ services:
       - ./ota:/app/ota
       - ./config:/app/config
     restart: unless-stopped
-

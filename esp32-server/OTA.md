@@ -45,6 +45,5 @@ curl -fsS http://EC2_PUBLIC_IP:5000/ota/manifest.txt
 
 ## Portas (deploy)
 
-- Producao: `5000` (`esp32-server/docker-compose.prod.yml`)
+- Producao: `5001` (`esp32-server/docker-compose.prod.yml`)
 - Teste: `5002` (`esp32-server/docker-compose.test.yml`)
-

@@ -11,6 +11,7 @@
 #include "saira_config.h"
 #include "saira_ota.h"
 #include "saira_remote_config.h"
+#include "saira_wifi.h"
 
 // =============================================================================
 // 1. WI-FI
@@ -534,16 +535,13 @@ static void relayExternalImage() {
 void setup() {
   Serial.begin(115200);
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
-
-  WiFi.begin(ssid, password);
+ 
   Serial.print("Conectando WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  if (!sairaConnectWiFi(ssid, password, SAIRA_DEVICE_ID, 30000)) {
+    Serial.println("WiFi: reboot em 5s...");
+    delay(5000);
+    ESP.restart();
   }
-  Serial.println();
-  Serial.print("WiFi online. IP: ");
-  Serial.println(WiFi.localIP());
 
   sendStatus("ESP32 online (ipcam-relay)");
 }
