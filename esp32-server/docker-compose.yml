@@ -1,8 +1,12 @@
-﻿services:
+services:
   esp32-receiver:
     build: .
     ports:
       - "5000:5000"
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      # Optional: used to return absolute URLs in the JSON response.
+      # - PUBLIC_BASE_URL=http://YOUR_EC2_PUBLIC_IP:5000
     volumes:
       - ./uploads:/app/uploads
     restart: unless-stopped

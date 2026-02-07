@@ -27,6 +27,19 @@ S3_LANDING_ZONE_BUCKET: str = os.getenv("S3_LANDING_ZONE_BUCKET", "saira-landing
 SQS_INGESTION_QUEUE_URL: str = os.getenv("SQS_INGESTION_QUEUE_URL", "")
 
 # ---------------------------------------------------------------------------
+# Storage backend (S3 or local filesystem)
+# ---------------------------------------------------------------------------
+STORAGE_BACKEND: str = os.getenv("STORAGE_BACKEND", "s3").strip().lower()
+LOCAL_LANDING_ZONE_DIR: str = os.getenv(
+    "LOCAL_LANDING_ZONE_DIR",
+    os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")), "data", "landing-zone"),
+)
+
+# Optional toggles (useful when running everything inside a single EC2 without AWS)
+ENABLE_S3: bool = _parse_bool_env(os.getenv("ENABLE_S3"), STORAGE_BACKEND == "s3")
+ENABLE_SQS: bool = _parse_bool_env(os.getenv("ENABLE_SQS"), True)
+
+# ---------------------------------------------------------------------------
 # RTSP Capture Configuration
 # ---------------------------------------------------------------------------
 CAMERAS_CONFIG_PATH: str = os.getenv("CAMERAS_CONFIG_PATH", "config/cameras.yaml")

@@ -1,12 +1,36 @@
-﻿from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from datetime import datetime
 import os
 
 app = Flask(__name__)
 
-# Ensure the uploads directory exists at startup
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+def _get_upload_root() -> str:
+    # Allow overriding storage location on EC2 (e.g. /data/saira/uploads).
+    # Defaults to ./uploads next to this file.
+    return os.getenv(
+        "UPLOAD_DIR",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads"),
+    )
+
+
+UPLOAD_ROOT = _get_upload_root()
+os.makedirs(UPLOAD_ROOT, exist_ok=True)
+
+
+def _public_base_url() -> str:
+    # Example: https://your-domain.com or http://EC2_PUBLIC_IP:5000
+    return os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+
+
+def _relative_path_for_now(filename: str) -> str:
+    # Partition by date so the EC2 disk doesn't end up with one huge directory.
+    dt = datetime.utcnow()
+    return os.path.join(dt.strftime("%Y/%m/%d"), filename)
+
+
+@app.route("/uploads/<path:filepath>", methods=["GET"])
+def get_uploaded_file(filepath: str):
+    return send_from_directory(UPLOAD_ROOT, filepath)
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
@@ -39,13 +63,21 @@ def upload_file():
     # Build a timestamped filename and save the image
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"{timestamp}.jpg"
-    save_path = os.path.join(UPLOAD_DIR, filename)
+    rel_path = _relative_path_for_now(filename)
+    save_path = os.path.join(UPLOAD_ROOT, rel_path)
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file.save(save_path)
 
     # Log receipt for visibility in container logs
-    print(f"Received image: {filename} ({file.content_length} bytes)", flush=True)
+    print(f"Received image: {rel_path} ({file.content_length} bytes)", flush=True)
 
-    return {"status": "ok", "filename": filename}, 200
+    base = _public_base_url()
+    if base:
+        image_url = f"{base}/uploads/{rel_path.replace(os.sep, '/')}"
+    else:
+        image_url = f"/uploads/{rel_path.replace(os.sep, '/')}"
+
+    return {"status": "ok", "filename": rel_path.replace(os.sep, "/"), "image_url": image_url}, 200
 
 @app.route("/status", methods=["POST"])
 def receive_status():

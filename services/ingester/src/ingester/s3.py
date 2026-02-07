@@ -6,11 +6,11 @@ import logging
 from io import BytesIO
 from datetime import datetime
 
-from .config import config
+from . import config
 
 logger = logging.getLogger(__name__)
 
-s3_client = boto3.client('s3', region_name=config.AWS_REGION)
+s3_client = boto3.client("s3", region_name=config.AWS_REGION)
 
 transfer_config = TransferConfig(
     multipart_threshold=1024 * 1024 * 10,
@@ -31,6 +31,8 @@ def upload_image_to_s3(
     content_type: str = "image/jpeg"
 ) -> str:
     """Upload de bytes para S3 com retry."""
+    if not config.ENABLE_S3:
+        raise RuntimeError("S3 is disabled (ENABLE_S3=0)")
     s3_client.upload_fileobj(
         Fileobj=BytesIO(data),
         Bucket=bucket,

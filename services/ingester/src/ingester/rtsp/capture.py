@@ -27,7 +27,7 @@ from tenacity import (
 )
 
 from .. import config
-from ..s3 import upload_image_to_s3
+from ..storage import store_image
 from ..sqs import send_ingestion_message
 from ..local.image_validator import analyze_image, validate_screenshot
 
@@ -53,7 +53,7 @@ class CaptureResult:
     success: bool
     camera_id: str
     timestamp: datetime
-    s3_key: Optional[str] = None
+    storage_uri: Optional[str] = None
     error: Optional[str] = None
     validation_status: str = "unknown"
 
@@ -194,14 +194,6 @@ class RTSPCapture:
                 cap.release()
 
 
-def generate_s3_key(camera_id: str, timestamp: datetime) -> str:
-    """Gera chave S3 no formato: raw/YYYY/MM/DD/camera_id_HHMMSS.jpg"""
-    return (
-        f"raw/{timestamp.strftime('%Y/%m/%d')}/"
-        f"{camera_id}_{timestamp.strftime('%H%M%S')}.jpg"
-    )
-
-
 def run_capture_cycle(cameras: list[CameraConfig]) -> list[CaptureResult]:
     """
     Executa um ciclo de captura para todas as cameras.
@@ -230,19 +222,12 @@ def run_capture_cycle(cameras: list[CameraConfig]) -> list[CaptureResult]:
 
         if success and jpeg_bytes:
             try:
-                # Upload para S3
-                s3_key = generate_s3_key(camera.id, timestamp)
-                upload_image_to_s3(
-                    data=jpeg_bytes,
-                    bucket=config.S3_LANDING_ZONE_BUCKET,
-                    key=s3_key
-                )
+                storage = store_image(camera.id, timestamp, jpeg_bytes)
 
                 # Notificar SQS
                 send_ingestion_message(
                     camera_id=camera.id,
-                    s3_bucket=config.S3_LANDING_ZONE_BUCKET,
-                    s3_key=s3_key,
+                    storage=storage,
                     metadata={
                         "rpa": camera.rpa,
                         "source": "ingester-rtsp-v2"
@@ -250,8 +235,8 @@ def run_capture_cycle(cameras: list[CameraConfig]) -> list[CaptureResult]:
                 )
 
                 result.success = True
-                result.s3_key = s3_key
-                logger.info(f"OK {camera.id} -> s3://{config.S3_LANDING_ZONE_BUCKET}/{s3_key}")
+                result.storage_uri = storage.uri
+                logger.info(f"OK {camera.id} -> {storage.uri}")
 
             except Exception as e:
                 result.error = str(e)

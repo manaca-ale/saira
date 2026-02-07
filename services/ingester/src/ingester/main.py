@@ -39,6 +39,9 @@ def main():
     from .rtsp.capture import run_capture_cycle
 
     logging.info("Iniciando Ingester (RTSP/AWS)")
+    logging.info(f"Storage backend: {config.STORAGE_BACKEND}")
+    if config.STORAGE_BACKEND == "local":
+        logging.info(f"Local landing-zone dir: {config.LOCAL_LANDING_ZONE_DIR}")
     logging.info(f"S3 Bucket: {config.S3_LANDING_ZONE_BUCKET}")
     logging.info(f"SQS Queue: {config.SQS_INGESTION_QUEUE_URL or 'não configurada'}")
     logging.info(f"Intervalo de captura: {config.CAPTURE_INTERVAL_SECONDS}s")
