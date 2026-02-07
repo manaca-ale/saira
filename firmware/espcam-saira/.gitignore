@@ -8,3 +8,6 @@
 .env
 *.env
 
+# Local build artifacts (do not commit)
+artifacts/
+
