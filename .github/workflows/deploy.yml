@@ -35,6 +35,11 @@ jobs:
             docker compose -p saira-test -f docker-compose.test.yml down
             docker compose -p saira-test -f docker-compose.test.yml up -d --build --force-recreate
 
+            echo "Subindo ESP32 HTTP Receiver (Teste)..."
+            cd /home/ubuntu/saira/esp32-server
+            docker compose -p saira-esp32-test -f docker-compose.test.yml down
+            docker compose -p saira-esp32-test -f docker-compose.test.yml up -d --build --force-recreate
+
             echo "Teste rodando (Projeto: saira-test)"
 
   # --- AMBIENTE DE PRODUCAO ---
@@ -62,5 +67,10 @@ jobs:
             echo "Atualizando Producao..."
             docker compose -p saira-prod -f docker-compose.prod.yml build
             docker compose -p saira-prod -f docker-compose.prod.yml up -d
+
+            echo "Subindo ESP32 HTTP Receiver (Producao)..."
+            cd /home/ubuntu/saira/esp32-server
+            docker compose -p saira-esp32-prod -f docker-compose.prod.yml down
+            docker compose -p saira-esp32-prod -f docker-compose.prod.yml up -d --build --force-recreate
 
             echo "Producao rodando (Projeto: saira-prod)"
