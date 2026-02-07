@@ -53,6 +53,8 @@ static inline bool sairaConnectWiFi(const char* ssid, const char* password, cons
   WiFi.persistent(false);
   WiFi.setSleep(false);         // Improves stability for some ESP32-CAM setups
   WiFi.setAutoReconnect(true);
+  // Help marginal RSSI links.
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);
   if (hostname && *hostname) {
     WiFi.setHostname(hostname);
   }

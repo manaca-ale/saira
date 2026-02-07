@@ -429,6 +429,39 @@ static void writeAll(Stream& s, const uint8_t* buf, size_t len) {
   }
 }
 
+static void netProbe() {
+  Serial.println("NET: probe...");
+
+  // 1) Can we reach a well-known internet IP via TCP?
+  {
+    WiFiClient c;
+    c.setTimeout(3000);
+    bool ok = c.connect(IPAddress(8, 8, 8, 8), 53); // DNS over TCP
+    Serial.print("NET: tcp 8.8.8.8:53 -> ");
+    Serial.println(ok ? "OK" : "FAIL");
+    c.stop();
+  }
+
+  // 2) Can we reach the EC2 directly (TCP)?
+  {
+    ParsedUrl up = parseHttpUrl(joinPath(String(SERVER_BASE), STATUS_PATH));
+    if (up.ok) {
+      WiFiClient c;
+      c.setTimeout(5000);
+      bool ok = c.connect(up.host.c_str(), up.port);
+      Serial.print("NET: tcp ");
+      Serial.print(up.host);
+      Serial.print(":");
+      Serial.print(up.port);
+      Serial.print(" -> ");
+      Serial.println(ok ? "OK" : "FAIL");
+      c.stop();
+    } else {
+      Serial.println("NET: SERVER_BASE invalido, pulando probe EC2.");
+    }
+  }
+}
+
 static void uploadSnapshot(const uint8_t* buf, int len) {
   if (!ensureWiFi()) return;
 
@@ -543,6 +576,7 @@ void setup() {
     ESP.restart();
   }
 
+  netProbe();
   sendStatus("ESP32 online (ipcam-relay)");
 }
 
