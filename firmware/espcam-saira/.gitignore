@@ -1,0 +1,10 @@
+# PlatformIO
+.pio/
+
+# VSCode / PlatformIO
+.vscode/
+
+# Local env (never commit)
+.env
+*.env
+
