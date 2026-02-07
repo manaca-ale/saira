@@ -2,8 +2,9 @@ services:
   esp32-receiver:
     build: .
     ports:
-      # Avoid colliding with production port 5000 on the same EC2.
-      - "5001:5000"
+      # Test uses 5002 because services/test already binds 5001 (api-gateway).
+      # Production keeps 5000.
+      - "5002:5000"
     env_file:
       - .env
     environment:
@@ -17,4 +18,3 @@ services:
       - ./ota:/app/ota
       - ./config:/app/config
     restart: unless-stopped
-
