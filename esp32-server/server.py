@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import hashlib
 import re
+from typing import Optional
 
 app = Flask(__name__)
 
@@ -58,7 +59,7 @@ def _relative_path_for_now(filename: str) -> str:
 def get_uploaded_file(filepath: str):
     return send_from_directory(UPLOAD_ROOT, filepath)
 
-def _sanitize_device_id(device_id: str) -> str | None:
+def _sanitize_device_id(device_id: str) -> Optional[str]:
     # Keep filesystem access safe.
     if not device_id:
         return None
