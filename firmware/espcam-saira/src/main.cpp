@@ -1,11 +1,13 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "esp_camera.h"
 #include "saira_config.h"
 #include "saira_ota.h"
+#include "saira_remote_config.h"
 
 // =============================================================================
 // 1. CREDENCIAIS DE REDE (ATUALIZADO)
@@ -98,7 +100,6 @@ void configCamera(){
   }
 }
 
-
 void sendStatus(String msg) {
   if(WiFi.status() != WL_CONNECTED) return;
 
@@ -140,9 +141,7 @@ void sendStatus(String msg) {
   unsigned long timeout = millis();
   while ((u.https ? tls.connected() : plain.connected()) && millis() - timeout < 1000) {
     if (u.https ? tls.available() : plain.available()) {
-      String statusLine = u.https ? tls.readStringUntil('
-') : plain.readStringUntil('
-');
+      String statusLine = u.https ? tls.readStringUntil('\n') : plain.readStringUntil('\n');
       Serial.print("Status /status -> ");
       Serial.println(statusLine);
       break;
@@ -194,19 +193,13 @@ void sendPhoto() {
     sock = &plain;
   }
 
-  String head = "--RandomBoundary
-Content-Disposition: form-data; name="imageFile"; filename="cam.jpg"
-Content-Type: image/jpeg
-
-";
-  String tail = "
---RandomBoundary--
-";
+  String head = "--RandomBoundary\r\nContent-Disposition: form-data; name=\"imageFile\"; filename=\"cam.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
+  String tail = "\r\n--RandomBoundary--\r\n";
   uint32_t totalLen = fb->len + head.length() + tail.length();
 
   sock->println(String("POST ") + u.path + " HTTP/1.1");
   sock->println(String("Host: ") + u.host);
-  sock->println(String("Content-Length: ") + String(totalLen));
+  sock->println("Content-Length: " + String(totalLen));
   sock->println("Content-Type: multipart/form-data; boundary=RandomBoundary");
   sock->println("Connection: close");
   sock->println();
@@ -227,9 +220,7 @@ Content-Type: image/jpeg
   unsigned long timeout = millis();
   while ((u.https ? tls.connected() : plain.connected()) && millis() - timeout < 5000) {
     if (u.https ? tls.available() : plain.available()) {
-      String statusLine = u.https ? tls.readStringUntil('
-') : plain.readStringUntil('
-');
+      String statusLine = u.https ? tls.readStringUntil('\n') : plain.readStringUntil('\n');
       Serial.print("Status /upload -> ");
       Serial.println(statusLine);
       break;
@@ -242,6 +233,7 @@ Content-Type: image/jpeg
 
   esp_camera_fb_return(fb);
 }
+
 
 void checkAndManageHeat(bool verbose) {
   float temp = temperatureRead();
@@ -287,6 +279,22 @@ void loop() {
 
   // OTA check is cheap (rate-limited) and safe to call frequently.
   sairaMaybeCheckOta();
+
+  // Remote config check (rate-limited). Right now we only accept timer changes.
+  auto applyFn = +[](const String& key, const String& value) -> bool {
+    String k = key; k.toLowerCase();
+    if (k == "timer_delay_ms") {
+      long v = value.toInt();
+      if (v >= 1000 && (unsigned long)v != timerDelay) {
+        timerDelay = (unsigned long)v;
+        Serial.println("CFG: timer_delay_ms aplicado (main).");
+        return true;
+      }
+    }
+    return false;
+  };
+  (void)sairaMaybeFetchRemoteConfig(serverBase, applyFn);
+
 
   if ((millis() - lastTime) > timerDelay) {
     // Agora sim, imprime a temperatura junto com a foto

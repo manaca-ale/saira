@@ -62,3 +62,17 @@
 #ifndef SAIRA_DEVICE_ID
 #define SAIRA_DEVICE_ID "esp32"
 #endif
+
+// Remote config (device pulls updates)
+#ifndef SAIRA_REMOTE_CONFIG_ENABLED
+#define SAIRA_REMOTE_CONFIG_ENABLED 0
+#endif
+
+#ifndef SAIRA_REMOTE_CONFIG_URL
+// If empty, defaults to SAIRA_SERVER_BASE + "/device/" + SAIRA_DEVICE_ID + "/config.txt"
+#define SAIRA_REMOTE_CONFIG_URL ""
+#endif
+
+#ifndef SAIRA_REMOTE_CONFIG_CHECK_INTERVAL_MS
+#define SAIRA_REMOTE_CONFIG_CHECK_INTERVAL_MS 60000
+#endif

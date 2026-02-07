@@ -5,3 +5,4 @@ __pycache__/
 venv/
 ota/latest.bin
 ota/version.txt
+config/*.txt

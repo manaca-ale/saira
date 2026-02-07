@@ -10,6 +10,7 @@
 #include "soc/rtc_cntl_reg.h"
 #include "saira_config.h"
 #include "saira_ota.h"
+#include "saira_remote_config.h"
 
 // =============================================================================
 // 1. WI-FI
@@ -21,9 +22,9 @@ const char* password = SAIRA_WIFI_PASSWORD;
 // 2. CAMERA IP (ORIGEM)
 // =============================================================================
 // Ex: http://192.168.0.142:80/snap.jpg
-static const char* IP_CAM_URL = SAIRA_IP_CAM_URL;
-static const char* IP_CAM_USER = SAIRA_IP_CAM_USER;
-static const char* IP_CAM_PASS = SAIRA_IP_CAM_PASS;
+static String ipCamUrl = SAIRA_IP_CAM_URL;
+static String ipCamUser = SAIRA_IP_CAM_USER;
+static String ipCamPass = SAIRA_IP_CAM_PASS;
 
 // =============================================================================
 // 3. SERVIDOR (DESTINO)
@@ -33,7 +34,7 @@ static const char* SERVER_BASE = SAIRA_SERVER_BASE;
 static const char* UPLOAD_PATH = "/upload";
 static const char* STATUS_PATH = "/status";
 
-static const uint32_t TIMER_DELAY_MS = SAIRA_TIMER_DELAY_MS;
+static uint32_t timerDelayMs = SAIRA_TIMER_DELAY_MS;
 static uint32_t nextRunAt = 0;
 
 // ATENCAO: para https, por padrao vamos aceitar qualquer certificado.
@@ -62,7 +63,7 @@ static String b64Encode(const String& in) {
 static void addPreemptiveBasicAuth(HTTPClient& http) {
   // Some IP cameras only accept Basic if it's sent on the first request
   // (browsers often do this when the URL contains user:pass@...).
-  String token = b64Encode(String(IP_CAM_USER) + ":" + IP_CAM_PASS);
+  String token = b64Encode(ipCamUser + ":" + ipCamPass);
   if (token.length()) {
     http.addHeader("Authorization", "Basic " + token);
   }
@@ -323,7 +324,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   outBuf = nullptr;
   outLen = 0;
 
-  ParsedUrl cam = parseHttpUrl(String(IP_CAM_URL));
+  ParsedUrl cam = parseHttpUrl(ipCamUrl);
   if (!cam.ok) {
     Serial.println("IP_CAM_URL invalido (precisa http://...).");
     return false;
@@ -333,7 +334,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   HTTPClient http;
 
   // Try 1: Basic (preemptive)
-  http.begin(IP_CAM_URL);
+  http.begin(ipCamUrl);
   http.setTimeout(8000);
   addPreemptiveBasicAuth(http);
   code = http.GET();
@@ -347,7 +348,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
     {
       static const char* keys[] = {"WWW-Authenticate"};
       HTTPClient chal;
-      chal.begin(IP_CAM_URL);
+      chal.begin(ipCamUrl);
       chal.collectHeaders(keys, 1);
       chal.setTimeout(8000);
       int ccode = chal.GET();
@@ -359,9 +360,9 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
 
     DigestChallenge c = parseDigestChallenge(wwwAuth);
     if (c.ok) {
-      String auth = buildDigestAuth(c, "GET", cam.path, String(IP_CAM_USER), String(IP_CAM_PASS));
+      String auth = buildDigestAuth(c, "GET", cam.path, ipCamUser, ipCamPass);
       if (auth.length()) {
-        http.begin(IP_CAM_URL);
+        http.begin(ipCamUrl);
         http.setTimeout(8000);
         http.addHeader("Authorization", auth);
         code = http.GET();
@@ -551,11 +552,47 @@ void loop() {
   // OTA check is cheap (rate-limited) and safe to call frequently.
   sairaMaybeCheckOta();
 
+  // Remote config check (rate-limited).
+  auto applyFn = +[](const String& key, const String& value) -> bool {
+    bool changed = false;
+    String k = key; k.toLowerCase();
+
+    if (k == "timer_delay_ms") {
+      long v = value.toInt();
+      if (v >= 1000 && (uint32_t)v != timerDelayMs) {
+        timerDelayMs = (uint32_t)v;
+        changed = true;
+      }
+    } else if (k == "ip_cam_url") {
+      if (value.length() && value != ipCamUrl) {
+        ipCamUrl = value;
+        changed = true;
+      }
+    } else if (k == "ip_cam_user") {
+      if (value != ipCamUser) {
+        ipCamUser = value;
+        changed = true;
+      }
+    } else if (k == "ip_cam_pass") {
+      if (value != ipCamPass) {
+        ipCamPass = value;
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      Serial.println("CFG: aplicado (ipcam-relay).");
+      nextRunAt = millis() + timerDelayMs;
+    }
+    return changed;
+  };
+  (void)sairaMaybeFetchRemoteConfig(String(SERVER_BASE), applyFn);
+
   // Agenda o proximo ciclo contando a partir do INICIO do ciclo (nao soma tempo de processamento + delay).
   // Isso evita virar ~1 minuto quando download/upload levam 20-30s.
   if (nextRunAt == 0) nextRunAt = millis();
   if ((int32_t)(millis() - nextRunAt) >= 0) {
-    nextRunAt = millis() + TIMER_DELAY_MS;
+    nextRunAt = millis() + timerDelayMs;
     relayExternalImage();
   }
 }

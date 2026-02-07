@@ -2,6 +2,7 @@ from flask import Flask, request, send_from_directory
 from datetime import datetime
 import os
 import hashlib
+import re
 
 app = Flask(__name__)
 
@@ -27,6 +28,16 @@ def _get_ota_root() -> str:
 OTA_ROOT = _get_ota_root()
 os.makedirs(OTA_ROOT, exist_ok=True)
 
+def _get_config_root() -> str:
+    return os.getenv(
+        "CONFIG_DIR",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "config"),
+    )
+
+
+CONFIG_ROOT = _get_config_root()
+os.makedirs(CONFIG_ROOT, exist_ok=True)
+
 
 def _admin_token() -> str:
     return os.getenv("ADMIN_TOKEN", "")
@@ -46,6 +57,109 @@ def _relative_path_for_now(filename: str) -> str:
 @app.route("/uploads/<path:filepath>", methods=["GET"])
 def get_uploaded_file(filepath: str):
     return send_from_directory(UPLOAD_ROOT, filepath)
+
+def _sanitize_device_id(device_id: str) -> str | None:
+    # Keep filesystem access safe.
+    if not device_id:
+        return None
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}", device_id):
+        return None
+    return device_id
+
+
+def _config_path_for(device_id: str) -> str:
+    safe = _sanitize_device_id(device_id)
+    if not safe:
+        raise ValueError("invalid device id")
+    return os.path.join(CONFIG_ROOT, f"{safe}.txt")
+
+
+def _sha256_bytes(data: bytes) -> str:
+    h = hashlib.sha256()
+    h.update(data)
+    return h.hexdigest()
+
+
+@app.route("/device/<device_id>/config.txt", methods=["GET"])
+def get_device_config(device_id: str):
+    try:
+        path = _config_path_for(device_id)
+    except ValueError:
+        return {"error": "Invalid device id"}, 400
+
+    if os.path.isfile(path):
+        with open(path, "rb") as f:
+            body_bytes = f.read()
+    else:
+        body_bytes = b"version=0\n"
+
+    etag = _sha256_bytes(body_bytes)
+    inm = request.headers.get("If-None-Match", "")
+    if inm and inm.strip("\"") == etag:
+        return "", 304, {"ETag": f"\"{etag}\""}
+
+    return (
+        body_bytes,
+        200,
+        {
+            "Content-Type": "text/plain; charset=utf-8",
+            "ETag": f"\"{etag}\"",
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@app.route("/device/<device_id>/config", methods=["POST"])
+def set_device_config(device_id: str):
+    # Protected endpoint (admin only)
+    token = _admin_token()
+    if token:
+        got = request.headers.get("X-Admin-Token", "")
+        if got != token:
+            return {"error": "Unauthorized"}, 401
+
+    try:
+        path = _config_path_for(device_id)
+    except ValueError:
+        return {"error": "Invalid device id"}, 400
+
+    payload: dict[str, str] = {}
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return {"error": "Invalid JSON"}, 400
+        for k, v in data.items():
+            payload[str(k)] = "" if v is None else str(v)
+    else:
+        for k in request.form.keys():
+            payload[str(k)] = str(request.form.get(k) or "")
+
+    allowed = {
+        "timer_delay_ms",
+        "ip_cam_url",
+        "ip_cam_user",
+        "ip_cam_pass",
+        "tls_insecure",
+        "ota_enabled",
+        "ota_check_interval_ms",
+    }
+    cleaned: dict[str, str] = {}
+    for k, v in payload.items():
+        kk = k.strip().lower()
+        if kk in allowed:
+            cleaned[kk] = v.strip()
+
+    version = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+    lines = [f"version={version}"]
+    for k in sorted(cleaned.keys()):
+        lines.append(f"{k}={cleaned[k]}")
+    body = "\n".join(lines) + "\n"
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(body)
+
+    return body, 200, {"Content-Type": "text/plain; charset=utf-8"}
 
 def _sha256_file(path: str) -> str:
     h = hashlib.sha256()
