@@ -28,6 +28,7 @@ build/
 # Environment / secrets
 .env
 *.env
+token.json
 
 # PlatformIO / firmware builds
 **/.pio/
@@ -39,3 +40,5 @@ build/
 # ESP32 receiver runtime uploads
 esp32-server/uploads/
 
+# Windows oddities
+nul

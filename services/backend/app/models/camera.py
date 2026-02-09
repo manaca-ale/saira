@@ -9,6 +9,7 @@ class Camera(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
+    device_id = Column(String(64), unique=True, index=True, nullable=True)
     logradouro = Column(String(255))
     bairro = Column(String(100))
     rpa = Column(String(10), index=True)

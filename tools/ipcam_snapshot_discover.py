@@ -148,6 +148,23 @@ def main() -> int:
         "Streaming/channels/2/picture",
         "onvif-http/snapshot?Profile_1",
         "onvif-http/snapshot?Profile_2",
+        # Herospeed / XEPLON / generic Chinese cameras
+        "webcapture.jpg?command=snap&channel=1",
+        "webcapture.jpg?command=snap&channel=0",
+        "snap.jpg?chn=1",
+        "snap.jpg?chn=0",
+        "snap.jpg?quality=60",
+        "snap.jpg?w=640&h=480",
+        "snap.jpg?size=3",               # QVGA on some models
+        "snap.jpg?size=2",               # VGA on some models
+        "tmpfs/auto.jpg",
+        "tmpfs/snap.jpg",
+        "web/cgi-bin/hi3510/param.cgi?cmd=snap",
+        "cgi-bin/snapshot.cgi?channel=0&subtype=1",
+        "capture.jpg",
+        "images/snapshot.jpg",
+        "onvifsnapshot/media_service/snapshot?channel=1&subtype=0",
+        "onvifsnapshot/media_service/snapshot?channel=1&subtype=1",
     ]
 
     auth_modes: list[str] = []

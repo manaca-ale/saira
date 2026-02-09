@@ -3,7 +3,7 @@ services:
     build: .
     ports:
       # Default local port aligns with production mapping.
-      - "5001:5000"
+      - "5002:5000"
     environment:
       - UPLOAD_DIR=/app/uploads
       # Optional: used to return absolute URLs in the JSON response.

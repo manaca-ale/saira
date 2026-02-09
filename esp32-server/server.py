@@ -253,11 +253,21 @@ def upload_ota_firmware():
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
+    # Identify the device
+    raw_device_id = request.headers.get("X-Device-Id", "").strip()
+    device_id = _sanitize_device_id(raw_device_id) if raw_device_id else None
+    if not device_id:
+        device_id = "unknown_device"
+        if raw_device_id:
+            print(f"WARNING: X-Device-Id invalido: {raw_device_id!r}", flush=True)
+        else:
+            print("WARNING: upload sem header X-Device-Id, usando fallback", flush=True)
+
     # Validate that an image file was provided
     if "imageFile" not in request.files:
-        # Debug info to understand why multipart parsing failed
         print(
             "Upload missing imageFile | "
+            f"device_id={device_id} | "
             f"content_type={request.content_type} | "
             f"content_length={request.headers.get('Content-Length')} | "
             f"files_keys={list(request.files.keys())} | "
@@ -269,9 +279,9 @@ def upload_file():
 
     file = request.files["imageFile"]
     if file.filename == "":
-        # Debug info to understand empty filename cases
         print(
             "Upload empty filename | "
+            f"device_id={device_id} | "
             f"content_type={request.content_type} | "
             f"content_length={request.headers.get('Content-Length')} | "
             f"files_keys={list(request.files.keys())}",
@@ -279,24 +289,30 @@ def upload_file():
         )
         return {"error": "Empty filename"}, 400
 
-    # Build a timestamped filename and save the image
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"{timestamp}.jpg"
-    rel_path = _relative_path_for_now(filename)
+    # Build path: {device_id}/YYYY/MM/DD/HH-MM-SS.jpg
+    dt = datetime.utcnow()
+    timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"{timestamp_str}.jpg"
+    rel_path = os.path.join(device_id, dt.strftime("%Y/%m/%d"), filename)
     save_path = os.path.join(UPLOAD_ROOT, rel_path)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file.save(save_path)
 
-    # Log receipt for visibility in container logs
-    print(f"Received image: {rel_path} ({file.content_length} bytes)", flush=True)
+    print(f"Received image: {rel_path} (device={device_id})", flush=True)
 
     base = _public_base_url()
+    rel_url = rel_path.replace(os.sep, "/")
     if base:
-        image_url = f"{base}/uploads/{rel_path.replace(os.sep, '/')}"
+        image_url = f"{base}/uploads/{rel_url}"
     else:
-        image_url = f"/uploads/{rel_path.replace(os.sep, '/')}"
+        image_url = f"/uploads/{rel_url}"
 
-    return {"status": "ok", "filename": rel_path.replace(os.sep, "/"), "image_url": image_url}, 200
+    return {
+        "status": "ok",
+        "device_id": device_id,
+        "filename": rel_url,
+        "image_url": image_url,
+    }, 200
 
 @app.route("/status", methods=["POST"])
 def receive_status():

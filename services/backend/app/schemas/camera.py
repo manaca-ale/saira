@@ -6,6 +6,7 @@ from decimal import Decimal
 
 class CameraBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
+    device_id: Optional[str] = Field(None, max_length=64)
     logradouro: Optional[str] = Field(None, max_length=255)
     bairro: Optional[str] = Field(None, max_length=100)
     rpa: Optional[str] = Field(None, max_length=10)
@@ -22,6 +23,7 @@ class CameraCreate(CameraBase):
 
 class CameraUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
+    device_id: Optional[str] = Field(None, max_length=64)
     logradouro: Optional[str] = Field(None, max_length=255)
     bairro: Optional[str] = Field(None, max_length=100)
     rpa: Optional[str] = Field(None, max_length=10)
