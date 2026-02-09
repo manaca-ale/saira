@@ -1,7 +1,10 @@
 services:
   # Frontend (React + Vite)
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=/api/v1
     ports:
       - "3000:80"
     container_name: vite-react-ts-app

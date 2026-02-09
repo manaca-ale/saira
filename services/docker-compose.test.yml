@@ -4,7 +4,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_URL=https://api-test-saira.manaca.tech/api/v1
+        - VITE_API_URL=/api/v1
     ports:
       - "3001:80"
     container_name: saira-web-test

@@ -1,13 +1,14 @@
 services:
   # Frontend (React + Vite)
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=/api/v1
     ports:
       - "3000:80"
     container_name: saira-web-prod
     restart: always
-    environment:
-      - VITE_API_URL=https://api-saira.manaca.tech
     depends_on:
       - backend
 

@@ -78,8 +78,8 @@ jobs:
             cd services
 
             echo "Atualizando Producao..."
-            docker compose -p saira-prod -f docker-compose.prod.yml build
-            docker compose -p saira-prod -f docker-compose.prod.yml up -d
+            # Use --build + --force-recreate to ensure new images/build-args are applied.
+            docker compose -p saira-prod -f docker-compose.prod.yml up -d --build --force-recreate
 
             echo "Subindo ESP32 HTTP Receiver (Producao)..."
             cd /home/ubuntu/saira/esp32-server
