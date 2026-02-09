@@ -2,9 +2,9 @@
 set -euo pipefail
 
 FRAMES_DIR="/var/spool/cam/frames"
-WIDTH="${CAM_WIDTH:-640}"
-HEIGHT="${CAM_HEIGHT:-360}"
-QUALITY="${CAM_QUALITY:-70}"
+WIDTH="${CAM_WIDTH:-1920}"
+HEIGHT="${CAM_HEIGHT:-1080}"
+QUALITY="${CAM_QUALITY:-40}"
 FONT="/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
 
 mkdir -p "$FRAMES_DIR"
@@ -22,7 +22,7 @@ if [ ! -f "$TMPFILE" ]; then
 fi
 
 # Gravar timestamp na imagem (canto inferior esquerdo, fundo semi-transparente)
-ffmpeg -y -i "$TMPFILE" -vf "drawtext=fontfile=${FONT}:text='${TIMESTAMP}':x=10:y=h-th-10:fontsize=14:fontcolor=white:borderw=1:bordercolor=black:box=1:boxcolor=black@0.4:boxborderw=4" -update 1 -q:v 2 "$FILEPATH" 2>/dev/null
+ffmpeg -y -i "$TMPFILE" -vf "drawtext=fontfile=${FONT}:text='${TIMESTAMP}':x=10:y=h-th-10:fontsize=24:fontcolor=white:borderw=2:bordercolor=black:box=1:boxcolor=black@0.4:boxborderw=6" -update 1 -q:v 2 "$FILEPATH" 2>/dev/null
 
 rm -f "$TMPFILE"
 
