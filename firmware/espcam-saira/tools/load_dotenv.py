@@ -27,8 +27,12 @@ def _parse_dotenv(path):
     return items
 
 
-def _as_define_value(v):
+def _as_define_value(v, force_string=False):
     vv = v.strip()
+    if force_string:
+        esc = vv.replace("\\", "\\\\").replace('"', '\\"')
+        return f'\\\"{esc}\\\"'
+
     low = vv.lower()
     if low in ("true", "yes", "on"):
         return "1"
@@ -70,10 +74,18 @@ mapping = {
 }
 
 defines = []
+numeric_keys = {
+    "TIMER_DELAY_MS",
+    "TLS_INSECURE",
+    "OTA_ENABLED",
+    "OTA_CHECK_INTERVAL_MS",
+    "REMOTE_CONFIG_ENABLED",
+    "REMOTE_CONFIG_CHECK_INTERVAL_MS",
+}
 for src_key, dst_key in mapping.items():
     if src_key not in cfg:
         continue
-    defines.append((dst_key, _as_define_value(cfg[src_key])))
+    defines.append((dst_key, _as_define_value(cfg[src_key], force_string=(src_key not in numeric_keys))))
 
 if defines:
     env.Append(CPPDEFINES=defines)

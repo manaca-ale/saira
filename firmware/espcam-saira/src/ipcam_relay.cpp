@@ -3,6 +3,7 @@
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+#include "img_converters.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/md5.h"
 #include "esp_system.h"
@@ -754,6 +755,107 @@ static void uploadSnapshot(const uint8_t* buf, int len) {
   sairaPrintMs("up_total", sairaMsSince(t0));
 }
 
+static const uint8_t QUEUE_REENCODE_JPEG_QUALITY = 24;
+static uint8_t* gQueueRgbWorkspace = nullptr;
+static size_t gQueueRgbWorkspaceLen = 0;
+
+static bool isSofMarker(uint8_t marker) {
+  switch (marker) {
+    case 0xC0: case 0xC1: case 0xC2: case 0xC3:
+    case 0xC5: case 0xC6: case 0xC7:
+    case 0xC9: case 0xCA: case 0xCB:
+    case 0xCD: case 0xCE: case 0xCF:
+      return true;
+    default:
+      return false;
+  }
+}
+
+static bool parseJpegDimensions(const uint8_t* data, size_t len, uint16_t& width, uint16_t& height) {
+  width = 0;
+  height = 0;
+  if (!data || len < 4) return false;
+  if (data[0] != 0xFF || data[1] != 0xD8) return false;
+
+  size_t pos = 2;
+  while (pos + 1 < len) {
+    if (data[pos] != 0xFF) {
+      pos++;
+      continue;
+    }
+    while (pos < len && data[pos] == 0xFF) pos++;
+    if (pos >= len) break;
+
+    uint8_t marker = data[pos++];
+    if (marker == 0x00 || marker == 0xD8 || marker == 0xD9) continue;
+    if (marker >= 0xD0 && marker <= 0xD7) continue;
+
+    if (pos + 1 >= len) return false;
+    uint16_t segLen = ((uint16_t)data[pos] << 8) | (uint16_t)data[pos + 1];
+    if (segLen < 2 || pos + segLen > len) return false;
+
+    if (isSofMarker(marker)) {
+      if (segLen < 7) return false;
+      height = ((uint16_t)data[pos + 3] << 8) | (uint16_t)data[pos + 4];
+      width = ((uint16_t)data[pos + 5] << 8) | (uint16_t)data[pos + 6];
+      return (width > 0 && height > 0);
+    }
+
+    pos += segLen;
+  }
+  return false;
+}
+
+static bool ensureQueueRgbWorkspace(size_t needed) {
+  if (gQueueRgbWorkspace && gQueueRgbWorkspaceLen >= needed) return true;
+  uint8_t* p = (uint8_t*)ps_malloc(needed);
+  if (!p) p = (uint8_t*)malloc(needed);
+  if (!p) return false;
+  free(gQueueRgbWorkspace);
+  gQueueRgbWorkspace = p;
+  gQueueRgbWorkspaceLen = needed;
+  return true;
+}
+
+static bool isLikelyValidJpeg(const uint8_t* data, int len) {
+  if (!data || len < 4) return false;
+  return (data[0] == 0xFF && data[1] == 0xD8 &&
+          data[len - 2] == 0xFF && data[len - 1] == 0xD9);
+}
+
+static bool compactJpegForQueue(uint8_t*& data, int& len) {
+  if (!data || len <= 4) return false;
+
+  uint16_t width = 0, height = 0;
+  if (!parseJpegDimensions(data, (size_t)len, width, height)) return false;
+
+  size_t rgbLen = (size_t)width * (size_t)height * 3;
+  if (rgbLen == 0) return false;
+  if (!ensureQueueRgbWorkspace(rgbLen)) return false;
+
+  uint8_t* rgb = gQueueRgbWorkspace;
+  if (!fmt2rgb888(data, (size_t)len, PIXFORMAT_JPEG, rgb)) return false;
+
+  uint8_t* out = nullptr;
+  size_t outLen = 0;
+  bool ok = fmt2jpg(rgb, rgbLen, width, height, PIXFORMAT_RGB888,
+                    QUEUE_REENCODE_JPEG_QUALITY, &out, &outLen);
+
+  if (!ok || !out || outLen == 0) {
+    free(out);
+    return false;
+  }
+  if (outLen >= (size_t)len) {
+    free(out);
+    return false;
+  }
+
+  free(data);
+  data = out;
+  len = (int)outLen;
+  return true;
+}
+
 // ---- Fila de imagens na PSRAM (thread-safe via mutex) ----
 static const int IMAGE_QUEUE_MAX = 20;
 
@@ -770,8 +872,25 @@ static volatile int queueCount = 0;
 static SemaphoreHandle_t queueMutex = NULL;
 
 static bool queuePush(uint8_t* data, int len, uint32_t ts) {
+    if (!isLikelyValidJpeg(data, len)) {
+        Serial.printf("QUEUE: frame invalido (nao eh JPEG valido), descartado (%d bytes)\n", len);
+        free(data);
+        return false;
+    }
+
+    const int originalLen = len;
+    if (compactJpegForQueue(data, len)) {
+        const int saved = originalLen - len;
+        const float pct = (originalLen > 0) ? (100.0f * (float)saved / (float)originalLen) : 0.0f;
+        Serial.printf("QUEUE: recompressao JPEG q=%u %d -> %d bytes (-%d / %.1f%%)\n",
+                      (unsigned int)QUEUE_REENCODE_JPEG_QUALITY, originalLen, len, saved, pct);
+    } else {
+        Serial.printf("QUEUE: sem compactacao adicional (%d bytes)\n", len);
+    }
+
     if (xSemaphoreTake(queueMutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
         Serial.println("QUEUE: timeout obtendo mutex (push)");
+        free(data);
         return false;
     }
     if (queueCount >= IMAGE_QUEUE_MAX) {
