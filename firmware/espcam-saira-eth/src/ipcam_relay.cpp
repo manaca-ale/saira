@@ -71,6 +71,7 @@ static const bool SAIRA_REMOTE_DEBUG = (SAIRA_REMOTE_DEBUG_ENABLED != 0);
 static uint32_t nextRemoteDebugAt = 0;
 static uint32_t gCaptureOk = 0;
 static uint32_t gCaptureFail = 0;
+static uint32_t gCaptureFailStreak = 0;
 static uint32_t gUploadOk = 0;
 static uint32_t gUploadFail = 0;
 static uint32_t gLastCaptureBytes = 0;
@@ -305,12 +306,114 @@ static String joinPath(const String& base, const String& tail) {
 static void sendStatus(const String& msg);
 
 #if SAIRA_USE_ETHERNET
+static bool sameSubnet24(const IPAddress& a, const IPAddress& b) {
+  return (a[0] == b[0] && a[1] == b[1] && a[2] == b[2]);
+}
+
+static bool shouldPauseWiFiForTarget(const IPAddress& targetIp) {
+#if SAIRA_ETH_WIFI_DUAL_MODE
+  if (WiFi.status() != WL_CONNECTED) return false;
+  if (!ETH.linkUp()) return false;
+  IPAddress wifiIp = WiFi.localIP();
+  IPAddress ethIp = ETH.localIP();
+  if (wifiIp == INADDR_NONE || ethIp == INADDR_NONE) return false;
+  return sameSubnet24(targetIp, wifiIp) && sameSubnet24(targetIp, ethIp);
+#else
+  (void)targetIp;
+  return false;
+#endif
+}
+
+struct ScopedWifiPause {
+  bool active = false;
+  ScopedWifiPause() = default;
+  void pauseFor(const IPAddress& targetIp) {
+    if (active) return;
+    if (!shouldPauseWiFiForTarget(targetIp)) return;
+    Serial.print("NET: conflito de rota Wi-Fi/Ethernet para ");
+    Serial.print(targetIp);
+    Serial.println("; pausando Wi-Fi durante acesso da camera.");
+    WiFi.disconnect(false, false);
+    delay(120);
+    active = true;
+  }
+  explicit ScopedWifiPause(const IPAddress& targetIp) {
+    pauseFor(targetIp);
+  }
+  ~ScopedWifiPause() {
+    if (active) {
+      WiFi.reconnect();
+      Serial.println("NET: Wi-Fi retomado apos acesso da camera.");
+    }
+  }
+};
+
 static bool gEthStarted = false;
 static bool gEthLinkReported = false;
 static bool gEthBeginAttempted = false;
 static bool gEthInitUnavailable = false;
 static uint32_t gNextEthRetryAt = 0;
 static uint32_t gNextWifiRetryAt = 0;
+static uint32_t gEthBeginFailCount = 0;
+static uint32_t gEthLastAttemptAt = 0;
+static uint32_t gEthLastWarnAt = 0;
+static String gEthLastError = "boot";
+static uint8_t gDiscoverCursorHost = 2;
+static uint32_t gDiscoverAttempts = 0;
+static uint32_t gDiscoverHits = 0;
+static uint32_t gDiscoverLastAt = 0;
+static String gDiscoverLast = "none";
+static uint32_t gNextDiscoverTryAt = 0;
+
+static bool configureEthStaticFromCameraUrl() {
+  ParsedUrl cam = parseHttpUrl(ipCamUrl);
+  if (!cam.ok) return false;
+
+  IPAddress camIp;
+  if (!camIp.fromString(cam.host)) {
+    Serial.println("NET: camera host nao eh IPv4, sem fallback estatico.");
+    return false;
+  }
+
+  IPAddress wifiIp = WiFi.localIP();
+  bool wifiSameSubnet = (wifiIp != INADDR_NONE &&
+                         wifiIp[0] == camIp[0] &&
+                         wifiIp[1] == camIp[1] &&
+                         wifiIp[2] == camIp[2]);
+  const uint8_t candidates[] = {20, 21, 22, 50, 99, 200};
+  IPAddress local(camIp[0], camIp[1], camIp[2], 0);
+  bool picked = false;
+  for (size_t i = 0; i < sizeof(candidates); ++i) {
+    uint8_t host = candidates[i];
+    if (host == camIp[3]) continue;
+    if (wifiSameSubnet && host == wifiIp[3]) continue;
+    local = IPAddress(camIp[0], camIp[1], camIp[2], host);
+    picked = true;
+    break;
+  }
+  if (!picked) {
+    local = IPAddress(camIp[0], camIp[1], camIp[2], 201);
+  }
+  IPAddress gateway(camIp[0], camIp[1], camIp[2], 1);
+  IPAddress subnet(255, 255, 255, 0);
+
+  if (!ETH.config(local, gateway, subnet, gateway, gateway)) {
+    Serial.println("NET: ETH.config(estatico) falhou.");
+    gEthLastError = "eth_config_static_fail";
+    return false;
+  }
+
+  Serial.print("NET: ETH fallback estatico local=");
+  Serial.print(local);
+  Serial.print(" camera=");
+  Serial.print(camIp);
+  if (wifiIp != INADDR_NONE) {
+    Serial.print(" wifi=");
+    Serial.print(wifiIp);
+  }
+  Serial.println();
+  return true;
+}
 
 static bool connectWiFiUplink(uint32_t timeoutMs) {
   if (!(ssid && ssid[0])) return false;
@@ -328,9 +431,17 @@ static bool connectWiFiUplink(uint32_t timeoutMs) {
 
 static bool startEthernet(uint32_t timeoutMs) {
   if (!gEthStarted) {
-    if (gEthInitUnavailable) return false;
+    if (gEthInitUnavailable) {
+      const uint32_t now = millis();
+      if ((int32_t)(now - gEthLastWarnAt) >= 30000) {
+        gEthLastWarnAt = now;
+        Serial.println("NET: ETH.begin indisponivel neste boot (falha anterior).");
+      }
+      return false;
+    }
     if (gEthBeginAttempted) return false;
     gEthBeginAttempted = true;
+    gEthLastAttemptAt = millis();
 
     Serial.println("NET: iniciando Ethernet...");
     ETH.setHostname(SAIRA_DEVICE_ID);
@@ -343,10 +454,13 @@ static bool startEthernet(uint32_t timeoutMs) {
                    (eth_clock_mode_t)SAIRA_ETH_CLK_MODE)) {
       Serial.println("NET: ETH.begin falhou.");
       Serial.println("NET: ETH sera mantida desativada neste boot para preservar Wi-Fi/OTA.");
+      gEthBeginFailCount++;
+      gEthLastError = "eth_begin_fail";
       gEthInitUnavailable = true;
       return false;
     }
     gEthStarted = true;
+    gEthLastError = "eth_started";
   }
 
   uint32_t t0 = millis();
@@ -356,12 +470,27 @@ static bool startEthernet(uint32_t timeoutMs) {
   if (!ETH.linkUp()) {
     gEthLinkReported = false;
     Serial.println("NET: Ethernet sem link (timeout).");
+    gEthLastError = "eth_link_timeout";
     return false;
   }
 
   uint32_t tIp0 = millis();
   while (ETH.localIP() == INADDR_NONE && millis() - tIp0 < timeoutMs) {
     delay(200);
+  }
+  if (ETH.localIP() == INADDR_NONE) {
+    Serial.println("NET: ETH sem DHCP; tentando IP estatico baseado na camera...");
+    if (configureEthStaticFromCameraUrl()) {
+      uint32_t tStatic0 = millis();
+      while (ETH.localIP() == INADDR_NONE && millis() - tStatic0 < 3000) {
+        delay(100);
+      }
+    }
+  }
+  if (ETH.localIP() == INADDR_NONE) {
+    Serial.println("NET: Ethernet link sem IP (DHCP/estatico).");
+    gEthLastError = "eth_no_ip";
+    return false;
   }
 
   if (!gEthLinkReported) {
@@ -377,6 +506,7 @@ static bool startEthernet(uint32_t timeoutMs) {
     Serial.print("Mbps duplex=");
     Serial.println(ETH.fullDuplex() ? "full" : "half");
   }
+  gEthLastError = "eth_ok";
   return true;
 }
 #endif
@@ -393,7 +523,7 @@ static bool ensureNet() {
     gNextEthRetryAt = now + (uint32_t)SAIRA_ETH_RETRY_INTERVAL_MS;
     ethOk = startEthernet(3000);
   } else {
-    ethOk = ETH.linkUp();
+    ethOk = (ETH.linkUp() && ETH.localIP() != INADDR_NONE);
   }
 
   if (WiFi.status() == WL_CONNECTED) {
@@ -453,7 +583,7 @@ static bool ensureUplinkNet() {
 
 static bool ensureCameraNet() {
 #if SAIRA_ETH_WIFI_DUAL_MODE
-  if (ETH.linkUp()) return true;
+  if (ETH.linkUp() && ETH.localIP() != INADDR_NONE) return true;
   uint32_t now = millis();
   if (gNextEthRetryAt == 0 || (int32_t)(now - gNextEthRetryAt) >= 0) {
     gNextEthRetryAt = now + (uint32_t)SAIRA_ETH_RETRY_INTERVAL_MS;
@@ -514,6 +644,14 @@ static void maybeSendRemoteDebug() {
                " wifi=" + String((WiFi.status() == WL_CONNECTED) ? 1 : 0) +
 #if SAIRA_USE_ETHERNET
                " eth=" + String(ETH.linkUp() ? 1 : 0) +
+               " eth_ip=" + ETH.localIP().toString() +
+               " eth_started=" + String(gEthStarted ? 1 : 0) +
+               " eth_init_na=" + String(gEthInitUnavailable ? 1 : 0) +
+               " eth_begin_fail=" + String(gEthBeginFailCount) +
+               " eth_err=" + gEthLastError +
+               " disc_try=" + String(gDiscoverAttempts) +
+               " disc_hit=" + String(gDiscoverHits) +
+               " disc_last=" + gDiscoverLast +
 #endif
                " cap_ok=" + String(gCaptureOk) +
                " cap_fail=" + String(gCaptureFail) +
@@ -653,6 +791,140 @@ static void camDisconnect() {
   camClient.stop();
 }
 
+#if SAIRA_USE_ETHERNET
+static String buildHttpUrl(const IPAddress& ip, uint16_t port, const String& path) {
+  String url = "http://";
+  url += ip.toString();
+  if (port != 80) {
+    url += ":";
+    url += String(port);
+  }
+  if (path.length() == 0 || path[0] != '/') url += "/";
+  url += path;
+  return url;
+}
+
+static bool probeCameraEndpoint(const IPAddress& ip,
+                                uint16_t port,
+                                const String& path,
+                                int32_t timeoutMs,
+                                int& outCode,
+                                String& outWwwAuth) {
+  outCode = -1;
+  outWwwAuth = "";
+
+  WiFiClient cli;
+  HTTPClient http;
+  String url = buildHttpUrl(ip, port, path);
+  if (!http.begin(cli, url)) return false;
+
+  static const char* hdrKeys[] = {"WWW-Authenticate"};
+  http.collectHeaders(hdrKeys, 1);
+  http.setConnectTimeout(timeoutMs);
+  http.setTimeout(timeoutMs);
+  addPreemptiveBasicAuth(http);
+  outCode = http.GET();
+  outWwwAuth = http.header("WWW-Authenticate");
+  http.end();
+
+  if (outCode == 200) return true;
+  if ((outCode == 401 || outCode == 403) && outWwwAuth.length()) return true;
+  return false;
+}
+
+static bool discoverCameraEndpoint(String& outUrl, String& outReason) {
+  outUrl = "";
+  outReason = "discover_not_found";
+
+  if (!ETH.linkUp() || ETH.localIP() == INADDR_NONE) {
+    outReason = "discover_eth_offline";
+    return false;
+  }
+
+  ParsedUrl cam = parseHttpUrl(ipCamUrl);
+  if (!cam.ok) {
+    outReason = "discover_bad_ip_cam_url";
+    return false;
+  }
+
+  IPAddress baseIp = ETH.localIP();
+  IPAddress camIpCfg;
+  const bool cfgIsIp = camIpCfg.fromString(cam.host);
+  if (cfgIsIp && sameSubnet24(camIpCfg, ETH.localIP())) {
+    baseIp = camIpCfg;
+  }
+
+  const uint16_t port = cam.port ? cam.port : 80;
+  const String pathA = cam.path.length() ? cam.path : String("/snap.jpg");
+  const String pathB = (pathA == "/snap.jpg") ? String("/snapshot.jpg") : String("/snap.jpg");
+
+  bool used[256];
+  memset(used, 0, sizeof(used));
+
+  IPAddress wifiIp = WiFi.localIP();
+  const bool wifiSameSubnet = (wifiIp != INADDR_NONE && sameSubnet24(wifiIp, baseIp));
+  const uint8_t avoidWifiHost = wifiSameSubnet ? wifiIp[3] : 0;
+  const uint8_t avoidEthHost = ETH.localIP()[3];
+
+  uint8_t candidates[48];
+  int candidateCount = 0;
+
+  auto addCandidate = [&](uint8_t host) {
+    if (host <= 1 || host >= 255) return;
+    if (host == avoidEthHost) return;
+    if (wifiSameSubnet && host == avoidWifiHost) return;
+    if (used[host]) return;
+    used[host] = true;
+    if (candidateCount < (int)(sizeof(candidates))) {
+      candidates[candidateCount++] = host;
+    }
+  };
+
+  if (cfgIsIp && sameSubnet24(camIpCfg, baseIp)) {
+    addCandidate(camIpCfg[3]);
+  }
+  const uint8_t preferredHosts[] = {
+      142, 140, 100, 108, 64, 50, 22, 21, 20, 10, 200, 120, 110, 90};
+  for (size_t i = 0; i < sizeof(preferredHosts); ++i) {
+    addCandidate(preferredHosts[i]);
+  }
+  for (int i = 0; i < 24; ++i) {
+    addCandidate(gDiscoverCursorHost);
+    gDiscoverCursorHost++;
+    if (gDiscoverCursorHost < 2 || gDiscoverCursorHost >= 255) {
+      gDiscoverCursorHost = 2;
+    }
+  }
+
+  if (candidateCount <= 0) {
+    outReason = "discover_no_candidates";
+    return false;
+  }
+
+  // If Wi-Fi and Ethernet share /24, force the probe through Ethernet.
+  ScopedWifiPause pauseGuard(IPAddress(baseIp[0], baseIp[1], baseIp[2], candidates[0]));
+
+  for (int i = 0; i < candidateCount; ++i) {
+    IPAddress ip(baseIp[0], baseIp[1], baseIp[2], candidates[i]);
+    int code = -1;
+    String wwwAuth;
+    if (probeCameraEndpoint(ip, port, pathA, 250, code, wwwAuth)) {
+      outUrl = buildHttpUrl(ip, port, pathA);
+      outReason = String("discover_hit_") + String(code);
+      return true;
+    }
+    if (probeCameraEndpoint(ip, port, pathB, 250, code, wwwAuth)) {
+      outUrl = buildHttpUrl(ip, port, pathB);
+      outReason = String("discover_hit_alt_") + String(code);
+      return true;
+    }
+  }
+
+  outReason = "discover_scan_exhausted";
+  return false;
+}
+#endif
+
 static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   outBuf = nullptr;
   outLen = 0;
@@ -664,6 +936,14 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
     return false;
   }
   uint32_t tParse = sairaMsSince(t0);
+
+#if SAIRA_USE_ETHERNET
+  ScopedWifiPause camRoutePause;
+  IPAddress camHostIp;
+  if (camHostIp.fromString(cam.host)) {
+    camRoutePause.pauseFor(camHostIp);
+  }
+#endif
 
   // Invalidate digest cache if URL changed
   if (ipCamUrl != lastCamUrl) {
@@ -1406,6 +1686,51 @@ static void uploadTask(void* /*param*/) {
     }
 }
 
+#if SAIRA_USE_ETHERNET
+static void maybeAutoDiscoverCamera() {
+  if (gCaptureFailStreak < 3) return;
+  if (!ETH.linkUp() || ETH.localIP() == INADDR_NONE) return;
+
+  const uint32_t now = millis();
+  if (gNextDiscoverTryAt != 0 && (int32_t)(now - gNextDiscoverTryAt) < 0) return;
+  gNextDiscoverTryAt = now + 45000;  // cooldown to avoid aggressive scans
+  gDiscoverLastAt = now;
+  gDiscoverAttempts++;
+
+  String discoveredUrl;
+  String reason;
+  Serial.println("DISCOVER: iniciando varredura de camera na LAN Ethernet...");
+  bool found = discoverCameraEndpoint(discoveredUrl, reason);
+  gDiscoverLast = reason;
+
+  if (!found) {
+    Serial.print("DISCOVER: camera nao encontrada (");
+    Serial.print(reason);
+    Serial.println(").");
+    sendStatus("WARN camera_discovery not_found reason=" + reason +
+               " eth_ip=" + ETH.localIP().toString() +
+               " fail_streak=" + String(gCaptureFailStreak));
+    return;
+  }
+
+  gDiscoverHits++;
+  if (discoveredUrl != ipCamUrl) {
+    Serial.print("DISCOVER: camera encontrada em ");
+    Serial.println(discoveredUrl);
+    ipCamUrl = discoveredUrl;
+    cachedDigest = DigestChallenge{};
+    digestNc = 0;
+    camDisconnect();
+    sendStatus("CFG camera_discovered url=" + discoveredUrl +
+               " tries=" + String(gDiscoverAttempts) +
+               " hits=" + String(gDiscoverHits));
+  } else {
+    Serial.print("DISCOVER: camera confirmada em ");
+    Serial.println(discoveredUrl);
+  }
+}
+#endif
+
 void setup() {
   Serial.begin(115200);
 #if defined(RTC_CNTL_BROWN_OUT_REG)
@@ -1438,6 +1763,7 @@ void setup() {
 }
 
 static uint32_t nextCaptureAt = 0;
+static uint32_t nextCameraNetWarnAt = 0;
 
 void loop() {
   sairaMaybeCheckOta();
@@ -1482,6 +1808,7 @@ void loop() {
       uint32_t tCap0 = millis();
       if (downloadSnapshot(buf, len)) {
         gCaptureOk++;
+        gCaptureFailStreak = 0;
         sairaPrintMs("capture_total", sairaMsSince(tCap0));
         Serial.printf("   OK: %d bytes capturados\n", len);
         if (!queuePush(buf, len, millis())) {
@@ -1493,11 +1820,40 @@ void loop() {
         // NAO fazer free(buf) aqui — a fila agora eh dona do ponteiro
       } else {
         gCaptureFail++;
+        gCaptureFailStreak++;
         sairaPrintMs("capture_total", sairaMsSince(tCap0));
         Serial.println("   ERRO: falha na captura");
         sendStatus("ERR captura falhou net=" + String(sairaNetKind()) +
+#if SAIRA_USE_ETHERNET
+                   " eth_ip=" + ETH.localIP().toString() +
+                   " eth_link=" + String(ETH.linkUp() ? 1 : 0) +
+                   " eth_err=" + gEthLastError +
+#endif
+                   " fail_streak=" + String(gCaptureFailStreak) +
                    " heap=" + String(ESP.getFreeHeap()) +
                    " psram=" + String(ESP.getFreePsram()));
+#if SAIRA_USE_ETHERNET
+        maybeAutoDiscoverCamera();
+#endif
+      }
+    } else {
+      const uint32_t now = millis();
+      if (nextCameraNetWarnAt == 0 || (int32_t)(now - nextCameraNetWarnAt) >= 0) {
+        nextCameraNetWarnAt = now + 30000;
+#if SAIRA_USE_ETHERNET
+        Serial.print("CAPTURA: rede da camera indisponivel. eth_link=");
+        Serial.print(ETH.linkUp() ? 1 : 0);
+        Serial.print(" eth_ip=");
+        Serial.print(ETH.localIP());
+        Serial.print(" err=");
+        Serial.println(gEthLastError);
+        sendStatus("WARN camera_net_offline eth=" + String(ETH.linkUp() ? 1 : 0) +
+                   " eth_ip=" + ETH.localIP().toString() +
+                   " err=" + gEthLastError +
+                   " begin_fail=" + String(gEthBeginFailCount));
+#else
+        Serial.println("CAPTURA: rede da camera indisponivel.");
+#endif
       }
     }
   }
