@@ -2,7 +2,9 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
+#include <WiFiUdp.h>
 #include <HTTPClient.h>
+#include <Preferences.h>
 #include "img_converters.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/md5.h"
@@ -74,10 +76,36 @@ static uint32_t gCaptureFail = 0;
 static uint32_t gCaptureFailStreak = 0;
 static uint32_t gUploadOk = 0;
 static uint32_t gUploadFail = 0;
+static uint32_t gUploadFailStreak = 0;
 static uint32_t gLastCaptureBytes = 0;
 static uint32_t gLastQueueBytes = 0;
 static uint32_t gCompactFailCount = 0;
 static uint32_t gCompactSuccessCount = 0;
+static uint32_t gWifiDownSince = 0;
+static uint32_t gCaptureHoldUntil = 0;
+static uint32_t gLastOtaGuardStatusAt = 0;
+static uint32_t gBootAtMs = 0;
+static uint32_t gLastCaptureOkAt = 0;
+static uint32_t gLastUploadOkAt = 0;
+static uint32_t gLastStatusOkAt = 0;
+static uint32_t gLastRecoveryAt = 0;
+static uint8_t  gRecoveryStage = 0;
+static uint32_t gPendingRebootAt = 0;
+static uint32_t gRebootReasonCode = 0;
+
+static const uint32_t SAIRA_OTA_GUARD_WIFI_DOWN_MS = 30000;
+static const uint32_t SAIRA_OTA_GUARD_HOLD_MS = 60000;
+static const uint32_t SAIRA_RECOVERY_STEP_MS = 20000;
+static const uint32_t SAIRA_CAPTURE_STALL_MS = 180000;
+static const uint32_t SAIRA_HARD_STALL_REBOOT_MS = 600000;
+static const uint32_t SAIRA_DISCOVER_COOLDOWN_MS = 20000;
+static const uint32_t SAIRA_DISCOVER_FAST_COOLDOWN_MS = 8000;
+static const uint32_t SAIRA_DISCOVER_BOOT_GRACE_MS = 90000;
+static const uint32_t SAIRA_CAM_NVS_MIN_WRITE_GAP_MS = 30000;
+static const uint32_t SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS = 10000;
+static const uint32_t SAIRA_DISCOVER_PROBE_BUDGET = 18;
+static const uint32_t SAIRA_DISCOVER_PROBE_GAP_MS = 250;
+static const uint32_t SAIRA_DISCOVER_MAX_WINDOW_MS = 7000;
 
 // ATENCAO: para https, por padrao vamos aceitar qualquer certificado.
 // Se quiser validacao, troque por setCACert() com o CA correto.
@@ -303,9 +331,47 @@ static String joinPath(const String& base, const String& tail) {
   return base + tail;
 }
 
+static bool extractIpv4Host(const String& url, IPAddress& outIp) {
+  ParsedUrl p = parseHttpUrl(url);
+  if (!p.ok) return false;
+  return outIp.fromString(p.host);
+}
+
+static String buildUrlWithHostPortPath(const IPAddress& host, uint16_t port, const String& path) {
+  String out = "http://";
+  out += host.toString();
+  if (port != 80) {
+    out += ":";
+    out += String(port);
+  }
+  if (path.length() == 0 || path[0] != '/') out += "/";
+  out += (path.length() ? path : "/snap.jpg");
+  return out;
+}
+
+static String buildCameraSnapshotUrlForHost(const IPAddress& host, uint16_t detectedPort = 0) {
+  ParsedUrl cam = parseHttpUrl(ipCamUrl);
+  uint16_t port = 80;
+  String path = "/snap.jpg";
+  if (cam.ok) {
+    port = cam.port ? cam.port : 80;
+    path = cam.path.length() ? cam.path : String("/snap.jpg");
+  }
+  if (detectedPort != 0 && (!cam.ok || cam.port == 80)) {
+    port = detectedPort;
+  }
+  return buildUrlWithHostPortPath(host, port, path);
+}
+
 static void sendStatus(const String& msg);
 
 #if SAIRA_USE_ETHERNET
+static Preferences gCamPrefs;
+static bool gCamPrefsReady = false;
+static String gLastKnownCameraUrl = "";
+static String gCameraVendorHint = "unknown";
+static uint32_t gLastCamNvsWriteAt = 0;
+
 static bool sameSubnet24(const IPAddress& a, const IPAddress& b) {
   return (a[0] == b[0] && a[1] == b[1] && a[2] == b[2]);
 }
@@ -364,6 +430,175 @@ static uint32_t gDiscoverHits = 0;
 static uint32_t gDiscoverLastAt = 0;
 static String gDiscoverLast = "none";
 static uint32_t gNextDiscoverTryAt = 0;
+static uint32_t gNextCamProbeAt = 0;
+
+static bool strContainsNoCase(const String& text, const char* needle) {
+  String t = text;
+  String n = String(needle);
+  t.toLowerCase();
+  n.toLowerCase();
+  return t.indexOf(n) >= 0;
+}
+
+static bool ensureCamPrefsReady() {
+  if (gCamPrefsReady) return true;
+  if (!gCamPrefs.begin("ipcam", false)) {
+    Serial.println("NVS: falha abrindo namespace ipcam.");
+    return false;
+  }
+  gCamPrefsReady = true;
+  return true;
+}
+
+static void setCameraVendorHint(const String& hint) {
+  if (!hint.length()) return;
+  if (hint == gCameraVendorHint) return;
+  gCameraVendorHint = hint;
+}
+
+static bool rememberLastKnownCameraUrl(const String& url, const char* source) {
+  if (!url.length()) return false;
+  if (url == gLastKnownCameraUrl) return true;
+
+  const uint32_t now = millis();
+  if (gLastCamNvsWriteAt != 0 &&
+      (uint32_t)(now - gLastCamNvsWriteAt) < SAIRA_CAM_NVS_MIN_WRITE_GAP_MS) {
+    gLastKnownCameraUrl = url;
+    return true;
+  }
+
+  if (!ensureCamPrefsReady()) return false;
+  if (!gCamPrefs.putString("last_url", url)) return false;
+  gLastCamNvsWriteAt = now;
+  gLastKnownCameraUrl = url;
+
+  Serial.print("NVS: last_url atualizado (");
+  Serial.print(source ? source : "unknown");
+  Serial.print(") -> ");
+  Serial.println(url);
+  return true;
+}
+
+static void loadLastKnownCameraUrlFromNvs() {
+  if (!ensureCamPrefsReady()) return;
+  String saved = gCamPrefs.getString("last_url", "");
+  saved.trim();
+  if (!saved.length()) return;
+
+  IPAddress savedIp;
+  if (!extractIpv4Host(saved, savedIp)) return;
+
+  gLastKnownCameraUrl = saved;
+  ipCamUrl = saved;
+  Serial.print("NVS: camera URL restaurada -> ");
+  Serial.println(ipCamUrl);
+}
+
+static bool extractOnvifXAddr(const String& response, IPAddress& outIp, uint16_t& outPort) {
+  int cursor = 0;
+  while (true) {
+    int pos = response.indexOf("http://", cursor);
+    if (pos < 0) break;
+    int end = pos;
+    while (end < (int)response.length()) {
+      char c = response[end];
+      if (c == '<' || c == '"' || c == '\'' || c == ' ' || c == '\r' || c == '\n' || c == '\t') break;
+      end++;
+    }
+    String url = response.substring(pos, end);
+    ParsedUrl parsed = parseHttpUrl(url);
+    if (parsed.ok) {
+      IPAddress ip;
+      if (ip.fromString(parsed.host)) {
+        outIp = ip;
+        outPort = parsed.port ? parsed.port : 80;
+        if (strContainsNoCase(response, "xelplon")) {
+          setCameraVendorHint("xelplon");
+        } else if (strContainsNoCase(response, "networkvideotransmitter")) {
+          setCameraVendorHint("onvif_nvt");
+        }
+        return true;
+      }
+    }
+    cursor = end + 1;
+  }
+  return false;
+}
+
+static bool tryOnvifWsDiscovery(IPAddress& outIp, uint16_t& outPort, String& outReason) {
+  outReason = "onvif_no_reply";
+  outPort = 80;
+  if (!ETH.linkUp() || ETH.localIP() == INADDR_NONE) {
+    outReason = "onvif_eth_offline";
+    return false;
+  }
+
+  WiFiUDP udp;
+  IPAddress multicastIp(239, 255, 255, 250);
+  uint16_t localPort = (uint16_t)(37020 + (esp_random() % 500));
+  if (!udp.beginMulticast(multicastIp, localPort)) {
+    outReason = "onvif_udp_bind_fail";
+    return false;
+  }
+
+  String probe =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+      "<e:Envelope xmlns:e=\"http://www.w3.org/2003/05/soap-envelope\" "
+      "xmlns:w=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" "
+      "xmlns:d=\"http://schemas.xmlsoap.org/ws/2005/04/discovery\" "
+      "xmlns:dn=\"http://www.onvif.org/ver10/network/wsdl\">"
+      "<e:Header>"
+      "<w:MessageID>uuid:" + randomHex8() + randomHex8() + randomHex8() + "</w:MessageID>"
+      "<w:To>urn:schemas-xmlsoap-org:ws:2005:04:discovery</w:To>"
+      "<w:Action>http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</w:Action>"
+      "</e:Header>"
+      "<e:Body><d:Probe><d:Types>dn:NetworkVideoTransmitter</d:Types></d:Probe></e:Body>"
+      "</e:Envelope>";
+
+  bool sent = false;
+  if (udp.beginPacket(multicastIp, 3702)) {
+    sent = (udp.print(probe) > 0) && udp.endPacket();
+  }
+
+  if (!sent) {
+    udp.stop();
+    outReason = "onvif_send_fail";
+    return false;
+  }
+
+  uint32_t deadline = millis() + 1200;
+  while ((int32_t)(millis() - deadline) < 0) {
+    int pktLen = udp.parsePacket();
+    if (pktLen <= 0) {
+      delay(5);
+      continue;
+    }
+
+    String payload;
+    payload.reserve((size_t)(pktLen > 1024 ? 1024 : pktLen));
+    while (pktLen > 0) {
+      uint8_t buf[192];
+      int rd = udp.read(buf, (int)sizeof(buf));
+      if (rd <= 0) break;
+      payload.concat((const char*)buf, (unsigned int)rd);
+      pktLen -= rd;
+      if (payload.length() > 4096) break;
+    }
+
+    IPAddress hitIp;
+    uint16_t hitPort = 80;
+    if (extractOnvifXAddr(payload, hitIp, hitPort)) {
+      outIp = hitIp;
+      outPort = hitPort;
+      outReason = "onvif_xaddr_hit";
+      udp.stop();
+      return true;
+    }
+  }
+
+  udp.stop();
+  return false;
+}
 
 static bool configureEthStaticFromCameraUrl() {
   ParsedUrl cam = parseHttpUrl(ipCamUrl);
@@ -395,7 +630,8 @@ static bool configureEthStaticFromCameraUrl() {
     local = IPAddress(camIp[0], camIp[1], camIp[2], 201);
   }
   IPAddress gateway(camIp[0], camIp[1], camIp[2], 1);
-  IPAddress subnet(255, 255, 255, 0);
+  IPAddress subnet = ((camIp[0] == 169 && camIp[1] == 254) ? IPAddress(255, 255, 0, 0)
+                                                             : IPAddress(255, 255, 255, 0));
 
   if (!ETH.config(local, gateway, subnet, gateway, gateway)) {
     Serial.println("NET: ETH.config(estatico) falhou.");
@@ -581,6 +817,65 @@ static bool ensureUplinkNet() {
 #endif
 }
 
+static bool forceEnsureUplinkNow() {
+#if SAIRA_ETH_WIFI_DUAL_MODE
+  if (WiFi.status() == WL_CONNECTED) return true;
+  gNextWifiRetryAt = millis() + (uint32_t)SAIRA_WIFI_RETRY_INTERVAL_MS;
+  return connectWiFiUplink(7000);
+#else
+  return ensureUplinkNet();
+#endif
+}
+
+static void updateOtaGuard() {
+  if (WiFi.status() == WL_CONNECTED) {
+    gWifiDownSince = 0;
+    return;
+  }
+
+  const uint32_t now = millis();
+  if (gWifiDownSince == 0) gWifiDownSince = now;
+  if ((uint32_t)(now - gWifiDownSince) < SAIRA_OTA_GUARD_WIFI_DOWN_MS) return;
+
+  // Keep OTA safe: when uplink is unstable for too long, pause camera workload
+  // and focus on restoring Wi-Fi connectivity.
+  gCaptureHoldUntil = now + SAIRA_OTA_GUARD_HOLD_MS;
+  (void)forceEnsureUplinkNow();
+
+  if ((int32_t)(now - gLastOtaGuardStatusAt) >= 30000) {
+    gLastOtaGuardStatusAt = now;
+    sendStatus("WARN ota_guard wifi_down_ms=" + String((uint32_t)(now - gWifiDownSince)) +
+               " hold_ms=" + String(SAIRA_OTA_GUARD_HOLD_MS) +
+               " heap=" + String(ESP.getFreeHeap()));
+  }
+}
+
+static bool captureAllowedByOtaGuard() {
+  updateOtaGuard();
+  if (gCaptureHoldUntil == 0) return true;
+  return ((int32_t)(millis() - gCaptureHoldUntil) >= 0);
+}
+
+static void scheduleSafeReboot(uint32_t delayMs, uint32_t reasonCode) {
+  if (gPendingRebootAt != 0) return;
+  gPendingRebootAt = millis() + delayMs;
+  gRebootReasonCode = reasonCode;
+  sendStatus("WARN auto_reboot_scheduled reason=" + String(reasonCode) +
+             " delay_ms=" + String(delayMs) +
+             " cap_fail_streak=" + String(gCaptureFailStreak) +
+             " up_fail_streak=" + String(gUploadFailStreak));
+}
+
+static void maybeRunSafeReboot() {
+  if (gPendingRebootAt == 0) return;
+  if ((int32_t)(millis() - gPendingRebootAt) < 0) return;
+
+  Serial.print("WATCHDOG: reboot controlado. reason=");
+  Serial.println((unsigned long)gRebootReasonCode);
+  delay(150);
+  ESP.restart();
+}
+
 static bool ensureCameraNet() {
 #if SAIRA_ETH_WIFI_DUAL_MODE
   if (ETH.linkUp() && ETH.localIP() != INADDR_NONE) return true;
@@ -652,11 +947,18 @@ static void maybeSendRemoteDebug() {
                " disc_try=" + String(gDiscoverAttempts) +
                " disc_hit=" + String(gDiscoverHits) +
                " disc_last=" + gDiscoverLast +
+               " cam_vendor=" + gCameraVendorHint +
+               " cam_last=" + (gLastKnownCameraUrl.length() ? gLastKnownCameraUrl : String("none")) +
 #endif
                " cap_ok=" + String(gCaptureOk) +
                " cap_fail=" + String(gCaptureFail) +
                " up_ok=" + String(gUploadOk) +
                " up_fail=" + String(gUploadFail) +
+               " up_fail_streak=" + String(gUploadFailStreak) +
+               " wifi_down_ms=" + String(gWifiDownSince ? (uint32_t)(millis() - gWifiDownSince) : 0) +
+               " cap_hold=" + String((gCaptureHoldUntil && (int32_t)(millis() - gCaptureHoldUntil) < 0) ? 1 : 0) +
+               " rec_stage=" + String(gRecoveryStage) +
+               " rb_pending=" + String(gPendingRebootAt ? 1 : 0) +
                " comp_ok=" + String(gCompactSuccessCount) +
                " comp_fail=" + String(gCompactFailCount) +
                " cap_b=" + String(gLastCaptureBytes) +
@@ -715,6 +1017,9 @@ static void sendStatus(const String& msg) {
   Serial.print(url);
   Serial.print(" -> ");
   Serial.println(code);
+  if (code == 200) {
+    gLastStatusOkAt = millis();
+  }
 
   http.end();
   delete plain;
@@ -809,27 +1114,54 @@ static bool probeCameraEndpoint(const IPAddress& ip,
                                 const String& path,
                                 int32_t timeoutMs,
                                 int& outCode,
-                                String& outWwwAuth) {
+                                String& outWwwAuth,
+                                String& outServer) {
   outCode = -1;
   outWwwAuth = "";
+  outServer = "";
 
   WiFiClient cli;
   HTTPClient http;
   String url = buildHttpUrl(ip, port, path);
   if (!http.begin(cli, url)) return false;
 
-  static const char* hdrKeys[] = {"WWW-Authenticate"};
-  http.collectHeaders(hdrKeys, 1);
+  static const char* hdrKeys[] = {"WWW-Authenticate", "Server"};
+  http.collectHeaders(hdrKeys, 2);
   http.setConnectTimeout(timeoutMs);
   http.setTimeout(timeoutMs);
   addPreemptiveBasicAuth(http);
   outCode = http.GET();
   outWwwAuth = http.header("WWW-Authenticate");
+  outServer = http.header("Server");
   http.end();
 
   if (outCode == 200) return true;
   if ((outCode == 401 || outCode == 403) && outWwwAuth.length()) return true;
   return false;
+}
+
+static bool configureEthStaticSubnet(uint8_t a, uint8_t b, uint8_t c, IPAddress& outLocal, bool linkLocal16 = false) {
+  IPAddress wifiIp = WiFi.localIP();
+  const bool wifiSameSubnet = (wifiIp != INADDR_NONE &&
+                               wifiIp[0] == a &&
+                               wifiIp[1] == b &&
+                               wifiIp[2] == c);
+  const uint8_t localCandidates[] = {20, 21, 22, 50, 99, 200, 210};
+  uint8_t chosenHost = 20;
+  for (size_t i = 0; i < sizeof(localCandidates); ++i) {
+    uint8_t host = localCandidates[i];
+    if (wifiSameSubnet && host == wifiIp[3]) continue;
+    chosenHost = host;
+    break;
+  }
+
+  IPAddress local(a, b, c, chosenHost);
+  IPAddress gateway(a, b, c, 1);
+  IPAddress subnet = linkLocal16 ? IPAddress(255, 255, 0, 0) : IPAddress(255, 255, 255, 0);
+  if (!ETH.config(local, gateway, subnet, gateway, gateway)) return false;
+  delay(120);
+  outLocal = local;
+  return true;
 }
 
 static bool discoverCameraEndpoint(String& outUrl, String& outReason) {
@@ -847,80 +1179,208 @@ static bool discoverCameraEndpoint(String& outUrl, String& outReason) {
     return false;
   }
 
-  IPAddress baseIp = ETH.localIP();
-  IPAddress camIpCfg;
-  const bool cfgIsIp = camIpCfg.fromString(cam.host);
-  if (cfgIsIp && sameSubnet24(camIpCfg, ETH.localIP())) {
-    baseIp = camIpCfg;
-  }
-
-  const uint16_t port = cam.port ? cam.port : 80;
-  const String pathA = cam.path.length() ? cam.path : String("/snap.jpg");
-  const String pathB = (pathA == "/snap.jpg") ? String("/snapshot.jpg") : String("/snap.jpg");
-
-  bool used[256];
-  memset(used, 0, sizeof(used));
-
-  IPAddress wifiIp = WiFi.localIP();
-  const bool wifiSameSubnet = (wifiIp != INADDR_NONE && sameSubnet24(wifiIp, baseIp));
-  const uint8_t avoidWifiHost = wifiSameSubnet ? wifiIp[3] : 0;
-  const uint8_t avoidEthHost = ETH.localIP()[3];
-
-  uint8_t candidates[48];
-  int candidateCount = 0;
-
-  auto addCandidate = [&](uint8_t host) {
-    if (host <= 1 || host >= 255) return;
-    if (host == avoidEthHost) return;
-    if (wifiSameSubnet && host == avoidWifiHost) return;
-    if (used[host]) return;
-    used[host] = true;
-    if (candidateCount < (int)(sizeof(candidates))) {
-      candidates[candidateCount++] = host;
+  auto updateVendorHint = [&](const String& wwwAuth, const String& server) {
+    if (strContainsNoCase(wwwAuth, "xelplon") || strContainsNoCase(server, "xelplon")) {
+      setCameraVendorHint("xelplon");
+    } else if (strContainsNoCase(wwwAuth, "hikvision") || strContainsNoCase(server, "hikvision")) {
+      setCameraVendorHint("hikvision");
+    } else if (strContainsNoCase(wwwAuth, "dahua") || strContainsNoCase(server, "dahua")) {
+      setCameraVendorHint("dahua");
+    } else if (strContainsNoCase(wwwAuth, "basic") && gCameraVendorHint == "unknown") {
+      setCameraVendorHint("basic_auth");
     }
   };
 
-  if (cfgIsIp && sameSubnet24(camIpCfg, baseIp)) {
-    addCandidate(camIpCfg[3]);
-  }
-  const uint8_t preferredHosts[] = {
-      142, 140, 100, 108, 64, 50, 22, 21, 20, 10, 200, 120, 110, 90};
-  for (size_t i = 0; i < sizeof(preferredHosts); ++i) {
-    addCandidate(preferredHosts[i]);
-  }
-  for (int i = 0; i < 24; ++i) {
-    addCandidate(gDiscoverCursorHost);
-    gDiscoverCursorHost++;
-    if (gDiscoverCursorHost < 2 || gDiscoverCursorHost >= 255) {
-      gDiscoverCursorHost = 2;
+  auto tryProbe = [&](const IPAddress& ip, uint16_t port, const String& path, const char* reasonTag) -> bool {
+    if ((uint32_t)(millis() - gDiscoverLastAt) > SAIRA_DISCOVER_MAX_WINDOW_MS) {
+      outReason = "discover_time_budget_exceeded";
+      return false;
     }
+
+    const uint32_t now = millis();
+    if (gNextCamProbeAt != 0 && (int32_t)(now - gNextCamProbeAt) < 0) {
+      delay((uint32_t)(gNextCamProbeAt - now));
+    }
+
+    int code = -1;
+    String wwwAuth;
+    String server;
+    if (!probeCameraEndpoint(ip, port, path, 220, code, wwwAuth, server)) {
+      gNextCamProbeAt = millis() + SAIRA_DISCOVER_PROBE_GAP_MS;
+      return false;
+    }
+
+    updateVendorHint(wwwAuth, server);
+    outUrl = buildHttpUrl(ip, port, path);
+    outReason = String(reasonTag) + "_" + String(code) + "_" + ip.toString();
+    if (gCameraVendorHint == "xelplon") {
+      outReason += "_xelplon";
+    }
+    rememberLastKnownCameraUrl(outUrl, reasonTag);
+    gNextCamProbeAt = millis() + SAIRA_DISCOVER_PROBE_GAP_MS;
+    return true;
+  };
+
+  const uint16_t camPort = cam.port ? cam.port : 80;
+  const String camPath = cam.path.length() ? cam.path : String("/snap.jpg");
+
+  // Endpoint/path/auth come from the stable Wi-Fi version. In Ethernet mode we only
+  // discover the host IP and reuse the same camera URL path/port/auth.
+  auto tryHostKnown = [&](const IPAddress& ip, uint16_t preferredPort, const char* reasonTag) -> bool {
+    uint16_t portToUse = preferredPort ? preferredPort : camPort;
+    return tryProbe(ip, portToUse, camPath, reasonTag);
+  };
+
+  IPAddress lastIp;
+  if (extractIpv4Host(gLastKnownCameraUrl, lastIp)) {
+    if (tryHostKnown(lastIp, camPort, "discover_last_known")) return true;
   }
 
-  if (candidateCount <= 0) {
-    outReason = "discover_no_candidates";
+  IPAddress onvifIp;
+  uint16_t onvifPort = 80;
+  String onvifReason;
+  if (tryOnvifWsDiscovery(onvifIp, onvifPort, onvifReason)) {
+    if (tryHostKnown(onvifIp, onvifPort, "discover_onvif")) return true;
+    outReason = "discover_onvif_snapshot_miss";
+  }
+
+  struct SubnetPrefix {
+    uint8_t a;
+    uint8_t b;
+    uint8_t c;
+    bool linkLocal16;
+  };
+  SubnetPrefix subnetCandidates[10];
+  int subnetCount = 0;
+  auto addSubnet = [&](uint8_t a, uint8_t b, uint8_t c, bool linkLocal16 = false) {
+    for (int i = 0; i < subnetCount; ++i) {
+      if (subnetCandidates[i].a == a &&
+          subnetCandidates[i].b == b &&
+          subnetCandidates[i].c == c &&
+          subnetCandidates[i].linkLocal16 == linkLocal16) {
+        return;
+      }
+    }
+    if (subnetCount < (int)(sizeof(subnetCandidates) / sizeof(subnetCandidates[0]))) {
+      subnetCandidates[subnetCount++] = {a, b, c, linkLocal16};
+    }
+  };
+
+  IPAddress ethIp = ETH.localIP();
+  addSubnet(ethIp[0], ethIp[1], ethIp[2], false);
+
+  IPAddress wifiIp = WiFi.localIP();
+  if (wifiIp != INADDR_NONE) {
+    addSubnet(wifiIp[0], wifiIp[1], wifiIp[2], false);
+  }
+
+  IPAddress camIpCfg;
+  const bool cfgIsIp = camIpCfg.fromString(cam.host);
+  if (cfgIsIp) {
+    addSubnet(camIpCfg[0], camIpCfg[1], camIpCfg[2], false);
+    if (tryHostKnown(camIpCfg, camPort, "discover_config_ip")) return true;
+  }
+
+  if (extractIpv4Host(gLastKnownCameraUrl, lastIp)) {
+    addSubnet(lastIp[0], lastIp[1], lastIp[2], false);
+  }
+
+  addSubnet(192, 168, 1, false);
+  addSubnet(192, 168, 0, false);
+  addSubnet(10, 0, 0, false);
+  addSubnet(169, 254, 20, true);
+
+  if (subnetCount <= 0) {
+    outReason = "discover_no_subnet";
     return false;
   }
 
-  // If Wi-Fi and Ethernet share /24, force the probe through Ethernet.
-  ScopedWifiPause pauseGuard(IPAddress(baseIp[0], baseIp[1], baseIp[2], candidates[0]));
+  String lastReason = "discover_scan_empty";
+  int probeBudget = (int)SAIRA_DISCOVER_PROBE_BUDGET;
+  int subnetWindow = subnetCount < 3 ? subnetCount : 3;
 
-  for (int i = 0; i < candidateCount; ++i) {
-    IPAddress ip(baseIp[0], baseIp[1], baseIp[2], candidates[i]);
-    int code = -1;
-    String wwwAuth;
-    if (probeCameraEndpoint(ip, port, pathA, 250, code, wwwAuth)) {
-      outUrl = buildHttpUrl(ip, port, pathA);
-      outReason = String("discover_hit_") + String(code);
-      return true;
-    }
-    if (probeCameraEndpoint(ip, port, pathB, 250, code, wwwAuth)) {
-      outUrl = buildHttpUrl(ip, port, pathB);
-      outReason = String("discover_hit_alt_") + String(code);
-      return true;
-    }
+  int subnetStart = 0;
+  if (gDiscoverAttempts > 0) {
+    subnetStart = (int)((gDiscoverAttempts - 1) % (uint32_t)subnetCount);
   }
 
-  outReason = "discover_scan_exhausted";
+  for (int s = 0; s < subnetWindow && probeBudget > 0; ++s) {
+    int idx = (subnetStart + s) % subnetCount;
+    SubnetPrefix targetSubnet = subnetCandidates[idx];
+
+    IPAddress ethNow = ETH.localIP();
+    bool sameSubnetNow = (ethNow[0] == targetSubnet.a && ethNow[1] == targetSubnet.b);
+    if (!targetSubnet.linkLocal16) {
+      sameSubnetNow = sameSubnetNow && (ethNow[2] == targetSubnet.c);
+    }
+    if (!sameSubnetNow) {
+      IPAddress newLocal;
+      if (configureEthStaticSubnet(targetSubnet.a, targetSubnet.b, targetSubnet.c, newLocal, targetSubnet.linkLocal16)) {
+        Serial.print("DISCOVER: ETH subnet -> ");
+        Serial.println(newLocal);
+        gEthLastError = "discover_eth_subnet_switch";
+      } else {
+        lastReason = "discover_eth_reconfig_fail";
+        continue;
+      }
+    }
+
+    IPAddress onvifSubnetIp;
+    uint16_t onvifSubnetPort = 80;
+    String onvifSubnetReason;
+    if (tryOnvifWsDiscovery(onvifSubnetIp, onvifSubnetPort, onvifSubnetReason)) {
+      if (tryHostKnown(onvifSubnetIp, onvifSubnetPort, "discover_onvif_subnet")) return true;
+    }
+
+    IPAddress baseIp(targetSubnet.a, targetSubnet.b, targetSubnet.c, 1);
+    bool used[256];
+    memset(used, 0, sizeof(used));
+
+    const bool wifiSameSubnet = (wifiIp != INADDR_NONE && sameSubnet24(wifiIp, baseIp));
+    const uint8_t avoidWifiHost = wifiSameSubnet ? wifiIp[3] : 0;
+    const uint8_t avoidEthHost = ETH.localIP()[3];
+
+    uint8_t candidates[26];
+    int candidateCount = 0;
+    auto addCandidate = [&](uint8_t host) {
+      if (host <= 1 || host >= 255) return;
+      if (host == avoidEthHost) return;
+      if (wifiSameSubnet && host == avoidWifiHost) return;
+      if (used[host]) return;
+      used[host] = true;
+      if (candidateCount < (int)(sizeof(candidates))) {
+        candidates[candidateCount++] = host;
+      }
+    };
+
+    if (cfgIsIp && sameSubnet24(camIpCfg, baseIp)) addCandidate(camIpCfg[3]);
+
+    const uint8_t preferredHosts[] = {
+        142, 141, 140, 139, 138, 120, 110, 108, 100, 99, 90, 64, 50, 30, 22, 21, 20, 10, 200};
+    for (size_t i = 0; i < sizeof(preferredHosts); ++i) addCandidate(preferredHosts[i]);
+    for (int i = 0; i < 6; ++i) {
+      addCandidate(gDiscoverCursorHost);
+      gDiscoverCursorHost++;
+      if (gDiscoverCursorHost < 2 || gDiscoverCursorHost >= 255) gDiscoverCursorHost = 2;
+    }
+
+    if (candidateCount <= 0) {
+      lastReason = "discover_no_candidates";
+      continue;
+    }
+
+    ScopedWifiPause pauseGuard(IPAddress(baseIp[0], baseIp[1], baseIp[2], candidates[0]));
+    for (int i = 0; i < candidateCount && probeBudget > 0; ++i) {
+      IPAddress ip(baseIp[0], baseIp[1], baseIp[2], candidates[i]);
+      probeBudget--;
+      if (tryHostKnown(ip, camPort, "discover_scan_host")) return true;
+    }
+
+    lastReason = String("discover_scan_exhausted_") +
+                 String(baseIp[0]) + "." + String(baseIp[1]) + "." + String(baseIp[2]);
+  }
+
+  outReason = lastReason;
   return false;
 }
 #endif
@@ -1126,6 +1586,14 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   outBuf = buffer;
   outLen = total;
 
+#if SAIRA_USE_ETHERNET
+  IPAddress camIpOk;
+  if (camIpOk.fromString(cam.host)) {
+    String stableUrl = buildUrlWithHostPortPath(camIpOk, cam.port ? cam.port : 80, cam.path);
+    (void)rememberLastKnownCameraUrl(stableUrl, "capture_ok");
+  }
+#endif
+
   sairaPrintMs("cam_parse", tParse);
   sairaPrintMs("cam_http_total", tHttpTotal);
   if (tChallenge) sairaPrintMs("cam_digest_chal", tChallenge);
@@ -1262,15 +1730,19 @@ static bool uploadSnapshot(const uint8_t* buf, int len) {
 
   // Lê primeira linha da resposta (best-effort)
   uint32_t tWait0 = millis();
-  while (millis() - tWait0 < 5000) {
+  while (millis() - tWait0 < 12000) {
     if (up.https ? tls.available() : plain.available()) break;
     delay(10);
   }
   uint32_t tWait = sairaMsSince(tWait0);
 
   String statusLine;
-  if (up.https) statusLine = tls.readStringUntil('\n');
-  else statusLine = plain.readStringUntil('\n');
+  if (up.https) {
+    if (tls.available()) statusLine = tls.readStringUntil('\n');
+  } else {
+    if (plain.available()) statusLine = plain.readStringUntil('\n');
+  }
+  statusLine.trim();
   bool ok = statusLine.startsWith("HTTP/1.1 200") || statusLine.startsWith("HTTP/1.0 200");
 
   Serial.print("Upload ");
@@ -1571,12 +2043,14 @@ static bool compactJpegForQueue(uint8_t*& data, int& len, bool& wasReencoded) {
 }
 
 // ---- Fila de imagens na PSRAM (thread-safe via mutex) ----
-static const int IMAGE_QUEUE_MAX = 20;
+static const int IMAGE_QUEUE_MAX = 8;
+static const uint8_t IMAGE_UPLOAD_MAX_RETRIES = 3;
 
 struct QueuedImage {
     uint8_t* data;       // ponteiro PSRAM (ps_malloc)
     int      length;     // tamanho JPEG em bytes
     uint32_t capturedAt; // millis() da captura
+    uint8_t  retryCount; // tentativas de upload ja feitas
 };
 
 static QueuedImage imageQueue[IMAGE_QUEUE_MAX];
@@ -1634,6 +2108,7 @@ static bool queuePush(uint8_t* data, int len, uint32_t ts) {
     imageQueue[queueTail].data = data;
     imageQueue[queueTail].length = len;
     imageQueue[queueTail].capturedAt = ts;
+    imageQueue[queueTail].retryCount = 0;
     queueTail = (queueTail + 1) % IMAGE_QUEUE_MAX;
     queueCount++;
     Serial.printf("QUEUE: enfileirou (%d bytes), total na fila: %d\n", len, queueCount);
@@ -1651,36 +2126,91 @@ static bool queuePop(QueuedImage& out) {
         return false;
     }
     out = imageQueue[queueHead];
-    imageQueue[queueHead] = {nullptr, 0, 0};
+    imageQueue[queueHead] = {nullptr, 0, 0, 0};
     queueHead = (queueHead + 1) % IMAGE_QUEUE_MAX;
     queueCount--;
     xSemaphoreGive(queueMutex);
     return true;
 }
 
+static bool queueRequeue(const QueuedImage& in) {
+    if (!in.data || in.length <= 0) return false;
+    if (xSemaphoreTake(queueMutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        Serial.println("QUEUE: timeout obtendo mutex (requeue)");
+        return false;
+    }
+    if (queueCount >= IMAGE_QUEUE_MAX) {
+        free(imageQueue[queueHead].data);
+        queueHead = (queueHead + 1) % IMAGE_QUEUE_MAX;
+        queueCount--;
+        Serial.println("QUEUE: descartou imagem mais antiga (fila cheia/requeue)");
+    }
+    imageQueue[queueTail] = in;
+    queueTail = (queueTail + 1) % IMAGE_QUEUE_MAX;
+    queueCount++;
+    Serial.printf("QUEUE: re-enfileirou (%d bytes), retry=%u, total=%d\n",
+                  in.length, (unsigned int)in.retryCount, queueCount);
+    xSemaphoreGive(queueMutex);
+    return true;
+}
+
+#if SAIRA_USE_ETHERNET
+static void maybeFieldRecovery();
+#endif
+
 // ---- Upload task (runs on core 0, parallel to capture on core 1) ----
 static void uploadTask(void* /*param*/) {
     Serial.println("UPLOAD_TASK: iniciada no core 0");
     for (;;) {
-        if (queueCount > 0 && ensureUplinkNet()) {
+        updateOtaGuard();
+        if (queueCount > 0) {
             QueuedImage img;
             if (queuePop(img)) {
                 uint32_t now = millis();
                 if (img.capturedAt) {
                     sairaPrintMs("queue_delay", (uint32_t)(now - img.capturedAt));
                 }
+                if (!ensureUplinkNet()) {
+                    // Uplink indisponivel agora: nao perder frame, tentar de novo no proximo ciclo.
+                    if (!queueRequeue(img)) {
+                        free(img.data);
+                        gUploadFail++;
+                    }
+                    vTaskDelay(pdMS_TO_TICKS(200));
+                    continue;
+                }
                 Serial.printf("\n--- UPLOAD (fila restante: %d) ---\n", queueCount);
                 if (uploadSnapshot(img.data, img.length)) {
                     gUploadOk++;
+                    gUploadFailStreak = 0;
+                    gLastUploadOkAt = millis();
+                    free(img.data);
                 } else {
-                    gUploadFail++;
-                    sendStatus("ERR upload falhou net=" + String(sairaNetKind()) +
-                               " q=" + String(queueCount) +
-                               " heap=" + String(ESP.getFreeHeap()));
+                    gUploadFailStreak++;
+                    img.retryCount++;
+                    if (img.retryCount < IMAGE_UPLOAD_MAX_RETRIES) {
+                        Serial.printf("UPLOAD: falhou, reagendando retry=%u\n", (unsigned int)img.retryCount);
+                        (void)forceEnsureUplinkNow();
+                        if (!queueRequeue(img)) {
+                            free(img.data);
+                            gUploadFail++;
+                        }
+                    } else {
+                        gUploadFail++;
+                        sendStatus("ERR upload drop net=" + String(sairaNetKind()) +
+                                   " wifi=" + String((WiFi.status() == WL_CONNECTED) ? 1 : 0) +
+                                   " retry=" + String(img.retryCount) +
+                                   " q=" + String(queueCount) +
+                                   " heap=" + String(ESP.getFreeHeap()));
+                        free(img.data);
+                    }
                 }
-                free(img.data);
             }
         }
+#if SAIRA_USE_ETHERNET
+        maybeFieldRecovery();
+#endif
+        maybeRunSafeReboot();
         maybeSendRemoteDebug();
         vTaskDelay(pdMS_TO_TICKS(100));
     }
@@ -1688,12 +2218,22 @@ static void uploadTask(void* /*param*/) {
 
 #if SAIRA_USE_ETHERNET
 static void maybeAutoDiscoverCamera() {
-  if (gCaptureFailStreak < 3) return;
+  const uint32_t now = millis();
+  const bool noCaptureSinceBoot =
+      (gCaptureOk == 0 && (uint32_t)(now - gBootAtMs) > SAIRA_DISCOVER_BOOT_GRACE_MS);
+  const bool captureStalled =
+      (gLastCaptureOkAt != 0 && (uint32_t)(now - gLastCaptureOkAt) > (SAIRA_CAPTURE_STALL_MS / 2));
+  const bool shouldProbe =
+      (gCaptureFailStreak >= 2) || noCaptureSinceBoot || captureStalled;
+  if (!shouldProbe) return;
   if (!ETH.linkUp() || ETH.localIP() == INADDR_NONE) return;
 
-  const uint32_t now = millis();
+  uint32_t cooldown = SAIRA_DISCOVER_COOLDOWN_MS;
+  if (gCaptureFailStreak >= 8 || noCaptureSinceBoot) {
+    cooldown = SAIRA_DISCOVER_FAST_COOLDOWN_MS;
+  }
   if (gNextDiscoverTryAt != 0 && (int32_t)(now - gNextDiscoverTryAt) < 0) return;
-  gNextDiscoverTryAt = now + 45000;  // cooldown to avoid aggressive scans
+  gNextDiscoverTryAt = now + cooldown;
   gDiscoverLastAt = now;
   gDiscoverAttempts++;
 
@@ -1709,7 +2249,8 @@ static void maybeAutoDiscoverCamera() {
     Serial.println(").");
     sendStatus("WARN camera_discovery not_found reason=" + reason +
                " eth_ip=" + ETH.localIP().toString() +
-               " fail_streak=" + String(gCaptureFailStreak));
+               " fail_streak=" + String(gCaptureFailStreak) +
+               " cooldown_ms=" + String(cooldown));
     return;
   }
 
@@ -1729,6 +2270,69 @@ static void maybeAutoDiscoverCamera() {
     Serial.println(discoveredUrl);
   }
 }
+
+static void maybeFieldRecovery() {
+  const uint32_t now = millis();
+  if ((uint32_t)(now - gBootAtMs) < 60000) return;  // grace period after boot
+
+  const bool captureStalled =
+      (gCaptureFailStreak >= 8) ||
+      (gLastCaptureOkAt != 0 && (uint32_t)(now - gLastCaptureOkAt) > SAIRA_CAPTURE_STALL_MS);
+  const bool uploadStalled = (gUploadFailStreak >= 8);
+
+  if (!captureStalled && !uploadStalled) {
+    gRecoveryStage = 0;
+    return;
+  }
+
+  if ((int32_t)(now - gLastRecoveryAt) < (int32_t)SAIRA_RECOVERY_STEP_MS) return;
+  gLastRecoveryAt = now;
+
+  switch (gRecoveryStage) {
+    case 0:
+      Serial.println("RECOVERY: stage0 reset camera session.");
+      camDisconnect();
+      cachedDigest = DigestChallenge{};
+      digestNc = 0;
+      gEthLastError = "recovery_stage0_cam_reset";
+      break;
+    case 1:
+      Serial.println("RECOVERY: stage1 force discovery.");
+      gNextDiscoverTryAt = 0;
+      maybeAutoDiscoverCamera();
+      gEthLastError = "recovery_stage1_discovery";
+      break;
+    case 2:
+      Serial.println("RECOVERY: stage2 reapply ETH static from camera URL.");
+      (void)configureEthStaticFromCameraUrl();
+      (void)ensureCameraNet();
+      gEthLastError = "recovery_stage2_eth_reapply";
+      break;
+    case 3:
+      Serial.println("RECOVERY: stage3 hold capture and restore Wi-Fi uplink.");
+      gCaptureHoldUntil = now + 120000;
+      (void)forceEnsureUplinkNow();
+      gEthLastError = "recovery_stage3_uplink";
+      break;
+    default:
+      Serial.println("RECOVERY: stage4 final watchdog decision.");
+      if (gLastCaptureOkAt != 0 &&
+          (uint32_t)(now - gLastCaptureOkAt) > SAIRA_HARD_STALL_REBOOT_MS) {
+        scheduleSafeReboot(8000, 904);
+      } else if (gLastCaptureOkAt == 0 &&
+                 (uint32_t)(now - gBootAtMs) > SAIRA_HARD_STALL_REBOOT_MS) {
+        scheduleSafeReboot(8000, 905);
+      }
+      gEthLastError = "recovery_stage4_watchdog";
+      break;
+  }
+
+  sendStatus("WARN recovery stage=" + String(gRecoveryStage) +
+             " cap_fail_streak=" + String(gCaptureFailStreak) +
+             " up_fail_streak=" + String(gUploadFailStreak) +
+             " eth_ip=" + ETH.localIP().toString());
+  if (gRecoveryStage < 4) gRecoveryStage++;
+}
 #endif
 
 void setup() {
@@ -1737,10 +2341,23 @@ void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
 #endif
 
+#if SAIRA_USE_ETHERNET
+  loadLastKnownCameraUrlFromNvs();
+#endif
+  if (timerDelayMs < SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS) {
+    timerDelayMs = SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS;
+    Serial.print("CFG: TIMER_DELAY_MS ajustado para minimo seguro=");
+    Serial.println((unsigned long)timerDelayMs);
+  }
+
   Serial.print("Conectando rede");
   if (!connectBootNetwork(30000)) {
     Serial.println("NET: sem conectividade inicial; seguindo em modo degradado (OTA/rede continuam tentando).");
   }
+  gBootAtMs = millis();
+  gLastCaptureOkAt = gBootAtMs;
+  gLastUploadOkAt = gBootAtMs;
+  gLastStatusOkAt = gBootAtMs;
 
   // Mutex para acesso thread-safe a fila de imagens
   queueMutex = xSemaphoreCreateMutex();
@@ -1774,9 +2391,19 @@ void loop() {
     String k = key; k.toLowerCase();
     if (k == "timer_delay_ms") {
       long v = value.toInt();
-      if (v >= 1000 && (uint32_t)v != timerDelayMs) {
-        timerDelayMs = (uint32_t)v;
-        changed = true;
+      if (v >= 1000) {
+        uint32_t requested = (uint32_t)v;
+        uint32_t safe = requested < SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS
+                            ? SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS
+                            : requested;
+        if (safe != timerDelayMs) {
+          timerDelayMs = safe;
+          changed = true;
+        }
+        if (safe != requested) {
+          Serial.print("CFG: timer_delay_ms baixo; clamped para ");
+          Serial.println((unsigned long)safe);
+        }
       }
     } else if (k == "ip_cam_url") {
       if (value.length() && value != ipCamUrl) { ipCamUrl = value; changed = true; }
@@ -1801,7 +2428,12 @@ void loop() {
       nextCaptureAt = millis() + timerDelayMs;
     }
 
-    if (ensureCameraNet()) {
+    if (!captureAllowedByOtaGuard()) {
+      if ((int32_t)(millis() - gLastOtaGuardStatusAt) >= 10000) {
+        gLastOtaGuardStatusAt = millis();
+        Serial.println("OTA_GUARD: captura pausada para preservar uplink/OTA.");
+      }
+    } else if (ensureCameraNet()) {
       uint8_t* buf = nullptr;
       int len = 0;
       Serial.println("\n--- CAPTURA ---");
@@ -1809,6 +2441,8 @@ void loop() {
       if (downloadSnapshot(buf, len)) {
         gCaptureOk++;
         gCaptureFailStreak = 0;
+        gLastCaptureOkAt = millis();
+        gRecoveryStage = 0;
         sairaPrintMs("capture_total", sairaMsSince(tCap0));
         Serial.printf("   OK: %d bytes capturados\n", len);
         if (!queuePush(buf, len, millis())) {
@@ -1855,9 +2489,16 @@ void loop() {
         Serial.println("CAPTURA: rede da camera indisponivel.");
 #endif
       }
+#if SAIRA_USE_ETHERNET
+      maybeAutoDiscoverCamera();
+#endif
     }
   }
 
+#if SAIRA_USE_ETHERNET
+  maybeFieldRecovery();
+#endif
+  maybeRunSafeReboot();
   maybeSendRemoteDebug();
   // Upload agora roda em paralelo no core 0 (uploadTask)
 }
