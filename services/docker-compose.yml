@@ -1,4 +1,4 @@
-services:
+﻿services:
   # Frontend (React + Vite)
   web:
     build:
@@ -12,6 +12,39 @@ services:
     depends_on:
       - backend
 
+  # WhatsApp HTTP API (WAHA)
+  waha:
+    image: devlikeapro/waha
+    container_name: saira-waha
+    profiles:
+      - waha
+    ports:
+      - "3002:3000"
+    expose:
+      - "3000"
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME:-admin}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD:-admin123}
+    restart: always
+
+  # Redis (pub/sub para notificacoes em tempo real)
+  redis:
+    image: redis:7-alpine
+    container_name: saira-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: always
+
   # Backend API (FastAPI)
   backend:
     build: ./backend
@@ -24,9 +57,21 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - REDIS_URL=redis://redis:6379/0
+      - WHATSAPP_PROVIDER=${WHATSAPP_PROVIDER:-waha}
+      - WAHA_BASE_URL=${WAHA_BASE_URL:-http://waha:3000}
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - WAHA_SESSION_NAME=${WAHA_SESSION_NAME:-default}
+      - META_API_TOKEN=${META_API_TOKEN:-}
+      - META_PHONE_ID=${META_PHONE_ID:-}
+      - WEB_APP_URL=${WEB_APP_URL:-http://localhost:3000}
+      - ENABLE_WHATSAPP_TEST_ROUTE=${ENABLE_WHATSAPP_TEST_ROUTE:-false}
+      - WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE=${WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE:-5}
       - ENVIRONMENT=production
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: always
     volumes:
@@ -65,4 +110,6 @@ services:
       - db
     restart: always
 
-  
+volumes:
+  postgres_data:
+  redis_data:

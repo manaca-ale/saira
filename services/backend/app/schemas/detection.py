@@ -41,8 +41,24 @@ class DetectionUpdate(BaseModel):
     volume_m3: Optional[Decimal] = None
 
 
+class DetectionResolve(BaseModel):
+    resolved_at: datetime
+    forwarded_to_sector: str = Field(..., max_length=100)
+    resolution_justification: str = Field(..., max_length=400)
+
+
+class DetectionStartAnalysis(BaseModel):
+    pass
+
+
 class DetectionResponse(DetectionBase):
     id: UUID
+    resolved_at: Optional[datetime] = None
+    resolved_by: Optional[int] = None
+    resolution_justification: Optional[str] = None
+    forwarded_to_sector: Optional[str] = None
+    analysis_started_at: Optional[datetime] = None
+    analysis_started_by: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

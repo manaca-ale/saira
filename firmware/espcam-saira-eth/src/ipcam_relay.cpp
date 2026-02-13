@@ -92,6 +92,11 @@ static uint32_t gLastRecoveryAt = 0;
 static uint8_t  gRecoveryStage = 0;
 static uint32_t gPendingRebootAt = 0;
 static uint32_t gRebootReasonCode = 0;
+static int      gCamLastHttpCode = -1;
+static String   gCamLastAuthStage = "idle";
+static String   gCamLastAuthHint = "none";
+static String   gCamLastHost = "";
+static String   gCamLastPath = "/snap.jpg";
 
 static const uint32_t SAIRA_OTA_GUARD_WIFI_DOWN_MS = 30000;
 static const uint32_t SAIRA_OTA_GUARD_HOLD_MS = 60000;
@@ -1136,8 +1141,42 @@ static bool probeCameraEndpoint(const IPAddress& ip,
   http.end();
 
   if (outCode == 200) return true;
-  if ((outCode == 401 || outCode == 403) && outWwwAuth.length()) return true;
+
+  // Keep discovery auth flow aligned with legacy capture flow:
+  // try Digest when endpoint challenges with WWW-Authenticate.
+  if ((outCode == 401 || outCode == 403) && outWwwAuth.length()) {
+    DigestChallenge c = parseDigestChallenge(outWwwAuth);
+    if (c.ok) {
+      uint32_t probeNc = 1;
+      String auth = buildDigestAuthWithNc(c, "GET", path, ipCamUser, ipCamPass, probeNc);
+      if (auth.length()) {
+        WiFiClient digestCli;
+        HTTPClient digestHttp;
+        if (digestHttp.begin(digestCli, url)) {
+          digestHttp.collectHeaders(hdrKeys, 2);
+          digestHttp.setConnectTimeout(timeoutMs);
+          digestHttp.setTimeout(timeoutMs);
+          digestHttp.addHeader("Authorization", auth);
+          outCode = digestHttp.GET();
+          outWwwAuth = digestHttp.header("WWW-Authenticate");
+          outServer = digestHttp.header("Server");
+          digestHttp.end();
+          if (outCode == 200) return true;
+        }
+      }
+    }
+  }
+
   return false;
+}
+
+static String authHintFromHeader(const String& header) {
+  if (!header.length()) return "none";
+  String h = header;
+  h.toLowerCase();
+  if (h.indexOf("digest") >= 0) return "digest";
+  if (h.indexOf("basic") >= 0) return "basic";
+  return "other";
 }
 
 static bool configureEthStaticSubnet(uint8_t a, uint8_t b, uint8_t c, IPAddress& outLocal, bool linkLocal16 = false) {
@@ -1392,9 +1431,17 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   uint32_t t0 = millis();
   ParsedUrl cam = parseHttpUrl(ipCamUrl);
   if (!cam.ok) {
+    gCamLastAuthStage = "bad_url";
+    gCamLastHttpCode = -1;
+    gCamLastAuthHint = "none";
     Serial.println("IP_CAM_URL invalido (precisa http://...).");
     return false;
   }
+  gCamLastHost = cam.host;
+  gCamLastPath = cam.path.length() ? cam.path : String("/snap.jpg");
+  gCamLastAuthStage = "start";
+  gCamLastHttpCode = -1;
+  gCamLastAuthHint = "none";
   uint32_t tParse = sairaMsSince(t0);
 
 #if SAIRA_USE_ETHERNET
@@ -1428,20 +1475,26 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
     String auth = buildDigestAuthWithNc(cachedDigest, "GET", cam.path,
                                          ipCamUser, ipCamPass, digestNc);
     if (auth.length()) {
+      gCamLastAuthStage = "digest_cached";
       camDisconnect();
       if (camHttp.begin(camClient, ipCamUrl)) {
+        static const char* camHdrKeys[] = {"WWW-Authenticate"};
+        camHttp.collectHeaders(camHdrKeys, 1);
         camConnected = true;
         camHttp.setTimeout(8000);
         camHttp.addHeader("Connection", "keep-alive");
         camHttp.addHeader("Authorization", auth);
         uint32_t tReq0 = millis();
         code = camHttp.GET();
+        gCamLastHttpCode = code;
+        gCamLastAuthHint = authHintFromHeader(camHttp.header("WWW-Authenticate"));
         tHttpTotal += sairaMsSince(tReq0);
       }
     }
 
     // Nonce expired? Server returns 401 -> re-challenge below
-    if (code == 401) {
+    if (code == 401 || code == 403) {
+      gCamLastAuthStage = "digest_cached_expired";
       Serial.println("Digest nonce expirado, re-autenticando...");
       cachedDigest = DigestChallenge{};
       digestNc = 0;
@@ -1452,19 +1505,25 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
 
   if (code != 200 && !cachedDigest.ok) {
     // Try 1: Basic (preemptive) with keep-alive
+    gCamLastAuthStage = "basic_preemptive";
     camDisconnect();
     if (camHttp.begin(camClient, ipCamUrl)) {
+      static const char* camHdrKeys[] = {"WWW-Authenticate"};
+      camHttp.collectHeaders(camHdrKeys, 1);
       camConnected = true;
       camHttp.setTimeout(8000);
       camHttp.addHeader("Connection", "keep-alive");
       addPreemptiveBasicAuth(camHttp);
       uint32_t tReq0 = millis();
       code = camHttp.GET();
+      gCamLastHttpCode = code;
+      gCamLastAuthHint = authHintFromHeader(camHttp.header("WWW-Authenticate"));
       tHttpTotal += sairaMsSince(tReq0);
     }
 
     // Try 2: Digest fallback
-    if (code == 401) {
+    if (code == 401 || code == 403) {
+      gCamLastAuthStage = "digest_challenge";
       // Collect WWW-Authenticate header from current response
       static const char* collectKeys[] = {"WWW-Authenticate"};
 
@@ -1477,10 +1536,12 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
         chalHttp.setTimeout(8000);
         uint32_t tCh0 = millis();
         int ccode = chalHttp.GET();
+        gCamLastHttpCode = ccode;
         tChallenge = sairaMsSince(tCh0);
         tHttpTotal += tChallenge;
         if (ccode > 0) {
           wwwAuth = chalHttp.header("WWW-Authenticate");
+          gCamLastAuthHint = authHintFromHeader(wwwAuth);
         }
         chalHttp.end();
       }
@@ -1494,21 +1555,29 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
         String auth = buildDigestAuthWithNc(c, "GET", cam.path,
                                              ipCamUser, ipCamPass, digestNc);
         if (auth.length()) {
+          gCamLastAuthStage = "digest_retry";
           if (camHttp.begin(camClient, ipCamUrl)) {
+            static const char* camHdrKeys[] = {"WWW-Authenticate"};
+            camHttp.collectHeaders(camHdrKeys, 1);
             camConnected = true;
             camHttp.setTimeout(8000);
             camHttp.addHeader("Connection", "keep-alive");
             camHttp.addHeader("Authorization", auth);
             uint32_t tReq0 = millis();
             code = camHttp.GET();
+            gCamLastHttpCode = code;
+            gCamLastAuthHint = authHintFromHeader(camHttp.header("WWW-Authenticate"));
             tHttpTotal += sairaMsSince(tReq0);
           }
         }
+      } else {
+        gCamLastAuthStage = "digest_parse_fail";
       }
     }
   }
 
   if (code != 200) {
+    gCamLastHttpCode = code;
     Serial.print("Camera IP GET falhou: ");
     Serial.println(code);
     camDisconnect();
@@ -1521,6 +1590,8 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
 
   int len = camHttp.getSize();
   if (len <= 0) {
+    gCamLastAuthStage = "empty_body";
+    gCamLastHttpCode = code;
     Serial.println("Camera IP retornou imagem vazia.");
     camDisconnect();
     sairaPrintMs("cam_parse", tParse);
@@ -2463,6 +2534,11 @@ void loop() {
                    " eth_link=" + String(ETH.linkUp() ? 1 : 0) +
                    " eth_err=" + gEthLastError +
 #endif
+                   " cam_code=" + String(gCamLastHttpCode) +
+                   " cam_stage=" + gCamLastAuthStage +
+                   " cam_auth=" + gCamLastAuthHint +
+                   " cam_host=" + gCamLastHost +
+                   " cam_path=" + gCamLastPath +
                    " fail_streak=" + String(gCaptureFailStreak) +
                    " heap=" + String(ESP.getFreeHeap()) +
                    " psram=" + String(ESP.getFreePsram()));

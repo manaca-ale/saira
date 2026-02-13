@@ -9,6 +9,8 @@ import { Dashboard } from "./pages/Dashboard";
 import { Detections } from "./pages/Detections";
 import { UsersPage } from "./pages/UsersPage";
 import { HistoryPage } from "./pages/HistoryPage";
+import { NotificationDrawer } from "./components/NotificationDrawer";
+import { NotificationToastContainer } from "./components/NotificationToast";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <NotificationDrawer />
+        <NotificationToastContainer />
       </Router>
     </div>
   );
