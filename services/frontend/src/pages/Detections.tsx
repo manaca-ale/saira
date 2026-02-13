@@ -1,5 +1,6 @@
 ﻿import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { getDetections } from "../services/detectionService";
+import { useSearchParams } from "react-router-dom";
+import { getAllDetections, resolveDetection, startAnalysis } from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
 import { Sidebar } from "../components/Sidebar";
 
@@ -11,8 +12,12 @@ import {
   Eye,
   ChevronRight,
   ChevronLeft,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 import { OccurrenceModal } from "../components/OccurrenceModal";
+import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
+import { AnalysisConfirmationModal } from "../components/AnalysisConfirmationModal";
 import { Tooltip } from "../components/Tooltip";
 
 import {
@@ -78,14 +83,19 @@ const TABLE_COLUMNS = [
   { label: "Volumetria", width: "w-32" },
   { label: "Infratores", width: "w-48" },
   { label: "Status", width: "w-32" },
-  { label: "Ação", width: "w-20" },
+  { label: "Ação", width: "w-36" },
 ];
 
 // --- MAIN COMPONENT ---
 export const Detections: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [detections, setDetections] = useState<Detection[]>([]);
   const [selectedItem, setSelectedItem] = useState<Detection | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [resolveTarget, setResolveTarget] = useState<Detection | null>(null);
+  const [analysisTarget, setAnalysisTarget] = useState<Detection | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+  const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -276,7 +286,7 @@ export const Detections: React.FC = () => {
   useEffect(() => {
     async function loadDetections() {
       try {
-        const data = await getDetections({ limit: 1000 });
+        const data = await getAllDetections();
         const formattedDetections = data.map((poi) => ({
           ...poi,
           rpa: getRpaForPoi(poi),
@@ -289,6 +299,42 @@ export const Detections: React.FC = () => {
     loadDetections();
   }, []);
 
+  // Apply query param filters from notification navigation
+  useEffect(() => {
+    const rpaParam = searchParams.get("rpa");
+    const statusParam = searchParams.get("status");
+    const startDate = searchParams.get("start_date");
+    const detectionIdParam = searchParams.get("detection_id");
+
+    if (!rpaParam && !statusParam && !startDate && !detectionIdParam) return;
+
+    if (rpaParam || statusParam || startDate) {
+      setFilters((prev) => ({
+        ...prev,
+        rpa: rpaParam ? [rpaParam] : prev.rpa,
+        status: statusParam ? [statusParam] : prev.status,
+        date: startDate ? startDate.split("T")[0] : prev.date,
+      }));
+    }
+
+    if (!detectionIdParam) {
+      // Clear query params after applying
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const detectionIdParam = searchParams.get("detection_id");
+    if (!detectionIdParam || detections.length === 0) return;
+
+    const target = detections.find((d) => d.id === detectionIdParam);
+    if (target) {
+      setSelectedItem(target);
+      setIsModalOpen(true);
+    }
+    setSearchParams({}, { replace: true });
+  }, [detections, searchParams, setSearchParams]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [filters, itemsPerPage]);
@@ -296,6 +342,62 @@ export const Detections: React.FC = () => {
   const handleOpenModal = (item: Detection) => {
     setSelectedItem(item);
     setIsModalOpen(true);
+  };
+
+  const handleResolve = async (data: {
+    resolved_at: string;
+    forwarded_to_sector: string;
+    resolution_justification: string;
+  }) => {
+    if (!resolveTarget) return;
+    setIsResolving(true);
+    try {
+      await resolveDetection(resolveTarget.id, data);
+      setDetections((prev) =>
+        prev.map((d) =>
+          d.id === resolveTarget.id
+            ? { ...d, status: "Resolvido" as const }
+            : d
+        )
+      );
+      setResolveTarget(null);
+    } catch (e) {
+      console.error("Erro ao resolver:", e);
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  const handleStartAnalysis = async () => {
+    if (!analysisTarget) return;
+    setIsStartingAnalysis(true);
+    try {
+      await startAnalysis(analysisTarget.id);
+      setDetections((prev) =>
+        prev.map((d) =>
+          d.id === analysisTarget.id
+            ? { ...d, status: "Em análise" as const }
+            : d
+        )
+      );
+      setAnalysisTarget(null);
+    } catch (e) {
+      console.error("Erro ao iniciar analise:", e);
+    } finally {
+      setIsStartingAnalysis(false);
+    }
+  };
+
+  const handleResolveFromModal = () => {
+    if (!selectedItem) return;
+    setIsModalOpen(false);
+    setResolveTarget(selectedItem);
+  };
+
+  const handleStartAnalysisFromModal = () => {
+    if (!selectedItem) return;
+    setIsModalOpen(false);
+    setAnalysisTarget(selectedItem);
   };
 
   const handleDownloadCSV = () => {
@@ -648,14 +750,36 @@ export const Detections: React.FC = () => {
                         </Tooltip>
                       </td>
                       <td className="px-6 py-4">
-                        <Tooltip text="Visualizar ocorrência" className="w-fit" spacing="mb-2">
-                          <button
-                            onClick={() => handleOpenModal(row)}
-                            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#1a1a1a] hover:border-[#1a1a1a] transition-all bg-white"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </Tooltip>
+                        <div className="flex items-center gap-1">
+                          <Tooltip text="Visualizar ocorrência" className="w-fit" spacing="mb-2">
+                            <button
+                              onClick={() => handleOpenModal(row)}
+                              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#1a1a1a] hover:border-[#1a1a1a] transition-all bg-white"
+                            >
+                              <Eye size={16} />
+                            </button>
+                          </Tooltip>
+                          {row.status === "Pendente" && (
+                            <Tooltip text="Marcar em análise" className="w-fit" spacing="mb-2">
+                              <button
+                                onClick={() => setAnalysisTarget(row)}
+                                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:border-orange-500 transition-all bg-white"
+                              >
+                                <Clock size={16} />
+                              </button>
+                            </Tooltip>
+                          )}
+                          {(row.status === "Pendente" || row.status === "Em análise") && (
+                            <Tooltip text="Marcar como resolvido" className="w-fit" spacing="mb-2">
+                              <button
+                                onClick={() => setResolveTarget(row)}
+                                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-500 hover:border-green-500 transition-all bg-white"
+                              >
+                                <CheckCircle size={16} />
+                              </button>
+                            </Tooltip>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -759,6 +883,24 @@ export const Detections: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           data={modalData}
+          onResolve={handleResolveFromModal}
+          onStartAnalysis={handleStartAnalysisFromModal}
+        />
+      )}
+      {resolveTarget && (
+        <ResolveConfirmationModal
+          isOpen={!!resolveTarget}
+          onClose={() => setResolveTarget(null)}
+          onConfirm={handleResolve}
+          isLoading={isResolving}
+        />
+      )}
+      {analysisTarget && (
+        <AnalysisConfirmationModal
+          isOpen={!!analysisTarget}
+          onClose={() => setAnalysisTarget(null)}
+          onConfirm={handleStartAnalysis}
+          isLoading={isStartingAnalysis}
         />
       )}
     </div>

@@ -81,11 +81,65 @@ export async function getDetections(params?: {
     bairro: params?.bairro,
   };
 
-  const response = await api.get('/detections', { params: queryParams });
+  const response = await api.get('/detections/', { params: queryParams });
   return response.data.map(toFrontendFormat);
+}
+
+export async function getAllDetections(params?: {
+  rpa?: string;
+  status?: string;
+  start_date?: string;
+  end_date?: string;
+  bairro?: string;
+  pageSize?: number;
+  maxRecords?: number;
+}): Promise<PoiData[]> {
+  const pageSize = Math.min(Math.max(params?.pageSize ?? 100, 1), 100);
+  const maxRecords = Math.max(params?.maxRecords ?? 10000, pageSize);
+  const all: PoiData[] = [];
+  let skip = 0;
+
+  while (true) {
+    const page = await getDetections({
+      skip,
+      limit: pageSize,
+      rpa: params?.rpa,
+      status: params?.status,
+      start_date: params?.start_date,
+      end_date: params?.end_date,
+      bairro: params?.bairro,
+    });
+
+    all.push(...page);
+
+    if (page.length < pageSize || all.length >= maxRecords) {
+      break;
+    }
+
+    skip += pageSize;
+  }
+
+  return all.slice(0, maxRecords);
 }
 
 export async function updateDetectionStatus(id: string, status: string): Promise<Detection> {
   const response = await api.patch(`/detections/${id}`, { status });
+  return response.data;
+}
+
+export async function resolveDetection(
+  id: string,
+  data: {
+    resolved_at: string;
+    forwarded_to_sector: string;
+    resolution_justification: string;
+  }
+): Promise<Detection> {
+  const response = await api.post(`/detections/${id}/resolve`, data);
+  return response.data;
+}
+
+export async function startAnalysis(id: string): Promise<Detection> {
+  const response = await api.post(`/detections/${id}/start-analysis`);
   return response.data;
 }

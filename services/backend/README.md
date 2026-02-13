@@ -119,7 +119,7 @@ uvicorn app.main:app --reload --port 8001
 alembic upgrade head
 
 # Seed do banco
-python seed_db.py
+docker compose exec backend python seed_db.py
 ```
 
 ## Variaveis de Ambiente

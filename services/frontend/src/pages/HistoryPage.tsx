@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { Tooltip } from "../components/Tooltip";
-import { getDetections } from "../services/detectionService";
+import { getAllDetections } from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
 import type { WasteType } from "../services/mockData";
 import {
@@ -135,17 +135,7 @@ export const HistoryPage: React.FC = () => {
 
     async function loadDetections() {
       try {
-        const all: PoiData[] = [];
-        const pageSize = 100;
-        let skip = 0;
-
-        while (true) {
-          const page = await getDetections({ skip, limit: pageSize });
-          all.push(...page);
-          if (page.length < pageSize) break;
-          skip += pageSize;
-          if (skip > 10000) break;
-        }
+        const all = await getAllDetections();
 
         if (isMounted) {
           setDetections(all);
@@ -312,31 +302,38 @@ export const HistoryPage: React.FC = () => {
 
   // 3. Weekday Distribution
   const weekdayData = useMemo(() => {
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 1);
+    const timestamps = filteredData.map((d) => new Date(d.timestamp).getTime());
+    const maxDateMs =
+      timestamps.length > 0 ? Math.max(...timestamps) : Date.now();
+    const anchorDate = new Date(maxDateMs);
+    anchorDate.setHours(0, 0, 0, 0);
 
     const days: { name: string; date: string; count: number }[] = [];
+    const dayByDate = new Map<string, { name: string; date: string; count: number }>();
 
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(endDate);
+      const d = new Date(anchorDate);
       d.setDate(d.getDate() - i);
 
-      const dateKey = d.toISOString().split("T")[0];
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const dayName = d
         .toLocaleDateString("pt-BR", { weekday: "short" })
         .toUpperCase()
         .replace(".", "");
 
-      days.push({
+      const dayEntry = {
         name: dayName,
         date: dateKey,
         count: 0,
-      });
+      };
+      days.push(dayEntry);
+      dayByDate.set(dateKey, dayEntry);
     }
 
     filteredData.forEach((item) => {
-      const itemDate = item.timestamp.split("T")[0];
-      const targetDay = days.find((d) => d.date === itemDate);
+      const d = new Date(item.timestamp);
+      const itemDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const targetDay = dayByDate.get(itemDate);
       if (targetDay) {
         targetDay.count++;
       }

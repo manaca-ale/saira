@@ -6,12 +6,15 @@ import {
   Settings,
   LogOut,
   History,
-} from "lucide-react"; // Added History
+  Bell,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useNotifications } from "../contexts/NotificationContext";
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { unreadCount, toggleDrawer } = useNotifications();
 
   // --- Modal State ---
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -54,6 +57,21 @@ export const Sidebar: React.FC = () => {
       `}</style>
 
       <div className="h-full w-20 bg-[#1a1a1a] flex flex-col items-center py-6 absolute left-0 top-0 z-40 border-r border-gray-800">
+        <div className="w-full flex items-center justify-center mb-6">
+          <button
+            onClick={toggleDrawer}
+            className="relative text-gray-500 hover:text-white transition-colors"
+            aria-label="Abrir notificacoes"
+          >
+            <Bell size={24} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
+
         <nav className="flex-1 flex flex-col justify-center gap-8 w-full">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;

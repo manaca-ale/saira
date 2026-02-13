@@ -27,10 +27,10 @@ function addStatusField(user: User): User & { status: string } {
 }
 
 export async function getUsers(params?: { skip?: number; limit?: number }): Promise<(User & { status: string })[]> {
-  const response = await api.get('/users', { params });
+  const response = await api.get('/users/', { params });
   return response.data.map(addStatusField);
 }
 
-export const createUser = (data: CreateUserData) => api.post<User>('/users', data).then(r => r.data);
+export const createUser = (data: CreateUserData) => api.post<User>('/users/', data).then(r => r.data);
 export const updateUser = (id: number, data: Partial<CreateUserData>) => api.patch<User>(`/users/${id}`, data).then(r => r.data);
 export const deleteUser = (id: number) => api.delete(`/users/${id}`);
