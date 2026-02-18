@@ -5,7 +5,7 @@ from uuid import UUID
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func, or_
 from app.api.deps import get_db, get_current_user
 from app.core.database import AsyncSessionLocal
 from app.core.redis import get_redis
@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.detection import Detection, DetectionStatus
 from app.schemas.detection import (
     DetectionCreate, DetectionUpdate, DetectionResponse,
-    DetectionResolve, DetectionStartAnalysis,
+    DetectionResolve, DetectionStartAnalysis, DetectionListResponse,
 )
 from app.schemas.detection import DetectionStatus as DetectionStatusSchema
 from app.services import notification_service
@@ -21,6 +21,38 @@ from app.services import notification_service
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _parse_csv(value: Optional[str]) -> List[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _normalize_status_filter(value: str) -> Optional[DetectionStatus]:
+    normalized = value.strip().lower()
+    if normalized == "pendente":
+        return DetectionStatus.PENDENTE
+    if normalized in {"em analise", "em análise"}:
+        return DetectionStatus.EM_ANALISE
+    if normalized == "resolvido":
+        return DetectionStatus.RESOLVIDO
+    return None
+
+
+def _expand_waste_type_aliases(values: List[str]) -> List[str]:
+    aliases = {
+        "entulho": {"entulho"},
+        "lixo domiciliar": {"lixo domiciliar", "household waste"},
+        "poda": {"poda", "pruning"},
+        "plástico": {"plástico", "plastico", "plastic"},
+        "plastico": {"plástico", "plastico", "plastic"},
+    }
+    expanded = set()
+    for value in values:
+        key = value.strip().lower()
+        expanded.update(aliases.get(key, {key}))
+    return list(expanded)
 
 
 @router.get("/", response_model=List[DetectionResponse])
@@ -56,6 +88,98 @@ async def get_detections(
     query = query.offset(skip).limit(limit).order_by(Detection.timestamp.desc())
     result = await db.execute(query)
     return result.scalars().all()
+
+
+@router.get("/search", response_model=DetectionListResponse)
+async def search_detections(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    rpa: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    bairro: Optional[str] = None,
+    logradouro: Optional[str] = None,
+    waste_type: Optional[str] = None,
+    has_offender: Optional[bool] = None,
+    volume_min: Optional[float] = Query(None, ge=0),
+    volume_max: Optional[float] = Query(None, ge=0),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista deteções paginadas com total e filtros para o frontend."""
+    if volume_min is not None and volume_max is not None and volume_min > volume_max:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="volume_min cannot be greater than volume_max",
+        )
+
+    filters = []
+
+    rpa_values = _parse_csv(rpa)
+    if rpa_values:
+        filters.append(Detection.rpa.in_(rpa_values))
+
+    raw_status_values = _parse_csv(status_filter)
+    status_values = [
+        parsed
+        for parsed in (_normalize_status_filter(value) for value in raw_status_values)
+        if parsed is not None
+    ]
+    if raw_status_values and not status_values:
+        return DetectionListResponse(items=[], total=0, skip=skip, limit=limit)
+    if status_values:
+        filters.append(Detection.status.in_(status_values))
+
+    if start_date:
+        filters.append(Detection.timestamp >= start_date)
+    if end_date:
+        filters.append(Detection.timestamp <= end_date)
+
+    if bairro and bairro.strip():
+        filters.append(Detection.bairro.ilike(f"%{bairro.strip()}%"))
+    if logradouro and logradouro.strip():
+        filters.append(Detection.logradouro.ilike(f"%{logradouro.strip()}%"))
+
+    waste_type_values = _expand_waste_type_aliases(_parse_csv(waste_type))
+    if waste_type_values:
+        filters.append(func.lower(Detection.waste_type).in_(waste_type_values))
+
+    if has_offender is True:
+        filters.append(
+            and_(
+                Detection.offenders.is_not(None),
+                func.length(func.trim(Detection.offenders)) > 0,
+            )
+        )
+    elif has_offender is False:
+        filters.append(
+            or_(
+                Detection.offenders.is_(None),
+                func.length(func.trim(Detection.offenders)) == 0,
+            )
+        )
+
+    if volume_min is not None:
+        filters.append(Detection.volume_m3 >= volume_min)
+    if volume_max is not None:
+        filters.append(Detection.volume_m3 <= volume_max)
+
+    filter_expression = and_(*filters) if filters else None
+
+    count_query = select(func.count(Detection.id))
+    if filter_expression is not None:
+        count_query = count_query.where(filter_expression)
+    total = (await db.execute(count_query)).scalar_one()
+
+    query = select(Detection)
+    if filter_expression is not None:
+        query = query.where(filter_expression)
+    query = query.order_by(Detection.timestamp.desc()).offset(skip).limit(limit)
+    result = await db.execute(query)
+    items = result.scalars().all()
+
+    return DetectionListResponse(items=items, total=total, skip=skip, limit=limit)
 
 
 @router.get("/{detection_id}", response_model=DetectionResponse)

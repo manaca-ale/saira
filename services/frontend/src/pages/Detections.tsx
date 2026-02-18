@@ -1,6 +1,12 @@
 ﻿import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getAllDetections, resolveDetection, startAnalysis } from "../services/detectionService";
+import {
+  getAllDetections,
+  getDetectionById,
+  resolveDetection,
+  searchDetections,
+  startAnalysis,
+} from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
 import { Sidebar } from "../components/Sidebar";
 
@@ -114,190 +120,93 @@ export const Detections: React.FC = () => {
     infratores: [],
   });
   const [activePopover, setActivePopover] = useState<"period" | "volumetry" | null>(null);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDownloadingCsv, setIsDownloadingCsv] = useState(false);
 
-  const matchesFilters = useCallback((item: Detection, exclude?: keyof FilterState) => {
-    if (exclude !== "status" && filters.status.length > 0) {
-      if (!filters.status.includes(item.status)) return false;
+  const bairroOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          detections
+            .map((item) => item.bairro?.trim())
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ).sort(),
+    [detections],
+  );
+
+  const logradouroOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          detections
+            .map((item) => item.logradouro?.trim())
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ).sort(),
+    [detections],
+  );
+
+  const rpaOptions = RPA_OPTIONS;
+  const tipoResiduoOptions = WASTE_TYPE_OPTIONS;
+  const offenderOptions = ["Identificado", "Não Identificado"];
+  const statusOptions = useMemo(() => [...STATUS_OPTIONS], []);
+
+  const queryFilters = useMemo(() => {
+    const query: NonNullable<Parameters<typeof searchDetections>[0]> = {};
+    const volumeMin = Number.parseFloat(filters.volMin.replace(",", "."));
+    const volumeMax = Number.parseFloat(filters.volMax.replace(",", "."));
+
+    if (filters.rpa.length > 0) query.rpa = filters.rpa;
+    if (filters.status.length > 0) query.status = filters.status;
+    if (filters.logradouro.trim()) query.logradouro = filters.logradouro.trim();
+    if (filters.bairro.trim()) query.bairro = filters.bairro.trim();
+    if (filters.tipoResiduo.length > 0) query.waste_type = filters.tipoResiduo;
+
+    if (Number.isFinite(volumeMin)) query.volume_min = volumeMin;
+    if (Number.isFinite(volumeMax)) query.volume_max = volumeMax;
+
+    if (filters.infratores.length === 1) {
+      query.has_offender = filters.infratores[0] === "Identificado";
     }
-    if (
-      exclude !== "logradouro" &&
-      filters.logradouro &&
-      !item.logradouro.toLowerCase().includes(filters.logradouro.toLowerCase())
-    )
-      return false;
-    if (
-      exclude !== "bairro" &&
-      filters.bairro &&
-      !item.bairro.toLowerCase().includes(filters.bairro.toLowerCase())
-    )
-      return false;
-    if (exclude !== "rpa" && filters.rpa.length > 0 && !filters.rpa.includes(item.rpa))
-      return false;
-    if (
-      exclude !== "tipoResiduo" &&
-      filters.tipoResiduo.length > 0 &&
-      !filters.tipoResiduo.includes(item.wasteType)
-    )
-      return false;
-    if (exclude !== "infratores" && filters.infratores.length > 0) {
-      const wantsIdentified = filters.infratores.includes("Identificado");
-      const wantsUnknown = filters.infratores.includes("Não Identificado");
-      const matches =
-        (item.hasOffender && wantsIdentified) ||
-        (!item.hasOffender && wantsUnknown);
-      if (!matches) return false;
-    }
-    if (filters.volMin && item.volume < parseFloat(filters.volMin.replace(",", ".")))
-      return false;
-    if (filters.volMax && item.volume > parseFloat(filters.volMax.replace(",", ".")))
-      return false;
+
     if (filters.date) {
-      const itemDate = new Date(item.timestamp);
-      const itemIsoDate = `${itemDate.getFullYear()}-${String(itemDate.getMonth() + 1).padStart(2, "0")}-${String(itemDate.getDate()).padStart(2, "0")}`;
-      const itemTime = `${String(itemDate.getHours()).padStart(2, "0")}:${String(itemDate.getMinutes()).padStart(2, "0")}`;
-      if (itemIsoDate !== filters.date) return false;
-      if (filters.startTime && itemTime < filters.startTime) return false;
-      if (filters.endTime && itemTime > filters.endTime) return false;
+      const startTime = filters.startTime || "00:00";
+      const endTime = filters.endTime || "23:59";
+      query.start_date = `${filters.date}T${startTime}:00`;
+      query.end_date = `${filters.date}T${endTime}:59`;
     }
-    return true;
+
+    return query;
   }, [filters]);
 
-  const bairroOptions = useMemo(() => {
-    const filtered = detections.filter((item) => matchesFilters(item, "bairro"));
-    return Array.from(new Set(filtered.map((item) => item.bairro))).sort();
-  }, [
-    detections,
-    filters.bairro,
-    filters.date,
-    filters.endTime,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.startTime,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
-
-  const logradouroOptions = useMemo(() => {
-    const filtered = detections.filter((item) =>
-      matchesFilters(item, "logradouro"),
-    );
-    return Array.from(new Set(filtered.map((item) => item.logradouro))).sort();
-  }, [
-    detections,
-    filters.bairro,
-    filters.date,
-    filters.endTime,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.startTime,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
-
-  const rpaOptions = useMemo(() => {
-    const filtered = detections.filter((item) => matchesFilters(item, "rpa"));
-    const present = new Set(filtered.map((item) => item.rpa));
-    return RPA_OPTIONS.filter((rpa) => present.has(rpa));
-  }, [
-    detections,
-    filters.bairro,
-    filters.date,
-    filters.endTime,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.startTime,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
-
-  const tipoResiduoOptions = useMemo(() => {
-    const filtered = detections.filter((item) =>
-      matchesFilters(item, "tipoResiduo"),
-    );
-    const present = new Set(filtered.map((item) => item.wasteType));
-    return WASTE_TYPE_OPTIONS.filter((type) => present.has(type));
-  }, [
-    detections,
-    filters.bairro,
-    filters.date,
-    filters.endTime,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.startTime,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
-
-  const offenderOptions = useMemo(() => {
-    const filtered = detections.filter((item) =>
-      matchesFilters(item, "infratores"),
-    );
-    const options = [] as string[];
-    if (filtered.some((item) => item.hasOffender)) options.push("Identificado");
-    if (filtered.some((item) => !item.hasOffender))
-      options.push("Não Identificado");
-    return options;
-  }, [
-    detections,
-    filters.bairro,
-    filters.date,
-    filters.endTime,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.startTime,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
-
-  const statusOptions = useMemo(() => {
-    const filtered = detections.filter((item) => matchesFilters(item, "status"));
-    const present = new Set(filtered.map((item) => item.status));
-    return STATUS_OPTIONS.filter((status) => present.has(status));
-  }, [
-    detections,
-    filters.bairro,
-    filters.date,
-    filters.endTime,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.startTime,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
+  const loadDetectionsPage = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await searchDetections({
+        ...queryFilters,
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+      });
+      const formattedDetections = response.items.map((poi) => ({
+        ...poi,
+        rpa: getRpaForPoi(poi),
+      }));
+      setDetections(formattedDetections);
+      setTotalRecords(response.total);
+    } catch (e) {
+      console.error("Failed to load detections:", e);
+      setDetections([]);
+      setTotalRecords(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, itemsPerPage, queryFilters]);
 
   useEffect(() => {
-    async function loadDetections() {
-      try {
-        const data = await getAllDetections();
-        const formattedDetections = data.map((poi) => ({
-          ...poi,
-          rpa: getRpaForPoi(poi),
-        }));
-        setDetections(formattedDetections);
-      } catch (e) {
-        console.error("Failed to load detections:", e);
-      }
-    }
-    loadDetections();
-  }, []);
+    loadDetectionsPage();
+  }, [loadDetectionsPage]);
 
   // Apply query param filters from notification navigation
   useEffect(() => {
@@ -324,16 +233,36 @@ export const Detections: React.FC = () => {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    const detectionIdParam = searchParams.get("detection_id");
-    if (!detectionIdParam || detections.length === 0) return;
+    const detectionId = searchParams.get("detection_id");
+    if (!detectionId) return;
+    const detectionIdValue: string = detectionId;
 
-    const target = detections.find((d) => d.id === detectionIdParam);
-    if (target) {
-      setSelectedItem(target);
-      setIsModalOpen(true);
+    let isMounted = true;
+
+    async function loadDetectionById() {
+      try {
+        const detection = await getDetectionById(detectionIdValue);
+        if (!isMounted) return;
+
+        setSelectedItem({
+          ...detection,
+          rpa: getRpaForPoi(detection),
+        });
+        setIsModalOpen(true);
+      } catch (e) {
+        console.error("Failed to load detection by id:", e);
+      } finally {
+        if (isMounted) {
+          setSearchParams({}, { replace: true });
+        }
+      }
     }
-    setSearchParams({}, { replace: true });
-  }, [detections, searchParams, setSearchParams]);
+
+    loadDetectionById();
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -353,14 +282,8 @@ export const Detections: React.FC = () => {
     setIsResolving(true);
     try {
       await resolveDetection(resolveTarget.id, data);
-      setDetections((prev) =>
-        prev.map((d) =>
-          d.id === resolveTarget.id
-            ? { ...d, status: "Resolvido" as const }
-            : d
-        )
-      );
       setResolveTarget(null);
+      await loadDetectionsPage();
     } catch (e) {
       console.error("Erro ao resolver:", e);
     } finally {
@@ -373,14 +296,8 @@ export const Detections: React.FC = () => {
     setIsStartingAnalysis(true);
     try {
       await startAnalysis(analysisTarget.id);
-      setDetections((prev) =>
-        prev.map((d) =>
-          d.id === analysisTarget.id
-            ? { ...d, status: "Em análise" as const }
-            : d
-        )
-      );
       setAnalysisTarget(null);
+      await loadDetectionsPage();
     } catch (e) {
       console.error("Erro ao iniciar analise:", e);
     } finally {
@@ -400,37 +317,55 @@ export const Detections: React.FC = () => {
     setAnalysisTarget(selectedItem);
   };
 
-  const handleDownloadCSV = () => {
-    const headers = ["Data", "Local", "Tipo", "Volume", "Status", "Infrator"];
-    const rows = filteredData.map((item) => {
-      const date = new Date(item.timestamp).toLocaleString("pt-BR");
-      const local = `${item.logradouro} - ${item.bairro}`;
-      const tipo = item.wasteType;
-      const volume = `${item.volume} m³`;
-      const status = item.status;
-      const infrator = item.hasOffender ? "Identificado" : "Não identificado";
-      return [date, local, tipo, volume, status, infrator];
-    });
+  const handleDownloadCSV = async () => {
+    setIsDownloadingCsv(true);
+    try {
+      const allDetections = await getAllDetections({
+        ...queryFilters,
+        pageSize: 100,
+        maxRecords: 10000,
+      });
 
-    const escapeCell = (value: string) =>
-      `"${value.replace(/"/g, '""')}"`;
+      const formattedDetections = allDetections.map((poi) => ({
+        ...poi,
+        rpa: getRpaForPoi(poi),
+      }));
 
-    const csvContent = [
-      headers.map(escapeCell).join(","),
-      ...rows.map((row) => row.map(escapeCell).join(",")),
-    ].join("\n");
+      const headers = ["Data", "Local", "Tipo", "Volume", "Status", "Infrator"];
+      const rows = formattedDetections.map((item) => {
+        const date = new Date(item.timestamp).toLocaleString("pt-BR");
+        const local = `${item.logradouro} - ${item.bairro}`;
+        const tipo = item.wasteType;
+        const volume = `${item.volume} m³`;
+        const status = item.status;
+        const infrator = item.hasOffender ? "Identificado" : "Não identificado";
+        return [date, local, tipo, volume, status, infrator];
+      });
 
-    const blob = new Blob([`\uFEFF${csvContent}`], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `detecoes_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+      const escapeCell = (value: string) =>
+        `"${value.replace(/"/g, '""')}"`;
+
+      const csvContent = [
+        headers.map(escapeCell).join(","),
+        ...rows.map((row) => row.map(escapeCell).join(",")),
+      ].join("\n");
+
+      const blob = new Blob([`\uFEFF${csvContent}`], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `detecoes_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Erro ao exportar CSV:", e);
+    } finally {
+      setIsDownloadingCsv(false);
+    }
   };
 
   const getStatusStyle = (status: string) => {
@@ -446,16 +381,19 @@ export const Detections: React.FC = () => {
     }
   };
 
-  const filteredData = useMemo(
-    () => detections.filter((item: Detection) => matchesFilters(item)),
-    [detections, filters],
-  );
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
+  const visibleData = detections;
+  const fromRecord = totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const toRecord =
+    totalRecords === 0
+      ? 0
+      : Math.min(totalRecords, (currentPage - 1) * itemsPerPage + visibleData.length);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const visibleData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    (currentPage - 1) * itemsPerPage + itemsPerPage,
-  );
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const getPageNumbers = () => {
     const pages = [] as number[];
@@ -672,7 +610,12 @@ export const Detections: React.FC = () => {
             </button>
             <button
               onClick={handleDownloadCSV}
-              className="h-[50px] px-6 py-2 bg-[#ccff33] rounded-xl hover:bg-[#b8e62e] transition-colors flex items-center justify-center text-black shadow-sm"
+              disabled={isDownloadingCsv}
+              className={`h-[50px] px-6 py-2 rounded-xl transition-colors flex items-center justify-center text-black shadow-sm ${
+                isDownloadingCsv
+                  ? "bg-[#d8f28e] cursor-not-allowed"
+                  : "bg-[#ccff33] hover:bg-[#b8e62e]"
+              }`}
             >
               <Download size={24} />
             </button>
@@ -694,10 +637,19 @@ export const Detections: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {visibleData.length > 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td
+                      colSpan={10}
+                      className="px-6 py-12 text-center text-gray-500 italic"
+                    >
+                      Carregando ocorrências...
+                    </td>
+                  </tr>
+                ) : visibleData.length > 0 ? (
                   visibleData.map((row: Detection, i: number) => (
                     <tr
-                      key={i}
+                      key={row.id}
                       className={`transition-colors border-b border-gray-50 last:border-0 group ${
                         i % 2 === 0 ? "bg-gray-50" : "bg-white"
                       } hover:bg-gray-100`}
@@ -798,8 +750,7 @@ export const Detections: React.FC = () => {
           </div>
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
             <span className="text-sm text-gray-500">
-              Mostrando {visibleData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} -
-              {(currentPage - 1) * itemsPerPage + visibleData.length} de {filteredData.length}
+              Mostrando {fromRecord} - {toRecord} de {totalRecords}
             </span>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">Itens</span>

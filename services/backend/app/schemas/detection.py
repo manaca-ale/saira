@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from decimal import Decimal
 from uuid import UUID
 from enum import Enum
@@ -64,3 +64,10 @@ class DetectionResponse(DetectionBase):
 
     class Config:
         from_attributes = True
+
+
+class DetectionListResponse(BaseModel):
+    items: List[DetectionResponse]
+    total: int
+    skip: int
+    limit: int
