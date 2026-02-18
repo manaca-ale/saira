@@ -64,6 +64,16 @@ app/
 | POST | `/register` | Cria novo usuario |
 | GET | `/me` | Retorna dados do usuario autenticado |
 
+### Conecta Recife (`/api/v1/integrations/conecta`)
+
+| Metodo | Rota | Descricao |
+| ------ | ---- | --------- |
+| GET | `/login-url` | Gera URL de autorizacao OIDC (Conecta Recife) |
+| GET | `/callback` | Callback OIDC (troca `code`, sincroniza usuario, gera ticket) |
+| POST | `/exchange-ticket` | Troca ticket temporario por JWT interno SAIRA |
+| GET | `/logout-url` | Retorna URL de logout SSO no Conecta |
+| POST | `/revoke-consent` | Revogacao de dados pessoais com introspeccao de token |
+
 ### Detections (`/api/v1/detections`)
 
 | Metodo | Rota | Descricao |
@@ -128,7 +138,12 @@ docker compose exec backend python seed_db.py
 | -------- | --------- |
 | `DATABASE_URL` | Connection string PostgreSQL (asyncpg) |
 | `SECRET_KEY` | Chave secreta para assinatura JWT (min 32 chars) |
+| `ENABLE_LOCAL_LOGIN` | Habilita login local (email/senha) |
+| `ENABLE_CONECTA_LOGIN` | Habilita login via Conecta Recife |
 | `ENVIRONMENT` | `development`, `test` ou `production` |
+| `CONECTA_CLIENT_ID` | Client ID da aplicacao no Conecta |
+| `CONECTA_CLIENT_SECRET` | Client secret (quando client confidential) |
+| `CONECTA_REDIRECT_URI` | URI de callback cadastrada no Conecta |
 | `AWS_ACCESS_KEY_ID` | Credencial AWS para S3 (opcional) |
 | `AWS_SECRET_ACCESS_KEY` | Credencial AWS para S3 (opcional) |
 | `S3_BUCKET_NAME` | Nome do bucket S3 para imagens (opcional) |

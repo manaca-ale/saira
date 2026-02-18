@@ -1,5 +1,15 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, cameras, detections, dashboard, notifications, offenders, test
+from app.api.v1.endpoints import (
+    auth,
+    users,
+    cameras,
+    detections,
+    dashboard,
+    notifications,
+    offenders,
+    test,
+    conecta,
+)
 
 api_router = APIRouter()
 
@@ -12,3 +22,4 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboar
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(offenders.router, prefix="/offenders", tags=["offenders"])
 api_router.include_router(test.router, prefix="/test", tags=["test"])
+api_router.include_router(conecta.router, prefix="/integrations/conecta", tags=["conecta"])

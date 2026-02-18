@@ -53,6 +53,10 @@ Copie `.env.example` para `.env` e configure:
 | `AWS_SECRET_ACCESS_KEY` | Credencial AWS (S3) | (opcional) |
 | `S3_BUCKET_NAME` | Bucket para imagens | (opcional) |
 | `VITE_API_URL` | URL da API para o frontend | `http://localhost:8001/api/v1` |
+| `ENABLE_LOCAL_LOGIN` | Mantem login local email/senha | `true` |
+| `ENABLE_CONECTA_LOGIN` | Habilita login Conecta Recife (hibrido) | `false` |
+| `CONECTA_CLIENT_ID` | Credencial client_id da prefeitura | (obrigatoria quando habilitado) |
+| `CONECTA_REDIRECT_URI` | Callback OIDC cadastrada na prefeitura | (obrigatoria quando habilitado) |
 
 ## Estrutura de Diretorios
 

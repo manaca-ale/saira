@@ -10,6 +10,22 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ENABLE_LOCAL_LOGIN: bool = True
+    ENABLE_CONECTA_LOGIN: bool = False
+
+    # Conecta Recife (OIDC)
+    CONECTA_ENV: str = "test"  # test | prod
+    CONECTA_BASE_URL_TEST: str = "https://loginteste.recife.pe.gov.br"
+    CONECTA_BASE_URL_PROD: str = "https://login.recife.pe.gov.br"
+    CONECTA_REALM: str = "recife"
+    CONECTA_CLIENT_ID: str = ""
+    CONECTA_CLIENT_SECRET: str = ""
+    CONECTA_REDIRECT_URI: str = ""
+    CONECTA_POST_LOGOUT_REDIRECT_URI: str = ""
+    CONECTA_SCOPE: str = "openid profile email"
+    CONECTA_STATE_TTL_SECONDS: int = 600
+    CONECTA_TICKET_TTL_SECONDS: int = 120
+    CONECTA_HTTP_TIMEOUT_SECONDS: int = 15
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [

@@ -5,6 +5,7 @@
   Navigate,
 } from "react-router-dom";
 import { Login } from "./pages/Login";
+import { ConectaCallback } from "./pages/ConectaCallback";
 import { Dashboard } from "./pages/Dashboard";
 import { Detections } from "./pages/Detections";
 import { UsersPage } from "./pages/UsersPage";
@@ -18,6 +19,8 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/login/callback" element={<ConectaCallback />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/detections" element={<Detections />} />
           <Route path="/users" element={<UsersPage />} />

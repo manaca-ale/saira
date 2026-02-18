@@ -10,11 +10,13 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
+import { useAuth } from "../contexts/AuthContext";
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { unreadCount, toggleDrawer } = useNotifications();
+  const { signOut } = useAuth();
 
   // --- Modal State ---
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -39,8 +41,8 @@ export const Sidebar: React.FC = () => {
     }, 500);
   };
 
-  const confirmLogout = () => {
-    navigate("/");
+  const confirmLogout = async () => {
+    await signOut({ global: true });
   };
 
   return (
