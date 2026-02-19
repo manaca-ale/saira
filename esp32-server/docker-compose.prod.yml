@@ -12,6 +12,12 @@ services:
       - CONFIG_DIR=${CONFIG_DIR:-/app/config}
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-90}
+      - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-15}
+      - GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
+      - UPLOAD_LOG_EVERY=${UPLOAD_LOG_EVERY:-20}
     volumes:
       - ./uploads:/app/uploads
       - ./ota:/app/ota

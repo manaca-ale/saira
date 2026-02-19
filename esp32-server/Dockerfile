@@ -1,4 +1,4 @@
-﻿FROM python:3.9-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
@@ -9,4 +9,6 @@ COPY server.py /app/
 
 EXPOSE 5000
 
-CMD ["python", "server.py"]
+ENV PYTHONUNBUFFERED=1
+
+CMD ["/bin/sh", "-c", "exec gunicorn --bind 0.0.0.0:5000 --worker-class gthread --workers ${GUNICORN_WORKERS:-2} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-90} --keep-alive ${GUNICORN_KEEPALIVE:-15} --worker-tmp-dir /dev/shm --access-logfile - --error-logfile - --log-level ${GUNICORN_LOG_LEVEL:-info} server:app"]

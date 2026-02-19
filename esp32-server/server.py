@@ -7,6 +7,21 @@ from typing import Optional
 
 app = Flask(__name__)
 
+
+def _int_env(name: str, default: int, minimum: int = 0) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return max(default, minimum)
+    try:
+        val = int(raw)
+    except ValueError:
+        return max(default, minimum)
+    return max(val, minimum)
+
+
+UPLOAD_LOG_EVERY = _int_env("UPLOAD_LOG_EVERY", 20, minimum=1)
+_upload_ok_count = 0
+
 def _get_upload_root() -> str:
     # Allow overriding storage location on EC2 (e.g. /data/saira/uploads).
     # Defaults to ./uploads next to this file.
@@ -253,6 +268,8 @@ def upload_ota_firmware():
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
+    global _upload_ok_count
+
     # Identify the device
     raw_device_id = request.headers.get("X-Device-Id", "").strip()
     device_id = _sanitize_device_id(raw_device_id) if raw_device_id else None
@@ -298,7 +315,12 @@ def upload_file():
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file.save(save_path)
 
-    print(f"Received image: {rel_path} (device={device_id})", flush=True)
+    _upload_ok_count += 1
+    if (_upload_ok_count % UPLOAD_LOG_EVERY) == 0:
+        print(
+            f"Received image: {rel_path} (device={device_id}, count={_upload_ok_count})",
+            flush=True,
+        )
 
     base = _public_base_url()
     rel_url = rel_path.replace(os.sep, "/")
@@ -327,5 +349,8 @@ def receive_status():
     return "Received", 200
 
 if __name__ == "__main__":
-    # Bind to 0.0.0.0 so the app is reachable outside the container
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Local/dev fallback when running "python server.py".
+    # Production container runs via gunicorn (see Dockerfile).
+    debug = os.getenv("FLASK_DEBUG", "0").strip() == "1"
+    port = _int_env("PORT", 5000, minimum=1)
+    app.run(host="0.0.0.0", port=port, debug=debug, threaded=True)
