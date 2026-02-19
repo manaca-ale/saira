@@ -84,6 +84,7 @@ static uint32_t gCompactSuccessCount = 0;
 static uint32_t gWifiDownSince = 0;
 static uint32_t gCaptureHoldUntil = 0;
 static uint32_t gLastOtaGuardStatusAt = 0;
+static uint32_t gLastMemGuardWarnAt = 0;
 static uint32_t gBootAtMs = 0;
 static uint32_t gLastCaptureOkAt = 0;
 static uint32_t gLastUploadOkAt = 0;
@@ -97,6 +98,14 @@ static String   gCamLastAuthStage = "idle";
 static String   gCamLastAuthHint = "none";
 static String   gCamLastHost = "";
 static String   gCamLastPath = "/snap.jpg";
+static bool     gLastCaptureOom = false;
+static uint32_t gCaptureBackoffMs = 0;
+static volatile bool gUploadInFlight = false;
+
+// Non-PSRAM: keep one reusable frame buffer to avoid heap fragmentation.
+static uint8_t* gNoPsramFrameBuf = nullptr;
+static size_t   gNoPsramFrameBufCap = 0;
+static bool     gNoPsramFrameBufLocked = false;
 
 static const uint32_t SAIRA_OTA_GUARD_WIFI_DOWN_MS = 30000;
 static const uint32_t SAIRA_OTA_GUARD_HOLD_MS = 60000;
@@ -111,6 +120,8 @@ static const uint32_t SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS = 10000;
 static const uint32_t SAIRA_DISCOVER_PROBE_BUDGET = 18;
 static const uint32_t SAIRA_DISCOVER_PROBE_GAP_MS = 250;
 static const uint32_t SAIRA_DISCOVER_MAX_WINDOW_MS = 7000;
+static const uint32_t SAIRA_CAPTURE_BACKOFF_STEP_MS = 5000;
+static const uint32_t SAIRA_CAPTURE_BACKOFF_MAX_MS = 60000;
 
 // ATENCAO: para https, por padrao vamos aceitar qualquer certificado.
 // Se quiser validacao, troque por setCACert() com o CA correto.
@@ -369,6 +380,10 @@ static String buildCameraSnapshotUrlForHost(const IPAddress& host, uint16_t dete
 }
 
 static void sendStatus(const String& msg);
+static void releaseQueueRgbWorkspace();
+static bool queueDropOldestForMemory();
+static uint8_t* allocFrameBuffer(size_t len);
+static void releaseFrameBuffer(uint8_t* ptr);
 
 #if SAIRA_USE_ETHERNET
 static Preferences gCamPrefs;
@@ -1093,6 +1108,81 @@ static String buildDigestAuthWithNc(const DigestChallenge& c,
   return auth;
 }
 
+// =============================================================================
+// ETH pre-connect helpers
+// WiFiClient::connect() (linha 223 do WiFiClient.cpp) cria socket novo sem
+// bind ao netif ETH, descartando qualquer socket pre-vinculado.
+// Solucao: completar o TCP handshake via lwIP ANTES de entregar ao WiFiClient.
+// HTTPClient ve connected()==true e nao chama WiFiClient::connect().
+// REGRA: nunca ter duas pre-conexoes simultaneas (camera suporta 1 por vez).
+// =============================================================================
+#if SAIRA_USE_ETHERNET
+extern "C" {
+  int lwip_socket(int domain, int type, int protocol);
+  int lwip_bind(int s, const struct sockaddr* name, int namelen);
+  int lwip_close(int s);
+  int lwip_connect(int s, const struct sockaddr* name, int namelen);
+  int lwip_select(int maxfdp1, void* readset, void* writeset, void* exceptset, void* timeout);
+  int lwip_getsockopt(int s, int level, int optname, void* optval, unsigned* optlen);
+  int lwip_fcntl(int s, int cmd, int val);
+}
+struct saira_sockaddr_in {
+  uint8_t  sin_len; uint8_t  sin_family;
+  uint16_t sin_port; uint32_t sin_addr;
+  char     sin_zero[8];
+};
+struct saira_fd_set  { uint8_t fd_bits[8]; }; // lwIP FD_SETSIZE=64
+struct saira_timeval { long tv_sec; long tv_usec; };
+static inline void saira_fd_zero(saira_fd_set* s) { memset(s->fd_bits, 0, 8); }
+static inline void saira_fd_setf(int fd, saira_fd_set* s) { s->fd_bits[fd>>3] |= (uint8_t)(1<<(fd&7)); }
+
+// Cria WiFiClient com socket ja CONECTADO via ETH (bind ao ETH.localIP()).
+// Retorna WiFiClient() se ETH offline ou conexao falhar.
+static WiFiClient makeEthConnectedClient(uint32_t destIp, uint16_t destPort, int32_t timeoutMs = 3000) {
+  if (!ETH.linkUp() || ETH.localIP() == IPAddress(0, 0, 0, 0)) return WiFiClient();
+  int sock = lwip_socket(2 /*AF_INET*/, 1 /*SOCK_STREAM*/, 6 /*IPPROTO_TCP*/);
+  if (sock < 0) return WiFiClient();
+  saira_sockaddr_in local = {};
+  local.sin_family = 2;
+  local.sin_addr   = (uint32_t)ETH.localIP();
+  if (lwip_bind(sock, (struct sockaddr*)&local, sizeof(local)) != 0) {
+    lwip_close(sock); return WiFiClient();
+  }
+  lwip_fcntl(sock, 4 /*F_SETFL*/, 4 /*O_NONBLOCK*/);
+  saira_sockaddr_in remote = {};
+  remote.sin_family = 2;
+  remote.sin_addr   = destIp;
+  remote.sin_port   = (uint16_t)(((destPort) >> 8) | ((destPort & 0xFF) << 8)); // htons
+  int res = lwip_connect(sock, (struct sockaddr*)&remote, sizeof(remote));
+  if (res < 0 && errno != 119 /*EINPROGRESS*/) { lwip_close(sock); return WiFiClient(); }
+  saira_fd_set wset; saira_fd_zero(&wset); saira_fd_setf(sock, &wset);
+  saira_timeval tv { timeoutMs / 1000, (timeoutMs % 1000) * 1000L };
+  if (lwip_select(sock + 1, nullptr, &wset, nullptr, &tv) <= 0) {
+    lwip_close(sock); return WiFiClient();
+  }
+  int sockerr = 0; unsigned errlen = sizeof(sockerr);
+  if (lwip_getsockopt(sock, 0xfff /*SOL_SOCKET*/, 0x1007 /*SO_ERROR*/, &sockerr, &errlen) < 0 || sockerr != 0) {
+    lwip_close(sock); return WiFiClient();
+  }
+  lwip_fcntl(sock, 4 /*F_SETFL*/, 0);
+  return WiFiClient(sock);
+}
+
+// Pre-conecta camClient via ETH. Chamar IMEDIATAMENTE antes de
+// camHttp.begin(camClient,...) e APOS fechar toda outra conexao ativa.
+static void camPreConnectEth() {
+  ParsedUrl cam = parseHttpUrl(ipCamUrl);
+  IPAddress ip;
+  if (cam.ok && ip.fromString(cam.host)) {
+    uint16_t port = cam.port > 0 ? (uint16_t)cam.port : 80;
+    camClient = makeEthConnectedClient((uint32_t)ip, port, 2000);
+  }
+}
+#else
+static WiFiClient makeEthConnectedClient(uint32_t, uint16_t, int32_t = 3000) { return WiFiClient(); }
+static void camPreConnectEth() {}
+#endif
+
 static void camDisconnect() {
   if (camConnected) {
     camHttp.end();
@@ -1125,7 +1215,8 @@ static bool probeCameraEndpoint(const IPAddress& ip,
   outWwwAuth = "";
   outServer = "";
 
-  WiFiClient cli;
+  WiFiClient cli = makeEthConnectedClient((uint32_t)ip, port, timeoutMs);
+  if (!cli.connected()) return false;
   HTTPClient http;
   String url = buildHttpUrl(ip, port, path);
   if (!http.begin(cli, url)) return false;
@@ -1150,7 +1241,8 @@ static bool probeCameraEndpoint(const IPAddress& ip,
       uint32_t probeNc = 1;
       String auth = buildDigestAuthWithNc(c, "GET", path, ipCamUser, ipCamPass, probeNc);
       if (auth.length()) {
-        WiFiClient digestCli;
+        WiFiClient digestCli = makeEthConnectedClient((uint32_t)ip, port, timeoutMs);
+        if (!digestCli.connected()) return false;
         HTTPClient digestHttp;
         if (digestHttp.begin(digestCli, url)) {
           digestHttp.collectHeaders(hdrKeys, 2);
@@ -1424,9 +1516,40 @@ static bool discoverCameraEndpoint(String& outUrl, String& outReason) {
 }
 #endif
 
+static uint8_t* allocFrameBuffer(size_t len) {
+  if (len == 0) return nullptr;
+
+  // Without PSRAM, keep one reusable frame buffer and lock it while queued/uploading.
+  if (ESP.getFreePsram() == 0) {
+    if (gNoPsramFrameBufLocked) return nullptr;
+    if (gNoPsramFrameBufCap < len) {
+      uint8_t* p = (uint8_t*)realloc(gNoPsramFrameBuf, len);
+      if (!p) return nullptr;
+      gNoPsramFrameBuf = p;
+      gNoPsramFrameBufCap = len;
+    }
+    gNoPsramFrameBufLocked = true;
+    return gNoPsramFrameBuf;
+  }
+
+  uint8_t* p = (uint8_t*)ps_malloc(len);
+  if (!p) p = (uint8_t*)malloc(len);
+  return p;
+}
+
+static void releaseFrameBuffer(uint8_t* ptr) {
+  if (!ptr) return;
+  if (ptr == gNoPsramFrameBuf) {
+    gNoPsramFrameBufLocked = false;
+    return;
+  }
+  free(ptr);
+}
+
 static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   outBuf = nullptr;
   outLen = 0;
+  gLastCaptureOom = false;
 
   uint32_t t0 = millis();
   ParsedUrl cam = parseHttpUrl(ipCamUrl);
@@ -1477,6 +1600,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
     if (auth.length()) {
       gCamLastAuthStage = "digest_cached";
       camDisconnect();
+      camPreConnectEth();
       if (camHttp.begin(camClient, ipCamUrl)) {
         static const char* camHdrKeys[] = {"WWW-Authenticate"};
         camHttp.collectHeaders(camHdrKeys, 1);
@@ -1507,6 +1631,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
     // Try 1: Basic (preemptive) with keep-alive
     gCamLastAuthStage = "basic_preemptive";
     camDisconnect();
+    camPreConnectEth();
     if (camHttp.begin(camClient, ipCamUrl)) {
       static const char* camHdrKeys[] = {"WWW-Authenticate"};
       camHttp.collectHeaders(camHdrKeys, 1);
@@ -1529,6 +1654,13 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
 
       camDisconnect();
       WiFiClient chalClient;
+#if SAIRA_USE_ETHERNET
+      {
+        IPAddress chalIp; uint16_t chalPort = cam.port > 0 ? (uint16_t)cam.port : 80;
+        if (chalIp.fromString(cam.host))
+          chalClient = makeEthConnectedClient((uint32_t)chalIp, chalPort, 3000);
+      }
+#endif
       HTTPClient chalHttp;
       String wwwAuth;
       if (chalHttp.begin(chalClient, ipCamUrl)) {
@@ -1556,6 +1688,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
                                              ipCamUser, ipCamPass, digestNc);
         if (auth.length()) {
           gCamLastAuthStage = "digest_retry";
+          camPreConnectEth();
           if (camHttp.begin(camClient, ipCamUrl)) {
             static const char* camHdrKeys[] = {"WWW-Authenticate"};
             camHttp.collectHeaders(camHdrKeys, 1);
@@ -1602,20 +1735,25 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   }
 
   uint32_t tAlloc0 = millis();
-  uint8_t* buffer = (uint8_t*)ps_malloc((size_t)len);
+  uint8_t* buffer = allocFrameBuffer((size_t)len);
   if (!buffer) {
-    buffer = (uint8_t*)malloc((size_t)len);
-    if (!buffer) {
-      Serial.println("Sem memoria (psram/heap) para snapshot.");
-      camDisconnect();
-      tAlloc = sairaMsSince(tAlloc0);
-      sairaPrintMs("cam_parse", tParse);
-      sairaPrintMs("cam_http_total", tHttpTotal);
-      if (tChallenge) sairaPrintMs("cam_digest_chal", tChallenge);
-      sairaPrintMs("cam_alloc", tAlloc);
-      sairaPrintMs("cam_total", sairaMsSince(t0));
-      return false;
-    }
+    // In non-PSRAM boards, queue/reencode temporary buffers may fragment heap.
+    // Release optional workspace and drop one queued frame as last-resort recovery.
+    releaseQueueRgbWorkspace();
+    (void)queueDropOldestForMemory();
+    buffer = allocFrameBuffer((size_t)len);
+  }
+  if (!buffer) {
+    Serial.println("Sem memoria (psram/heap) para snapshot.");
+    gLastCaptureOom = true;
+    camDisconnect();
+    tAlloc = sairaMsSince(tAlloc0);
+    sairaPrintMs("cam_parse", tParse);
+    sairaPrintMs("cam_http_total", tHttpTotal);
+    if (tChallenge) sairaPrintMs("cam_digest_chal", tChallenge);
+    sairaPrintMs("cam_alloc", tAlloc);
+    sairaPrintMs("cam_total", sairaMsSince(t0));
+    return false;
   }
   tAlloc = sairaMsSince(tAlloc0);
 
@@ -1643,7 +1781,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
 
   if (total != len) {
     Serial.printf("Download incompleto: %d/%d bytes\n", total, len);
-    free(buffer);
+    releaseFrameBuffer(buffer);
     camDisconnect();
     sairaPrintMs("cam_parse", tParse);
     sairaPrintMs("cam_http_total", tHttpTotal);
@@ -1837,6 +1975,13 @@ static uint8_t* gQueueRgbWorkspace = nullptr;
 static size_t gQueueRgbWorkspaceLen = 0;
 static uint32_t gLastCompactWarnAt = 0;
 
+static void releaseQueueRgbWorkspace() {
+    if (!gQueueRgbWorkspace) return;
+    free(gQueueRgbWorkspace);
+    gQueueRgbWorkspace = nullptr;
+    gQueueRgbWorkspaceLen = 0;
+}
+
 static bool isSofMarker(uint8_t marker) {
     // SOF markers that carry width/height.
     switch (marker) {
@@ -2024,7 +2169,7 @@ static bool compactJpegMetadataForQueue(uint8_t*& data, int& len) {
     uint8_t* shrunk = (uint8_t*)realloc(out, outPos);
     if (shrunk) out = shrunk;
 
-    free(data);
+    releaseFrameBuffer(data);
     data = out;
     len = (int)outPos;
     return true;
@@ -2032,6 +2177,12 @@ static bool compactJpegMetadataForQueue(uint8_t*& data, int& len) {
 
 static bool ensureQueueRgbWorkspace(size_t needed) {
     if (gQueueRgbWorkspace && gQueueRgbWorkspaceLen >= needed) return true;
+    // RGB workspace is expensive (w*h*3). On boards without PSRAM this adds
+    // pressure/fragmentation and tends to hurt capture stability.
+    if (ESP.getFreePsram() == 0) {
+        releaseQueueRgbWorkspace();
+        return false;
+    }
     uint8_t* p = (uint8_t*)ps_malloc(needed);
     if (!p) p = (uint8_t*)malloc(needed);
     if (!p) return false;
@@ -2096,7 +2247,7 @@ static bool reencodeJpegForQueue(uint8_t*& data, int& len) {
         return false;
     }
 
-    free(data);
+    releaseFrameBuffer(data);
     data = out;
     len = (int)outLen;
     sairaQueueDbg("reencode: sucesso -> %d bytes", len);
@@ -2115,6 +2266,7 @@ static bool compactJpegForQueue(uint8_t*& data, int& len, bool& wasReencoded) {
 
 // ---- Fila de imagens na PSRAM (thread-safe via mutex) ----
 static const int IMAGE_QUEUE_MAX = 8;
+static const int IMAGE_QUEUE_NO_PSRAM_MAX = 2;
 static const uint8_t IMAGE_UPLOAD_MAX_RETRIES = 3;
 
 struct QueuedImage {
@@ -2128,13 +2280,14 @@ static QueuedImage imageQueue[IMAGE_QUEUE_MAX];
 static int queueHead = 0;  // proximo slot a ser consumido (upload)
 static int queueTail = 0;  // proximo slot a ser escrito (captura)
 static volatile int queueCount = 0;
+static int queueRuntimeMax = IMAGE_QUEUE_MAX;
 static SemaphoreHandle_t queueMutex = NULL;
 
 static bool queuePush(uint8_t* data, int len, uint32_t ts) {
     gLastCaptureBytes = (uint32_t)len;
     if (!isLikelyValidJpeg(data, len)) {
         Serial.printf("QUEUE: frame invalido (nao eh JPEG valido), descartado (%d bytes)\n", len);
-        free(data);
+        releaseFrameBuffer(data);
         return false;
     }
 
@@ -2167,11 +2320,11 @@ static bool queuePush(uint8_t* data, int len, uint32_t ts) {
 
     if (xSemaphoreTake(queueMutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
         Serial.println("QUEUE: timeout obtendo mutex (push)");
-        free(data);
+        releaseFrameBuffer(data);
         return false;
     }
-    if (queueCount >= IMAGE_QUEUE_MAX) {
-        free(imageQueue[queueHead].data);
+    if (queueCount >= queueRuntimeMax) {
+        releaseFrameBuffer(imageQueue[queueHead].data);
         queueHead = (queueHead + 1) % IMAGE_QUEUE_MAX;
         queueCount--;
         Serial.println("QUEUE: descartou imagem mais antiga (fila cheia)");
@@ -2210,8 +2363,8 @@ static bool queueRequeue(const QueuedImage& in) {
         Serial.println("QUEUE: timeout obtendo mutex (requeue)");
         return false;
     }
-    if (queueCount >= IMAGE_QUEUE_MAX) {
-        free(imageQueue[queueHead].data);
+    if (queueCount >= queueRuntimeMax) {
+        releaseFrameBuffer(imageQueue[queueHead].data);
         queueHead = (queueHead + 1) % IMAGE_QUEUE_MAX;
         queueCount--;
         Serial.println("QUEUE: descartou imagem mais antiga (fila cheia/requeue)");
@@ -2222,6 +2375,25 @@ static bool queueRequeue(const QueuedImage& in) {
     Serial.printf("QUEUE: re-enfileirou (%d bytes), retry=%u, total=%d\n",
                   in.length, (unsigned int)in.retryCount, queueCount);
     xSemaphoreGive(queueMutex);
+    return true;
+}
+
+static bool queueDropOldestForMemory() {
+    if (!queueMutex) return false;
+    if (xSemaphoreTake(queueMutex, pdMS_TO_TICKS(200)) != pdTRUE) return false;
+    if (queueCount <= 0) {
+        xSemaphoreGive(queueMutex);
+        return false;
+    }
+
+    if (imageQueue[queueHead].data) {
+        releaseFrameBuffer(imageQueue[queueHead].data);
+    }
+    imageQueue[queueHead] = {nullptr, 0, 0, 0};
+    queueHead = (queueHead + 1) % IMAGE_QUEUE_MAX;
+    queueCount--;
+    xSemaphoreGive(queueMutex);
+    Serial.println("QUEUE: descartou frame mais antigo para aliviar memoria.");
     return true;
 }
 
@@ -2244,18 +2416,21 @@ static void uploadTask(void* /*param*/) {
                 if (!ensureUplinkNet()) {
                     // Uplink indisponivel agora: nao perder frame, tentar de novo no proximo ciclo.
                     if (!queueRequeue(img)) {
-                        free(img.data);
+                        releaseFrameBuffer(img.data);
                         gUploadFail++;
                     }
                     vTaskDelay(pdMS_TO_TICKS(200));
                     continue;
                 }
                 Serial.printf("\n--- UPLOAD (fila restante: %d) ---\n", queueCount);
-                if (uploadSnapshot(img.data, img.length)) {
+                gUploadInFlight = true;
+                bool upOk = uploadSnapshot(img.data, img.length);
+                gUploadInFlight = false;
+                if (upOk) {
                     gUploadOk++;
                     gUploadFailStreak = 0;
                     gLastUploadOkAt = millis();
-                    free(img.data);
+                    releaseFrameBuffer(img.data);
                 } else {
                     gUploadFailStreak++;
                     img.retryCount++;
@@ -2263,7 +2438,7 @@ static void uploadTask(void* /*param*/) {
                         Serial.printf("UPLOAD: falhou, reagendando retry=%u\n", (unsigned int)img.retryCount);
                         (void)forceEnsureUplinkNow();
                         if (!queueRequeue(img)) {
-                            free(img.data);
+                            releaseFrameBuffer(img.data);
                             gUploadFail++;
                         }
                     } else {
@@ -2273,7 +2448,7 @@ static void uploadTask(void* /*param*/) {
                                    " retry=" + String(img.retryCount) +
                                    " q=" + String(queueCount) +
                                    " heap=" + String(ESP.getFreeHeap()));
-                        free(img.data);
+                        releaseFrameBuffer(img.data);
                     }
                 }
             }
@@ -2432,6 +2607,15 @@ void setup() {
 
   // Mutex para acesso thread-safe a fila de imagens
   queueMutex = xSemaphoreCreateMutex();
+  if (ESP.getFreePsram() == 0) {
+    queueRuntimeMax = IMAGE_QUEUE_NO_PSRAM_MAX;
+  } else {
+    queueRuntimeMax = IMAGE_QUEUE_MAX;
+  }
+  if (queueRuntimeMax < 1) queueRuntimeMax = 1;
+  if (queueRuntimeMax > IMAGE_QUEUE_MAX) queueRuntimeMax = IMAGE_QUEUE_MAX;
+  Serial.printf("QUEUE: limite runtime=%d (capacidade=%d, psram=%u)\n",
+                queueRuntimeMax, IMAGE_QUEUE_MAX, (unsigned int)ESP.getFreePsram());
 
   // Upload roda no core 0 em paralelo com captura no core 1 (loop)
   xTaskCreatePinnedToCore(
@@ -2452,6 +2636,39 @@ void setup() {
 
 static uint32_t nextCaptureAt = 0;
 static uint32_t nextCameraNetWarnAt = 0;
+
+static uint32_t effectiveCaptureIntervalMs() {
+  uint32_t base = timerDelayMs;
+  if (base < SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS) base = SAIRA_CAM_MIN_CAPTURE_INTERVAL_MS;
+  uint32_t total = base + gCaptureBackoffMs;
+  const uint32_t hardMax = 180000;  // 3 min
+  if (total > hardMax) total = hardMax;
+  return total;
+}
+
+static void bumpCaptureBackoffOnOom() {
+  uint32_t prev = gCaptureBackoffMs;
+  if (gCaptureBackoffMs < SAIRA_CAPTURE_BACKOFF_MAX_MS) {
+    gCaptureBackoffMs += SAIRA_CAPTURE_BACKOFF_STEP_MS;
+    if (gCaptureBackoffMs > SAIRA_CAPTURE_BACKOFF_MAX_MS) {
+      gCaptureBackoffMs = SAIRA_CAPTURE_BACKOFF_MAX_MS;
+    }
+  }
+  if (gCaptureBackoffMs != prev) {
+    Serial.printf("CAPTURA: backoff por OOM=%lu ms (intervalo efetivo=%lu ms)\n",
+                  (unsigned long)gCaptureBackoffMs,
+                  (unsigned long)effectiveCaptureIntervalMs());
+  }
+}
+
+static void relaxCaptureBackoffOnSuccess() {
+  if (gCaptureBackoffMs == 0) return;
+  if (gCaptureBackoffMs > SAIRA_CAPTURE_BACKOFF_STEP_MS) {
+    gCaptureBackoffMs -= SAIRA_CAPTURE_BACKOFF_STEP_MS;
+  } else {
+    gCaptureBackoffMs = 0;
+  }
+}
 
 void loop() {
   sairaMaybeCheckOta();
@@ -2491,12 +2708,13 @@ void loop() {
   // 1. CAPTURA em intervalo fixo
   if (nextCaptureAt == 0) nextCaptureAt = millis();
   if ((int32_t)(millis() - nextCaptureAt) >= 0) {
+    const uint32_t intervalMs = effectiveCaptureIntervalMs();
     // IMPORTANTE: avancar timer ANTES do download para manter intervalo fixo
-    nextCaptureAt += timerDelayMs;
+    nextCaptureAt += intervalMs;
 
     // Evitar acumulo se ficou muito tempo sem rodar
-    if ((int32_t)(millis() - nextCaptureAt) >= (int32_t)timerDelayMs) {
-      nextCaptureAt = millis() + timerDelayMs;
+    if ((int32_t)(millis() - nextCaptureAt) >= (int32_t)intervalMs) {
+      nextCaptureAt = millis() + intervalMs;
     }
 
     if (!captureAllowedByOtaGuard()) {
@@ -2505,6 +2723,25 @@ void loop() {
         Serial.println("OTA_GUARD: captura pausada para preservar uplink/OTA.");
       }
     } else if (ensureCameraNet()) {
+      if (ESP.getFreePsram() == 0) {
+        const uint32_t maxAlloc = (uint32_t)ESP.getMaxAllocHeap();
+        const bool busyUploadPath = (gUploadInFlight || queueCount > 0);
+        const bool lowAlloc = (maxAlloc < 50000);
+        if (busyUploadPath || lowAlloc) {
+          const uint32_t now = millis();
+          if ((int32_t)(now - gLastMemGuardWarnAt) >= 10000) {
+            gLastMemGuardWarnAt = now;
+            Serial.printf("CAPTURA: guard monitor busy=%d q=%d up=%d heap=%u max_alloc=%u backoff=%lu\n",
+                          busyUploadPath ? 1 : 0,
+                          queueCount,
+                          gUploadInFlight ? 1 : 0,
+                          (unsigned int)ESP.getFreeHeap(),
+                          (unsigned int)maxAlloc,
+                          (unsigned long)gCaptureBackoffMs);
+          }
+        }
+      }
+
       uint8_t* buf = nullptr;
       int len = 0;
       Serial.println("\n--- CAPTURA ---");
@@ -2514,6 +2751,7 @@ void loop() {
         gCaptureFailStreak = 0;
         gLastCaptureOkAt = millis();
         gRecoveryStage = 0;
+        relaxCaptureBackoffOnSuccess();
         sairaPrintMs("capture_total", sairaMsSince(tCap0));
         Serial.printf("   OK: %d bytes capturados\n", len);
         if (!queuePush(buf, len, millis())) {
@@ -2526,6 +2764,9 @@ void loop() {
       } else {
         gCaptureFail++;
         gCaptureFailStreak++;
+        if (gLastCaptureOom) {
+          bumpCaptureBackoffOnOom();
+        }
         sairaPrintMs("capture_total", sairaMsSince(tCap0));
         Serial.println("   ERRO: falha na captura");
         sendStatus("ERR captura falhou net=" + String(sairaNetKind()) +
@@ -2569,6 +2810,7 @@ void loop() {
       maybeAutoDiscoverCamera();
 #endif
     }
+after_capture_cycle:;
   }
 
 #if SAIRA_USE_ETHERNET
