@@ -755,7 +755,7 @@ static void uploadSnapshot(const uint8_t* buf, int len) {
   sairaPrintMs("up_total", sairaMsSince(t0));
 }
 
-static const uint8_t QUEUE_REENCODE_JPEG_QUALITY = 24;
+static const uint8_t QUEUE_REENCODE_JPEG_QUALITY = 16;
 static uint8_t* gQueueRgbWorkspace = nullptr;
 static size_t gQueueRgbWorkspaceLen = 0;
 
