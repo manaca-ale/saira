@@ -30,13 +30,19 @@ services:
       dockerfile: Dockerfile
     environment:
       - UPLOAD_DIR=/app/uploads
+      - STATE_DIR=/app/state
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
       - POLL_INTERVAL=10
-      - FAKE_MODE=true
+      - MOCK_MODE=true
       - PROCESSED_STRATEGY=marker
+      - WORKER_ENABLED=true
     volumes:
       - ./uploads:/app/uploads
+      - worker_state:/app/state
     depends_on:
       - esp32-receiver
     restart: unless-stopped
+
+volumes:
+  worker_state:
