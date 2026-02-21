@@ -1,0 +1,42 @@
+services:
+  esp32-receiver:
+    build: .
+    ports:
+      # Production uses 5002 to avoid colliding with services/api-gateway on 5000.
+      - "5002:5000"
+    env_file:
+      - .env
+    environment:
+      - UPLOAD_DIR=${UPLOAD_DIR:-/app/uploads}
+      - OTA_DIR=${OTA_DIR:-/app/ota}
+      - CONFIG_DIR=${CONFIG_DIR:-/app/config}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-90}
+      - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-15}
+      - GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
+      - UPLOAD_LOG_EVERY=${UPLOAD_LOG_EVERY:-20}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./ota:/app/ota
+      - ./config:/app/config
+    restart: unless-stopped
+
+  fake-worker:
+    build:
+      context: ../services/yolo-worker-vm
+      dockerfile: Dockerfile
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - POLL_INTERVAL=10
+      - FAKE_MODE=true
+      - PROCESSED_STRATEGY=marker
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - esp32-receiver
+    restart: unless-stopped

@@ -1,3 +1,23 @@
-from app.api.v1.endpoints import auth, users, cameras, detections, dashboard
+from app.api.v1.endpoints import (
+    auth,
+    users,
+    cameras,
+    detections,
+    dashboard,
+    notifications,
+    offenders,
+    test,
+    conecta,
+)
 
-__all__ = ["auth", "users", "cameras", "detections", "dashboard"]
+__all__ = [
+    "auth",
+    "users",
+    "cameras",
+    "detections",
+    "dashboard",
+    "notifications",
+    "offenders",
+    "test",
+    "conecta",
+]

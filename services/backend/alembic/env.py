@@ -8,7 +8,7 @@ import asyncio
 # Import models and database
 from app.core.database import Base
 from app.core.config import settings
-from app.models import User, Camera, Detection
+from app.models import User, Camera, Detection, Offender, DetectionOffender
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

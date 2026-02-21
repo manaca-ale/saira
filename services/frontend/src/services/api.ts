@@ -3,7 +3,8 @@ import type { InternalAxiosRequestConfig, AxiosError } from 'axios';
 
 // Criar instância do axios com configuração base
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1',
+  // Default to same-origin to avoid hardcoding host ports and to work behind Nginx/Vite proxies.
+  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },

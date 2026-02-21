@@ -1,99 +1,107 @@
 # Ingester Service
 
-Serviço responsável por capturar screenshots de câmeras via app Android (ICSee) usando ADB.
+Serviço responsável por capturar frames de câmeras IP via RTSP e enviá-los para AWS S3/SQS para processamento.
 
-## Estrutura de pastas importante
+## Arquitetura
 
-- Logs: `services/ingester/logs/`
-- Capturas: `services/ingester/data/captures/<camera_name>/`
-- Dashboard estático: `services/ingester/src/ingester/dashboard_static/`
-
-## Execução local (Windows/macOS)
-
-> No Windows/macOS, execute direto no host (Docker Desktop não expõe USB bem).
-
-**Pré-requisitos**
-- Python 3.11+
-- ADB (Android SDK Platform-Tools) no PATH
-- Dispositivo Android conectado (`adb devices`)
-- Dependências instaladas (Poetry)
-
-**Instalar dependências**
-
-```powershell
-cd C:\saira\services\ingester
-poetry install
+```
+Câmeras RTSP -> Ingester -> S3 (landing-zone) -> SQS (notificação)
 ```
 
-**Executar ingester (modo local)**
+## Estrutura
 
-```powershell
-cd C:\saira\services\ingester
-$env:PYTHONPATH = "$PWD\src"
-python -m ingester.main
 ```
-
-> O loop de captura grava ciclos em `logs/cycles.jsonl` e screenshots em `data/captures/<camera_name>/`.
-
-## Dashboard
-
-**Subir o dashboard**
-
-```powershell
-cd C:\saira\services\ingester
-$env:PYTHONPATH = "$PWD\src"
-python -m ingester.dashboard
-```
-
-Abra: `http://127.0.0.1:8088`
-
-### Controles disponíveis
-
-- **Rodar 1 ciclo**: executa um ciclo (mesmo em pausa)
-- **Pausar / Retomar**: pausa/retoma o loop
-- **Stop**: encerra o loop no próximo checkpoint
-- **Arquivar logs**: move logs e capturas para `logs/archives/archive_<timestamp>` (somente com Stop ativo)
-
-> O estado do controle fica em `logs/control.json`.
-
-## Logs
-
-- Log principal: `logs/ingester.log`
-- Ciclos: `logs/cycles.jsonl`
-- Health checks: `logs/health.jsonl`
-
-Acompanhar em tempo real:
-
-```powershell
-Get-Content C:\saira\services\ingester\logs\ingester.log -Wait
+ingester/
+├── config/
+│   └── cameras.yaml       # Configuração das câmeras
+├── src/ingester/
+│   ├── main.py            # Entry point
+│   ├── config.py          # Configurações
+│   ├── cameras.py         # Loader de câmeras YAML
+│   ├── s3.py              # Upload para S3
+│   ├── sqs.py             # Notificações SQS
+│   └── rtsp/
+│       └── capture.py     # Captura RTSP com circuit breaker
+├── Dockerfile
+├── pyproject.toml
+└── .env
 ```
 
 ## Configuração
 
-- Config principal: `services/ingester/src/ingester/config.py`
-- Variáveis de ambiente (opcional): `services/ingester/.env`
-
-**Câmeras**
-
-As câmeras são definidas em `config.py` usando o nome da câmera como pasta de captura:
-
-```python
-CAMERAS = {
-    "camera_quarto_1": {"tap_coords": {"x": 833, "y": 480}},
-    "camera_quarto_2": {"tap_coords": {"x": 250, "y": 480}},
-}
-```
-
-## Produção / Docker (Linux)
+### Variáveis de ambiente (.env)
 
 ```bash
-docker compose up ingester --build
+# Loop Control
+INGESTER_RUN_FOREVER=true
+INGESTER_MAX_CYCLES=0
+INGESTER_CAPTURE_INTERVAL_SECONDS=300
+
+# AWS
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+S3_LANDING_ZONE_BUCKET=saira-landing-zone
+SQS_INGESTION_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/...
+
+# Cameras
+CAMERAS_CONFIG_PATH=config/cameras.yaml
+
+# Circuit Breaker
+INGESTER_CB_FAILURE_THRESHOLD=5
+INGESTER_CB_RECOVERY_TIMEOUT=300
 ```
 
-O container instala `adb` e dependências automaticamente.
+### Configuração de câmeras (config/cameras.yaml)
 
-## Troubleshooting rápido
+```yaml
+cameras:
+  - id: camera_rpa1_001
+    rpa: 1
+    rtsp_url: rtsp://user:pass@192.168.1.100:554/stream1
+    capture_interval_seconds: 300
+    active: true
 
-- **Botões não fazem nada**: o ingester precisa estar rodando; os botões só alteram `control.json`.
-- **404 em /api/archive**: o dashboard rodando não é o correto. Verifique `/api/version`.
-- **Acentos quebrados**: faça hard refresh (Ctrl+F5) e confirme UTF-8.
+  - id: camera_rpa2_001
+    rpa: 2
+    rtsp_url: rtsp://user:pass@192.168.1.101:554/stream1
+    capture_interval_seconds: 300
+    active: true
+```
+
+## Execução
+
+### Docker (recomendado)
+
+```bash
+docker build -t saira-ingester .
+docker run --env-file .env saira-ingester
+```
+
+### Local (desenvolvimento)
+
+```bash
+# Instalar dependências
+poetry install
+
+# Executar
+cd services/ingester
+PYTHONPATH=src python -m ingester.main
+```
+
+## Funcionalidades
+
+- **Captura RTSP**: Conecta às câmeras via OpenCV com transporte TCP
+- **Circuit Breaker**: Desabilita temporariamente câmeras com falhas consecutivas
+- **Retry com backoff**: Tentativas automáticas com exponential backoff para uploads
+- **Upload S3**: Salva frames em `s3://{bucket}/raw/{camera_id}/{timestamp}.jpg`
+- **Notificação SQS**: Envia mensagem com metadados para processamento downstream
+
+## Logs
+
+O log principal é gravado em `logs/ingester.log` com rotação automática.
+
+```bash
+# Acompanhar em tempo real
+tail -f logs/ingester.log
+```

@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useCallback } from "react";
+﻿import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { MapWidget, OccurrencesChart } from "../components/DashboardCharts";
 import {
@@ -13,10 +13,20 @@ import {
   FilterMultiSelect,
   FilterAutocomplete,
 } from "../components/SharedFilters";
-import { masterPois } from "../services/mockData";
-import type { PoiData, WasteType } from "../services/mockData";
+import {
+  getAllDetections,
+  resolveDetection,
+  startAnalysis,
+} from "../services/detectionService";
+import type { PoiData } from "../services/detectionService";
 import { Tooltip } from "../components/Tooltip";
 import { OccurrenceModal } from "../components/OccurrenceModal";
+import { LoginNotificationBanner } from "../components/LoginNotificationBanner";
+import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
+import { AnalysisConfirmationModal } from "../components/AnalysisConfirmationModal";
+import { OffenderDashboardTab } from "../components/OffenderDashboardTab";
+
+type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 
 // --- DATA INTERFACE AND STATUS ---
 interface FilterState {
@@ -194,6 +204,9 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
 
 export const Dashboard: React.FC = () => {
   // --- State Management ---
+  const [activeTab, setActiveTab] = useState<"ocorrencias" | "infratores">("ocorrencias");
+  const [detections, setDetections] = useState<PoiData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     dateStart: "",
@@ -215,6 +228,25 @@ export const Dashboard: React.FC = () => {
   >(null);
   const [selectedOccurrence, setSelectedOccurrence] = useState<PoiData | null>(null);
   const [isOccurrenceModalOpen, setIsOccurrenceModalOpen] = useState(false);
+  const [resolveTarget, setResolveTarget] = useState<PoiData | null>(null);
+  const [analysisTarget, setAnalysisTarget] = useState<PoiData | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+  const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
+
+  // --- Load Data from API ---
+  useEffect(() => {
+    async function loadDetections() {
+      try {
+        const data = await getAllDetections();
+        setDetections(data);
+      } catch (e) {
+        console.error("Failed to load detections:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDetections();
+  }, []);
 
   const toDateInput = (date: Date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
@@ -235,7 +267,7 @@ export const Dashboard: React.FC = () => {
   const baseData = useMemo(() => {
     const dateRange = buildDateRange(filters.dateStart, filters.dateEnd);
 
-    return masterPois.filter((item) => {
+    return detections.filter((item) => {
       const itemDate = new Date(item.timestamp);
       if (dateRange) {
         if (itemDate < dateRange.start || itemDate > dateRange.end) return false;
@@ -251,7 +283,7 @@ export const Dashboard: React.FC = () => {
 
       return true;
     });
-  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
+  }, [detections, filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
 
   const matchesFilters = useCallback((item: PoiData, exclude?: keyof FilterState) => {
     const rpa = getRpaForPoi(item);
@@ -588,6 +620,58 @@ export const Dashboard: React.FC = () => {
       }
     : null;
 
+  const handleResolve = async (data: {
+    resolved_at: string;
+    forwarded_to_sector: string;
+    resolution_justification: string;
+  }) => {
+    if (!resolveTarget) return;
+    setIsResolving(true);
+    try {
+      await resolveDetection(resolveTarget.id, data);
+      setDetections((prev) =>
+        prev.map((d) =>
+          d.id === resolveTarget.id ? { ...d, status: "Resolvido" as const } : d,
+        ),
+      );
+      setResolveTarget(null);
+    } catch (e) {
+      console.error("Erro ao resolver:", e);
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  const handleStartAnalysis = async () => {
+    if (!analysisTarget) return;
+    setIsStartingAnalysis(true);
+    try {
+      await startAnalysis(analysisTarget.id);
+      setDetections((prev) =>
+        prev.map((d) =>
+          d.id === analysisTarget.id ? { ...d, status: "Em análise" as const } : d,
+        ),
+      );
+      setAnalysisTarget(null);
+    } catch (e) {
+      console.error("Erro ao iniciar analise:", e);
+    } finally {
+      setIsStartingAnalysis(false);
+    }
+  };
+
+  const handleResolveFromModal = () => {
+    if (!selectedOccurrence) return;
+    setIsOccurrenceModalOpen(false);
+    setResolveTarget(selectedOccurrence);
+  };
+
+  const handleStartAnalysisFromModal = () => {
+    if (!selectedOccurrence) return;
+    setIsOccurrenceModalOpen(false);
+    setAnalysisTarget(selectedOccurrence);
+  };
+
   return (
     // --- Main Layout Container ---
     <div className="flex h-full bg-[#f8f9fa] font-sans relative">
@@ -596,20 +680,38 @@ export const Dashboard: React.FC = () => {
 
       {/* --- Main Content Area --- */}
       <main className="flex-1 ml-20 p-4 md:p-8 h-full overflow-y-auto">
+        {/* --- Login Notification Banner --- */}
+        <LoginNotificationBanner />
+
         {/* --- Page Header --- */}
         <h1 className="text-3xl font-bold text-[#1a1a1a] mb-6">Dashboard</h1>
 
         {/* --- Tab Navigation Section --- */}
         <div className="flex flex-wrap items-center gap-1 bg-white p-1 rounded-xl w-fit mb-8 border border-gray-200 shadow-sm">
-          <button className="px-6 py-2 bg-[#e9fbc0] text-[#1a1a1a] font-semibold rounded-lg text-sm whitespace-nowrap">
-            Dashboard de ocorrências
+          <button
+            onClick={() => setActiveTab("ocorrencias")}
+            className={`px-6 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+              activeTab === "ocorrencias"
+                ? "bg-[#e9fbc0] text-[#1a1a1a] font-semibold"
+                : "text-gray-500 hover:bg-gray-50 font-medium"
+            }`}
+          >
+            Dashboard de ocorrencias
           </button>
-          <button className="px-6 py-2 text-gray-500 hover:bg-gray-50 font-medium rounded-lg text-sm whitespace-nowrap">
+          <button
+            onClick={() => setActiveTab("infratores")}
+            className={`px-6 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+              activeTab === "infratores"
+                ? "bg-[#e9fbc0] text-[#1a1a1a] font-semibold"
+                : "text-gray-500 hover:bg-gray-50 font-medium"
+            }`}
+          >
             Dashboard de Infratores
           </button>
         </div>
 
-        {/* --- Live Monitoring Section --- */}
+        {/* --- Live Monitoring Section (ocorrencias only) --- */}
+        {activeTab === "ocorrencias" && (
         <div className="mb-6 bg-white border border-gray-200 rounded-2xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-sm font-bold text-gray-800">
@@ -627,6 +729,7 @@ export const Dashboard: React.FC = () => {
             Ao Vivo
           </button>
         </div>
+        )}
 
         {/* --- Filter Controls Section --- */}
         <div className="relative z-[2000]">
@@ -858,6 +961,13 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* --- Infratores Tab Content --- */}
+        {activeTab === "infratores" && (
+          <OffenderDashboardTab filters={filters} />
+        )}
+
+        {/* --- Ocorrencias Tab Content --- */}
+        {activeTab === "ocorrencias" && (<>
         {/* --- Upper Dashboard Grid: Map & Statistics --- */}
         <div className="grid grid-cols-12 gap-6 mb-8 lg:h-[500px] h-auto">
           {/* Map Component Container */}
@@ -1008,12 +1118,31 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        </>)}
       </main>
       {isOccurrenceModalOpen && modalData && (
         <OccurrenceModal
           isOpen={isOccurrenceModalOpen}
           onClose={() => setIsOccurrenceModalOpen(false)}
           data={modalData}
+          onResolve={handleResolveFromModal}
+          onStartAnalysis={handleStartAnalysisFromModal}
+        />
+      )}
+      {resolveTarget && (
+        <ResolveConfirmationModal
+          isOpen={!!resolveTarget}
+          onClose={() => setResolveTarget(null)}
+          onConfirm={handleResolve}
+          isLoading={isResolving}
+        />
+      )}
+      {analysisTarget && (
+        <AnalysisConfirmationModal
+          isOpen={!!analysisTarget}
+          onClose={() => setAnalysisTarget(null)}
+          onConfirm={handleStartAnalysis}
+          isLoading={isStartingAnalysis}
         />
       )}
     </div>

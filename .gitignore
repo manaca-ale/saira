@@ -1,0 +1,44 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local editor state
+.vscode/
+.idea/
+
+# Local assistant state
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Environment / secrets
+.env
+*.env
+token.json
+
+# PlatformIO / firmware builds
+**/.pio/
+**/.pioenvs/
+**/.piolibdeps/
+**/.clangd/
+**/.cache/
+
+# ESP32 receiver runtime uploads
+esp32-server/uploads/
+
+# Windows oddities
+nul

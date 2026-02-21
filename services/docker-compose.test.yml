@@ -4,7 +4,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_URL=https://api-test-saira.manaca.tech/api/v1
+        - VITE_API_URL=/api/v1
     ports:
       - "3001:80"
     container_name: saira-web-test
@@ -33,6 +33,21 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
+      - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
+      - CONECTA_ENV=${CONECTA_ENV:-test}
+      - CONECTA_BASE_URL_TEST=${CONECTA_BASE_URL_TEST:-https://loginteste.recife.pe.gov.br}
+      - CONECTA_BASE_URL_PROD=${CONECTA_BASE_URL_PROD:-https://login.recife.pe.gov.br}
+      - CONECTA_REALM=${CONECTA_REALM:-recife}
+      - CONECTA_CLIENT_ID=${CONECTA_CLIENT_ID:-}
+      - CONECTA_CLIENT_SECRET=${CONECTA_CLIENT_SECRET:-}
+      - CONECTA_REDIRECT_URI=${CONECTA_REDIRECT_URI:-}
+      - CONECTA_POST_LOGOUT_REDIRECT_URI=${CONECTA_POST_LOGOUT_REDIRECT_URI:-}
+      - CONECTA_SCOPE=${CONECTA_SCOPE:-openid profile email}
+      - CONECTA_STATE_TTL_SECONDS=${CONECTA_STATE_TTL_SECONDS:-600}
+      - CONECTA_TICKET_TTL_SECONDS=${CONECTA_TICKET_TTL_SECONDS:-120}
+      - CONECTA_HTTP_TIMEOUT_SECONDS=${CONECTA_HTTP_TIMEOUT_SECONDS:-15}
+      - WEB_APP_URL=${WEB_APP_URL:-http://localhost:3001}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}

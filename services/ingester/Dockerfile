@@ -1,23 +1,30 @@
-# Usar uma imagem base oficial do Python
+# Imagem base Python
 FROM python:3.11-slim
 
-# Instalar o cliente ADB do Linux
+# Instalar dependências do sistema para OpenCV
 RUN apt-get update && \
-    apt-get install -y android-tools-adb && \
+    apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libsm6 \
+    libxext6 \
+    libxrender1 && \
     rm -rf /var/lib/apt/lists/*
 
-# Definir o diretório de trabalho no container
 WORKDIR /app
 
 # Instalar Poetry
 RUN pip install --no-cache-dir poetry
 
-# Copiar o restante do código-fonte da aplicação
-COPY . .
+# Copiar arquivos de dependências primeiro (melhor cache)
+COPY pyproject.toml poetry.lock* ./
 
-# Instalar as dependências do projeto
-# O --no-interaction previne perguntas interativas
-RUN poetry config virtualenvs.create false && poetry install --no-interaction
+# Instalar dependências
+RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-dev
 
-# Comando para executar a aplicação como um módulo
+# Copiar código fonte
+COPY src/ ./src/
+COPY config/ ./config/
+
+# Comando para executar
 CMD ["python", "-m", "ingester.main"]

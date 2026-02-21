@@ -1,13 +1,49 @@
-services:
+﻿services:
   # Frontend (React + Vite)
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=/api/v1
     ports:
       - "3000:80"
     container_name: vite-react-ts-app
     restart: always
     depends_on:
       - backend
+
+  # WhatsApp HTTP API (WAHA)
+  waha:
+    image: devlikeapro/waha
+    container_name: saira-waha
+    profiles:
+      - waha
+    ports:
+      - "3002:3000"
+    expose:
+      - "3000"
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME:-admin}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD:-admin123}
+    restart: always
+
+  # Redis (pub/sub para notificacoes em tempo real)
+  redis:
+    image: redis:7-alpine
+    container_name: saira-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: always
 
   # Backend API (FastAPI)
   backend:
@@ -21,9 +57,35 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - REDIS_URL=redis://redis:6379/0
+      - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
+      - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
+      - CONECTA_ENV=${CONECTA_ENV:-test}
+      - CONECTA_BASE_URL_TEST=${CONECTA_BASE_URL_TEST:-https://loginteste.recife.pe.gov.br}
+      - CONECTA_BASE_URL_PROD=${CONECTA_BASE_URL_PROD:-https://login.recife.pe.gov.br}
+      - CONECTA_REALM=${CONECTA_REALM:-recife}
+      - CONECTA_CLIENT_ID=${CONECTA_CLIENT_ID:-}
+      - CONECTA_CLIENT_SECRET=${CONECTA_CLIENT_SECRET:-}
+      - CONECTA_REDIRECT_URI=${CONECTA_REDIRECT_URI:-}
+      - CONECTA_POST_LOGOUT_REDIRECT_URI=${CONECTA_POST_LOGOUT_REDIRECT_URI:-}
+      - CONECTA_SCOPE=${CONECTA_SCOPE:-openid profile email}
+      - CONECTA_STATE_TTL_SECONDS=${CONECTA_STATE_TTL_SECONDS:-600}
+      - CONECTA_TICKET_TTL_SECONDS=${CONECTA_TICKET_TTL_SECONDS:-120}
+      - CONECTA_HTTP_TIMEOUT_SECONDS=${CONECTA_HTTP_TIMEOUT_SECONDS:-15}
+      - WHATSAPP_PROVIDER=${WHATSAPP_PROVIDER:-waha}
+      - WAHA_BASE_URL=${WAHA_BASE_URL:-http://waha:3000}
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - WAHA_SESSION_NAME=${WAHA_SESSION_NAME:-default}
+      - META_API_TOKEN=${META_API_TOKEN:-}
+      - META_PHONE_ID=${META_PHONE_ID:-}
+      - WEB_APP_URL=${WEB_APP_URL:-http://localhost:3000}
+      - ENABLE_WHATSAPP_TEST_ROUTE=${ENABLE_WHATSAPP_TEST_ROUTE:-false}
+      - WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE=${WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE:-5}
       - ENVIRONMENT=production
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: always
     volumes:
@@ -62,4 +124,67 @@ services:
       - db
     restart: always
 
-  
+  # ESP32 image receiver
+  esp32-server:
+    build:
+      context: ../esp32-server
+    container_name: saira-esp32-server
+    ports:
+      - "5002:5000"
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - PUBLIC_BASE_URL=http://localhost:5002
+      - ADMIN_TOKEN=
+      - GUNICORN_WORKERS=2
+      - GUNICORN_THREADS=4
+    volumes:
+      - esp32_uploads:/app/uploads
+      - ../esp32-server/config:/app/config
+      - ../esp32-server/ota:/app/ota
+    restart: always
+
+  # YOLO worker — frame comparison + DB insertion
+  # Habilitado via profile: docker compose --profile worker up -d
+  # Para desabilitar sem remover o serviço: WORKER_ENABLED=false
+  # Para simular sem modelos reais:        MOCK_MODE=true docker compose --profile worker up -d
+  yolo-worker:
+    build:
+      context: ./yolo-worker-vm
+    container_name: saira-yolo-worker
+    profiles:
+      - worker
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - STATE_DIR=/app/state
+      - P1_MODEL_PATH=/app/models/yolov8_2142.pt
+      - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
+      - CONF_THRESHOLD=0.25
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - REDIS_URL=redis://redis:6379/0
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - POLL_INTERVAL=10
+      - PROCESSED_STRATEGY=marker
+      - WORKER_ENABLED=${WORKER_ENABLED:-true}
+      - MOCK_MODE=${MOCK_MODE:-false}
+      - MOCK_DETECTION_PROB=${MOCK_DETECTION_PROB:-0.5}
+      - MOCK_MAX_OBJECTS=${MOCK_MAX_OBJECTS:-5}
+      - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
+    volumes:
+      - esp32_uploads:/app/uploads
+      - yolo_state:/app/state
+      - ./yolo-worker-vm/models:/app/models
+      - ./yolo-worker-vm/src:/app/src   # live code reload (dev)
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      esp32-server:
+        condition: service_started
+    restart: on-failure
+
+volumes:
+  postgres_data:
+  redis_data:
+  esp32_uploads:
+  yolo_state:

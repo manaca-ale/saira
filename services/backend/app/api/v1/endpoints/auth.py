@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,8 +18,14 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
-    """Login e geração de token JWT"""
-    # Buscar usuário por email
+    """Login e geraÃ§Ã£o de token JWT"""
+    if not settings.ENABLE_LOCAL_LOGIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Local login is disabled for this environment",
+        )
+
+    # Buscar usuÃ¡rio por email
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalar_one_or_none()
 
@@ -36,6 +42,9 @@ async def login(
             detail="Inactive user"
         )
 
+    # Atualizar last_login_at
+    user.last_login_at = datetime.utcnow()
+
     # Criar token de acesso
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
@@ -50,8 +59,8 @@ async def register(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db)
 ):
-    """Cadastro de novo usuário"""
-    # Verificar se email já existe
+    """Cadastro de novo usuÃ¡rio"""
+    # Verificar se email jÃ¡ existe
     result = await db.execute(select(User).where(User.email == user_in.email))
     existing_user = result.scalar_one_or_none()
 
@@ -61,7 +70,7 @@ async def register(
             detail="Email already registered"
         )
 
-    # Criar novo usuário
+    # Criar novo usuÃ¡rio
     password_hash = get_password_hash(user_in.password)
     db_user = User(
         name=user_in.name,
@@ -85,5 +94,6 @@ async def register(
 async def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna dados do usuário logado"""
+    """Retorna dados do usuÃ¡rio logado"""
     return current_user
+

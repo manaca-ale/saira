@@ -1,0 +1,28 @@
+services:
+  esp32-receiver:
+    build: .
+    ports:
+      # Default local port aligns with production mapping.
+      - "5002:5000"
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      # Optional: used to return absolute URLs in the JSON response.
+      # - PUBLIC_BASE_URL=http://YOUR_EC2_PUBLIC_IP:5001
+      # OTA support (ESP pulls firmware from /ota/latest.bin)
+      - OTA_DIR=/app/ota
+      # Remote config storage (per-device)
+      - CONFIG_DIR=/app/config
+      # Optional: protect /ota/upload
+      # - ADMIN_TOKEN=change-me
+      # Gunicorn tuning for upload throughput
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-90}
+      - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-15}
+      - GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
+      - UPLOAD_LOG_EVERY=${UPLOAD_LOG_EVERY:-20}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./ota:/app/ota
+      - ./config:/app/config
+    restart: unless-stopped

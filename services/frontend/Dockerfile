@@ -4,6 +4,11 @@ FROM node:20-alpine as builder
 # Set working directory
 WORKDIR /app
 
+# Allow docker-compose build args to influence the Vite build.
+# Vite only reads env vars prefixed with VITE_ at build time.
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Copy package.json (lockfile may not exist in repo)
 COPY package.json ./
 

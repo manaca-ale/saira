@@ -1,13 +1,18 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import { X, Download, Image as ImageIcon, FileText, Loader2 } from "lucide-react";
+import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, Clock, UserPlus, Trash2 as UnlinkIcon } from "lucide-react";
 import imgLixo from "../assets/lixo_exemplo.png";
 import imgInfrator from "../assets/infrator_exemplo.png";
+import { getDetectionOffenders, deleteDetectionOffender } from "../services/offenderService";
+import type { DetectionOffenderLink } from "../services/offenderService";
+import { AddDetectionOffenderModal } from "./AddDetectionOffenderModal";
 
 interface OccurrenceModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: any;
+  onResolve?: () => void;
+  onStartAnalysis?: () => void;
 }
 
 // --- Programmatic Canvas export (bypasses html2canvas + oklch issues) ---
@@ -95,7 +100,7 @@ async function renderExportCanvas(data: any): Promise<HTMLCanvasElement> {
 
   const occurrenceDate = data?.timestamp ? new Date(data.timestamp) : null;
   const formattedDate = occurrenceDate ? occurrenceDate.toLocaleString("pt-BR") : "—";
-  const photoSrc = data?.hasOffender ? imgInfrator : imgLixo;
+  const photoSrc = data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
   const status = data?.status || "—";
 
@@ -215,10 +220,36 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   isOpen,
   onClose,
   data,
+  onResolve,
+  onStartAnalysis,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const [offenderLinks, setOffenderLinks] = useState<DetectionOffenderLink[]>([]);
+  const [loadingOffenders, setLoadingOffenders] = useState(false);
+  const [isAddOffenderOpen, setIsAddOffenderOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && data?.id) {
+      setLoadingOffenders(true);
+      getDetectionOffenders(data.id)
+        .then(setOffenderLinks)
+        .catch(() => setOffenderLinks([]))
+        .finally(() => setLoadingOffenders(false));
+    } else {
+      setOffenderLinks([]);
+    }
+  }, [isOpen, data?.id]);
+
+  const handleUnlink = async (linkId: string) => {
+    try {
+      await deleteDetectionOffender(linkId);
+      setOffenderLinks((prev) => prev.filter((l) => l.id !== linkId));
+    } catch (e) {
+      console.error("Erro ao desvincular infrator:", e);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -226,7 +257,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const formattedDate = occurrenceDate
     ? occurrenceDate.toLocaleString("pt-BR")
     : "—";
-  const photoSrc = data?.hasOffender ? imgInfrator : imgLixo;
+  const photoSrc = data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
 
   const handleExportPng = async () => {
@@ -277,6 +308,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div
         ref={modalRef}
@@ -366,13 +398,21 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               </div>
             </div>
 
-            <div className="col-span-2 grid grid-cols-2 gap-2">
+            <div className="col-span-2 grid grid-cols-3 gap-2">
               <div>
                 <span className="block text-gray-400 text-xs mb-1">
                   Tipo de resíduo
                 </span>
                 <span className="font-bold text-gray-700">
                   {data?.tipo || data?.tipoResiduo || "—"}
+                </span>
+              </div>
+              <div>
+                <span className="block text-gray-400 text-xs mb-1">
+                  Tipo de material
+                </span>
+                <span className="font-bold text-gray-700">
+                  {data?.material_type || "—"}
                 </span>
               </div>
               <div>
@@ -385,15 +425,43 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               </div>
             </div>
 
-            <div className="col-span-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-              <span className="block text-gray-400 text-xs mb-1">
-                Infratores
-              </span>
-              <span className="font-bold text-[#1a1a1a]">
-                {data?.hasOffender
-                  ? "Identificados: Pessoa"
-                  : "Não identificado"}
-              </span>
+            <div className="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-gray-400 text-xs">Infratores vinculados</span>
+                <button
+                  onClick={() => setIsAddOffenderOpen(true)}
+                  className="text-xs text-lime-600 hover:text-lime-700 font-bold flex items-center gap-1"
+                >
+                  <UserPlus size={14} /> Vincular
+                </button>
+              </div>
+              {loadingOffenders ? (
+                <span className="text-xs text-gray-400">Carregando...</span>
+              ) : offenderLinks.length === 0 ? (
+                <span className="font-bold text-gray-500 text-sm">
+                  {data?.hasOffender ? "Identificados: Pessoa" : "Nenhum infrator vinculado"}
+                </span>
+              ) : (
+                <div className="space-y-2">
+                  {offenderLinks.map((link) => (
+                    <div key={link.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-gray-100">
+                      <div>
+                        <span className="font-bold text-sm text-[#1a1a1a]">
+                          {link.offender?.name || link.offender_type}
+                        </span>
+                        <span className="text-xs text-gray-400 ml-2">{link.offender_type}</span>
+                        {link.plate && <span className="text-xs text-gray-400 ml-2">{link.plate}</span>}
+                        {link.source === "ai" && (
+                          <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-600 rounded text-[10px] font-bold">IA</span>
+                        )}
+                      </div>
+                      <button onClick={() => handleUnlink(link.id)} className="text-red-400 hover:text-red-600">
+                        <UnlinkIcon size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -405,7 +473,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                 onClick={() => setIsExportMenuOpen((prev) => !prev)}
                 className="w-12 h-12 flex items-center justify-center bg-[#ccff33] rounded-xl hover:bg-[#b8e62e] transition-colors text-black disabled:opacity-60 disabled:pointer-events-none"
                 disabled={isCapturing}
-                aria-label={isCapturing ? "Gerando exporta??o" : "Abrir op??es de exporta??o"}
+                aria-label={isCapturing ? "Gerando exportação" : "Abrir opções de exportação"}
                 title={isCapturing ? "Gerando..." : "Exportar"}
               >
                 {isCapturing ? <Loader2 size={20} className="animate-spin" /> : <Download size={20} />}
@@ -431,9 +499,58 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Ver localização no mapa */}
+            {data?.latitude && data?.longitude && (
+              <a
+                href={`https://www.google.com/maps?q=${data.latitude},${data.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-12 px-4 flex items-center gap-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
+              >
+                <MapPin size={18} />
+                Ver no mapa
+              </a>
+            )}
+
+            {/* Marcar como resolvido */}
+            {onResolve && data?.status !== "Resolvido" && (
+              <button
+                onClick={onResolve}
+                className="h-12 px-4 flex items-center gap-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors text-sm font-bold"
+              >
+                <CheckCircle size={18} />
+                Marcar como resolvido
+              </button>
+            )}
+
+            {/* Marcar em análise */}
+            {onStartAnalysis && data?.status === "Pendente" && (
+              <button
+                onClick={onStartAnalysis}
+                className="h-12 px-4 flex items-center gap-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors text-sm font-bold"
+              >
+                <Clock size={18} />
+                Marcar em análise
+              </button>
+            )}
           </div>
         </div>
       </div>
     </div>
+    {isAddOffenderOpen && data?.id && (
+      <AddDetectionOffenderModal
+        isOpen={isAddOffenderOpen}
+        onClose={() => setIsAddOffenderOpen(false)}
+        detectionId={data.id}
+        onSuccess={() => {
+          setIsAddOffenderOpen(false);
+          getDetectionOffenders(data.id)
+            .then(setOffenderLinks)
+            .catch(() => {});
+        }}
+      />
+    )}
+    </>
   );
 };

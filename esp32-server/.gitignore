@@ -1,0 +1,8 @@
+uploads/
+__pycache__/
+*.pyc
+.venv/
+venv/
+ota/latest.bin
+ota/version.txt
+config/*.txt

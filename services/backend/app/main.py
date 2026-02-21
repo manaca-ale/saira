@@ -1,7 +1,17 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.core.redis import init_redis, close_redis
 from app.api.v1.router import api_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_redis()
+    yield
+    await close_redis()
+
 
 # Criar aplicação FastAPI
 app = FastAPI(
@@ -9,7 +19,8 @@ app = FastAPI(
     version=settings.VERSION,
     description="API para o Sistema de Monitoramento de Descarte Irregular (SAIRA)",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # Configurar CORS

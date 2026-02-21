@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Numeric, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Numeric, Enum, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 from geoalchemy2 import Geometry
@@ -8,9 +8,9 @@ from app.core.database import Base
 
 
 class DetectionStatus(str, enum.Enum):
-    PENDENTE = "PENDENTE"
-    EM_ANALISE = "EM_ANALISE"
-    RESOLVIDO = "RESOLVIDO"
+    PENDENTE = "Pendente"
+    EM_ANALISE = "Em analise"
+    RESOLVIDO = "Resolvido"
 
 
 class Detection(Base):
@@ -32,5 +32,11 @@ class Detection(Base):
     status = Column(Enum(DetectionStatus), default=DetectionStatus.PENDENTE, index=True)
     image_url = Column(String(512))
     confidence_score = Column(Numeric(3, 2))
+    resolved_at = Column(DateTime, nullable=True)
+    resolved_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    resolution_justification = Column(Text, nullable=True)
+    forwarded_to_sector = Column(String(100), nullable=True)
+    analysis_started_at = Column(DateTime, nullable=True)
+    analysis_started_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -9,19 +9,25 @@ import {
   Mail,
   X,
   Info,
-} from "lucide-react"; // Added Info
+} from "lucide-react";
 import { InputField } from "../components/InputField";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tooltip } from "../components/Tooltip";
+import { useAuth } from "../contexts/AuthContext";
+import conectaLogo from "../assets/conecta.webp";
+import versaoIcone1 from "../assets/Versão icone 1.png";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { signIn, signInWithConecta } = useAuth();
 
   // --- Login Form State ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [conectaLoading, setConectaLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // --- Forgot Password Modal State ---
@@ -41,7 +47,14 @@ export const Login: React.FC = () => {
   const [toastMessage, setToastMessage] = useState("");
 
   // --- Event Handlers ---
-  const handleLogin = (e: React.FormEvent) => {
+  React.useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+    }
+  }, [searchParams]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -52,14 +65,25 @@ export const Login: React.FC = () => {
 
     setLoading(true);
 
-    setTimeout(() => {
-      if (email === "admin@gmail.com" && password === "12345") {
-        navigate("/dashboard");
-      } else {
-        setError("Email ou senha incorretos.");
-        setLoading(false);
-      }
-    }, 1000);
+    try {
+      await signIn({ email, password });
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Email ou senha incorretos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConectaLogin = async () => {
+    setError("");
+    setConectaLoading(true);
+    try {
+      await signInWithConecta("/dashboard");
+    } catch (err: any) {
+      setError(err?.message || "Falha ao iniciar login com Conecta Recife");
+      setConectaLoading(false);
+    }
   };
 
   // --- Helper to Trigger Toast ---
@@ -136,7 +160,10 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full bg-[#121212] flex items-center justify-center p-4 lg:p-12 relative">
+    <div className="h-full w-full flex items-center justify-center p-4 lg:p-12 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[#1e1e1d]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.015)_28%,transparent_56%)]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(145deg,transparent_44%,rgba(48,52,60,0.3)_44%,rgba(48,52,60,0.16)_100%)]"></div>
       <style>{`
         @keyframes modalPop {
           0% {
@@ -181,14 +208,14 @@ export const Login: React.FC = () => {
       )}
 
       {/* --- Card Container --- */}
-      <div className="w-full max-w-[1400px] h-[85vh] flex flex-row bg-[#121212]">
+      <div className="relative z-10 w-full max-w-[1400px] h-[85vh] flex flex-row bg-transparent">
         {/* --- Left Panel --- */}
         <div className="w-24 md:w-[40%] lg:w-1/2 h-full relative rounded-tl-none rounded-tr-[3.5rem] rounded-bl-[3.5rem] rounded-br-none overflow-hidden shrink-0 transition-all duration-300">
-          <div className="absolute inset-0 bg-[#eaffb0]"></div>
-          <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-[#f7fee7] rounded-full blur-[100px] opacity-80"></div>
-          <div className="absolute top-[30%] right-[-10%] w-[70%] h-[70%] bg-[#bef264] rounded-full blur-[80px] mix-blend-multiply opacity-60"></div>
-          <div className="absolute bottom-[-10%] left-[10%] w-[60%] h-[60%] bg-[#d9f99d] rounded-full blur-[60px]"></div>
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+          <img
+            src={versaoIcone1}
+            alt="Ilustracao Saira"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         </div>
 
         {/* --- Right Panel --- */}
@@ -312,6 +339,38 @@ export const Login: React.FC = () => {
                 className="w-full py-4 mt-6 bg-gradient-to-r from-[#efffc8] to-[#ccff33] text-black font-bold text-lg rounded-2xl shadow-[0_0_30px_rgba(217,249,157,0.4)] hover:shadow-[0_0_40px_rgba(217,249,157,0.6)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 select-none"
               >
                 {loading ? "Entrando..." : "Entrar"}
+              </button>
+            </Tooltip>
+
+            <div className="mt-2 flex items-center gap-3 text-[#d9f99d] select-none">
+              <div className="h-px flex-1 bg-zinc-800" />
+              <span className="text-xs uppercase tracking-wide">ou</span>
+              <div className="h-px flex-1 bg-zinc-800" />
+            </div>
+
+            <Tooltip
+              text="Entrar usando sua conta da Prefeitura"
+              className="w-full"
+              spacing="-mb-2"
+            >
+              <button
+                type="button"
+                onClick={handleConectaLogin}
+                disabled={conectaLoading || loading}
+                className="w-full py-3.5 mt-1 bg-gradient-to-r from-[#16c8aa] via-[#1494d4] to-[#195fda] text-white font-semibold text-base rounded-2xl shadow-[0_10px_25px_rgba(20,148,212,0.35)] hover:brightness-110 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all select-none"
+              >
+                <span className="flex items-center justify-center gap-3">
+                  <img
+                    src={conectaLogo}
+                    alt="Conecta Recife"
+                    className="h-7 w-auto rounded-md bg-white px-1.5 py-0.5"
+                  />
+                  <span>
+                    {conectaLoading
+                      ? "Redirecionando para Conecta..."
+                      : "Entrar com Conecta Recife"}
+                  </span>
+                </span>
               </button>
             </Tooltip>
 

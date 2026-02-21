@@ -45,7 +45,25 @@
       "Bash(cmd /c \"dir /b c:\\\\saira\\\\services\\\\docker-compose*\")",
       "Bash(cmd /c \"cd /d c:\\\\saira && git mv services\\\\docker-compose.override.yml services\\\\docker-compose.test.yml\")",
       "Bash(cmd /c \"cd /d c:\\\\saira && git status services\\\\docker-compose* 2>&1\")",
-      "Bash(cmd /c \"cd /d c:\\\\saira && git status --short 2>&1\")"
+      "Bash(cmd /c \"cd /d c:\\\\saira && git status --short 2>&1\")",
+      "Bash(.toml)",
+      "Bash(.yaml)",
+      "Bash(.yml)",
+      "Bash(Dockerfile)",
+      "Bash(.py \")",
+      "Bash(poetry install:*)",
+      "Bash(docker volume:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHNhaXJhLmNvbSIsImV4cCI6MTc3MDk5ODc4NH0.HnI0dUu4CDEUk5GhccOo6AQBalWjFe5V6_ZJiPwLGBA\")",
+      "Bash(DETECTION_ID=\"ef6b057a-e340-4daa-a049-b7d0d4767d05\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Dell\\\\saira\\\\saira\" -Recurse -Filter \"*.py\")",
+      "Bash(Where-Object { $_Name -match \"detection\" })",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(DID=\"ef6b057a-e340-4daa-a049-b7d0d4767d05\")",
+      "Bash(set \"DATABASE_URL=postgresql+asyncpg://test:test@localhost:5432/test_db\")",
+      "Bash(set \"SECRET_KEY=test-secret-key-for-pytest-32-chars-long\")",
+      "Bash(set \"REDIS_URL=redis://localhost:6379/0\")",
+      "Bash(DATABASE_URL=\"postgresql+asyncpg://test:test@localhost:5432/test_db\" SECRET_KEY=\"test-secret-key-for-pytest-32-chars-long\" REDIS_URL=\"redis://localhost:6379/0\" python -m pytest:*)",
+      "Bash(PYTHONPATH=\"c:/Users/Dell/saira/saira/services/backend\" DATABASE_URL=\"postgresql+asyncpg://test:test@localhost:5432/test_db\" SECRET_KEY=\"test-secret-key-for-pytest-32-chars-long\" REDIS_URL=\"redis://localhost:6379/0\" python -m pytest:*)"
     ]
   }
 }
