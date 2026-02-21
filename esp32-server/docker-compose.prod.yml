@@ -2,8 +2,8 @@ services:
   esp32-receiver:
     build: .
     ports:
-      # Production uses 5002 to avoid colliding with services/api-gateway on 5000.
-      - "5002:5000"
+      # Production uses 5004 (test uses 5002; services/api-gateway prod uses 5000).
+      - "5004:5000"
     env_file:
       - .env
     environment:
@@ -31,8 +31,8 @@ services:
     environment:
       - UPLOAD_DIR=/app/uploads
       - STATE_DIR=/app/state
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
-      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - DATABASE_URL=postgresql://postgres:postgres@saira-db-prod:5432/saira_db
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5004}
       - POLL_INTERVAL=10
       - MOCK_MODE=true
       - PROCESSED_STRATEGY=marker
@@ -40,9 +40,17 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - worker_state:/app/state
+    networks:
+      - default
+      - saira_prod_net
     depends_on:
       - esp32-receiver
     restart: unless-stopped
 
 volumes:
   worker_state:
+
+networks:
+  saira_prod_net:
+    external: true
+    name: saira-prod_default
