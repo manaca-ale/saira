@@ -1,6 +1,9 @@
 from flask import Flask, request, send_from_directory
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import os
+
+BRASILIA = ZoneInfo("America/Sao_Paulo")
 import hashlib
 import re
 from typing import Optional
@@ -66,7 +69,7 @@ def _public_base_url() -> str:
 
 def _relative_path_for_now(filename: str) -> str:
     # Partition by date so the EC2 disk doesn't end up with one huge directory.
-    dt = datetime.utcnow()
+    dt = datetime.now(BRASILIA)
     return os.path.join(dt.strftime("%Y/%m/%d"), filename)
 
 
@@ -152,6 +155,9 @@ def set_device_config(device_id: str):
 
     allowed = {
         "timer_delay_ms",
+        "heartbeat_interval_ms",
+        "recovery_wifi_reset_ms",
+        "recovery_restart_ms",
         "ip_cam_url",
         "ip_cam_user",
         "ip_cam_pass",
@@ -165,7 +171,7 @@ def set_device_config(device_id: str):
         if kk in allowed:
             cleaned[kk] = v.strip()
 
-    version = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+    version = datetime.now(BRASILIA).strftime("%Y-%m-%d_%H-%M-%S")
     lines = [f"version={version}"]
     for k in sorted(cleaned.keys()):
         lines.append(f"{k}={cleaned[k]}")
@@ -255,7 +261,7 @@ def upload_ota_firmware():
 
     version = (request.form.get("version") or "").strip()
     if not version:
-        version = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+        version = datetime.now(BRASILIA).strftime("%Y-%m-%d_%H-%M-%S")
 
     try:
         with open(_ota_version_path(), "w", encoding="utf-8") as f:
@@ -307,7 +313,7 @@ def upload_file():
         return {"error": "Empty filename"}, 400
 
     # Build path: {device_id}/YYYY/MM/DD/HH-MM-SS.jpg
-    dt = datetime.utcnow()
+    dt = datetime.now(BRASILIA)
     timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"{timestamp_str}.jpg"
     rel_path = os.path.join(device_id, dt.strftime("%Y/%m/%d"), filename)

@@ -124,6 +124,67 @@
       - db
     restart: always
 
+  # ESP32 image receiver
+  esp32-server:
+    build:
+      context: ../esp32-server
+    container_name: saira-esp32-server
+    ports:
+      - "5002:5000"
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - PUBLIC_BASE_URL=http://localhost:5002
+      - ADMIN_TOKEN=
+      - GUNICORN_WORKERS=2
+      - GUNICORN_THREADS=4
+    volumes:
+      - esp32_uploads:/app/uploads
+      - ../esp32-server/config:/app/config
+      - ../esp32-server/ota:/app/ota
+    restart: always
+
+  # YOLO worker — frame comparison + DB insertion
+  # Habilitado via profile: docker compose --profile worker up -d
+  # Para desabilitar sem remover o serviço: WORKER_ENABLED=false
+  # Para simular sem modelos reais:        MOCK_MODE=true docker compose --profile worker up -d
+  yolo-worker:
+    build:
+      context: ./yolo-worker-vm
+    container_name: saira-yolo-worker
+    profiles:
+      - worker
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - STATE_DIR=/app/state
+      - P1_MODEL_PATH=/app/models/yolov8_2142.pt
+      - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
+      - CONF_THRESHOLD=0.25
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - REDIS_URL=redis://redis:6379/0
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - POLL_INTERVAL=10
+      - PROCESSED_STRATEGY=marker
+      - WORKER_ENABLED=${WORKER_ENABLED:-true}
+      - MOCK_MODE=${MOCK_MODE:-false}
+      - MOCK_DETECTION_PROB=${MOCK_DETECTION_PROB:-0.5}
+      - MOCK_MAX_OBJECTS=${MOCK_MAX_OBJECTS:-5}
+      - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
+    volumes:
+      - esp32_uploads:/app/uploads
+      - yolo_state:/app/state
+      - ./yolo-worker-vm/models:/app/models
+      - ./yolo-worker-vm/src:/app/src   # live code reload (dev)
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      esp32-server:
+        condition: service_started
+    restart: on-failure
+
 volumes:
   postgres_data:
   redis_data:
+  esp32_uploads:
+  yolo_state:

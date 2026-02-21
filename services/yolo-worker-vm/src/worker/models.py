@@ -4,6 +4,10 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
+from zoneinfo import ZoneInfo
+
+def _brasilia_now() -> datetime:
+    return datetime.now(ZoneInfo("America/Sao_Paulo")).replace(tzinfo=None)
 
 
 @dataclass
@@ -21,10 +25,10 @@ class CameraInfo:
 
 @dataclass
 class DetectionRecord:
-    """A detection to be inserted into the database."""
+    """A detection to be inserted into the detections table."""
     id: UUID = field(default_factory=uuid4)
     camera_id: Optional[int] = None
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=_brasilia_now)
     logradouro: Optional[str] = None
     bairro: Optional[str] = None
     rpa: Optional[str] = None
@@ -37,3 +41,12 @@ class DetectionRecord:
     status: str = "PENDENTE"
     image_url: Optional[str] = None
     confidence_score: Optional[Decimal] = None
+
+
+@dataclass
+class OffenderRecord:
+    """A detection_offenders row (one per detected person/vehicle)."""
+    detection_id: UUID
+    offender_type: str          # Carroca | Carro | Moto | Pessoa | Outro
+    confidence_score: Optional[Decimal] = None
+    id: UUID = field(default_factory=uuid4)

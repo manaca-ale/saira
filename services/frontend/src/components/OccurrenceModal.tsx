@@ -100,7 +100,7 @@ async function renderExportCanvas(data: any): Promise<HTMLCanvasElement> {
 
   const occurrenceDate = data?.timestamp ? new Date(data.timestamp) : null;
   const formattedDate = occurrenceDate ? occurrenceDate.toLocaleString("pt-BR") : "—";
-  const photoSrc = data?.hasOffender ? imgInfrator : imgLixo;
+  const photoSrc = data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
   const status = data?.status || "—";
 
@@ -257,7 +257,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const formattedDate = occurrenceDate
     ? occurrenceDate.toLocaleString("pt-BR")
     : "—";
-  const photoSrc = data?.hasOffender ? imgInfrator : imgLixo;
+  const photoSrc = data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
 
   const handleExportPng = async () => {

@@ -15,6 +15,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tooltip } from "../components/Tooltip";
 import { useAuth } from "../contexts/AuthContext";
 import conectaLogo from "../assets/conecta.webp";
+import versaoIcone1 from "../assets/Versão icone 1.png";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -159,7 +160,10 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full bg-[#121212] flex items-center justify-center p-4 lg:p-12 relative">
+    <div className="h-full w-full flex items-center justify-center p-4 lg:p-12 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[#1e1e1d]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.015)_28%,transparent_56%)]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(145deg,transparent_44%,rgba(48,52,60,0.3)_44%,rgba(48,52,60,0.16)_100%)]"></div>
       <style>{`
         @keyframes modalPop {
           0% {
@@ -204,14 +208,14 @@ export const Login: React.FC = () => {
       )}
 
       {/* --- Card Container --- */}
-      <div className="w-full max-w-[1400px] h-[85vh] flex flex-row bg-[#121212]">
+      <div className="relative z-10 w-full max-w-[1400px] h-[85vh] flex flex-row bg-transparent">
         {/* --- Left Panel --- */}
         <div className="w-24 md:w-[40%] lg:w-1/2 h-full relative rounded-tl-none rounded-tr-[3.5rem] rounded-bl-[3.5rem] rounded-br-none overflow-hidden shrink-0 transition-all duration-300">
-          <div className="absolute inset-0 bg-[#eaffb0]"></div>
-          <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-[#f7fee7] rounded-full blur-[100px] opacity-80"></div>
-          <div className="absolute top-[30%] right-[-10%] w-[70%] h-[70%] bg-[#bef264] rounded-full blur-[80px] mix-blend-multiply opacity-60"></div>
-          <div className="absolute bottom-[-10%] left-[10%] w-[60%] h-[60%] bg-[#d9f99d] rounded-full blur-[60px]"></div>
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+          <img
+            src={versaoIcone1}
+            alt="Ilustracao Saira"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         </div>
 
         {/* --- Right Panel --- */}

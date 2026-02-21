@@ -61,12 +61,12 @@ async def notification_stream(
 
     async def event_generator():
         pubsub = redis.pubsub()
-        await pubsub.subscribe(f"notifications:user:{current_user.id}")
+        await pubsub.subscribe(f"notifications:user:{current_user.id}", "notifications:all")
         try:
             while True:
                 try:
                     message = await asyncio.wait_for(
-                        pubsub.get_message(ignore_subscribe_messages=True),
+                        pubsub.get_message(ignore_subscribe_messages=True, timeout=29.0),
                         timeout=30.0,
                     )
                 except asyncio.TimeoutError:
