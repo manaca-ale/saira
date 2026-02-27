@@ -425,6 +425,7 @@ export const Detections: React.FC = () => {
         latitude: selectedItem.latitude,
         longitude: selectedItem.longitude,
         hasOffender: selectedItem.hasOffender,
+        image_url: selectedItem.photoUrl || undefined,
       }
     : null;
 

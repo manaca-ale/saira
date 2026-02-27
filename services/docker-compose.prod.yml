@@ -51,9 +51,12 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=production
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: always
     command: ["bash", "/app/start.sh", "--workers", "4"]
@@ -77,5 +80,72 @@ services:
       retries: 5
     restart: always
 
+  # Redis (pub/sub para notificações em tempo real)
+  redis:
+    image: redis:7-alpine
+    container_name: saira-redis-prod
+    volumes:
+      - redis_data_prod:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # ESP32 image receiver
+  esp32-server:
+    build:
+      context: ../esp32-server
+    container_name: saira-esp32-server-prod
+    ports:
+      - "5002:5000"
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - GUNICORN_WORKERS=2
+      - GUNICORN_THREADS=4
+    volumes:
+      - esp32_uploads_prod:/app/uploads
+      - ../esp32-server/config:/app/config
+      - ../esp32-server/ota:/app/ota
+    restart: always
+
+  # YOLO worker — frame comparison + DB insertion
+  yolo-worker:
+    build:
+      context: ./yolo-worker-vm
+    container_name: saira-yolo-worker-prod
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - STATE_DIR=/app/state
+      - P1_MODEL_PATH=/app/models/yolov8_2142.pt
+      - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
+      - CONF_THRESHOLD=0.25
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - REDIS_URL=redis://redis:6379/0
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - POLL_INTERVAL=10
+      - PROCESSED_STRATEGY=marker
+      - WORKER_ENABLED=${WORKER_ENABLED:-true}
+      - MOCK_MODE=${MOCK_MODE:-false}
+    volumes:
+      - esp32_uploads_prod:/app/uploads
+      - yolo_state_prod:/app/state
+      - ./yolo-worker-vm/models:/app/models
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      esp32-server:
+        condition: service_started
+    restart: on-failure
+
 volumes:
   postgres_data_prod:
+  redis_data_prod:
+  esp32_uploads_prod:
+  yolo_state_prod:

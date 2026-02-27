@@ -42,3 +42,7 @@ esp32-server/uploads/
 
 # Windows oddities
 nul
+logs/
+logs/ml_invoices_cba6a935-bb0f-4d11-9898-210faa4cc714.bin
+services/test_images/synthetic_test.jpg
+.claude/settings.local.json

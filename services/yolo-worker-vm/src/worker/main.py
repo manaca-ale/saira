@@ -18,6 +18,7 @@ from .db import (
     resolve_camera,
     insert_detection,
     insert_offenders,
+    insert_notifications,
     update_camera_last_capture,
     publish_detection_event,
 )
@@ -177,6 +178,7 @@ def process_image(jpg: Path, device_id: str, camera) -> bool:
         )
 
         if insert_detection(detection):
+            insert_notifications(detection, camera)
             publish_detection_event(detection, camera)
             if infrator_dets:
                 offenders = [

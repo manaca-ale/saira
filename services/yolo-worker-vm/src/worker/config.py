@@ -40,3 +40,14 @@ WORKER_ENABLED = os.getenv("WORKER_ENABLED", "true").strip().lower() not in ("fa
 # The mock generates random detections so the full pipeline can be tested.
 # Fine-tune with: MOCK_DETECTION_PROB (0-1), MOCK_MAX_OBJECTS (int), MOCK_INFRATOR_PROB (0-1).
 MOCK_MODE = os.getenv("MOCK_MODE", "false").strip().lower() in ("true", "1", "yes")
+
+# Auto-enable mock mode when model files are missing so the pipeline runs
+# end-to-end for testing even without trained weights.
+if not MOCK_MODE and (not os.path.exists(P1_MODEL_PATH) or not os.path.exists(P2_MODEL_PATH)):
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "Model file(s) not found (%s, %s) — MOCK_MODE activated automatically. "
+        "Provide model weights or set MOCK_MODE=true to suppress this warning.",
+        P1_MODEL_PATH, P2_MODEL_PATH,
+    )
+    MOCK_MODE = True

@@ -34,7 +34,7 @@
     image: redis:7-alpine
     container_name: saira-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"  # 6380 evita conflito com outros projetos que usem 6379
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
