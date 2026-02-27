@@ -1,2 +1,4 @@
 *.pt
 *.pt.tmp
+experiments/dataset/
+experiments/final_saved_models/

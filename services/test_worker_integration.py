@@ -12,7 +12,7 @@ Uso:
 
 Exemplos:
     python test_worker_integration.py
-    python test_worker_integration.py ../sairaResgisterAnaliseDetections/imagens\\ teste test-cam-001
+    python test_worker_integration.py ./test_images test-cam-001
 
 Requisitos:
     pip install requests redis
@@ -32,7 +32,7 @@ BACKEND        = "http://localhost:8001/api/v1"
 REDIS_HOST     = "localhost"
 REDIS_PORT     = 6379
 
-DEFAULT_IMAGES = Path(__file__).parent.parent / "sairaResgisterAnaliseDetections/imagens teste"
+DEFAULT_IMAGES = Path(__file__).parent / "test_images"
 IMAGE_FOLDER   = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_IMAGES
 DEVICE_ID      = sys.argv[2] if len(sys.argv) > 2 else "test-cam-001"
 
@@ -334,3 +334,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+

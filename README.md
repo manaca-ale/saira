@@ -33,7 +33,6 @@ Sistema de monitoramento urbano para deteccao automatica de descarte irregular d
 | [backend](services/backend/) | API REST | FastAPI, SQLAlchemy, Alembic, PostGIS |
 | [yolo-worker-vm](services/yolo-worker-vm/) | Deteccao por visao computacional | YOLO, SQS, S3 |
 | [nginx](services/nginx/) | API Gateway / Reverse proxy | Nginx |
-| [infra](services/infra/) | Infraestrutura como codigo | Terraform (AWS) |
 | [db](services/db/) | Banco de dados geoespacial | PostgreSQL 15 + PostGIS 3.4 |
 
 ## Inicio Rapido
@@ -102,7 +101,6 @@ saira/
 │   ├── backend/           # API FastAPI
 │   ├── yolo-worker-vm/    # Worker de deteccao YOLO
 │   ├── nginx/             # Gateway reverso
-│   ├── infra/             # Terraform (AWS)
 │   ├── db/                # Migracoes SQL
 │   ├── docs/              # Documentacao tecnica
 │   ├── scripts/           # Scripts de utilidade
@@ -115,3 +113,4 @@ saira/
 ## Licenca
 
 Projeto interno - todos os direitos reservados.
+
