@@ -24,6 +24,20 @@ services:
       - backend
     restart: always
 
+  # Redis (pub/sub para notificações em tempo real)
+  redis:
+    image: redis:7-alpine
+    container_name: saira-redis-test
+    volumes:
+      - redis_data_test:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: always
+
   # Backend API (FastAPI)
   backend:
     build: ./backend
@@ -33,6 +47,7 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - REDIS_URL=redis://redis:6379/0
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
       - CONECTA_ENV=${CONECTA_ENV:-test}
@@ -51,12 +66,50 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - WHATSAPP_PROVIDER=${WHATSAPP_PROVIDER:-waha}
+      - WAHA_BASE_URL=${WAHA_BASE_URL:-http://waha:3000}
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - WAHA_SESSION_NAME=${WAHA_SESSION_NAME:-default}
       - ENVIRONMENT=test
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: always
     command: ["bash", "/app/start.sh", "--workers", "4"]
+
+  # YOLO worker — frame comparison + DB insertion
+  yolo-worker:
+    build:
+      context: ./yolo-worker-vm
+    container_name: saira-yolo-worker-test
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - STATE_DIR=/app/state
+      - P1_MODEL_PATH=/app/models/yolov8_2142.pt
+      - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
+      - CONF_THRESHOLD=0.25
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - REDIS_URL=redis://redis:6379/0
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - POLL_INTERVAL=10
+      - PROCESSED_STRATEGY=marker
+      - WORKER_ENABLED=${WORKER_ENABLED:-true}
+      - MOCK_MODE=${MOCK_MODE:-false}
+      - MOCK_DETECTION_PROB=${MOCK_DETECTION_PROB:-0.5}
+      - MOCK_MAX_OBJECTS=${MOCK_MAX_OBJECTS:-5}
+      - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
+    volumes:
+      - ../esp32-server/uploads:/app/uploads
+      - yolo_state_test:/app/state
+      - ./yolo-worker-vm/models:/app/models
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
 
   # PostgreSQL + PostGIS
   db:
@@ -92,3 +145,5 @@ services:
 
 volumes:
   postgres_data_test:
+  redis_data_test:
+  yolo_state_test:
