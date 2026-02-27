@@ -94,16 +94,22 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
       - POLL_INTERVAL=10
-      - PROCESSED_STRATEGY=marker
+      - PROCESSED_STRATEGY=${PROCESSED_STRATEGY:-two_folders}
       - WORKER_ENABLED=${WORKER_ENABLED:-true}
       - MOCK_MODE=${MOCK_MODE:-false}
       - MOCK_DETECTION_PROB=${MOCK_DETECTION_PROB:-0.5}
       - MOCK_MAX_OBJECTS=${MOCK_MAX_OBJECTS:-5}
       - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
+      - GDRIVE_ENABLED=${GDRIVE_ENABLED:-false}
+      - GDRIVE_FOLDER_ID=${GDRIVE_FOLDER_ID:-1sds3yeef0o9j902X2taxFoEE0iU42sF4}
+      - GDRIVE_SA_KEY_PATH=${GDRIVE_SA_KEY_PATH:-/app/gdrive-sa-key.json}
+      - GDRIVE_SYNC_HOUR=${GDRIVE_SYNC_HOUR:-3}
     volumes:
       - ../esp32-server/uploads:/app/uploads
       - yolo_state_test:/app/state
       - ./yolo-worker-vm/models:/app/models
+      # To enable Drive sync: place your service account key on the server and uncomment:
+      # - /home/ubuntu/saira/gdrive-sa-key.json:/app/gdrive-sa-key.json:ro
     depends_on:
       db:
         condition: service_healthy

@@ -4,7 +4,7 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
@@ -37,6 +37,9 @@ logger = logging.getLogger("worker")
 
 SKIP_DIRS = {"processed", "labeled"}
 
+# Tracks the last day the Google Drive sync ran (reset on container restart — that's fine).
+_last_sync_day = None
+
 # ==========================================
 # STATE MANAGEMENT (per device)
 # ==========================================
@@ -67,11 +70,30 @@ def save_state(device_id: str, state: dict) -> None:
 def is_processed(image_path: Path) -> bool:
     if config.PROCESSED_STRATEGY == "marker":
         return image_path.with_suffix(".jpg.processed").exists()
+    if config.PROCESSED_STRATEGY == "two_folders":
+        return any(part in {"sem_ocorrencia", "ocorrencias"} for part in image_path.parts)
     return "processed" in image_path.parts
 
-def mark_processed(image_path: Path) -> None:
+def mark_processed(image_path: Path, device_base: Path, disposal: bool) -> None:
+    """Move image to the appropriate subfolder based on detection outcome.
+
+    two_folders strategy:
+        ocorrencias/    — disposal detected
+        sem_ocorrencia/ — no disposal
+    marker strategy (legacy):
+        creates .jpg.processed sibling file
+    """
     if config.PROCESSED_STRATEGY == "marker":
         image_path.with_suffix(".jpg.processed").touch()
+    elif config.PROCESSED_STRATEGY == "two_folders":
+        subfolder = "ocorrencias" if disposal else "sem_ocorrencia"
+        try:
+            date_parts = image_path.parent.relative_to(device_base)
+        except ValueError:
+            date_parts = Path("")
+        dest_dir = device_base / subfolder / date_parts
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        image_path.rename(dest_dir / image_path.name)
     else:
         processed_dir = image_path.parent / "processed"
         processed_dir.mkdir(exist_ok=True)
@@ -224,7 +246,7 @@ def scan_and_process() -> int:
         for jpg in images:
             try:
                 disposal = process_image(jpg, device_id, camera)
-                mark_processed(jpg)
+                mark_processed(jpg, device_dir, disposal)
                 processed_count += 1
                 device_processed += 1
                 if disposal:
@@ -238,18 +260,42 @@ def scan_and_process() -> int:
     return processed_count
 
 
+def _maybe_run_drive_sync() -> None:
+    """Run Google Drive sync once per day at or after GDRIVE_SYNC_HOUR."""
+    global _last_sync_day
+    if not config.GDRIVE_ENABLED:
+        return
+    today = date.today()
+    now_hour = datetime.now(BRASILIA).hour
+    if _last_sync_day == today or now_hour < config.GDRIVE_SYNC_HOUR:
+        return
+    _last_sync_day = today
+    logger.info("Starting daily Google Drive sync (hour=%d)...", now_hour)
+    try:
+        from .gdrive_sync import sync_uploads_to_drive
+        sync_uploads_to_drive()
+        logger.info("Google Drive sync completed.")
+    except Exception:
+        logger.exception("Google Drive sync failed")
+
+
 def main():
     logger.info("=" * 60)
     logger.info("SAIRA Worker starting")
-    logger.info("UPLOAD_DIR    = %s", config.UPLOAD_DIR)
-    logger.info("STATE_DIR     = %s", config.STATE_DIR)
-    logger.info("P1_MODEL      = %s", config.P1_MODEL_PATH)
-    logger.info("P2_MODEL      = %s", config.P2_MODEL_PATH)
-    logger.info("CONF          = %.2f", config.CONF_THRESHOLD)
-    logger.info("POLL_INTERVAL = %ds", config.POLL_INTERVAL)
-    logger.info("REDIS_URL     = %s", config.REDIS_URL)
-    logger.info("WORKER_ENABLED= %s", config.WORKER_ENABLED)
-    logger.info("MOCK_MODE     = %s", config.MOCK_MODE)
+    logger.info("UPLOAD_DIR         = %s", config.UPLOAD_DIR)
+    logger.info("STATE_DIR          = %s", config.STATE_DIR)
+    logger.info("P1_MODEL           = %s", config.P1_MODEL_PATH)
+    logger.info("P2_MODEL           = %s", config.P2_MODEL_PATH)
+    logger.info("CONF               = %.2f", config.CONF_THRESHOLD)
+    logger.info("POLL_INTERVAL      = %ds", config.POLL_INTERVAL)
+    logger.info("REDIS_URL          = %s", config.REDIS_URL)
+    logger.info("PROCESSED_STRATEGY = %s", config.PROCESSED_STRATEGY)
+    logger.info("WORKER_ENABLED     = %s", config.WORKER_ENABLED)
+    logger.info("MOCK_MODE          = %s", config.MOCK_MODE)
+    logger.info("GDRIVE_ENABLED     = %s", config.GDRIVE_ENABLED)
+    if config.GDRIVE_ENABLED:
+        logger.info("GDRIVE_FOLDER_ID   = %s", config.GDRIVE_FOLDER_ID)
+        logger.info("GDRIVE_SYNC_HOUR   = %d", config.GDRIVE_SYNC_HOUR)
     logger.info("=" * 60)
 
     if not config.WORKER_ENABLED:
@@ -265,6 +311,7 @@ def main():
             n = scan_and_process()
             if n:
                 logger.info("Cycle complete: %d images processed", n)
+            _maybe_run_drive_sync()
         except KeyboardInterrupt:
             logger.info("Shutting down.")
             break
