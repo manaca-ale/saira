@@ -50,6 +50,9 @@ jobs:
             mkdir -p uploads ota config
             docker compose -p saira-esp32-test -f docker-compose.test.yml down --remove-orphans
             docker rm -f saira-esp32-test-esp32-receiver-1 2>/dev/null || true
+            # Force-release port 5002 in case a container from a different project still holds it
+            docker ps -q --filter "publish=5002" | xargs -r docker stop 2>/dev/null || true
+            docker ps -aq --filter "publish=5002" | xargs -r docker rm -f 2>/dev/null || true
             docker compose -p saira-esp32-test -f docker-compose.test.yml up -d --build --force-recreate
 
             echo "Teste rodando (Projeto: saira-test)"
