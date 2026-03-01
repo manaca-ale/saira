@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SAIRA | Dashboard ESP32</title>
+  <link rel="stylesheet" href="/static/dashboard.css?v=20260228c" />
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div>
+        <h1>Dashboard de Campo ESP32</h1>
+        <p class="subtitle">Validacao rapida de instalacao, conectividade e angulo de camera.</p>
+      </div>
+      <div class="topbar-actions">
+        <span class="status-chip" id="refreshStatus">Sincronizando...</span>
+        <button class="refresh-btn" id="refreshBtn" type="button">Atualizar agora</button>
+      </div>
+    </header>
+
+    <section class="filters">
+      <label for="deviceFilter">Filtrar dispositivo</label>
+      <select id="deviceFilter">
+        <option value="">Todos os dispositivos</option>
+      </select>
+      <p class="filters-hint" id="updatedAt">Atualizando...</p>
+    </section>
+
+    <section class="cards">
+      <article class="card">
+        <p class="label" id="imagesLabel">Imagens recentes</p>
+        <p class="value" id="totalImages">-</p>
+      </article>
+      <article class="card">
+        <p class="label">Dispositivos ativos</p>
+        <p class="value" id="activeDevices">-</p>
+        <p class="hint" id="activeRule">Regra: sem dados</p>
+      </article>
+      <article class="card">
+        <p class="label">Dispositivos conhecidos</p>
+        <p class="value" id="knownDevices">-</p>
+      </article>
+      <article class="card">
+        <p class="label" id="usageLabel">Estimativa 4G (geral)</p>
+        <p class="value small" id="overall4g">-</p>
+        <p class="hint" id="overall4gHint">Calculando...</p>
+      </article>
+      <article class="card wide">
+        <p class="label">Ultima captura</p>
+        <p class="value small" id="latestCapture">Sem dados</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>Dispositivos</h2>
+      <div class="device-chips" id="deviceChips"></div>
+      <div class="device-grid" id="devicesList"></div>
+    </section>
+
+    <section>
+      <h2>Ultimas fotos</h2>
+      <div class="gallery" id="gallery"></div>
+    </section>
+
+    <section>
+      <h2>Logs dos dispositivos</h2>
+      <div class="logs" id="logs"></div>
+    </section>
+  </main>
+
+  <template id="imageCardTpl">
+    <article class="image-card">
+      <img loading="lazy" decoding="async" alt="Foto recebida pelo ESP32" />
+      <div class="meta">
+        <p class="device"></p>
+        <p class="time"></p>
+      </div>
+    </article>
+  </template>
+
+  <template id="logRowTpl">
+    <article class="log-row">
+      <p class="line-top"></p>
+      <p class="line-bottom"></p>
+    </article>
+  </template>
+
+  <template id="deviceCardTpl">
+    <article class="device-card">
+      <div class="device-head">
+        <p class="device-name"></p>
+        <span class="device-state"></span>
+      </div>
+      <p class="device-meta images-count"></p>
+      <p class="device-meta last-seen"></p>
+      <p class="device-meta last-image"></p>
+      <p class="device-meta data-usage"></p>
+    </article>
+  </template>
+
+  <script src="/static/dashboard.js?v=20260228c"></script>
+</body>
+</html>

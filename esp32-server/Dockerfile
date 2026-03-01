@@ -6,6 +6,8 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server.py /app/
+COPY templates /app/templates
+COPY static /app/static
 
 EXPOSE 5000
 

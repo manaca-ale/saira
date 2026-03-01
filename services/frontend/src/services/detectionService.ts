@@ -49,6 +49,15 @@ export interface PaginatedDetections {
   limit: number;
 }
 
+function normalizeImageUrl(url?: string | null): string {
+  if (!url) return '';
+  // Strip scheme + host so the browser loads the image through the same-origin
+  // nginx proxy (/uploads/ → esp32-server:5000), regardless of what PUBLIC_BASE_URL
+  // was configured in the worker (e.g. http://localhost:5002 or http://esp32-server:5000).
+  const match = url.match(/(\/uploads\/.+)/);
+  return match ? match[1] : url;
+}
+
 function toNumber(value: unknown, fallback = 0): number {
   const parsed =
     typeof value === 'number'
@@ -113,7 +122,7 @@ function toFrontendFormat(d: Detection): PoiData {
     wasteType: normalizeWasteType(d.waste_type),
     volume: toNumber(d.volume_m3),
     status: normalizeStatus(d.status),
-    photoUrl: d.image_url || '',
+    photoUrl: normalizeImageUrl(d.image_url),
     hasOffender: !!d.offenders,
   };
 }
