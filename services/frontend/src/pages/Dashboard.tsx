@@ -255,7 +255,7 @@ export const Dashboard: React.FC = () => {
       try {
         const startDate = filters.dateStart ? `${filters.dateStart}T${filters.startTime || "00:00"}:00` : undefined;
         const endDate = filters.dateEnd ? `${filters.dateEnd}T${filters.endTime || "23:59"}:59` : undefined;
-        const data = await getAllDetections({ start_date: startDate, end_date: endDate });
+        const data = await getAllDetections({ start_date: startDate, end_date: endDate, maxRecords: 2000, pageSize: 100 });
         if (!cancelled) setDetections(data);
       } catch (e) {
         console.error("Failed to load detections:", e);

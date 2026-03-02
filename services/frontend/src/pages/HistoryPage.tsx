@@ -151,6 +151,8 @@ export const HistoryPage: React.FC = () => {
         const all = await getAllDetections({
           start_date: `${range.start}T00:00:00`,
           end_date: `${range.end}T23:59:59`,
+          maxRecords: 1000,
+          pageSize: 100,
         });
 
         if (isMounted) {
