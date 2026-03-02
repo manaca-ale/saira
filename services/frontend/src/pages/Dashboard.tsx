@@ -82,6 +82,17 @@ const buildDateRange = (start?: string, end?: string) => {
   return { start: startDate, end: endDate };
 };
 
+function toDateInputStatic(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getDefaultDateRange() {
+  const end = new Date();
+  const start = new Date();
+  start.setFullYear(end.getFullYear() - 1);
+  return { dateStart: toDateInputStatic(start), dateEnd: toDateInputStatic(end) };
+}
+
 const getRpaForPoi = (poi: PoiData) => {
   const key = `${poi.bairro}-${poi.logradouro}`;
   let hash = 0;
@@ -208,19 +219,22 @@ export const Dashboard: React.FC = () => {
   const [detections, setDetections] = useState<PoiData[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    dateStart: "",
-    dateEnd: "",
-    startTime: "",
-    endTime: "",
-    status: [],
-    logradouro: "",
-    bairro: "",
-    rpa: [],
-    tipoResiduo: [],
-    volMin: "",
-    volMax: "",
-    infratores: [],
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const { dateStart, dateEnd } = getDefaultDateRange();
+    return {
+      dateStart,
+      dateEnd,
+      startTime: "",
+      endTime: "",
+      status: [],
+      logradouro: "",
+      bairro: "",
+      rpa: [],
+      tipoResiduo: [],
+      volMin: "",
+      volMax: "",
+      infratores: [],
+    };
   });
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [activePopover, setActivePopover] = useState<
@@ -235,18 +249,23 @@ export const Dashboard: React.FC = () => {
 
   // --- Load Data from API ---
   useEffect(() => {
+    let cancelled = false;
     async function loadDetections() {
+      setLoading(true);
       try {
-        const data = await getAllDetections();
-        setDetections(data);
+        const startDate = filters.dateStart ? `${filters.dateStart}T${filters.startTime || "00:00"}:00` : undefined;
+        const endDate = filters.dateEnd ? `${filters.dateEnd}T${filters.endTime || "23:59"}:59` : undefined;
+        const data = await getAllDetections({ start_date: startDate, end_date: endDate });
+        if (!cancelled) setDetections(data);
       } catch (e) {
         console.error("Failed to load detections:", e);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     loadDetections();
-  }, []);
+    return () => { cancelled = true; };
+  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
 
   const toDateInput = (date: Date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
@@ -617,6 +636,7 @@ export const Dashboard: React.FC = () => {
         latitude: selectedOccurrence.latitude,
         longitude: selectedOccurrence.longitude,
         hasOffender: selectedOccurrence.hasOffender,
+        image_url: selectedOccurrence.photoUrl || undefined,
       }
     : null;
 

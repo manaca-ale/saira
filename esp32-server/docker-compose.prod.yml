@@ -22,6 +22,11 @@ services:
       - ./uploads:/app/uploads
       - ./ota:/app/ota
       - ./config:/app/config
+    networks:
+      default:
+      saira_prod_net:
+        aliases:
+          - esp32-server
     restart: unless-stopped
 
   fake-worker:

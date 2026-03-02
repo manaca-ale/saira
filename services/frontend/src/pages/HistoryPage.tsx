@@ -38,6 +38,18 @@ import {
   FilterAutocomplete,
 } from "../components/SharedFilters";
 
+// --- DATE HELPERS ---
+function toDateInputStatic(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getDefault30DayRange() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 29);
+  return { start: toDateInputStatic(start), end: toDateInputStatic(end) };
+}
+
 // --- CONSTANTS & HELPERS ---
 const WASTE_TYPE_OPTIONS: WasteType[] = [
   "Entulho",
@@ -135,7 +147,11 @@ export const HistoryPage: React.FC = () => {
 
     async function loadDetections() {
       try {
-        const all = await getAllDetections();
+        const range = getDefault30DayRange();
+        const all = await getAllDetections({
+          start_date: `${range.start}T00:00:00`,
+          end_date: `${range.end}T23:59:59`,
+        });
 
         if (isMounted) {
           setDetections(all);

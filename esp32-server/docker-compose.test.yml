@@ -22,4 +22,14 @@ services:
       - ./uploads:/app/uploads
       - ./ota:/app/ota
       - ./config:/app/config
+    networks:
+      default:
+      saira_test_net:
+        aliases:
+          - esp32-server
     restart: unless-stopped
+
+networks:
+  saira_test_net:
+    external: true
+    name: saira-test_default
