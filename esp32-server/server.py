@@ -31,7 +31,8 @@ DEVICE_ACTIVE_WINDOW_SECONDS = _int_env("DEVICE_ACTIVE_WINDOW_SECONDS", 60, mini
 DASHBOARD_RECENT_DAYS = _int_env("DASHBOARD_RECENT_DAYS", 2, minimum=1)
 DASHBOARD_RECENT_IMAGES_CAP = _int_env("DASHBOARD_RECENT_IMAGES_CAP", 180, minimum=40)
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
-CAPTURE_TZ = ZoneInfo(os.getenv("CAPTURE_TZ", "America/Sao_Paulo"))
+CAPTURE_FILENAME_TZ = ZoneInfo(os.getenv("CAPTURE_FILENAME_TZ", "UTC"))
+UNKNOWN_DEVICE_IDS = {"unknown", "unknown_device", "unknow", "unknow_device"}
 
 def _get_upload_root() -> str:
     # Allow overriding storage location on EC2 (e.g. /data/saira/uploads).
@@ -219,12 +220,34 @@ def _guess_device_id_from_rel_path(rel_path: str) -> str:
 def _guess_captured_at(name: str, mtime: float) -> str:
     stem = os.path.splitext(os.path.basename(name))[0]
     try:
-        # Filenames are generated in local device/server time.
-        # Interpret as CAPTURE_TZ and normalize to UTC for consistent APIs.
-        parsed_local = datetime.strptime(stem, "%Y-%m-%d_%H-%M-%S").replace(tzinfo=CAPTURE_TZ)
+        # Upload endpoint names files on the server, using a fixed timezone.
+        # Normalize to UTC for consistent APIs consumed by the dashboard.
+        parsed_local = datetime.strptime(stem, "%Y-%m-%d_%H-%M-%S").replace(tzinfo=CAPTURE_FILENAME_TZ)
         return parsed_local.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     except ValueError:
         return datetime.utcfromtimestamp(mtime).isoformat() + "Z"
+
+
+def _is_unknown_device_id(device_id: str) -> bool:
+    return (device_id or "").strip().lower() in UNKNOWN_DEVICE_IDS
+
+
+def _drop_unknown_device_stats(
+    device_last_image_ts: dict[str, float],
+    device_image_counts: dict[str, int],
+    device_image_bytes: dict[str, int],
+) -> None:
+    unknown_ids = {
+        str(key)
+        for key in set(device_last_image_ts.keys())
+        .union(set(device_image_counts.keys()))
+        .union(set(device_image_bytes.keys()))
+        if _is_unknown_device_id(str(key))
+    }
+    for device_id in unknown_ids:
+        device_last_image_ts.pop(device_id, None)
+        device_image_counts.pop(device_id, None)
+        device_image_bytes.pop(device_id, None)
 
 
 def _iter_recent_day_tokens(days: int) -> list[str]:
@@ -373,15 +396,26 @@ def _dashboard_snapshot() -> dict[str, object]:
 
     recent_scan = _scan_recent_image_window(max(DASHBOARD_RECENT_IMAGES_CAP, 40))
     active_cutoff = now - DEVICE_ACTIVE_WINDOW_SECONDS
-    image_devices = set(recent_scan["image_devices"])
+    image_devices = {
+        str(device_id)
+        for device_id in set(recent_scan["image_devices"])
+        if not _is_unknown_device_id(str(device_id))
+    }
     device_last_image_ts = dict(recent_scan["device_last_image_ts"])
     device_image_counts = dict(recent_scan["device_image_counts"])
     device_image_bytes = dict(recent_scan["device_image_bytes"])
-    total_images_bytes = int(recent_scan.get("total_bytes", 0))
+    _drop_unknown_device_stats(device_last_image_ts, device_image_counts, device_image_bytes)
+    total_images = int(sum(int(v) for v in device_image_counts.values()))
+    total_images_bytes = int(sum(int(v) for v in device_image_bytes.values()))
     scope_days = max(int(DASHBOARD_RECENT_DAYS), 1)
     estimated_4g_mb_per_day = (total_images_bytes / scope_days) / (1024 * 1024)
     estimated_4g_gb_per_month = ((total_images_bytes / scope_days) * 30.0) / (1024 * 1024 * 1024)
-    all_devices = image_devices.union(set(_device_last_seen.keys()))
+    event_devices = {
+        str(device_id)
+        for device_id in set(_device_last_seen.keys())
+        if not _is_unknown_device_id(str(device_id))
+    }
+    all_devices = image_devices.union(event_devices)
     device_rows: list[dict[str, object]] = []
 
     for device_id in all_devices:
@@ -415,8 +449,16 @@ def _dashboard_snapshot() -> dict[str, object]:
     )
     active_devices = [str(item["device_id"]) for item in device_rows if bool(item["is_active"])]
 
-    recent_images = list(recent_scan["recent_images"])
-    recent_logs = list(_recent_events)[-60:]
+    recent_images = [
+        item
+        for item in list(recent_scan["recent_images"])
+        if not _is_unknown_device_id(str(item.get("device_id") or ""))
+    ]
+    recent_logs = [
+        item
+        for item in list(_recent_events)
+        if not _is_unknown_device_id(str(item.get("device_id") or ""))
+    ][-60:]
     recent_logs.reverse()
     if not recent_logs:
         recent_logs = [
@@ -432,7 +474,7 @@ def _dashboard_snapshot() -> dict[str, object]:
     snapshot = {
         "expires_at": now + DASHBOARD_CACHE_TTL_SECONDS,
         "updated_at": _utc_now_iso(),
-        "total_images": int(recent_scan["total_images"]),
+        "total_images": total_images,
         "total_images_bytes": total_images_bytes,
         "total_images_scope_days": DASHBOARD_RECENT_DAYS,
         "estimated_4g_mb_per_day": round(estimated_4g_mb_per_day, 3),
