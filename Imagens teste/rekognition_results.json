@@ -1,0 +1,561 @@
+{
+  "region": "us-east-1",
+  "waste_labels": [
+    "debris",
+    "garbage",
+    "junk",
+    "landfill",
+    "litter",
+    "refuse",
+    "trash",
+    "waste"
+  ],
+  "offender_labels": [
+    "bicycle",
+    "bus",
+    "car",
+    "motorcycle",
+    "person",
+    "truck"
+  ],
+  "images": [
+    {
+      "image": "1.jpg",
+      "waste_found": false,
+      "waste": null,
+      "offenders_count": 1,
+      "offenders": [
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.7979,
+          "bbox": {
+            "Width": 0.07177328318357468,
+            "Height": 0.09482134133577347,
+            "Left": 0.9282267093658447,
+            "Top": 0.31556323170661926
+          }
+        }
+      ],
+      "top_labels": [
+        {
+          "name": "Nature",
+          "confidence": 100.0
+        },
+        {
+          "name": "Outdoors",
+          "confidence": 100.0
+        },
+        {
+          "name": "Yard",
+          "confidence": 100.0
+        },
+        {
+          "name": "Picket Fence",
+          "confidence": 98.13
+        },
+        {
+          "name": "Backyard",
+          "confidence": 97.92
+        },
+        {
+          "name": "Person",
+          "confidence": 79.79
+        }
+      ]
+    },
+    {
+      "image": "10.jpg",
+      "waste_found": false,
+      "waste": null,
+      "offenders_count": 0,
+      "offenders": [],
+      "top_labels": [
+        {
+          "name": "Outdoors",
+          "confidence": 99.98
+        },
+        {
+          "name": "Nature",
+          "confidence": 95.17
+        },
+        {
+          "name": "City",
+          "confidence": 94.14
+        }
+      ]
+    },
+    {
+      "image": "2.jpg",
+      "waste_found": true,
+      "waste": {
+        "label": "Garbage",
+        "confidence": 0.9498,
+        "bbox": null
+      },
+      "offenders_count": 6,
+      "offenders": [
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.958,
+          "bbox": {
+            "Width": 0.15091492235660553,
+            "Height": 0.164585679769516,
+            "Left": 0.0,
+            "Top": 0.373538076877594
+          }
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.9062,
+          "bbox": {
+            "Width": 0.1338057965040207,
+            "Height": 0.1276494264602661,
+            "Left": 0.12179828435182571,
+            "Top": 0.3566896319389343
+          }
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.8379,
+          "bbox": {
+            "Width": 0.033518511801958084,
+            "Height": 0.05954310670495033,
+            "Left": 0.2276638299226761,
+            "Top": 0.3219963312149048
+          }
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.7539,
+          "bbox": {
+            "Width": 0.07729680091142654,
+            "Height": 0.1246105208992958,
+            "Left": 0.8856787085533142,
+            "Top": 0.3192635178565979
+          }
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.7457,
+          "bbox": {
+            "Width": 0.10695891082286835,
+            "Height": 0.09325193613767624,
+            "Left": 0.012256390415132046,
+            "Top": 0.3110480308532715
+          }
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.9535,
+          "bbox": {
+            "Width": 0.04823059216141701,
+            "Height": 0.13773642480373383,
+            "Left": 0.6825377941131592,
+            "Top": 0.323451429605484
+          }
+        }
+      ],
+      "top_labels": [
+        {
+          "name": "Machine",
+          "confidence": 97.38
+        },
+        {
+          "name": "Wheel",
+          "confidence": 97.38
+        },
+        {
+          "name": "Car",
+          "confidence": 95.8
+        },
+        {
+          "name": "Transportation",
+          "confidence": 95.8
+        },
+        {
+          "name": "Vehicle",
+          "confidence": 95.8
+        },
+        {
+          "name": "Person",
+          "confidence": 95.35
+        },
+        {
+          "name": "Garbage",
+          "confidence": 94.98
+        },
+        {
+          "name": "Trash",
+          "confidence": 94.98
+        }
+      ]
+    },
+    {
+      "image": "3.jpg",
+      "waste_found": false,
+      "waste": null,
+      "offenders_count": 2,
+      "offenders": [
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.9761,
+          "bbox": {
+            "Width": 0.06544572114944458,
+            "Height": 0.18926778435707092,
+            "Left": 0.38538768887519836,
+            "Top": 0.08989720791578293
+          }
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.9745,
+          "bbox": {
+            "Width": 0.06648983061313629,
+            "Height": 0.16015909612178802,
+            "Left": 7.821989856893197e-05,
+            "Top": 0.19469651579856873
+          }
+        }
+      ],
+      "top_labels": [
+        {
+          "name": "Person",
+          "confidence": 97.61
+        },
+        {
+          "name": "Car",
+          "confidence": 97.45
+        },
+        {
+          "name": "Transportation",
+          "confidence": 97.45
+        },
+        {
+          "name": "Vehicle",
+          "confidence": 97.45
+        },
+        {
+          "name": "Machine",
+          "confidence": 92.01
+        },
+        {
+          "name": "Wheel",
+          "confidence": 92.01
+        }
+      ]
+    },
+    {
+      "image": "4.jpg",
+      "waste_found": true,
+      "waste": {
+        "label": "Garbage",
+        "confidence": 0.9984,
+        "bbox": null
+      },
+      "offenders_count": 1,
+      "offenders": [
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.8535,
+          "bbox": {
+            "Width": 0.1298178732395172,
+            "Height": 0.20227885246276855,
+            "Left": 0.14738591015338898,
+            "Top": 0.6237607002258301
+          }
+        }
+      ],
+      "top_labels": [
+        {
+          "name": "Garbage",
+          "confidence": 99.84
+        },
+        {
+          "name": "Trash",
+          "confidence": 99.84
+        },
+        {
+          "name": "Person",
+          "confidence": 85.35
+        }
+      ]
+    },
+    {
+      "image": "5.jpg",
+      "waste_found": true,
+      "waste": {
+        "label": "Garbage",
+        "confidence": 0.7883,
+        "bbox": null
+      },
+      "offenders_count": 0,
+      "offenders": [],
+      "top_labels": [
+        {
+          "name": "Outdoors",
+          "confidence": 84.76
+        },
+        {
+          "name": "Garbage",
+          "confidence": 78.83
+        }
+      ]
+    },
+    {
+      "image": "6.jpg",
+      "waste_found": false,
+      "waste": null,
+      "offenders_count": 0,
+      "offenders": [],
+      "top_labels": [
+        {
+          "name": "Rubble",
+          "confidence": 99.13
+        },
+        {
+          "name": "Rock",
+          "confidence": 95.37
+        }
+      ]
+    },
+    {
+      "image": "7.jpg",
+      "waste_found": true,
+      "waste": {
+        "label": "Garbage",
+        "confidence": 0.844,
+        "bbox": null
+      },
+      "offenders_count": 1,
+      "offenders": [
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.9011,
+          "bbox": {
+            "Width": 0.09788196533918381,
+            "Height": 0.1600203961133957,
+            "Left": 0.028818588703870773,
+            "Top": 0.00011496480146888644
+          }
+        }
+      ],
+      "top_labels": [
+        {
+          "name": "Person",
+          "confidence": 90.11
+        },
+        {
+          "name": "Boat",
+          "confidence": 87.03
+        },
+        {
+          "name": "Transportation",
+          "confidence": 87.03
+        },
+        {
+          "name": "Vehicle",
+          "confidence": 87.03
+        },
+        {
+          "name": "Garbage",
+          "confidence": 84.4
+        }
+      ]
+    },
+    {
+      "image": "8.jpg",
+      "waste_found": false,
+      "waste": null,
+      "offenders_count": 3,
+      "offenders": [
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.9547,
+          "bbox": {
+            "Width": 0.27749648690223694,
+            "Height": 0.22287504374980927,
+            "Left": 0.40030139684677124,
+            "Top": 0.7752772569656372
+          }
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.76,
+          "bbox": {
+            "Width": 0.014841747470200062,
+            "Height": 0.06981510668992996,
+            "Left": 0.642676830291748,
+            "Top": 0.3702172040939331
+          }
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.7377,
+          "bbox": {
+            "Width": 0.014431262388825417,
+            "Height": 0.05001205950975418,
+            "Left": 0.23304393887519836,
+            "Top": 0.3441876471042633
+          }
+        }
+      ],
+      "top_labels": [
+        {
+          "name": "Outdoors",
+          "confidence": 99.98
+        },
+        {
+          "name": "City",
+          "confidence": 99.15
+        },
+        {
+          "name": "Nature",
+          "confidence": 97.62
+        },
+        {
+          "name": "Car",
+          "confidence": 95.47
+        },
+        {
+          "name": "Transportation",
+          "confidence": 95.47
+        },
+        {
+          "name": "Vehicle",
+          "confidence": 95.47
+        },
+        {
+          "name": "Person",
+          "confidence": 76.0
+        },
+        {
+          "name": "Machine",
+          "confidence": 70.53
+        },
+        {
+          "name": "Wheel",
+          "confidence": 70.53
+        }
+      ]
+    },
+    {
+      "image": "9.jpg",
+      "waste_found": false,
+      "waste": null,
+      "offenders_count": 5,
+      "offenders": [
+        {
+          "class_name": "Motorcycle",
+          "offender_type": "Moto",
+          "confidence": 0.9529,
+          "bbox": {
+            "Width": 0.10330343246459961,
+            "Height": 0.10618583112955093,
+            "Left": 0.6367663145065308,
+            "Top": 0.7278265357017517
+          }
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.9072,
+          "bbox": {
+            "Width": 0.13378992676734924,
+            "Height": 0.21406351029872894,
+            "Left": 0.8660898208618164,
+            "Top": 0.7450611591339111
+          }
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.7895,
+          "bbox": {
+            "Width": 0.04051084443926811,
+            "Height": 0.11359664052724838,
+            "Left": 0.6381974220275879,
+            "Top": 0.6968595385551453
+          }
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.7732,
+          "bbox": {
+            "Width": 0.02466406859457493,
+            "Height": 0.07796800136566162,
+            "Left": 0.5754638910293579,
+            "Top": 0.3519866168498993
+          }
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.7647,
+          "bbox": {
+            "Width": 0.014179038815200329,
+            "Height": 0.06581876426935196,
+            "Left": 0.4089270234107971,
+            "Top": 0.3449794054031372
+          }
+        }
+      ],
+      "top_labels": [
+        {
+          "name": "Outdoors",
+          "confidence": 99.97
+        },
+        {
+          "name": "City",
+          "confidence": 99.78
+        },
+        {
+          "name": "Nature",
+          "confidence": 95.6
+        },
+        {
+          "name": "Motorcycle",
+          "confidence": 95.29
+        },
+        {
+          "name": "Transportation",
+          "confidence": 95.29
+        },
+        {
+          "name": "Vehicle",
+          "confidence": 95.29
+        },
+        {
+          "name": "Road",
+          "confidence": 94.52
+        },
+        {
+          "name": "Car",
+          "confidence": 90.72
+        },
+        {
+          "name": "Person",
+          "confidence": 78.95
+        },
+        {
+          "name": "Machine",
+          "confidence": 74.83
+        }
+      ]
+    }
+  ]
+}

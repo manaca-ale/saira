@@ -1,0 +1,282 @@
+{
+  "mode": "rekognition_mosaic_2x2",
+  "region": "us-east-1",
+  "images_total": 10,
+  "images_with_waste": 0,
+  "images_with_offenders": 5,
+  "batches_total": 3,
+  "batches": [
+    {
+      "batch_index": 0,
+      "images": [
+        "1.jpg",
+        "2.jpg",
+        "3.jpg",
+        "4.jpg"
+      ],
+      "meta": {
+        "mosaic_width": 1920,
+        "mosaic_height": 1440,
+        "jpeg_quality": 90,
+        "encoded_size_bytes": 668557,
+        "downscale_factor": 1.0,
+        "labels_count": 9
+      },
+      "requires_single_fallback": true
+    },
+    {
+      "batch_index": 1,
+      "images": [
+        "5.jpg",
+        "6.jpg",
+        "7.jpg",
+        "8.jpg"
+      ],
+      "meta": {
+        "mosaic_width": 1920,
+        "mosaic_height": 1440,
+        "jpeg_quality": 90,
+        "encoded_size_bytes": 679338,
+        "downscale_factor": 1.0,
+        "labels_count": 12
+      },
+      "requires_single_fallback": false
+    },
+    {
+      "batch_index": 2,
+      "images": [
+        "9.jpg",
+        "10.jpg"
+      ],
+      "meta": {
+        "mosaic_width": 1920,
+        "mosaic_height": 1440,
+        "jpeg_quality": 90,
+        "encoded_size_bytes": 505579,
+        "downscale_factor": 1.0,
+        "labels_count": 11
+      },
+      "requires_single_fallback": false
+    }
+  ],
+  "images": [
+    {
+      "image": "1.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 0,
+      "offender_dets": []
+    },
+    {
+      "image": "2.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 6,
+      "offender_dets": [
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.939,
+          "bbox": [
+            0.0,
+            217.1679961681366,
+            193.23987364768982,
+            311.61632381379604
+          ]
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.9175,
+          "bbox": [
+            1157.190442085266,
+            189.72529873251915,
+            1252.8978936374187,
+            259.32152207940817
+          ]
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.8664,
+          "bbox": [
+            159.8786473274231,
+            212.99493715167046,
+            276.08786821365356,
+            283.4170623868704
+          ]
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.798,
+          "bbox": [
+            1258.3938717842102,
+            206.2073054909706,
+            1299.0,
+            254.36750186607242
+          ]
+        },
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.711,
+          "bbox": [
+            292.6551580429077,
+            193.6922836303711,
+            338.3686952292919,
+            230.43785674497485
+          ]
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.811,
+          "bbox": [
+            889.91459608078,
+            191.07248067855835,
+            930.7133294641972,
+            257.34163999557495
+          ]
+        }
+      ]
+    },
+    {
+      "image": "3.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 2,
+      "offender_dets": [
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.9857,
+          "bbox": [
+            0.0,
+            142.28184048334757,
+            85.32058373093605,
+            258.789178798596
+          ]
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.9373,
+          "bbox": [
+            502.0678013563156,
+            62.06113147735595,
+            588.9620490372181,
+            213.31017327308655
+          ]
+        }
+      ]
+    },
+    {
+      "image": "4.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 0,
+      "offender_dets": []
+    },
+    {
+      "image": "5.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 0,
+      "offender_dets": []
+    },
+    {
+      "image": "6.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 0,
+      "offender_dets": []
+    },
+    {
+      "image": "7.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 2,
+      "offender_dets": [
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.939,
+          "bbox": [
+            36.922225542366505,
+            0.0,
+            107.18221124261618,
+            115.88007574280103
+          ]
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.8644,
+          "bbox": [
+            94.76260617375374,
+            0.0,
+            163.3506417274475,
+            112.51008437077203
+          ]
+        }
+      ]
+    },
+    {
+      "image": "8.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 1,
+      "offender_dets": [
+        {
+          "class_name": "Car",
+          "offender_type": "Carro",
+          "confidence": 0.9244,
+          "bbox": [
+            514.65576171875,
+            553.798713684082,
+            869.7282028198242,
+            719.0
+          ]
+        }
+      ]
+    },
+    {
+      "image": "9.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 2,
+      "offender_dets": [
+        {
+          "class_name": "Motorcycle",
+          "offender_type": "Moto",
+          "confidence": 0.9408,
+          "bbox": [
+            813.7590789794922,
+            506.2704849243164,
+            949.2197704315186,
+            603.1562304496765
+          ]
+        },
+        {
+          "class_name": "Person",
+          "offender_type": "Pessoa",
+          "confidence": 0.8308,
+          "bbox": [
+            521.134147644043,
+            245.02779006958008,
+            543.2809567451477,
+            300.080931186676
+          ]
+        }
+      ]
+    },
+    {
+      "image": "10.jpg",
+      "waste_found": false,
+      "garbage_dets": [],
+      "offenders_count": 0,
+      "offender_dets": []
+    }
+  ]
+}

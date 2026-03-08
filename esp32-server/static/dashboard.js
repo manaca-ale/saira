@@ -31,6 +31,7 @@ const logsEl = byId("logs");
 const imageCardTpl = byId("imageCardTpl");
 const logRowTpl = byId("logRowTpl");
 const deviceCardTpl = byId("deviceCardTpl");
+const DASHBOARD_TIMEZONE = "America/Sao_Paulo";
 
 const state = {
   selectedDevice: "",
@@ -53,7 +54,10 @@ function fmtDate(iso) {
   if (!iso) return "-";
   const dt = new Date(iso);
   if (!Number.isNaN(dt.getTime())) {
-    return dt.toLocaleString("pt-BR", { hour12: false });
+    return dt.toLocaleString("pt-BR", {
+      hour12: false,
+      timeZone: DASHBOARD_TIMEZONE,
+    });
   }
   const raw = String(iso).trim();
   const normalized = raw.replace("T", " ").replace("Z", "");
