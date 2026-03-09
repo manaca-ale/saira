@@ -1059,6 +1059,10 @@ def set_device_config(device_id: str):
         "tls_insecure",
         "ota_enabled",
         "ota_check_interval_ms",
+        "crop_x",
+        "crop_y",
+        "crop_w",
+        "crop_h",
     }
     cleaned: dict[str, str] = {}
     for k, v in payload.items():

@@ -28,36 +28,45 @@ import requests
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def fetch_latest_image(server: str, device_id: str) -> Image.Image:
-    """Baixa o snapshot mais recente do esp32-server."""
-    # Tenta endpoint de preview/latest; caso contrário usa /status para
-    # descobrir o device e monta URL direta de arquivo.
-    # O esp32-server serve as imagens em /uploads/<device>/<arquivo>.
-    url = f"{server}/device/{device_id}/latest.jpg"
-    r = requests.get(url, timeout=10)
-    if r.status_code == 200:
-        from io import BytesIO
-        return Image.open(BytesIO(r.content))
+    """Baixa o snapshot mais recente do esp32-server via API real."""
+    from io import BytesIO
 
-    # Fallback: lista arquivos no dashboard JSON e pega o mais recente
-    r2 = requests.get(f"{server}/dashboard/data", timeout=10)
-    if r2.status_code == 200:
-        data = r2.json()
-        for dev in data.get("devices", []):
-            if dev.get("device_id") == device_id:
-                images = dev.get("recent_images", [])
-                if images:
-                    img_url = images[0].get("url", "")
-                    if img_url:
-                        r3 = requests.get(
-                            img_url if img_url.startswith("http") else server + img_url,
-                            timeout=10,
-                        )
-                        if r3.status_code == 200:
-                            from io import BytesIO
-                            return Image.open(BytesIO(r3.content))
+    # GET /api/dashboard/summary?device_id=<id> → campo latest_image.url
+    r = requests.get(
+        f"{server}/api/dashboard/summary",
+        params={"device_id": device_id},
+        timeout=10,
+    )
+    if r.status_code == 200:
+        data = r.json()
+        latest = data.get("latest_image") or {}
+        img_url = latest.get("image_url") or latest.get("url", "")
+        if img_url:
+            full_url = img_url if img_url.startswith("http") else server + img_url
+            r2 = requests.get(full_url, timeout=15)
+            if r2.status_code == 200:
+                return Image.open(BytesIO(r2.content))
+
+    # Fallback: GET /api/dashboard/recent-images?device_id=<id>
+    r3 = requests.get(
+        f"{server}/api/dashboard/recent-images",
+        params={"device_id": device_id},
+        timeout=10,
+    )
+    if r3.status_code == 200:
+        raw = r3.json()
+        images = raw if isinstance(raw, list) else raw.get("images", [])
+        if images:
+            img_url = images[0].get("image_url") or images[0].get("url", "")
+            if img_url:
+                full_url = img_url if img_url.startswith("http") else server + img_url
+                r4 = requests.get(full_url, timeout=15)
+                if r4.status_code == 200:
+                    return Image.open(BytesIO(r4.content))
 
     raise RuntimeError(
         f"Não foi possível baixar imagem do device '{device_id}' em {server}.\n"
+        "Verifique se o device_id está correto e se há imagens recentes.\n"
         "Use --image para fornecer um arquivo local."
     )
 
