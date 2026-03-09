@@ -8,13 +8,15 @@
 #include "saira_config.h"
 #include "saira_ota.h"
 #include "saira_remote_config.h"
+#include "saira_runtime_config.h"
 #include "saira_wifi.h"
 
 // =============================================================================
 // 1. CREDENCIAIS DE REDE (ATUALIZADO)
 // =============================================================================
-const char* ssid = SAIRA_WIFI_SSID;
-const char* password = SAIRA_WIFI_PASSWORD;
+static String gDeviceId;
+static String gWifiSsid;
+static String gWifiPassword;
 
 // =============================================================================
 // 2. CONFIGURAÇÃO DO SERVIDOR (NGROK)
@@ -262,10 +264,16 @@ void setup() {
   Serial.begin(115200);
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); 
 
+  SairaRuntimeConfig rt = sairaLoadRuntimeConfig();
+  gDeviceId = rt.deviceId.length() ? rt.deviceId : String(SAIRA_DEVICE_ID);
+  gWifiSsid = rt.wifiSsid;
+  gWifiPassword = rt.wifiPassword;
+  Serial.printf("CFG runtime: device_id=%s ssid=%s\n", gDeviceId.c_str(), gWifiSsid.c_str());
+
   configCamera();
 
   Serial.print("Conectando WiFi");
-  if (!sairaConnectWiFi(ssid, password, SAIRA_DEVICE_ID, 30000)) {
+  if (!sairaConnectWiFi(gWifiSsid.c_str(), gWifiPassword.c_str(), gDeviceId.c_str(), 30000)) {
     Serial.println("WiFi: reboot em 5s...");
     delay(5000);
     ESP.restart();
@@ -293,7 +301,7 @@ void loop() {
     }
     return false;
   };
-  (void)sairaMaybeFetchRemoteConfig(serverBase, applyFn);
+  (void)sairaMaybeFetchRemoteConfig(serverBase, applyFn, gDeviceId);
 
 
   if ((millis() - lastTime) > timerDelay) {

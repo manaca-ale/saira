@@ -156,7 +156,7 @@
     environment:
       - UPLOAD_DIR=/app/uploads
       - STATE_DIR=/app/state
-      - P1_MODEL_PATH=/app/models/yolov8_2142.pt
+      - P1_MODEL_PATH=/app/models/yolov8_MDM_200_n.pt
       - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
       - CONF_THRESHOLD=0.25
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db

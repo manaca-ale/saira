@@ -8,7 +8,18 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/app/uploads")
 STATE_DIR = os.getenv("STATE_DIR", "/app/state")
 
 # YOLO model paths.
-P1_MODEL_PATH = os.getenv("P1_MODEL_PATH", "/app/models/yolov8_2142.pt")
+_P1_DEFAULT_CANDIDATES = (
+    "/app/models/yolov8_MDM_200_n.pt",
+    "/app/models/yolov8_2142.pt",  # legacy model (fallback)
+)
+
+def _resolve_default_p1_model_path() -> str:
+    for candidate in _P1_DEFAULT_CANDIDATES:
+        if os.path.exists(candidate):
+            return candidate
+    return _P1_DEFAULT_CANDIDATES[0]
+
+P1_MODEL_PATH = os.getenv("P1_MODEL_PATH", _resolve_default_p1_model_path())
 P2_MODEL_PATH = os.getenv("P2_MODEL_PATH", "/app/models/yolov8_PeopleCar_200_n.pt")
 
 # Detection confidence threshold (applied to both models).

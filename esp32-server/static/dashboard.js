@@ -34,7 +34,7 @@ const deviceCardTpl = byId("deviceCardTpl");
 
 const state = {
   selectedDevice: "",
-  pollMs: 15000,
+  pollMs: 10000,
   lastImagesSignature: "",
   lastLogsSignature: "",
 };
