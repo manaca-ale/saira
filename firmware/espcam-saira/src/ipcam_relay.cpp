@@ -3,6 +3,7 @@
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+#include "esp_log.h"
 #include "img_converters.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/md5.h"
@@ -15,6 +16,7 @@
 #include "saira_config.h"
 #include "saira_ota.h"
 #include "saira_remote_config.h"
+#include "saira_runtime_config.h"
 #include "saira_wifi.h"
 
 // =============================================================================
@@ -34,8 +36,9 @@ static inline void sairaPrintMs(const char* stage, uint32_t ms) {
 // =============================================================================
 // 1. WI-FI
 // =============================================================================
-const char* ssid = SAIRA_WIFI_SSID;
-const char* password = SAIRA_WIFI_PASSWORD;
+static String gDeviceId;
+static String gWifiSsid;
+static String gWifiPassword;
 
 // =============================================================================
 // 2. CAMERA IP (ORIGEM)
@@ -306,24 +309,20 @@ static void sendStatus(const String& msg) {
   String url = base;
   url = joinPath(url, STATUS_PATH);
 
-  WiFiClient* plain = nullptr;
-  WiFiClientSecure* tls = nullptr;
+  WiFiClient plain;
+  WiFiClientSecure tls;
   HTTPClient http;
 
   uint32_t tBegin0 = millis();
   if (u.https) {
-    tls = new WiFiClientSecure();
-    if (TLS_INSECURE) tls->setInsecure();
-    if (!http.begin(*tls, url)) {
+    if (TLS_INSECURE) tls.setInsecure();
+    if (!http.begin(tls, url)) {
       Serial.println("Status: http.begin() falhou.");
-      delete tls;
       return;
     }
   } else {
-    plain = new WiFiClient();
-    if (!http.begin(*plain, url)) {
+    if (!http.begin(plain, url)) {
       Serial.println("Status: http.begin() falhou.");
-      delete plain;
       return;
     }
   }
@@ -342,8 +341,6 @@ static void sendStatus(const String& msg) {
   Serial.println(code);
 
   http.end();
-  delete plain;
-  delete tls;
 
   sairaPrintMs("status_wifi", tWifi);
   sairaPrintMs("status_begin", tBegin);
@@ -590,7 +587,7 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   }
   tRead = sairaMsSince(tRead0);
 
-  // Don't call camHttp.end() — keep connection alive for next capture.
+  // Don't call camHttp.end() - keep connection alive for next capture.
   // The server may close it (camera-dependent), which is handled on next call.
 
   if (total != len) {
@@ -618,14 +615,51 @@ static bool downloadSnapshot(uint8_t*& outBuf, int& outLen) {
   return true;
 }
 
-static void writeAll(Stream& s, const uint8_t* buf, size_t len) {
+static bool writeAllWithTimeout(Client& c, const uint8_t* buf, size_t len,
+                                uint32_t timeoutMs, const char* stage) {
   size_t off = 0;
+  uint32_t lastProgress = millis();
   while (off < len) {
     size_t chunk = len - off;
     if (chunk > 1024) chunk = 1024;
-    s.write(buf + off, chunk);
-    off += chunk;
+    size_t written = c.write(buf + off, chunk);
+    if (written > 0) {
+      off += written;
+      lastProgress = millis();
+      continue;
+    }
+    if ((uint32_t)(millis() - lastProgress) >= timeoutMs) {
+      Serial.printf("Upload: timeout escrevendo %s (%u/%u bytes)\n",
+                    stage,
+                    (unsigned int)off,
+                    (unsigned int)len);
+      return false;
+    }
+    delay(2);
   }
+  return true;
+}
+
+static bool writeTextWithTimeout(Client& c, const String& text,
+                                 uint32_t timeoutMs, const char* stage) {
+  return writeAllWithTimeout(c,
+                             (const uint8_t*)text.c_str(),
+                             (size_t)text.length(),
+                             timeoutMs,
+                             stage);
+}
+
+static int parseHttpStatusCode(const String& statusLine) {
+  int firstSpace = statusLine.indexOf(' ');
+  if (firstSpace < 0) return -1;
+  int secondSpace = statusLine.indexOf(' ', firstSpace + 1);
+  String codeStr = (secondSpace < 0)
+                     ? statusLine.substring(firstSpace + 1)
+                     : statusLine.substring(firstSpace + 1, secondSpace);
+  codeStr.trim();
+  long code = codeStr.toInt();
+  if (code <= 0) return -1;
+  return (int)code;
 }
 
 static void netProbe() {
@@ -665,16 +699,19 @@ static void netProbe() {
   }
 }
 
-static void uploadSnapshot(const uint8_t* buf, int len) {
+static bool uploadSnapshot(const uint8_t* buf, int len) {
   uint32_t t0 = millis();
-  if (!ensureWiFi()) return;
+  if (!ensureWiFi()) {
+    Serial.println("Upload: WiFi indisponivel antes do envio.");
+    return false;
+  }
   uint32_t tWifi = sairaMsSince(t0);
 
   String base = String(SERVER_BASE);
   ParsedUrl u = parseHttpUrl(base);
   if (!u.ok) {
     Serial.println("Upload: SERVER_BASE invalido (precisa http:// ou https://).");
-    return;
+    return false;
   }
 
   // Permite base com path (prefixo), ex: https://host/prefix
@@ -682,25 +719,66 @@ static void uploadSnapshot(const uint8_t* buf, int len) {
   ParsedUrl up = parseHttpUrl(fullUploadUrl);
   if (!up.ok) {
     Serial.println("Upload: URL final invalida.");
-    return;
+    return false;
   }
 
   WiFiClient plain;
   WiFiClientSecure tls;
-  Stream* sock = nullptr;
+  Client* sock = nullptr;
+  constexpr uint8_t kMaxConnectAttempts = 3;
+  constexpr uint32_t kWriteTimeoutMs = 15000;
+  constexpr uint32_t kFirstResponseTimeoutMs = 5000;
 
   uint32_t tConn0 = millis();
   if (up.https) {
     if (TLS_INSECURE) tls.setInsecure();
-    if (!tls.connect(up.host.c_str(), up.port)) {
-      Serial.println("Upload: falha conectando TLS.");
-      return;
+    tls.setTimeout(5000);
+    bool connected = false;
+    for (uint8_t attempt = 1; attempt <= kMaxConnectAttempts; ++attempt) {
+      if (tls.connect(up.host.c_str(), up.port)) {
+        connected = true;
+        break;
+      }
+      Serial.printf("Upload: falha conectando TLS (%s:%u), tentativa %u/%u\n",
+                    up.host.c_str(), (unsigned int)up.port,
+                    (unsigned int)attempt, (unsigned int)kMaxConnectAttempts);
+      if (attempt < kMaxConnectAttempts) {
+        if (WiFi.status() != WL_CONNECTED) {
+          (void)ensureWiFi();
+        }
+        delay(250);
+      }
+    }
+    if (!connected) {
+      Serial.printf("Upload: sem conexao TLS com %s:%u apos %u tentativas\n",
+                    up.host.c_str(), (unsigned int)up.port,
+                    (unsigned int)kMaxConnectAttempts);
+      return false;
     }
     sock = &tls;
   } else {
-    if (!plain.connect(up.host.c_str(), up.port)) {
-      Serial.println("Upload: falha conectando.");
-      return;
+    plain.setTimeout(5000);
+    bool connected = false;
+    for (uint8_t attempt = 1; attempt <= kMaxConnectAttempts; ++attempt) {
+      if (plain.connect(up.host.c_str(), up.port)) {
+        connected = true;
+        break;
+      }
+      Serial.printf("Upload: falha conectando (%s:%u), tentativa %u/%u\n",
+                    up.host.c_str(), (unsigned int)up.port,
+                    (unsigned int)attempt, (unsigned int)kMaxConnectAttempts);
+      if (attempt < kMaxConnectAttempts) {
+        if (WiFi.status() != WL_CONNECTED) {
+          (void)ensureWiFi();
+        }
+        delay(250);
+      }
+    }
+    if (!connected) {
+      Serial.printf("Upload: sem conexao com %s:%u apos %u tentativas\n",
+                    up.host.c_str(), (unsigned int)up.port,
+                    (unsigned int)kMaxConnectAttempts);
+      return false;
     }
     sock = &plain;
   }
@@ -712,25 +790,38 @@ static void uploadSnapshot(const uint8_t* buf, int len) {
     "Content-Disposition: form-data; name=\"imageFile\"; filename=\"snapshot_relay.jpg\"\r\n"
     "Content-Type: image/jpeg\r\n\r\n";
   const String tail = "\r\n--" + boundary + "--\r\n";
-
   uint32_t totalLen = (uint32_t)len + head.length() + tail.length();
 
+  String reqHead;
+  reqHead.reserve(256);
+  reqHead += "POST " + up.path + " HTTP/1.1\r\n";
+  reqHead += "Host: " + up.host + "\r\n";
+  reqHead += "Connection: close\r\n";
+  reqHead += "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
+  reqHead += "Content-Length: " + String(totalLen) + "\r\n";
+  reqHead += "X-Device-Id: " + gDeviceId + "\r\n\r\n";
+
   uint32_t tSend0 = millis();
-  sock->print(String("POST ") + up.path + " HTTP/1.1\r\n");
-  sock->print(String("Host: ") + up.host + "\r\n");
-  sock->print("Connection: close\r\n");
-  sock->print(String("Content-Type: multipart/form-data; boundary=") + boundary + "\r\n");
-  sock->print(String("Content-Length: ") + String(totalLen) + "\r\n");
-  sock->print(String("X-Device-Id: ") + String(SAIRA_DEVICE_ID) + "\r\n");
-  sock->print("\r\n");
-  sock->print(head);
-  writeAll(*sock, buf, (size_t)len);
-  sock->print(tail);
+  bool sendOk = true;
+  sendOk = sendOk && writeTextWithTimeout(*sock, reqHead, kWriteTimeoutMs, "cabecalho");
+  sendOk = sendOk && writeTextWithTimeout(*sock, head, kWriteTimeoutMs, "multipart head");
+  sendOk = sendOk && writeAllWithTimeout(*sock, buf, (size_t)len, kWriteTimeoutMs, "jpeg");
+  sendOk = sendOk && writeTextWithTimeout(*sock, tail, kWriteTimeoutMs, "multipart tail");
   uint32_t tSend = sairaMsSince(tSend0);
 
-  // Lê primeira linha da resposta (best-effort)
+  if (!sendOk) {
+    if (up.https) tls.stop();
+    else plain.stop();
+    sairaPrintMs("up_wifi", tWifi);
+    sairaPrintMs("up_connect", tConn);
+    sairaPrintMs("up_send", tSend);
+    sairaPrintMs("up_total", sairaMsSince(t0));
+    return false;
+  }
+
+  // Le primeira linha da resposta (best-effort)
   uint32_t tWait0 = millis();
-  while (millis() - tWait0 < 5000) {
+  while (millis() - tWait0 < kFirstResponseTimeoutMs) {
     if (up.https ? tls.available() : plain.available()) break;
     delay(10);
   }
@@ -739,11 +830,15 @@ static void uploadSnapshot(const uint8_t* buf, int len) {
   String statusLine;
   if (up.https) statusLine = tls.readStringUntil('\n');
   else statusLine = plain.readStringUntil('\n');
+  int statusCode = parseHttpStatusCode(statusLine);
 
   Serial.print("Upload ");
   Serial.print(fullUploadUrl);
   Serial.print(" -> ");
   Serial.println(statusLine.length() ? statusLine : "(sem resposta)");
+  if (statusCode < 200 || statusCode >= 300) {
+    Serial.printf("Upload: resposta HTTP invalida (code=%d)\n", statusCode);
+  }
 
   if (up.https) tls.stop();
   else plain.stop();
@@ -753,9 +848,9 @@ static void uploadSnapshot(const uint8_t* buf, int len) {
   sairaPrintMs("up_send", tSend);
   sairaPrintMs("up_wait", tWait);
   sairaPrintMs("up_total", sairaMsSince(t0));
+  return (statusCode >= 200 && statusCode < 300);
 }
-
-static const uint8_t QUEUE_REENCODE_JPEG_QUALITY = 16;
+static const uint8_t QUEUE_REENCODE_JPEG_QUALITY = 12;
 static uint8_t* gQueueRgbWorkspace = nullptr;
 static size_t gQueueRgbWorkspaceLen = 0;
 
@@ -870,6 +965,11 @@ static int queueHead = 0;  // proximo slot a ser consumido (upload)
 static int queueTail = 0;  // proximo slot a ser escrito (captura)
 static volatile int queueCount = 0;
 static SemaphoreHandle_t queueMutex = NULL;
+static volatile bool gUploadInProgress = false;
+static bool gCaptureBackpressure = false;
+static uint32_t gLastBackpressureLogMs = 0;
+static const int CAPTURE_PAUSE_QUEUE_THRESHOLD = 8;
+static const int CAPTURE_RESUME_QUEUE_THRESHOLD = 3;
 
 static bool queuePush(uint8_t* data, int len, uint32_t ts) {
     if (!isLikelyValidJpeg(data, len)) {
@@ -938,7 +1038,15 @@ static void uploadTask(void* /*param*/) {
                     sairaPrintMs("queue_delay", (uint32_t)(now - img.capturedAt));
                 }
                 Serial.printf("\n--- UPLOAD (fila restante: %d) ---\n", queueCount);
-                uploadSnapshot(img.data, img.length);
+                gUploadInProgress = true;
+                uint32_t upT0 = millis();
+                bool upOk = uploadSnapshot(img.data, img.length);
+                gUploadInProgress = false;
+                uint32_t upMs = sairaMsSince(upT0);
+                Serial.printf("UPLOAD: %s (%lu ms), fila atual: %d\n",
+                              upOk ? "OK" : "ERRO",
+                              (unsigned long)upMs,
+                              queueCount);
                 free(img.data);
             }
         }
@@ -948,12 +1056,20 @@ static void uploadTask(void* /*param*/) {
 
 void setup() {
   Serial.begin(115200);
+  // We emit our own connection diagnostics; suppress raw WiFiClient socket spam.
+  esp_log_level_set("WiFiClient", ESP_LOG_NONE);
 #if defined(RTC_CNTL_BROWN_OUT_REG)
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
 #endif
 
+  SairaRuntimeConfig rt = sairaLoadRuntimeConfig();
+  gDeviceId = rt.deviceId.length() ? rt.deviceId : String(SAIRA_DEVICE_ID);
+  gWifiSsid = rt.wifiSsid;
+  gWifiPassword = rt.wifiPassword;
+  Serial.printf("CFG runtime: device_id=%s ssid=%s\n", gDeviceId.c_str(), gWifiSsid.c_str());
+
   Serial.print("Conectando WiFi");
-  if (!sairaConnectWiFi(ssid, password, SAIRA_DEVICE_ID, 30000)) {
+  if (!sairaConnectWiFi(gWifiSsid.c_str(), gWifiPassword.c_str(), gDeviceId.c_str(), 30000)) {
     Serial.println("WiFi: reboot em 5s...");
     delay(5000);
     ESP.restart();
@@ -981,29 +1097,50 @@ void setup() {
 static uint32_t nextCaptureAt = 0;
 
 void loop() {
-  sairaMaybeCheckOta();
-
-  // Remote config (manter logica existente)
-  auto applyFn = +[](const String& key, const String& value) -> bool {
-    bool changed = false;
-    String k = key; k.toLowerCase();
-    if (k == "timer_delay_ms") {
-      long v = value.toInt();
-      if (v >= 1000 && (uint32_t)v != timerDelayMs) {
-        timerDelayMs = (uint32_t)v;
-        changed = true;
-      }
-    } else if (k == "ip_cam_url") {
-      if (value.length() && value != ipCamUrl) { ipCamUrl = value; changed = true; }
-    } else if (k == "ip_cam_user") {
-      if (value != ipCamUser) { ipCamUser = value; changed = true; }
-    } else if (k == "ip_cam_pass") {
-      if (value != ipCamPass) { ipCamPass = value; changed = true; }
+  if (!gCaptureBackpressure && queueCount >= CAPTURE_PAUSE_QUEUE_THRESHOLD) {
+    gCaptureBackpressure = true;
+    gLastBackpressureLogMs = millis();
+    Serial.printf("CAPTURE: pausa por backlog (fila=%d, limite=%d)\n",
+                  queueCount, CAPTURE_PAUSE_QUEUE_THRESHOLD);
+  } else if (gCaptureBackpressure && queueCount <= CAPTURE_RESUME_QUEUE_THRESHOLD) {
+    gCaptureBackpressure = false;
+    Serial.printf("CAPTURE: retomada (fila=%d)\n", queueCount);
+  }
+  if (gCaptureBackpressure) {
+    if ((uint32_t)(millis() - gLastBackpressureLogMs) >= 5000) {
+      gLastBackpressureLogMs = millis();
+      Serial.printf("CAPTURE: aguardando fila reduzir (fila=%d)\n", queueCount);
     }
-    if (changed) Serial.println("CFG: aplicado (ipcam-relay).");
-    return changed;
-  };
-  (void)sairaMaybeFetchRemoteConfig(String(SERVER_BASE), applyFn);
+    delay(20);
+    return;
+  }
+
+  // Evita concorrencia de conexoes com a task de upload (core 0).
+  if (!gUploadInProgress && queueCount == 0) {
+    sairaMaybeCheckOta();
+
+    // Remote config (manter logica existente)
+    auto applyFn = +[](const String& key, const String& value) -> bool {
+      bool changed = false;
+      String k = key; k.toLowerCase();
+      if (k == "timer_delay_ms") {
+        long v = value.toInt();
+        if (v >= 1000 && (uint32_t)v != timerDelayMs) {
+          timerDelayMs = (uint32_t)v;
+          changed = true;
+        }
+      } else if (k == "ip_cam_url") {
+        if (value.length() && value != ipCamUrl) { ipCamUrl = value; changed = true; }
+      } else if (k == "ip_cam_user") {
+        if (value != ipCamUser) { ipCamUser = value; changed = true; }
+      } else if (k == "ip_cam_pass") {
+        if (value != ipCamPass) { ipCamPass = value; changed = true; }
+      }
+      if (changed) Serial.println("CFG: aplicado (ipcam-relay).");
+      return changed;
+    };
+    (void)sairaMaybeFetchRemoteConfig(String(SERVER_BASE), applyFn, gDeviceId);
+  }
 
   // 1. CAPTURA em intervalo fixo
   if (nextCaptureAt == 0) nextCaptureAt = millis();
@@ -1025,7 +1162,7 @@ void loop() {
         sairaPrintMs("capture_total", sairaMsSince(tCap0));
         Serial.printf("   OK: %d bytes capturados\n", len);
         queuePush(buf, len, millis());
-        // NAO fazer free(buf) aqui — a fila agora eh dona do ponteiro
+        // NAO fazer free(buf) aqui - a fila agora eh dona do ponteiro
       } else {
         sairaPrintMs("capture_total", sairaMsSince(tCap0));
         Serial.println("   ERRO: falha na captura");

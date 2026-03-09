@@ -26,6 +26,8 @@ def _int_env(name: str, default: int, minimum: int = 0) -> int:
 
 UPLOAD_LOG_EVERY = _int_env("UPLOAD_LOG_EVERY", 20, minimum=1)
 _upload_ok_count = 0
+UPLOAD_EVENT_PRINT_EVERY = _int_env("UPLOAD_EVENT_PRINT_EVERY", 0, minimum=0)
+_upload_event_print_count = 0
 DASHBOARD_CACHE_TTL_SECONDS = _int_env("DASHBOARD_CACHE_TTL_SECONDS", 8, minimum=1)
 DEVICE_ACTIVE_WINDOW_SECONDS = _int_env("DEVICE_ACTIVE_WINDOW_SECONDS", 60, minimum=10)
 DASHBOARD_RECENT_DAYS = _int_env("DASHBOARD_RECENT_DAYS", 2, minimum=1)
@@ -66,6 +68,9 @@ def _get_config_root() -> str:
 
 CONFIG_ROOT = _get_config_root()
 os.makedirs(CONFIG_ROOT, exist_ok=True)
+DEFAULT_CONFIG_BASENAME = os.path.basename(
+    (os.getenv("DEFAULT_CONFIG_FILE", "default.txt") or "default.txt").strip()
+) or "default.txt"
 _dashboard_cache: dict[str, object] = {"expires_at": 0.0}
 _recent_events = deque(maxlen=300)
 _device_last_seen: dict[str, float] = {}
@@ -129,6 +134,7 @@ def _append_event_to_disk(entry: dict[str, object]) -> None:
 
 
 def _record_device_event(device_id: str, event: str, message: str) -> None:
+    global _upload_event_print_count
     safe_id = _sanitize_device_id(device_id) if device_id else None
     if not safe_id:
         safe_id = "unknown_device"
@@ -143,7 +149,15 @@ def _record_device_event(device_id: str, event: str, message: str) -> None:
     _device_last_seen[safe_id] = ts
     _dashboard_cache["expires_at"] = 0.0
     _append_event_to_disk(entry)
-    print(f"[DEVICE] {safe_id} | {event} | {message}", flush=True)
+    should_print = True
+    if event == "upload":
+        _upload_event_print_count += 1
+        if UPLOAD_EVENT_PRINT_EVERY <= 0:
+            should_print = False
+        else:
+            should_print = (_upload_event_print_count % UPLOAD_EVENT_PRINT_EVERY) == 0
+    if should_print:
+        print(f"[DEVICE] {safe_id} | {event} | {message}", flush=True)
 
 
 def _iso_to_epoch(iso_text: str) -> Optional[float]:
@@ -634,6 +648,34 @@ def _config_path_for(device_id: str) -> str:
     return os.path.join(CONFIG_ROOT, f"{safe}.txt")
 
 
+def _default_config_path() -> str:
+    return os.path.join(CONFIG_ROOT, DEFAULT_CONFIG_BASENAME)
+
+
+def _default_config_bytes() -> Optional[bytes]:
+    default_path = _default_config_path()
+    if os.path.isfile(default_path):
+        try:
+            with open(default_path, "rb") as f:
+                return f.read()
+        except OSError:
+            pass
+
+    raw_timer = os.getenv("DEFAULT_TIMER_DELAY_MS", "").strip()
+    if not raw_timer:
+        return None
+    try:
+        timer_ms = int(raw_timer)
+    except ValueError:
+        return None
+    if timer_ms < 1000:
+        return None
+
+    version = (os.getenv("DEFAULT_CONFIG_VERSION", "default") or "default").strip() or "default"
+    body = f"version={version}\ntimer_delay_ms={timer_ms}\n"
+    return body.encode("utf-8")
+
+
 def _sha256_bytes(data: bytes) -> str:
     h = hashlib.sha256()
     h.update(data)
@@ -651,7 +693,11 @@ def get_device_config(device_id: str):
         with open(path, "rb") as f:
             body_bytes = f.read()
     else:
-        body_bytes = b"version=0\n"
+        default_bytes = _default_config_bytes()
+        if default_bytes is not None:
+            body_bytes = default_bytes
+        else:
+            body_bytes = b"version=0\n"
 
     etag = _sha256_bytes(body_bytes)
     inm = request.headers.get("If-None-Match", "")
