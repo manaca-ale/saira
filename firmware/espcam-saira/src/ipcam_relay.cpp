@@ -854,6 +854,9 @@ static const uint8_t QUEUE_REENCODE_JPEG_QUALITY = 12;
 static uint8_t* gQueueRgbWorkspace = nullptr;
 static size_t gQueueRgbWorkspaceLen = 0;
 
+// Crop config por device (0,0,0,0 = sem crop)
+static int gCropX = 0, gCropY = 0, gCropW = 0, gCropH = 0;
+
 static bool isSofMarker(uint8_t marker) {
   switch (marker) {
     case 0xC0: case 0xC1: case 0xC2: case 0xC3:
@@ -931,16 +934,52 @@ static bool compactJpegForQueue(uint8_t*& data, int& len) {
   uint8_t* rgb = gQueueRgbWorkspace;
   if (!fmt2rgb888(data, (size_t)len, PIXFORMAT_JPEG, rgb)) return false;
 
+  // Aplica crop se configurado (mesmo pass do decode, sem custo extra)
+  uint16_t encW = width, encH = height;
+  uint8_t* encRgb = rgb;
+  uint8_t* cropBuf = nullptr;
+
+  if (gCropW > 0 && gCropH > 0) {
+    int cx = gCropX < 0 ? 0 : gCropX;
+    int cy = gCropY < 0 ? 0 : gCropY;
+    int cw = gCropW;
+    int ch = gCropH;
+    if (cx + cw > (int)width)  cw = (int)width  - cx;
+    if (cy + ch > (int)height) ch = (int)height - cy;
+    if (cw > 0 && ch > 0 && (cw < (int)width || ch < (int)height)) {
+      size_t cropRgbLen = (size_t)cw * (size_t)ch * 3;
+      cropBuf = (uint8_t*)ps_malloc(cropRgbLen);
+      if (!cropBuf) cropBuf = (uint8_t*)malloc(cropRgbLen);
+      if (cropBuf) {
+        for (int row = 0; row < ch; row++) {
+          memcpy(cropBuf + (size_t)row * cw * 3,
+                 rgb + ((size_t)(cy + row) * width + cx) * 3,
+                 (size_t)cw * 3);
+        }
+        encW   = (uint16_t)cw;
+        encH   = (uint16_t)ch;
+        encRgb = cropBuf;
+        Serial.printf("CROP: %dx%d -> %dx%d (x=%d y=%d)\n",
+                      (int)width, (int)height, cw, ch, cx, cy);
+      }
+    }
+  }
+
+  size_t encRgbLen = (size_t)encW * (size_t)encH * 3;
   uint8_t* out = nullptr;
   size_t outLen = 0;
-  bool ok = fmt2jpg(rgb, rgbLen, width, height, PIXFORMAT_RGB888,
+  bool ok = fmt2jpg(encRgb, encRgbLen, encW, encH, PIXFORMAT_RGB888,
                     QUEUE_REENCODE_JPEG_QUALITY, &out, &outLen);
+  free(cropBuf);
 
   if (!ok || !out || outLen == 0) {
     free(out);
     return false;
   }
-  if (outLen >= (size_t)len) {
+  // Se houve crop: aceita sempre (imagem menor é o objetivo).
+  // Sem crop: só aceita se realmente comprimiu.
+  bool wasCropped = (encW < width || encH < height);
+  if (!wasCropped && outLen >= (size_t)len) {
     free(out);
     return false;
   }
@@ -1135,8 +1174,21 @@ void loop() {
         if (value != ipCamUser) { ipCamUser = value; changed = true; }
       } else if (k == "ip_cam_pass") {
         if (value != ipCamPass) { ipCamPass = value; changed = true; }
+      } else if (k == "crop_x") {
+        int v = (int)value.toInt();
+        if (v != gCropX) { gCropX = v; changed = true; }
+      } else if (k == "crop_y") {
+        int v = (int)value.toInt();
+        if (v != gCropY) { gCropY = v; changed = true; }
+      } else if (k == "crop_w") {
+        int v = (int)value.toInt();
+        if (v != gCropW) { gCropW = v; changed = true; }
+      } else if (k == "crop_h") {
+        int v = (int)value.toInt();
+        if (v != gCropH) { gCropH = v; changed = true; }
       }
-      if (changed) Serial.println("CFG: aplicado (ipcam-relay).");
+      if (changed) Serial.printf("CFG: aplicado (ipcam-relay) crop=%dx%d+%d+%d.\n",
+                                 gCropW, gCropH, gCropX, gCropY);
       return changed;
     };
     (void)sairaMaybeFetchRemoteConfig(String(SERVER_BASE), applyFn, gDeviceId);
