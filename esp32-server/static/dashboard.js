@@ -32,11 +32,35 @@ const imageCardTpl = byId("imageCardTpl");
 const logRowTpl = byId("logRowTpl");
 const deviceCardTpl = byId("deviceCardTpl");
 
+const openCameraModalBtn = byId("openCameraModalBtn");
+const openCameraModalBtnInline = byId("openCameraModalBtnInline");
+const cameraRegistrationStatusEl = byId("cameraRegistrationStatus");
+const cameraModalBackdropEl = byId("cameraModalBackdrop");
+const closeCameraModalBtn = byId("closeCameraModalBtn");
+const cancelCameraModalBtn = byId("cancelCameraModalBtn");
+const cameraRegistrationForm = byId("cameraRegistrationForm");
+const cameraDeviceIdEl = byId("cameraDeviceId");
+const cameraNameEl = byId("cameraName");
+const cameraLatitudeEl = byId("cameraLatitude");
+const cameraLongitudeEl = byId("cameraLongitude");
+const cameraLogradouroEl = byId("cameraLogradouro");
+const cameraBairroEl = byId("cameraBairro");
+const cameraRpaEl = byId("cameraRpa");
+const cameraRtspUrlEl = byId("cameraRtspUrl");
+const cameraCaptureIntervalEl = byId("cameraCaptureInterval");
+const cameraIsActiveEl = byId("cameraIsActive");
+const cameraFormFeedbackEl = byId("cameraFormFeedback");
+const cameraFormSubmitBtn = byId("cameraFormSubmitBtn");
+
 const state = {
   selectedDevice: "",
-  pollMs: 10000,
+  pollMs: 15000,
   lastImagesSignature: "",
   lastLogsSignature: "",
+  registrationOptions: [],
+  registrationBackend: { ok: false, error: "Carregando..." },
+  registrationLoading: false,
+  registrationLoadedAt: 0,
 };
 
 function toQuery(params) {
@@ -56,8 +80,7 @@ function fmtDate(iso) {
     return dt.toLocaleString("pt-BR", { hour12: false });
   }
   const raw = String(iso).trim();
-  const normalized = raw.replace("T", " ").replace("Z", "");
-  return normalized;
+  return raw.replace("T", " ").replace("Z", "");
 }
 
 function fmtRelative(iso) {
@@ -86,6 +109,14 @@ function setRefreshStatus(kind, text) {
   if (kind === "warn") refreshStatusEl.classList.add("is-warn");
   if (kind === "error") refreshStatusEl.classList.add("is-error");
   refreshStatusEl.textContent = text;
+}
+
+function setCameraFeedback(kind, text) {
+  if (!cameraFormFeedbackEl) return;
+  cameraFormFeedbackEl.classList.remove("is-error", "is-success");
+  if (kind === "error") cameraFormFeedbackEl.classList.add("is-error");
+  if (kind === "success") cameraFormFeedbackEl.classList.add("is-success");
+  cameraFormFeedbackEl.textContent = text;
 }
 
 function renderDeviceFilter(devices) {
@@ -228,6 +259,196 @@ function renderLogs(logs) {
   logsEl.appendChild(frag);
 }
 
+function setRegistrationStatus(message, kind = "ok") {
+  if (!cameraRegistrationStatusEl) return;
+  cameraRegistrationStatusEl.textContent = message;
+  cameraRegistrationStatusEl.className = "camera-register-status";
+  if (kind === "error") {
+    cameraRegistrationStatusEl.style.color = "#8f261b";
+  } else if (kind === "warn") {
+    cameraRegistrationStatusEl.style.color = "#845109";
+  } else {
+    cameraRegistrationStatusEl.style.color = "#24573b";
+  }
+}
+
+function renderCameraDeviceOptions() {
+  if (!cameraDeviceIdEl) return;
+  const current = cameraDeviceIdEl.value;
+  cameraDeviceIdEl.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Selecione um dispositivo";
+  cameraDeviceIdEl.appendChild(placeholder);
+
+  const rows = Array.isArray(state.registrationOptions) ? state.registrationOptions.slice() : [];
+  rows.sort((a, b) => String(a.device_id || "").localeCompare(String(b.device_id || "")));
+
+  let unregisteredCount = 0;
+  for (const row of rows) {
+    const deviceId = String(row.device_id || "").trim();
+    if (!deviceId) continue;
+    const isRegistered = Boolean(row.is_registered);
+    if (!isRegistered) unregisteredCount += 1;
+    const opt = document.createElement("option");
+    opt.value = deviceId;
+    opt.disabled = isRegistered;
+    opt.textContent = isRegistered
+      ? `${deviceId} (ja cadastrado)`
+      : `${deviceId}${row.is_active ? " (ativo)" : " (inativo)"}`;
+    cameraDeviceIdEl.appendChild(opt);
+  }
+
+  if (current) {
+    cameraDeviceIdEl.value = current;
+  }
+
+  const backend = state.registrationBackend || {};
+  if (!backend.ok) {
+    setRegistrationStatus(`Cadastro indisponivel: ${backend.error || "backend offline"}`, "error");
+    return;
+  }
+  setRegistrationStatus(
+    `${unregisteredCount} dispositivo(s) disponivel(is) para cadastro | ${rows.length - unregisteredCount} ja cadastrado(s).`,
+    unregisteredCount > 0 ? "ok" : "warn"
+  );
+}
+
+function openCameraModal() {
+  if (!cameraModalBackdropEl) return;
+  cameraModalBackdropEl.hidden = false;
+  document.body.style.overflow = "hidden";
+  if (cameraNameEl) {
+    const active = document.activeElement;
+    const shouldFocus = !active || active === document.body;
+    if (shouldFocus) cameraNameEl.focus();
+  }
+}
+
+function closeCameraModal() {
+  if (!cameraModalBackdropEl) return;
+  cameraModalBackdropEl.hidden = true;
+  document.body.style.overflow = "";
+}
+
+function onDeviceOptionChange() {
+  if (!cameraDeviceIdEl || !cameraNameEl) return;
+  const deviceId = String(cameraDeviceIdEl.value || "").trim();
+  if (!deviceId) return;
+  const current = String(cameraNameEl.value || "").trim();
+  if (!current || current.startsWith("Camera ")) {
+    cameraNameEl.value = `Camera ${deviceId}`;
+  }
+}
+
+function parseNumberField(el) {
+  const raw = String(el?.value || "").trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return null;
+  return n;
+}
+
+function payloadOrNull(raw) {
+  const txt = String(raw || "").trim();
+  return txt ? txt : null;
+}
+
+async function loadCameraRegistrationOptions({ silent = false } = {}) {
+  if (state.registrationLoading) return;
+  state.registrationLoading = true;
+  if (!silent) setRegistrationStatus("Atualizando opcoes de cadastro...", "warn");
+  try {
+    const resp = await fetch("/api/dashboard/camera-registration/options", { cache: "no-store" });
+    if (!resp.ok) {
+      throw new Error(`Falha ao buscar opcoes (${resp.status})`);
+    }
+    const data = await resp.json();
+    state.registrationOptions = Array.isArray(data.devices) ? data.devices : [];
+    state.registrationBackend = data.backend || {};
+    state.registrationLoadedAt = Date.now();
+    renderCameraDeviceOptions();
+  } catch (err) {
+    state.registrationOptions = [];
+    state.registrationBackend = { ok: false, error: err.message || "Erro" };
+    renderCameraDeviceOptions();
+  } finally {
+    state.registrationLoading = false;
+  }
+}
+
+async function submitCameraRegistration(event) {
+  event.preventDefault();
+  if (!cameraRegistrationForm) return;
+
+  const deviceId = String(cameraDeviceIdEl?.value || "").trim();
+  const name = String(cameraNameEl?.value || "").trim();
+  const latitude = parseNumberField(cameraLatitudeEl);
+  const longitude = parseNumberField(cameraLongitudeEl);
+  const captureInterval = parseInt(String(cameraCaptureIntervalEl?.value || "30").trim(), 10);
+
+  if (!deviceId) {
+    setCameraFeedback("error", "Selecione um dispositivo.");
+    return;
+  }
+  if (!name) {
+    setCameraFeedback("error", "Informe o nome da camera.");
+    return;
+  }
+  if (latitude === null || longitude === null) {
+    setCameraFeedback("error", "Latitude e longitude devem ser numericas.");
+    return;
+  }
+  if (!Number.isInteger(captureInterval) || captureInterval < 1) {
+    setCameraFeedback("error", "Intervalo de captura deve ser inteiro >= 1.");
+    return;
+  }
+
+  const payload = {
+    device_id: deviceId,
+    name,
+    latitude,
+    longitude,
+    capture_interval_seconds: captureInterval,
+    is_active: Boolean(cameraIsActiveEl?.checked),
+    logradouro: payloadOrNull(cameraLogradouroEl?.value),
+    bairro: payloadOrNull(cameraBairroEl?.value),
+    rpa: payloadOrNull(cameraRpaEl?.value),
+    rtsp_url: payloadOrNull(cameraRtspUrlEl?.value),
+  };
+
+  if (cameraFormSubmitBtn) cameraFormSubmitBtn.disabled = true;
+  setCameraFeedback("warn", "Enviando cadastro para o backend...");
+
+  try {
+    const resp = await fetch("/api/dashboard/camera-registration", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const body = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const errorMsg = body.error || `Falha no cadastro (${resp.status})`;
+      throw new Error(errorMsg);
+    }
+
+    const camera = body.camera || {};
+    setCameraFeedback("success", `Camera cadastrada com sucesso (id=${camera.id || "n/a"}).`);
+    state.registrationLoadedAt = 0;
+    await Promise.all([
+      loadCameraRegistrationOptions({ silent: true }),
+      loadDashboard({ manual: true }),
+    ]);
+    setTimeout(() => closeCameraModal(), 600);
+  } catch (err) {
+    setCameraFeedback("error", err.message || "Falha ao cadastrar camera.");
+  } finally {
+    if (cameraFormSubmitBtn) cameraFormSubmitBtn.disabled = false;
+  }
+}
+
 async function loadDashboard(options = {}) {
   const manual = Boolean(options.manual);
   try {
@@ -291,6 +512,10 @@ async function loadDashboard(options = {}) {
 
     safeSetText(updatedAtEl, `Atualizado em ${fmtDate(summary.updated_at)}${selectedNow ? ` | Filtro: ${selectedNow}` : ""}`);
     setRefreshStatus("ok", `Online | auto refresh ${Math.round(state.pollMs / 1000)}s`);
+
+    if (!state.registrationLoading && Date.now() - state.registrationLoadedAt > 30000) {
+      loadCameraRegistrationOptions({ silent: true });
+    }
   } catch (err) {
     setRefreshStatus("error", "Erro de leitura");
     safeSetText(updatedAtEl, `Erro: ${err.message}`);
@@ -310,8 +535,41 @@ if (deviceFilterEl) {
 if (refreshBtn) {
   refreshBtn.addEventListener("click", () => {
     loadDashboard({ manual: true });
+    loadCameraRegistrationOptions({ silent: true });
   });
 }
 
+if (openCameraModalBtn) {
+  openCameraModalBtn.addEventListener("click", () => openCameraModal());
+}
+if (openCameraModalBtnInline) {
+  openCameraModalBtnInline.addEventListener("click", () => openCameraModal());
+}
+if (closeCameraModalBtn) {
+  closeCameraModalBtn.addEventListener("click", () => closeCameraModal());
+}
+if (cancelCameraModalBtn) {
+  cancelCameraModalBtn.addEventListener("click", () => closeCameraModal());
+}
+if (cameraModalBackdropEl) {
+  cameraModalBackdropEl.addEventListener("click", (event) => {
+    if (event.target === cameraModalBackdropEl) {
+      closeCameraModal();
+    }
+  });
+}
+if (cameraDeviceIdEl) {
+  cameraDeviceIdEl.addEventListener("change", onDeviceOptionChange);
+}
+if (cameraRegistrationForm) {
+  cameraRegistrationForm.addEventListener("submit", submitCameraRegistration);
+}
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && cameraModalBackdropEl && !cameraModalBackdropEl.hidden) {
+    closeCameraModal();
+  }
+});
+
 loadDashboard();
+loadCameraRegistrationOptions();
 setInterval(() => loadDashboard(), state.pollMs);

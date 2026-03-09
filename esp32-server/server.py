@@ -6,9 +6,11 @@ import re
 import heapq
 import json
 import time
+import threading
 from collections import deque
 from typing import Optional
 from zoneinfo import ZoneInfo
+import requests
 
 app = Flask(__name__)
 
@@ -26,8 +28,6 @@ def _int_env(name: str, default: int, minimum: int = 0) -> int:
 
 UPLOAD_LOG_EVERY = _int_env("UPLOAD_LOG_EVERY", 20, minimum=1)
 _upload_ok_count = 0
-UPLOAD_EVENT_PRINT_EVERY = _int_env("UPLOAD_EVENT_PRINT_EVERY", 0, minimum=0)
-_upload_event_print_count = 0
 DASHBOARD_CACHE_TTL_SECONDS = _int_env("DASHBOARD_CACHE_TTL_SECONDS", 8, minimum=1)
 DEVICE_ACTIVE_WINDOW_SECONDS = _int_env("DEVICE_ACTIVE_WINDOW_SECONDS", 60, minimum=10)
 DASHBOARD_RECENT_DAYS = _int_env("DASHBOARD_RECENT_DAYS", 2, minimum=1)
@@ -35,6 +35,16 @@ DASHBOARD_RECENT_IMAGES_CAP = _int_env("DASHBOARD_RECENT_IMAGES_CAP", 180, minim
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 CAPTURE_FILENAME_TZ = ZoneInfo(os.getenv("CAPTURE_FILENAME_TZ", "UTC"))
 UNKNOWN_DEVICE_IDS = {"unknown", "unknown_device", "unknow", "unknow_device"}
+CORE_API_BASE_URL = (os.getenv("CORE_API_BASE_URL", "") or "").strip().rstrip("/")
+CORE_API_LOGIN_EMAIL = (os.getenv("CORE_API_LOGIN_EMAIL", "admin@saira.com") or "").strip()
+CORE_API_LOGIN_PASSWORD = os.getenv("CORE_API_LOGIN_PASSWORD", "admin123")
+CORE_API_TIMEOUT_SECONDS = max(2.0, float(os.getenv("CORE_API_TIMEOUT_SECONDS", "8") or "8"))
+CORE_API_CAMERA_LIMIT = _int_env("CORE_API_CAMERA_LIMIT", 500, minimum=10)
+
+_core_api_lock = threading.Lock()
+_core_api_cached_base = ""
+_core_api_cached_token = ""
+_core_api_cached_expiry = 0.0
 
 def _get_upload_root() -> str:
     # Allow overriding storage location on EC2 (e.g. /data/saira/uploads).
@@ -68,9 +78,6 @@ def _get_config_root() -> str:
 
 CONFIG_ROOT = _get_config_root()
 os.makedirs(CONFIG_ROOT, exist_ok=True)
-DEFAULT_CONFIG_BASENAME = os.path.basename(
-    (os.getenv("DEFAULT_CONFIG_FILE", "default.txt") or "default.txt").strip()
-) or "default.txt"
 _dashboard_cache: dict[str, object] = {"expires_at": 0.0}
 _recent_events = deque(maxlen=300)
 _device_last_seen: dict[str, float] = {}
@@ -104,6 +111,157 @@ def _public_image_url(rel_path: str) -> str:
     return f"/uploads/{rel_url}"
 
 
+def _core_api_candidates() -> list[str]:
+    candidates: list[str] = []
+    if CORE_API_BASE_URL:
+        candidates.append(CORE_API_BASE_URL)
+    candidates.extend(
+        [
+            "http://backend:8001/api/v1",
+            "http://localhost:8001/api/v1",
+        ]
+    )
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for item in candidates:
+        base = (item or "").strip().rstrip("/")
+        if not base or base in seen:
+            continue
+        seen.add(base)
+        ordered.append(base)
+    return ordered
+
+
+def _core_api_login(base_url: str, force_refresh: bool = False) -> str:
+    global _core_api_cached_base, _core_api_cached_token, _core_api_cached_expiry
+    now = time.time()
+    with _core_api_lock:
+        if (
+            not force_refresh
+            and _core_api_cached_token
+            and _core_api_cached_base == base_url
+            and now < _core_api_cached_expiry
+        ):
+            return _core_api_cached_token
+
+    login_url = f"{base_url}/auth/login"
+    resp = requests.post(
+        login_url,
+        data={
+            "username": CORE_API_LOGIN_EMAIL,
+            "password": CORE_API_LOGIN_PASSWORD,
+        },
+        timeout=CORE_API_TIMEOUT_SECONDS,
+    )
+    if resp.status_code != 200:
+        raise RuntimeError(f"login {resp.status_code}: {resp.text[:180]}")
+
+    payload = resp.json() if resp.content else {}
+    token = str(payload.get("access_token") or "").strip()
+    if not token:
+        raise RuntimeError("login sem access_token")
+
+    with _core_api_lock:
+        _core_api_cached_base = base_url
+        _core_api_cached_token = token
+        _core_api_cached_expiry = time.time() + 20 * 60
+    return token
+
+
+def _core_api_request(
+    method: str,
+    path: str,
+    *,
+    params: Optional[dict[str, object]] = None,
+    json_body: Optional[dict[str, object]] = None,
+) -> tuple[Optional[requests.Response], Optional[str], Optional[str]]:
+    errors: list[str] = []
+    for base in _core_api_candidates():
+        try:
+            token = _core_api_login(base)
+        except Exception as exc:
+            errors.append(f"{base} login: {exc}")
+            continue
+
+        url = f"{base}{path}"
+        headers = {"Authorization": f"Bearer {token}"}
+        for attempt in range(2):
+            try:
+                resp = requests.request(
+                    method=method.upper(),
+                    url=url,
+                    params=params,
+                    json=json_body,
+                    headers=headers,
+                    timeout=CORE_API_TIMEOUT_SECONDS,
+                )
+            except Exception as exc:
+                errors.append(f"{base} request: {exc}")
+                resp = None
+
+            if resp is None:
+                break
+            if resp.status_code == 401 and attempt == 0:
+                try:
+                    token = _core_api_login(base, force_refresh=True)
+                    headers["Authorization"] = f"Bearer {token}"
+                    continue
+                except Exception as exc:
+                    errors.append(f"{base} relogin: {exc}")
+                    break
+            if resp.status_code >= 500:
+                errors.append(f"{base} {resp.status_code}: {resp.text[:180]}")
+                break
+            return resp, base, None
+
+    if not errors:
+        errors.append("backend nao respondeu")
+    return None, None, " | ".join(errors)
+
+
+def _parse_cameras_list(payload: object) -> list[dict[str, object]]:
+    if isinstance(payload, list):
+        return [item for item in payload if isinstance(item, dict)]
+    if isinstance(payload, dict):
+        raw_items = payload.get("items")
+        if isinstance(raw_items, list):
+            return [item for item in raw_items if isinstance(item, dict)]
+    return []
+
+
+def _fetch_cameras_from_core(max_items: int) -> tuple[list[dict[str, object]], Optional[str], Optional[str]]:
+    cameras: list[dict[str, object]] = []
+    skip = 0
+    base_used: Optional[str] = None
+    max_items = max(1, max_items)
+
+    while len(cameras) < max_items:
+        page_limit = min(100, max_items - len(cameras))
+        resp, base, err = _core_api_request(
+            "GET",
+            "/cameras/",
+            params={"skip": skip, "limit": page_limit},
+        )
+        if resp is None:
+            return [], base_used or base, err or "backend indisponivel"
+
+        base_used = base
+        if resp.status_code != 200:
+            return [], base_used, f"backend {resp.status_code}: {resp.text[:180]}"
+
+        payload = resp.json() if resp.content else []
+        page_items = _parse_cameras_list(payload)
+        if not page_items:
+            break
+
+        cameras.extend(page_items)
+        if len(page_items) < page_limit:
+            break
+        skip += len(page_items)
+
+    return cameras, base_used, None
+
+
 def _device_id_from_request_fallback() -> str:
     raw = request.headers.get("X-Device-Id", "").strip()
     if raw:
@@ -134,7 +292,6 @@ def _append_event_to_disk(entry: dict[str, object]) -> None:
 
 
 def _record_device_event(device_id: str, event: str, message: str) -> None:
-    global _upload_event_print_count
     safe_id = _sanitize_device_id(device_id) if device_id else None
     if not safe_id:
         safe_id = "unknown_device"
@@ -149,15 +306,7 @@ def _record_device_event(device_id: str, event: str, message: str) -> None:
     _device_last_seen[safe_id] = ts
     _dashboard_cache["expires_at"] = 0.0
     _append_event_to_disk(entry)
-    should_print = True
-    if event == "upload":
-        _upload_event_print_count += 1
-        if UPLOAD_EVENT_PRINT_EVERY <= 0:
-            should_print = False
-        else:
-            should_print = (_upload_event_print_count % UPLOAD_EVENT_PRINT_EVERY) == 0
-    if should_print:
-        print(f"[DEVICE] {safe_id} | {event} | {message}", flush=True)
+    print(f"[DEVICE] {safe_id} | {event} | {message}", flush=True)
 
 
 def _iso_to_epoch(iso_text: str) -> Optional[float]:
@@ -632,6 +781,196 @@ def dashboard_recent_logs():
         "logs": logs,
     }, 200
 
+
+def _bool_from_payload(value: object, default: bool = True) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes", "on"}:
+        return True
+    if text in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _float_from_payload(value: object, field_name: str) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} invalido")
+    return parsed
+
+
+def _clean_text(value: object, *, limit: int) -> Optional[str]:
+    if value is None:
+        return None
+    txt = str(value).strip()
+    if not txt:
+        return None
+    return txt[:limit]
+
+
+@app.route("/api/dashboard/camera-registration/options", methods=["GET"])
+def dashboard_camera_registration_options():
+    data = _dashboard_snapshot()
+    devices = list(data.get("devices", []))
+    device_rows: list[dict[str, object]] = []
+    for item in devices:
+        if not isinstance(item, dict):
+            continue
+        did = _sanitize_device_id(str(item.get("device_id") or ""))
+        if not did:
+            continue
+        row = dict(item)
+        row["device_id"] = did
+        device_rows.append(row)
+
+    cameras, base, err = _fetch_cameras_from_core(CORE_API_CAMERA_LIMIT)
+    backend_ok = False
+    backend_error = None
+    if err:
+        backend_error = err or "backend indisponivel"
+    else:
+        backend_ok = True
+
+    by_device: dict[str, dict[str, object]] = {}
+    for camera in cameras:
+        did = _sanitize_device_id(str(camera.get("device_id") or ""))
+        if did:
+            by_device[did] = camera
+
+    enriched_devices: list[dict[str, object]] = []
+    for row in device_rows:
+        did = str(row.get("device_id"))
+        cam = by_device.get(did)
+        item = dict(row)
+        item["is_registered"] = bool(cam)
+        item["registered_camera_id"] = cam.get("id") if cam else None
+        item["registered_camera_name"] = cam.get("name") if cam else None
+        item["registered_camera_active"] = bool(cam.get("is_active")) if cam else None
+        enriched_devices.append(item)
+
+    registered_count = len([item for item in enriched_devices if bool(item.get("is_registered"))])
+    unregistered_count = len(enriched_devices) - registered_count
+
+    return {
+        "updated_at": _utc_now_iso(),
+        "backend": {
+            "ok": backend_ok,
+            "base_url": base,
+            "error": backend_error,
+        },
+        "registered_count": registered_count,
+        "unregistered_count": unregistered_count,
+        "devices": enriched_devices,
+    }, 200
+
+
+@app.route("/api/dashboard/camera-registration", methods=["POST"])
+def dashboard_camera_registration_create():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return {"error": "JSON invalido"}, 400
+
+    raw_device_id = str(payload.get("device_id") or "").strip()
+    device_id = _sanitize_device_id(raw_device_id)
+    if not device_id:
+        return {"error": "device_id invalido"}, 400
+
+    known_ids = {
+        str(item.get("device_id"))
+        for item in list(_dashboard_snapshot().get("devices", []))
+        if isinstance(item, dict) and _sanitize_device_id(str(item.get("device_id") or ""))
+    }
+    if device_id not in known_ids:
+        return {"error": "device_id nao encontrado entre dispositivos existentes"}, 404
+
+    name = _clean_text(payload.get("name"), limit=255)
+    if not name:
+        return {"error": "name obrigatorio"}, 400
+
+    try:
+        latitude = _float_from_payload(payload.get("latitude"), "latitude")
+        longitude = _float_from_payload(payload.get("longitude"), "longitude")
+    except ValueError as exc:
+        return {"error": str(exc)}, 400
+
+    if latitude < -90 or latitude > 90:
+        return {"error": "latitude fora do intervalo [-90, 90]"}, 400
+    if longitude < -180 or longitude > 180:
+        return {"error": "longitude fora do intervalo [-180, 180]"}, 400
+
+    try:
+        capture_interval_seconds = int(payload.get("capture_interval_seconds", 30))
+    except (TypeError, ValueError):
+        return {"error": "capture_interval_seconds invalido"}, 400
+    if capture_interval_seconds < 1:
+        return {"error": "capture_interval_seconds deve ser >= 1"}, 400
+
+    camera_payload: dict[str, object] = {
+        "name": name,
+        "device_id": device_id,
+        "latitude": latitude,
+        "longitude": longitude,
+        "capture_interval_seconds": capture_interval_seconds,
+        "is_active": _bool_from_payload(payload.get("is_active"), True),
+    }
+    for field, limit in (
+        ("logradouro", 255),
+        ("bairro", 100),
+        ("rpa", 10),
+        ("rtsp_url", 512),
+    ):
+        cleaned = _clean_text(payload.get(field), limit=limit)
+        if cleaned is not None:
+            camera_payload[field] = cleaned
+
+    existing_cameras, check_base, check_err = _fetch_cameras_from_core(CORE_API_CAMERA_LIMIT)
+    if check_err:
+        return {
+            "error": "nao foi possivel consultar cameras no backend",
+            "backend_error": check_err,
+        }, 502
+    for camera in existing_cameras:
+        existing_device = _sanitize_device_id(str(camera.get("device_id") or ""))
+        if existing_device == device_id:
+            return {
+                "error": "device_id ja cadastrado como camera",
+                "camera": camera,
+                "backend_base_url": check_base,
+            }, 409
+
+    create_resp, create_base, create_err = _core_api_request(
+        "POST",
+        "/cameras/",
+        json_body=camera_payload,
+    )
+    if create_resp is None:
+        return {
+            "error": "nao foi possivel cadastrar camera no backend",
+            "backend_error": create_err,
+        }, 502
+    if create_resp.status_code not in {200, 201}:
+        return {
+            "error": "backend recusou cadastro de camera",
+            "backend_status": create_resp.status_code,
+            "backend_response": create_resp.text[:600],
+            "backend_base_url": create_base,
+        }, create_resp.status_code
+
+    created = create_resp.json() if create_resp.content else {}
+    camera_id = created.get("id")
+    _record_device_event(device_id, "camera_register", f"Camera cadastrada no backend (id={camera_id})")
+
+    return {
+        "status": "ok",
+        "backend_base_url": create_base,
+        "camera": created,
+    }, 201
+
+
 def _sanitize_device_id(device_id: str) -> Optional[str]:
     # Keep filesystem access safe.
     if not device_id:
@@ -646,34 +985,6 @@ def _config_path_for(device_id: str) -> str:
     if not safe:
         raise ValueError("invalid device id")
     return os.path.join(CONFIG_ROOT, f"{safe}.txt")
-
-
-def _default_config_path() -> str:
-    return os.path.join(CONFIG_ROOT, DEFAULT_CONFIG_BASENAME)
-
-
-def _default_config_bytes() -> Optional[bytes]:
-    default_path = _default_config_path()
-    if os.path.isfile(default_path):
-        try:
-            with open(default_path, "rb") as f:
-                return f.read()
-        except OSError:
-            pass
-
-    raw_timer = os.getenv("DEFAULT_TIMER_DELAY_MS", "").strip()
-    if not raw_timer:
-        return None
-    try:
-        timer_ms = int(raw_timer)
-    except ValueError:
-        return None
-    if timer_ms < 1000:
-        return None
-
-    version = (os.getenv("DEFAULT_CONFIG_VERSION", "default") or "default").strip() or "default"
-    body = f"version={version}\ntimer_delay_ms={timer_ms}\n"
-    return body.encode("utf-8")
 
 
 def _sha256_bytes(data: bytes) -> str:
@@ -693,11 +1004,7 @@ def get_device_config(device_id: str):
         with open(path, "rb") as f:
             body_bytes = f.read()
     else:
-        default_bytes = _default_config_bytes()
-        if default_bytes is not None:
-            body_bytes = default_bytes
-        else:
-            body_bytes = b"version=0\n"
+        body_bytes = b"version=0\n"
 
     etag = _sha256_bytes(body_bytes)
     inm = request.headers.get("If-None-Match", "")
@@ -951,4 +1258,3 @@ if __name__ == "__main__":
     debug = os.getenv("FLASK_DEBUG", "0").strip() == "1"
     port = _int_env("PORT", 5000, minimum=1)
     app.run(host="0.0.0.0", port=port, debug=debug, threaded=True)
-

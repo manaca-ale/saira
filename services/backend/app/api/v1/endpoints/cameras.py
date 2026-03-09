@@ -2,6 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from sqlalchemy.exc import IntegrityError
 from geoalchemy2.functions import ST_SetSRID, ST_MakePoint
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
@@ -66,6 +67,7 @@ async def create_camera(
     # Criar geometria PostGIS
     db_camera = Camera(
         name=camera_in.name,
+        device_id=camera_in.device_id,
         logradouro=camera_in.logradouro,
         bairro=camera_in.bairro,
         rpa=camera_in.rpa,
@@ -79,7 +81,20 @@ async def create_camera(
     # O trigger no banco irá criar automaticamente o campo geom
 
     db.add(db_camera)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        detail = str(getattr(exc, "orig", exc)).lower()
+        if "device_id" in detail and "unique" in detail:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="device_id already registered"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="could not create camera"
+        )
     await db.refresh(db_camera)
 
     return db_camera

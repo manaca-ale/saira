@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SAIRA | Dashboard ESP32</title>
-  <link rel="stylesheet" href="/static/dashboard.css?v=20260228c" />
+  <link rel="stylesheet" href="/static/dashboard.css?v=20260309a" />
 </head>
 <body>
   <main class="container">
@@ -15,6 +15,7 @@
       </div>
       <div class="topbar-actions">
         <span class="status-chip" id="refreshStatus">Sincronizando...</span>
+        <button class="secondary-btn" id="openCameraModalBtn" type="button">Cadastrar camera</button>
         <button class="refresh-btn" id="refreshBtn" type="button">Atualizar agora</button>
       </div>
     </header>
@@ -52,6 +53,17 @@
       </article>
     </section>
 
+    <section class="camera-register">
+      <div class="camera-register-head">
+        <div>
+          <h2>Cadastro de cameras</h2>
+          <p class="subtitle-inline">Registre cameras usando os dispositivos que ja estao online.</p>
+        </div>
+        <button class="secondary-btn" id="openCameraModalBtnInline" type="button">Novo cadastro</button>
+      </div>
+      <p class="camera-register-status" id="cameraRegistrationStatus">Carregando opcoes de cadastro...</p>
+    </section>
+
     <section>
       <h2>Dispositivos</h2>
       <div class="device-chips" id="deviceChips"></div>
@@ -68,6 +80,73 @@
       <div class="logs" id="logs"></div>
     </section>
   </main>
+
+  <div class="modal-backdrop" id="cameraModalBackdrop" hidden>
+    <section class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="cameraModalTitle">
+      <header class="modal-header">
+        <div>
+          <h3 id="cameraModalTitle">Registrar camera</h3>
+          <p>Cadastro vinculado a dispositivo existente.</p>
+        </div>
+        <button class="icon-btn" id="closeCameraModalBtn" type="button" aria-label="Fechar cadastro">Fechar</button>
+      </header>
+      <form id="cameraRegistrationForm" class="camera-form">
+        <label>
+          Dispositivo
+          <select id="cameraDeviceId" name="device_id" required>
+            <option value="">Selecione um dispositivo</option>
+          </select>
+        </label>
+        <label>
+          Nome da camera
+          <input id="cameraName" name="name" type="text" maxlength="255" required placeholder="Camera ESP32 001" />
+        </label>
+        <div class="form-grid">
+          <label>
+            Latitude
+            <input id="cameraLatitude" name="latitude" type="number" step="any" required placeholder="-8.0476" />
+          </label>
+          <label>
+            Longitude
+            <input id="cameraLongitude" name="longitude" type="number" step="any" required placeholder="-34.8770" />
+          </label>
+        </div>
+        <label>
+          Logradouro
+          <input id="cameraLogradouro" name="logradouro" type="text" maxlength="255" placeholder="Rua, avenida..." />
+        </label>
+        <div class="form-grid">
+          <label>
+            Bairro
+            <input id="cameraBairro" name="bairro" type="text" maxlength="100" placeholder="Bairro" />
+          </label>
+          <label>
+            RPA
+            <input id="cameraRpa" name="rpa" type="text" maxlength="10" placeholder="RPA 1" />
+          </label>
+        </div>
+        <label>
+          RTSP URL (opcional)
+          <input id="cameraRtspUrl" name="rtsp_url" type="url" maxlength="512" placeholder="rtsp://..." />
+        </label>
+        <div class="form-grid align-end">
+          <label>
+            Intervalo captura (s)
+            <input id="cameraCaptureInterval" name="capture_interval_seconds" type="number" min="1" step="1" value="30" />
+          </label>
+          <label class="checkbox-line">
+            <input id="cameraIsActive" name="is_active" type="checkbox" checked />
+            Camera ativa
+          </label>
+        </div>
+        <p class="form-feedback" id="cameraFormFeedback">Preencha os dados para cadastrar.</p>
+        <div class="modal-actions">
+          <button class="secondary-btn" id="cancelCameraModalBtn" type="button">Cancelar</button>
+          <button class="refresh-btn" id="cameraFormSubmitBtn" type="submit">Cadastrar camera</button>
+        </div>
+      </form>
+    </section>
+  </div>
 
   <template id="imageCardTpl">
     <article class="image-card">
@@ -99,6 +178,6 @@
     </article>
   </template>
 
-  <script src="/static/dashboard.js?v=20260228c"></script>
+  <script src="/static/dashboard.js?v=20260309a"></script>
 </body>
 </html>
