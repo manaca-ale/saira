@@ -1,4 +1,4 @@
-from flask import Flask, request, send_from_directory, render_template
+from flask import Flask, request, send_from_directory, render_template, Response, stream_with_context
 from datetime import datetime, timedelta, timezone
 import os
 import hashlib
@@ -7,6 +7,8 @@ import heapq
 import json
 import time
 import threading
+import queue
+import struct
 from collections import deque
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -79,6 +81,7 @@ def _get_config_root() -> str:
 CONFIG_ROOT = _get_config_root()
 os.makedirs(CONFIG_ROOT, exist_ok=True)
 _dashboard_cache: dict[str, object] = {"expires_at": 0.0}
+_dashboard_cache_lock = threading.Lock()
 _recent_events = deque(maxlen=300)
 _device_last_seen: dict[str, float] = {}
 _last_event_log_mtime = 0.0
@@ -553,131 +556,139 @@ def _scan_recent_image_window(cap: int) -> dict[str, object]:
 
 def _dashboard_snapshot() -> dict[str, object]:
     _load_recent_events()
-    now = time.time()
-    if now < float(_dashboard_cache.get("expires_at", 0.0)):
+    with _dashboard_cache_lock:
+        now = time.time()
+        if now < float(_dashboard_cache.get("expires_at", 0.0)):
+            return _dashboard_cache
+
+        recent_scan = _scan_recent_image_window(max(DASHBOARD_RECENT_IMAGES_CAP, 40))
+        active_cutoff = now - DEVICE_ACTIVE_WINDOW_SECONDS
+        image_devices = {
+            str(device_id)
+            for device_id in set(recent_scan["image_devices"])
+            if not _is_unknown_device_id(str(device_id))
+        }
+        device_last_image_ts = dict(recent_scan["device_last_image_ts"])
+        device_image_counts = dict(recent_scan["device_image_counts"])
+        device_image_bytes = dict(recent_scan["device_image_bytes"])
+        _drop_unknown_device_stats(device_last_image_ts, device_image_counts, device_image_bytes)
+        total_images = int(sum(int(v) for v in device_image_counts.values()))
+        total_images_bytes = int(sum(int(v) for v in device_image_bytes.values()))
+        scope_days = max(int(DASHBOARD_RECENT_DAYS), 1)
+        estimated_4g_mb_per_day = (total_images_bytes / scope_days) / (1024 * 1024)
+        estimated_4g_gb_per_month = ((total_images_bytes / scope_days) * 30.0) / (1024 * 1024 * 1024)
+        event_devices = {
+            str(device_id)
+            for device_id in set(_device_last_seen.keys())
+            if not _is_unknown_device_id(str(device_id))
+        }
+        all_devices = image_devices.union(event_devices)
+        device_rows: list[dict[str, object]] = []
+
+        for device_id in all_devices:
+            last_event_ts = float(_device_last_seen.get(device_id, 0.0))
+            last_image_ts = float(device_last_image_ts.get(device_id, 0.0))
+            last_seen_ts = max(last_event_ts, last_image_ts)
+            is_active = last_seen_ts >= active_cutoff if last_seen_ts > 0 else False
+            dev_bytes = int(device_image_bytes.get(device_id, 0))
+            dev_mb_day = (dev_bytes / scope_days) / (1024 * 1024)
+            dev_gb_month = ((dev_bytes / scope_days) * 30.0) / (1024 * 1024 * 1024)
+            device_rows.append(
+                {
+                    "device_id": device_id,
+                    "is_active": is_active,
+                    "last_seen_at": datetime.utcfromtimestamp(last_seen_ts).isoformat() + "Z" if last_seen_ts > 0 else None,
+                    "last_event_at": datetime.utcfromtimestamp(last_event_ts).isoformat() + "Z" if last_event_ts > 0 else None,
+                    "last_image_at": datetime.utcfromtimestamp(last_image_ts).isoformat() + "Z" if last_image_ts > 0 else None,
+                    "recent_images_count": int(device_image_counts.get(device_id, 0)),
+                    "recent_images_bytes": dev_bytes,
+                    "estimated_4g_mb_per_day": round(dev_mb_day, 3),
+                    "estimated_4g_gb_per_month": round(dev_gb_month, 4),
+                }
+            )
+
+        device_rows.sort(
+            key=lambda item: (
+                0 if bool(item["is_active"]) else 1,
+                -(_iso_to_epoch(str(item["last_seen_at"])) or 0.0),
+                str(item["device_id"]),
+            )
+        )
+        active_devices = [str(item["device_id"]) for item in device_rows if bool(item["is_active"])]
+
+        recent_images = [
+            item
+            for item in list(recent_scan["recent_images"])
+            if not _is_unknown_device_id(str(item.get("device_id") or ""))
+        ]
+        recent_logs = [
+            item
+            for item in list(_recent_events)
+            if not _is_unknown_device_id(str(item.get("device_id") or ""))
+        ][-60:]
+        recent_logs.reverse()
+        if not recent_logs:
+            recent_logs = [
+                {
+                    "timestamp": str(item.get("captured_at") or _utc_now_iso()),
+                    "device_id": str(item.get("device_id") or "unknown_device"),
+                    "event": "upload",
+                    "message": f"Imagem recebida: {item.get('filename') or ''}",
+                }
+                for item in recent_images[:60]
+            ]
+
+        snapshot = {
+            "expires_at": time.time() + DASHBOARD_CACHE_TTL_SECONDS,
+            "updated_at": _utc_now_iso(),
+            "total_images": total_images,
+            "total_images_bytes": total_images_bytes,
+            "total_images_scope_days": DASHBOARD_RECENT_DAYS,
+            "estimated_4g_mb_per_day": round(estimated_4g_mb_per_day, 3),
+            "estimated_4g_gb_per_month": round(estimated_4g_gb_per_month, 4),
+            "total_known_devices": len(all_devices),
+            "active_devices": active_devices,
+            "devices": device_rows,
+            "recent_logs": recent_logs,
+            "recent_images": recent_images,
+        }
+        _dashboard_cache.clear()
+        _dashboard_cache.update(snapshot)
         return _dashboard_cache
 
-    recent_scan = _scan_recent_image_window(max(DASHBOARD_RECENT_IMAGES_CAP, 40))
-    active_cutoff = now - DEVICE_ACTIVE_WINDOW_SECONDS
-    image_devices = {
-        str(device_id)
-        for device_id in set(recent_scan["image_devices"])
-        if not _is_unknown_device_id(str(device_id))
-    }
-    device_last_image_ts = dict(recent_scan["device_last_image_ts"])
-    device_image_counts = dict(recent_scan["device_image_counts"])
-    device_image_bytes = dict(recent_scan["device_image_bytes"])
-    _drop_unknown_device_stats(device_last_image_ts, device_image_counts, device_image_bytes)
-    total_images = int(sum(int(v) for v in device_image_counts.values()))
-    total_images_bytes = int(sum(int(v) for v in device_image_bytes.values()))
-    scope_days = max(int(DASHBOARD_RECENT_DAYS), 1)
-    estimated_4g_mb_per_day = (total_images_bytes / scope_days) / (1024 * 1024)
-    estimated_4g_gb_per_month = ((total_images_bytes / scope_days) * 30.0) / (1024 * 1024 * 1024)
-    event_devices = {
-        str(device_id)
-        for device_id in set(_device_last_seen.keys())
-        if not _is_unknown_device_id(str(device_id))
-    }
-    all_devices = image_devices.union(event_devices)
-    device_rows: list[dict[str, object]] = []
 
-    for device_id in all_devices:
-        last_event_ts = float(_device_last_seen.get(device_id, 0.0))
-        last_image_ts = float(device_last_image_ts.get(device_id, 0.0))
-        last_seen_ts = max(last_event_ts, last_image_ts)
-        is_active = last_seen_ts >= active_cutoff if last_seen_ts > 0 else False
-        dev_bytes = int(device_image_bytes.get(device_id, 0))
-        dev_mb_day = (dev_bytes / scope_days) / (1024 * 1024)
-        dev_gb_month = ((dev_bytes / scope_days) * 30.0) / (1024 * 1024 * 1024)
-        device_rows.append(
-            {
-                "device_id": device_id,
-                "is_active": is_active,
-                "last_seen_at": datetime.utcfromtimestamp(last_seen_ts).isoformat() + "Z" if last_seen_ts > 0 else None,
-                "last_event_at": datetime.utcfromtimestamp(last_event_ts).isoformat() + "Z" if last_event_ts > 0 else None,
-                "last_image_at": datetime.utcfromtimestamp(last_image_ts).isoformat() + "Z" if last_image_ts > 0 else None,
-                "recent_images_count": int(device_image_counts.get(device_id, 0)),
-                "recent_images_bytes": dev_bytes,
-                "estimated_4g_mb_per_day": round(dev_mb_day, 3),
-                "estimated_4g_gb_per_month": round(dev_gb_month, 4),
-            }
-        )
-
-    device_rows.sort(
-        key=lambda item: (
-            0 if bool(item["is_active"]) else 1,
-            -(_iso_to_epoch(str(item["last_seen_at"])) or 0.0),
-            str(item["device_id"]),
-        )
-    )
-    active_devices = [str(item["device_id"]) for item in device_rows if bool(item["is_active"])]
-
-    recent_images = [
-        item
-        for item in list(recent_scan["recent_images"])
-        if not _is_unknown_device_id(str(item.get("device_id") or ""))
-    ]
-    recent_logs = [
-        item
-        for item in list(_recent_events)
-        if not _is_unknown_device_id(str(item.get("device_id") or ""))
-    ][-60:]
-    recent_logs.reverse()
-    if not recent_logs:
-        recent_logs = [
-            {
-                "timestamp": str(item.get("captured_at") or _utc_now_iso()),
-                "device_id": str(item.get("device_id") or "unknown_device"),
-                "event": "upload",
-                "message": f"Imagem recebida: {item.get('filename') or ''}",
-            }
-            for item in recent_images[:60]
-        ]
-
-    snapshot = {
-        "expires_at": now + DASHBOARD_CACHE_TTL_SECONDS,
-        "updated_at": _utc_now_iso(),
-        "total_images": total_images,
-        "total_images_bytes": total_images_bytes,
-        "total_images_scope_days": DASHBOARD_RECENT_DAYS,
-        "estimated_4g_mb_per_day": round(estimated_4g_mb_per_day, 3),
-        "estimated_4g_gb_per_month": round(estimated_4g_gb_per_month, 4),
-        "total_known_devices": len(all_devices),
-        "active_devices": active_devices,
-        "devices": device_rows,
-        "recent_logs": recent_logs,
-        "recent_images": recent_images,
-    }
-    _dashboard_cache.clear()
-    _dashboard_cache.update(snapshot)
-    return snapshot
-
-
-@app.route("/uploads/<path:filepath>", methods=["GET"])
-def get_uploaded_file(filepath: str):
-    return send_from_directory(UPLOAD_ROOT, filepath)
-
-
-@app.route("/dashboard", methods=["GET"])
-def dashboard():
-    return render_template("dashboard.html")
-
-
-@app.route("/api/dashboard/summary", methods=["GET"])
-def dashboard_summary():
+def _dashboard_device_filter() -> tuple[Optional[str], Optional[tuple[dict[str, str], int]]]:
     raw_device_id = (request.args.get("device_id") or "").strip()
-    selected_device = None
-    if raw_device_id:
-        selected_device = _sanitize_device_id(raw_device_id)
-        if not selected_device:
-            return {"error": "Invalid device_id"}, 400
+    if not raw_device_id:
+        return None, None
+    selected_device = _sanitize_device_id(raw_device_id)
+    if not selected_device:
+        return None, ({"error": "Invalid device_id"}, 400)
+    return selected_device, None
 
-    data = _dashboard_snapshot()
+
+def _dashboard_limit(name: str, default: int, max_limit: int) -> int:
+    limit_str = (request.args.get(name) or str(default)).strip()
+    try:
+        return max(1, min(int(limit_str), max_limit))
+    except ValueError:
+        return default
+
+
+def _dashboard_payload(
+    data: dict[str, object],
+    selected_device: Optional[str],
+    *,
+    image_limit: int,
+    log_limit: int,
+) -> dict[str, object]:
     recent_images = list(data.get("recent_images", []))
     devices = list(data.get("devices", []))
+    logs = list(data.get("recent_logs", []))
     if selected_device:
         recent_images = [item for item in recent_images if str(item.get("device_id")) == selected_device]
         devices = [item for item in devices if str(item.get("device_id")) == selected_device]
+        logs = [item for item in logs if str(item.get("device_id")) == selected_device]
 
     latest = recent_images[0] if recent_images else None
     active_devices = [item["device_id"] for item in devices if bool(item.get("is_active"))]
@@ -695,91 +706,118 @@ def dashboard_summary():
 
     return {
         "updated_at": data["updated_at"],
-        "total_images": filtered_total_images,
-        "total_images_bytes": filtered_total_bytes,
-        "total_images_scope_days": data.get("total_images_scope_days", DASHBOARD_RECENT_DAYS),
-        "estimated_4g_mb_per_day": round(filtered_mb_day, 3),
-        "estimated_4g_gb_per_month": round(filtered_gb_month, 4),
-        "active_devices": active_devices,
-        "active_devices_count": len(active_devices),
-        "total_known_devices": len(devices),
         "selected_device": selected_device,
-        "latest_image": latest,
-        "active_window_seconds": DEVICE_ACTIVE_WINDOW_SECONDS,
-        "devices": devices,
-    }, 200
+        "summary": {
+            "total_images": filtered_total_images,
+            "total_images_bytes": filtered_total_bytes,
+            "total_images_scope_days": data.get("total_images_scope_days", DASHBOARD_RECENT_DAYS),
+            "estimated_4g_mb_per_day": round(filtered_mb_day, 3),
+            "estimated_4g_gb_per_month": round(filtered_gb_month, 4),
+            "active_devices": active_devices,
+            "active_devices_count": len(active_devices),
+            "total_known_devices": len(devices),
+            "latest_image": latest,
+            "active_window_seconds": DEVICE_ACTIVE_WINDOW_SECONDS,
+            "devices": devices,
+        },
+        "devices": {
+            "count": len(devices),
+            "active_count": len(active_devices),
+            "devices": devices,
+        },
+        "recent_images": {
+            "limit": image_limit,
+            "count": min(len(recent_images), image_limit),
+            "images": recent_images[:image_limit],
+        },
+        "recent_logs": {
+            "limit": log_limit,
+            "count": min(len(logs), log_limit),
+            "logs": logs[:log_limit],
+        },
+    }
+
+
+@app.route("/uploads/<path:filepath>", methods=["GET"])
+def get_uploaded_file(filepath: str):
+    return send_from_directory(UPLOAD_ROOT, filepath)
+
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    return render_template("dashboard.html")
+
+
+@app.route("/api/dashboard/summary", methods=["GET"])
+def dashboard_summary():
+    selected_device, error = _dashboard_device_filter()
+    if error:
+        return error
+    data = _dashboard_snapshot()
+    payload = _dashboard_payload(data, selected_device, image_limit=12, log_limit=20)
+    summary = dict(payload["summary"])
+    summary["updated_at"] = payload["updated_at"]
+    summary["selected_device"] = payload["selected_device"]
+    return summary, 200
 
 
 @app.route("/api/dashboard/devices", methods=["GET"])
 def dashboard_devices():
+    selected_device, error = _dashboard_device_filter()
+    if error:
+        return error
     only_active_raw = (request.args.get("only_active") or "").strip().lower()
     only_active = only_active_raw in {"1", "true", "yes", "on"}
     data = _dashboard_snapshot()
-    devices = list(data.get("devices", []))
+    payload = _dashboard_payload(data, selected_device, image_limit=12, log_limit=20)
+    device_payload = dict(payload["devices"])
+    devices = list(device_payload.get("devices", []))
     if only_active:
         devices = [item for item in devices if bool(item.get("is_active"))]
-    return {
-        "updated_at": data["updated_at"],
-        "count": len(devices),
-        "active_count": len([item for item in devices if bool(item.get("is_active"))]),
-        "devices": devices,
-    }, 200
+        device_payload["count"] = len(devices)
+        device_payload["active_count"] = len(devices)
+        device_payload["devices"] = devices
+    device_payload["updated_at"] = payload["updated_at"]
+    return device_payload, 200
 
 
 @app.route("/api/dashboard/recent-images", methods=["GET"])
 def dashboard_recent_images():
-    raw_device_id = (request.args.get("device_id") or "").strip()
-    selected_device = None
-    if raw_device_id:
-        selected_device = _sanitize_device_id(raw_device_id)
-        if not selected_device:
-            return {"error": "Invalid device_id"}, 400
-
-    limit_str = (request.args.get("limit") or "12").strip()
-    try:
-        limit = max(1, min(int(limit_str), 120))
-    except ValueError:
-        limit = 12
+    selected_device, error = _dashboard_device_filter()
+    if error:
+        return error
+    limit = _dashboard_limit("limit", 12, 120)
     data = _dashboard_snapshot()
-    recent = list(data.get("recent_images", []))
-    if selected_device:
-        recent = [item for item in recent if str(item.get("device_id")) == selected_device]
-    recent = recent[:limit]
-    return {
-        "updated_at": data["updated_at"],
-        "limit": limit,
-        "count": len(recent),
-        "selected_device": selected_device,
-        "images": recent,
-    }, 200
+    payload = _dashboard_payload(data, selected_device, image_limit=limit, log_limit=20)
+    images_payload = dict(payload["recent_images"])
+    images_payload["updated_at"] = payload["updated_at"]
+    images_payload["selected_device"] = payload["selected_device"]
+    return images_payload, 200
 
 
 @app.route("/api/dashboard/recent-logs", methods=["GET"])
 def dashboard_recent_logs():
-    raw_device_id = (request.args.get("device_id") or "").strip()
-    selected_device = None
-    if raw_device_id:
-        selected_device = _sanitize_device_id(raw_device_id)
-        if not selected_device:
-            return {"error": "Invalid device_id"}, 400
-
-    limit_str = (request.args.get("limit") or "20").strip()
-    try:
-        limit = max(1, min(int(limit_str), 60))
-    except ValueError:
-        limit = 20
+    selected_device, error = _dashboard_device_filter()
+    if error:
+        return error
+    limit = _dashboard_limit("limit", 20, 60)
     data = _dashboard_snapshot()
-    logs = list(data.get("recent_logs", []))
-    if selected_device:
-        logs = [item for item in logs if str(item.get("device_id")) == selected_device]
-    logs = logs[:limit]
-    return {
-        "updated_at": data["updated_at"],
-        "limit": limit,
-        "count": len(logs),
-        "selected_device": selected_device,
-        "logs": logs,
-    }, 200
+    payload = _dashboard_payload(data, selected_device, image_limit=12, log_limit=limit)
+    logs_payload = dict(payload["recent_logs"])
+    logs_payload["updated_at"] = payload["updated_at"]
+    logs_payload["selected_device"] = payload["selected_device"]
+    return logs_payload, 200
+
+
+@app.route("/api/dashboard/state", methods=["GET"])
+def dashboard_state():
+    selected_device, error = _dashboard_device_filter()
+    if error:
+        return error
+    image_limit = _dashboard_limit("image_limit", 12, 120)
+    log_limit = _dashboard_limit("log_limit", 25, 60)
+    data = _dashboard_snapshot()
+    return _dashboard_payload(data, selected_device, image_limit=image_limit, log_limit=log_limit), 200
 
 
 def _bool_from_payload(value: object, default: bool = True) -> bool:
@@ -1081,6 +1119,126 @@ def set_device_config(device_id: str):
         f.write(body)
 
     return body, 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
+# ---------------------------------------------------------------------------
+# SSE / bulk-upload (history trigger)
+# ---------------------------------------------------------------------------
+
+_sse_queues: dict[str, queue.Queue] = {}
+_sse_lock = threading.Lock()
+
+SSE_HEARTBEAT_SECONDS = _int_env("SSE_HEARTBEAT_SECONDS", 30, minimum=5)
+BULK_UPLOAD_ROOT = os.path.join(
+    os.getenv("UPLOAD_ROOT", "/data/saira/uploads"), "bulk"
+)
+
+
+def _get_or_create_sse_queue(device_id: str) -> queue.Queue:
+    with _sse_lock:
+        if device_id not in _sse_queues:
+            _sse_queues[device_id] = queue.Queue()
+        return _sse_queues[device_id]
+
+
+def _push_sse_cmd(device_id: str, cmd: str) -> None:
+    q = _get_or_create_sse_queue(device_id)
+    q.put(cmd)
+
+
+@app.route("/device/<device_id>/events", methods=["GET"])
+def device_events(device_id: str):
+    """SSE endpoint — device keeps this connection open to receive push triggers."""
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+
+    q = _get_or_create_sse_queue(device_id)
+
+    def generate():
+        yield ": connected\n\n"
+        while True:
+            try:
+                cmd = q.get(timeout=SSE_HEARTBEAT_SECONDS)
+                yield f"data: {cmd}\n\n"
+            except queue.Empty:
+                yield ": heartbeat\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@app.route("/device/<device_id>/trigger", methods=["POST"])
+def device_trigger(device_id: str):
+    """Push a command to the device SSE stream (called by YOLO worker / backend)."""
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+
+    data = request.get_json(silent=True) or {}
+    cmd = str(data.get("cmd", "CMD_BULK_UPLOAD")).strip() or "CMD_BULK_UPLOAD"
+    _push_sse_cmd(device_id, cmd)
+    return {"status": "queued", "device_id": device_id, "cmd": cmd}, 200
+
+
+@app.route("/device/<device_id>/bulk-upload", methods=["POST"])
+def device_bulk_upload(device_id: str):
+    """Receive TLV-framed JPEG history from device and save to disk.
+
+    Wire format (repeated until end of stream):
+        [4 bytes uint32 LE — JPEG size][JPEG bytes]
+    """
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+
+    ts_str = datetime.now(CAPTURE_FILENAME_TZ).strftime("%Y%m%d_%H%M%S")
+    save_dir = os.path.join(BULK_UPLOAD_ROOT, device_id, ts_str)
+    os.makedirs(save_dir, exist_ok=True)
+
+    buf = bytearray()
+    frame_index = 0
+    saved_files: list[str] = []
+
+    for chunk in request.stream:
+        buf.extend(chunk)
+        while len(buf) >= 4:
+            frame_size = struct.unpack_from("<I", buf, 0)[0]
+            if frame_size == 0 or frame_size > 600_000:
+                # Corrupt or unreasonably large — skip one byte and resync
+                del buf[:1]
+                continue
+            if len(buf) < 4 + frame_size:
+                break  # wait for more data
+            jpeg_bytes = bytes(buf[4 : 4 + frame_size])
+            del buf[: 4 + frame_size]
+            # Validate JPEG magic bytes
+            if not (jpeg_bytes[:2] == b"\xff\xd8" and jpeg_bytes[-2:] == b"\xff\xd9"):
+                frame_index += 1
+                continue
+            fname = f"frame_{frame_index:04d}.jpg"
+            fpath = os.path.join(save_dir, fname)
+            with open(fpath, "wb") as f:
+                f.write(jpeg_bytes)
+            saved_files.append(fpath)
+            frame_index += 1
+
+    print(
+        f"[bulk] device={device_id} received={frame_index} saved={len(saved_files)} dir={save_dir}",
+        flush=True,
+    )
+    return {
+        "status": "ok",
+        "device_id": device_id,
+        "frames_received": frame_index,
+        "frames_saved": len(saved_files),
+        "save_dir": save_dir,
+    }, 200
+
 
 def _sha256_file(path: str) -> str:
     h = hashlib.sha256()

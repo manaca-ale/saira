@@ -10,6 +10,8 @@ from pathlib import Path
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
+import requests
+
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 from . import config
@@ -36,6 +38,24 @@ logging.basicConfig(
 logger = logging.getLogger("worker")
 
 SKIP_DIRS = {"processed", "labeled"}
+
+
+def trigger_history_upload(device_id: str) -> None:
+    """POST to esp32-server to request a bulk history upload from the device via SSE."""
+    base = config.ESP32_SERVER_URL
+    if not base:
+        return
+    url = f"{base}/device/{device_id}/trigger"
+    try:
+        resp = requests.post(
+            url,
+            json={"cmd": "CMD_BULK_UPLOAD"},
+            timeout=5,
+        )
+        logger.info("trigger_history_upload device=%s -> HTTP %d", device_id, resp.status_code)
+    except Exception as exc:
+        logger.warning("trigger_history_upload device=%s failed: %s", device_id, exc)
+
 
 # Tracks the last day the Google Drive sync ran (reset on container restart — that's fine).
 _last_sync_day = None
@@ -202,6 +222,7 @@ def process_image(jpg: Path, device_id: str, camera) -> bool:
         if insert_detection(detection):
             insert_notifications(detection, camera)
             publish_detection_event(detection, camera)
+            trigger_history_upload(device_id)
             if infrator_dets:
                 offenders = [
                     OffenderRecord(

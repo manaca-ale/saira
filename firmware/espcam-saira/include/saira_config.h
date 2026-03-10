@@ -76,3 +76,13 @@
 #ifndef SAIRA_REMOTE_CONFIG_CHECK_INTERVAL_MS
 #define SAIRA_REMOTE_CONFIG_CHECK_INTERVAL_MS 60000
 #endif
+
+// History ring buffer + SSE trigger (opt-in; enable in .env for N16R8 PSRAM builds)
+#ifndef SAIRA_SSE_ENABLED
+#define SAIRA_SSE_ENABLED 0
+#endif
+
+// Capture interval for the ring buffer history (ms); 1fps = 1000
+#ifndef SAIRA_HISTORY_CAPTURE_MS
+#define SAIRA_HISTORY_CAPTURE_MS 1000
+#endif

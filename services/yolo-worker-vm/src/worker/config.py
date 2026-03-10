@@ -58,6 +58,10 @@ GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "")
 GDRIVE_SA_KEY_PATH = os.getenv("GDRIVE_SA_KEY_PATH", "/app/gdrive-sa-key.json")
 GDRIVE_SYNC_HOUR = int(os.getenv("GDRIVE_SYNC_HOUR", "3"))  # 03:00 Brasília by default
 
+# esp32-server base URL — used to trigger history bulk-upload after detection.
+# Leave empty to disable the trigger (no bulk-upload will be requested).
+ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "").strip().rstrip("/")
+
 # Mock mode — set MOCK_MODE=true to run without real YOLO model files.
 # The mock generates random detections so the full pipeline can be tested.
 # Fine-tune with: MOCK_DETECTION_PROB (0-1), MOCK_MAX_OBJECTS (int), MOCK_INFRATOR_PROB (0-1).

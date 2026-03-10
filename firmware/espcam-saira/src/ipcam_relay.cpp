@@ -18,6 +18,9 @@
 #include "saira_remote_config.h"
 #include "saira_runtime_config.h"
 #include "saira_wifi.h"
+#if SAIRA_SSE_ENABLED
+#include "esp_http_client.h"
+#endif
 
 // =============================================================================
 // TIMING
@@ -43,8 +46,8 @@ static String gWifiPassword;
 // =============================================================================
 // 2. CAMERA IP (ORIGEM)
 // =============================================================================
-// Ex: http://192.168.0.142:80/snap.jpg
-static String ipCamUrl = SAIRA_IP_CAM_URL;
+// Ex: http://192.168.0.142:80/snap.jpg?quality=15&res=720p
+static String ipCamUrl = "http://192.168.0.142/snap.jpg?quality=15&res=720p";
 static String ipCamUser = SAIRA_IP_CAM_USER;
 static String ipCamPass = SAIRA_IP_CAM_PASS;
 
@@ -1017,10 +1020,10 @@ static bool queuePush(uint8_t* data, int len, uint32_t ts) {
     if (compactJpegForQueue(data, len)) {
         const int saved = originalLen - len;
         const float pct = (originalLen > 0) ? (100.0f * (float)saved / (float)originalLen) : 0.0f;
-        Serial.printf("QUEUE: recompressao JPEG q=%u %d -> %d bytes (-%d / %.1f%%)\n",
+        Serial.printf("QUEUE: crop/compressao JPEG q=%u %d -> %d bytes (-%d / %.1f%%)\n",
                       (unsigned int)QUEUE_REENCODE_JPEG_QUALITY, originalLen, len, saved, pct);
     } else {
-        Serial.printf("QUEUE: sem compactacao adicional (%d bytes)\n", len);
+        Serial.printf("QUEUE: sem alteracao (usando original, %d bytes)\n", len);
     }
 
     if (xSemaphoreTake(queueMutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
@@ -1089,6 +1092,178 @@ static void uploadTask(void* /*param*/) {
     }
 }
 
+// =============================================================================
+// RING BUFFER HISTORICO (PSRAM estatica, opt-in por SAIRA_SSE_ENABLED)
+// =============================================================================
+#if SAIRA_SSE_ENABLED
+
+#define RING_HISTORY_FRAMES   30       // 30s a 1fps
+#define RING_FRAME_MAX_BYTES  256000   // 250 KB/slot — cobre 720p JPEG original
+
+static uint8_t*          gHistoryPool[RING_HISTORY_FRAMES];
+static uint32_t          gHistorySize[RING_HISTORY_FRAMES];
+static uint32_t          gHistoryTs[RING_HISTORY_FRAMES];
+static int               gHistHead  = 0;   // proximo slot a escrever
+static volatile int      gHistCount = 0;   // frames validos (0..gHistSlots)
+static int               gHistSlots = 0;   // slots realmente alocados
+static SemaphoreHandle_t gHistMutex = NULL;
+static TaskHandle_t      gBulkUploadHandle = NULL;
+
+// URLs construidas em setup() a partir de SERVER_BASE + gDeviceId
+static char gSseUrl[256]  = {};
+static char gBulkUrl[256] = {};
+
+// Copia src para o proximo slot circular; src pode ser liberado apos retorno.
+static bool historyPush(const uint8_t* src, uint32_t len, uint32_t ts) {
+    if (!gHistSlots) return false;
+    if (len > RING_FRAME_MAX_BYTES) {
+        Serial.printf("HIST: frame %lu bytes > slot %d, descartado\n",
+                      (unsigned long)len, RING_FRAME_MAX_BYTES);
+        return false;
+    }
+    if (xSemaphoreTake(gHistMutex, pdMS_TO_TICKS(200)) != pdTRUE) return false;
+    memcpy(gHistoryPool[gHistHead], src, len);
+    gHistorySize[gHistHead] = len;
+    gHistoryTs[gHistHead]   = ts;
+    gHistHead = (gHistHead + 1) % gHistSlots;
+    if (gHistCount < gHistSlots) gHistCount++;
+    xSemaphoreGive(gHistMutex);
+    return true;
+}
+
+// Recebe trigger do SSE e envia todo o historico em formato TLV via HTTP chunked.
+static void bulk_upload_task(void* /*param*/) {
+    Serial.println("BULK_TASK: aguardando trigger SSE");
+    for (;;) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);  // dorme ate SSE acordar
+
+        if (!gHistSlots || !gHistCount) {
+            Serial.println("BULK: historico vazio, ignorando");
+            continue;
+        }
+        if (!gBulkUrl[0]) {
+            Serial.println("BULK: URL nao configurada, ignorando");
+            continue;
+        }
+
+        // Snapshot dos indices com mutex (rapido — sem IO)
+        if (xSemaphoreTake(gHistMutex, pdMS_TO_TICKS(500)) != pdTRUE) {
+            Serial.println("BULK: timeout mutex, abortando");
+            continue;
+        }
+        int sendCount = gHistCount;
+        int sendSlots = gHistSlots;
+        // tail = frame mais antigo
+        int sendTail  = (gHistHead - sendCount + sendSlots) % sendSlots;
+        xSemaphoreGive(gHistMutex);
+        // Mutex liberado: captura continua enquanto enviamos.
+        // Com 30 slots a 1fps temos 30s de janela — bulk upload tipicamente
+        // completa em < 15s sobre Wi-Fi, portanto sem risco de overwrite.
+
+        Serial.printf("BULK: enviando %d frames -> %s\n", sendCount, gBulkUrl);
+
+        esp_http_client_config_t cfg = {};
+        cfg.url            = gBulkUrl;
+        cfg.method         = HTTP_METHOD_POST;
+        cfg.timeout_ms     = 30000;
+        cfg.disable_auto_redirect = true;
+
+        esp_http_client_handle_t client = esp_http_client_init(&cfg);
+        if (!client) {
+            Serial.println("BULK: falha ao inicializar http client");
+            continue;
+        }
+
+        esp_http_client_set_header(client, "Content-Type",
+                                   "application/octet-stream");
+        esp_http_client_set_header(client, "X-Device-Id", gDeviceId.c_str());
+
+        // -1 = chunked transfer encoding (sem Content-Length pre-calculado)
+        esp_err_t openErr = esp_http_client_open(client, -1);
+        if (openErr != ESP_OK) {
+            Serial.printf("BULK: open falhou (%d)\n", (int)openErr);
+            esp_http_client_cleanup(client);
+            continue;
+        }
+
+        bool sendOk    = true;
+        int  framesSent = 0;
+        for (int i = 0; i < sendCount && sendOk; i++) {
+            int idx = (sendTail + i) % sendSlots;
+            uint32_t sz = gHistorySize[idx];
+            if (!sz) continue;
+            // TLV: 4 bytes tamanho LE + blob JPEG
+            int w = esp_http_client_write(client,
+                                          (const char*)&sz, sizeof(uint32_t));
+            if (w < 0) { sendOk = false; break; }
+            w = esp_http_client_write(client,
+                                       (const char*)gHistoryPool[idx], sz);
+            if (w < 0) { sendOk = false; break; }
+            framesSent++;
+        }
+
+        esp_http_client_fetch_headers(client);
+        int status = esp_http_client_get_status_code(client);
+        esp_http_client_close(client);
+        esp_http_client_cleanup(client);
+
+        Serial.printf("BULK: %s — %d/%d frames, HTTP %d\n",
+                      sendOk ? "OK" : "ERRO", framesSent, sendCount, status);
+    }
+}
+
+// Mantém conexão SSE persistente com o servidor; notifica bulk_upload_task
+// ao receber CMD_BULK_UPLOAD.
+static void sse_listener_task(void* /*param*/) {
+    Serial.printf("SSE_TASK: conectando em %s\n", gSseUrl);
+    for (;;) {
+        if (!gSseUrl[0]) {
+            vTaskDelay(pdMS_TO_TICKS(5000));
+            continue;
+        }
+
+        esp_http_client_config_t cfg = {};
+        cfg.url        = gSseUrl;
+        // 60s read timeout — servidor envia heartbeat a cada 30s
+        cfg.timeout_ms = 60000;
+        cfg.disable_auto_redirect = true;
+
+        esp_http_client_handle_t client = esp_http_client_init(&cfg);
+        if (!client) {
+            vTaskDelay(pdMS_TO_TICKS(5000));
+            continue;
+        }
+
+        esp_http_client_set_header(client, "Accept",        "text/event-stream");
+        esp_http_client_set_header(client, "Cache-Control", "no-cache");
+        esp_http_client_set_header(client, "X-Device-Id",   gDeviceId.c_str());
+
+        esp_err_t err = esp_http_client_open(client, 0);  // 0 = GET (no body)
+        if (err == ESP_OK) {
+            esp_http_client_fetch_headers(client);
+            char buf[512];
+            while (true) {
+                int len = esp_http_client_read(client, buf, sizeof(buf) - 1);
+                if (len < 0) break;   // erro de rede → reconectar
+                if (len == 0) continue; // timeout parcial → tentar novamente
+                buf[len] = '\0';
+                if (strstr(buf, "CMD_BULK_UPLOAD")) {
+                    Serial.println("SSE: CMD_BULK_UPLOAD — notificando bulk task");
+                    if (gBulkUploadHandle) xTaskNotifyGive(gBulkUploadHandle);
+                }
+            }
+        } else {
+            Serial.printf("SSE: open falhou (%d)\n", (int)err);
+        }
+
+        esp_http_client_cleanup(client);
+        Serial.println("SSE: desconectado — reconectando em 5s...");
+        vTaskDelay(pdMS_TO_TICKS(5000));
+    }
+}
+
+#endif  // SAIRA_SSE_ENABLED
+
 void setup() {
   Serial.begin(115200);
   // We emit our own connection diagnostics; suppress raw WiFiClient socket spam.
@@ -1125,13 +1300,96 @@ void setup() {
   );
   Serial.println("Upload task criada no core 0");
 
+#if SAIRA_SSE_ENABLED
+  // ---- Ring buffer: aloca slots na PSRAM ----
+  gHistMutex = xSemaphoreCreateMutex();
+  int allocOk = 0;
+  for (int i = 0; i < RING_HISTORY_FRAMES; i++) {
+      gHistoryPool[i] = (uint8_t*)heap_caps_malloc(
+          RING_FRAME_MAX_BYTES, MALLOC_CAP_SPIRAM);
+      if (!gHistoryPool[i]) {
+          Serial.printf("HIST: falha no slot %d — operando com %d slots\n",
+                        i, allocOk);
+          break;
+      }
+      gHistoryPool[i][0] = 0; // touch para ativar mapeamento PSRAM
+      allocOk++;
+  }
+  gHistSlots = allocOk;
+  Serial.printf("HIST: %d/%d slots alocados (%lu KB PSRAM)\n",
+                allocOk, RING_HISTORY_FRAMES,
+                (unsigned long)(allocOk * RING_FRAME_MAX_BYTES / 1024));
+
+  // ---- Constroi URLs SSE e bulk-upload ----
+  {
+      String base = String(SERVER_BASE);
+      String sseUrl  = base + "/device/" + gDeviceId + "/events";
+      String bulkUrl = base + "/device/" + gDeviceId + "/bulk-upload";
+      strncpy(gSseUrl,  sseUrl.c_str(),  sizeof(gSseUrl)  - 1);
+      strncpy(gBulkUrl, bulkUrl.c_str(), sizeof(gBulkUrl) - 1);
+      Serial.printf("SSE URL:  %s\n", gSseUrl);
+      Serial.printf("BULK URL: %s\n", gBulkUrl);
+  }
+
+  // ---- Cria bulk_upload_task primeiro (precisamos do handle) ----
+  xTaskCreatePinnedToCore(
+      bulk_upload_task,    // funcao
+      "bulk_upload",       // nome
+      8192,                // stack bytes
+      NULL,                // param
+      2,                   // prioridade (maior que upload para resposta rapida)
+      &gBulkUploadHandle,  // handle — usado pela sse_listener_task
+      0                    // core 0 (rede)
+  );
+  Serial.println("Bulk upload task criada no core 0");
+
+  // ---- SSE listener (depende de gBulkUploadHandle estar valido) ----
+  xTaskCreatePinnedToCore(
+      sse_listener_task,   // funcao
+      "sse_listener",      // nome
+      8192,                // stack bytes
+      NULL,                // param
+      2,                   // prioridade
+      NULL,                // handle (nao precisamos)
+      0                    // core 0 (rede)
+  );
+  Serial.println("SSE listener task criada no core 0");
+#endif  // SAIRA_SSE_ENABLED
+
   netProbe();
   sendStatus("ESP32 online (ipcam-relay)");
 }
 
 static uint32_t nextCaptureAt = 0;
+#if SAIRA_SSE_ENABLED
+static uint32_t nextHistCaptureAt = 0;
+#endif
 
 void loop() {
+#if SAIRA_SSE_ENABLED
+  // History capture a 1fps — roda ANTES do backpressure check para nao perder frames
+  if (gHistSlots) {
+      if (nextHistCaptureAt == 0) nextHistCaptureAt = millis();
+      if ((int32_t)(millis() - nextHistCaptureAt) >= 0) {
+          nextHistCaptureAt += SAIRA_HISTORY_CAPTURE_MS;
+          // Evitar acumulo se ficou muito tempo sem rodar
+          if ((int32_t)(millis() - nextHistCaptureAt) >= (int32_t)SAIRA_HISTORY_CAPTURE_MS) {
+              nextHistCaptureAt = millis() + SAIRA_HISTORY_CAPTURE_MS;
+          }
+          if (ensureWiFi()) {
+              uint8_t* hbuf = nullptr;
+              int hlen = 0;
+              if (downloadSnapshot(hbuf, hlen)) {
+                  if (!historyPush(hbuf, (uint32_t)hlen, millis())) {
+                      Serial.println("HIST: push falhou");
+                  }
+                  free(hbuf);  // historyPush fez memcpy; libera buffer de download
+              }
+          }
+      }
+  }
+#endif  // SAIRA_SSE_ENABLED
+
   if (!gCaptureBackpressure && queueCount >= CAPTURE_PAUSE_QUEUE_THRESHOLD) {
     gCaptureBackpressure = true;
     gLastBackpressureLogMs = millis();
