@@ -1160,7 +1160,17 @@ static void bulk_upload_task(void* /*param*/) {
         // Com 30 slots a 1fps temos 30s de janela — bulk upload tipicamente
         // completa em < 15s sobre Wi-Fi, portanto sem risco de overwrite.
 
-        Serial.printf("BULK: enviando %d frames -> %s\n", sendCount, gBulkUrl);
+        // Pre-calcular Content-Length para evitar chunked transfer encoding,
+        // que pode ser rejeitado por alguns proxies/servidores Flask+Gunicorn.
+        // TLV wire format: [4 bytes LE size][JPEG bytes] por frame.
+        int32_t totalBodyLen = 0;
+        for (int i = 0; i < sendCount; i++) {
+            int idx = (sendTail + i) % sendSlots;
+            if (gHistorySize[idx]) totalBodyLen += (int32_t)(sizeof(uint32_t) + gHistorySize[idx]);
+        }
+
+        Serial.printf("BULK: enviando %d frames (%ld bytes) -> %s\n",
+                      sendCount, (long)totalBodyLen, gBulkUrl);
 
         esp_http_client_config_t cfg = {};
         cfg.url            = gBulkUrl;
@@ -1178,8 +1188,8 @@ static void bulk_upload_task(void* /*param*/) {
                                    "application/octet-stream");
         esp_http_client_set_header(client, "X-Device-Id", gDeviceId.c_str());
 
-        // -1 = chunked transfer encoding (sem Content-Length pre-calculado)
-        esp_err_t openErr = esp_http_client_open(client, -1);
+        // Content-Length fixo — mais compatível com Flask/Gunicorn que chunked (-1)
+        esp_err_t openErr = esp_http_client_open(client, totalBodyLen);
         if (openErr != ESP_OK) {
             Serial.printf("BULK: open falhou (%d)\n", (int)openErr);
             esp_http_client_cleanup(client);
@@ -1301,6 +1311,22 @@ void setup() {
   Serial.println("Upload task criada no core 0");
 
 #if SAIRA_SSE_ENABLED
+  // ---- Pre-aloca workspace RGB para crop ANTES do ring buffer ----
+  // Sem isso, o ring buffer esgota a PSRAM e compactJpegForQueue falha silenciosamente.
+  // 1280x720x3 = 2.76 MB — cobre 720p RGB888 sem re-alocacao.
+  {
+    const size_t kRgbWorkspace = 1280UL * 720 * 3;
+    uint8_t* p = (uint8_t*)heap_caps_malloc(kRgbWorkspace, MALLOC_CAP_SPIRAM);
+    if (p) {
+      gQueueRgbWorkspace    = p;
+      gQueueRgbWorkspaceLen = kRgbWorkspace;
+      Serial.printf("QUEUE: workspace RGB pre-alocado (%lu KB PSRAM)\n",
+                    (unsigned long)(kRgbWorkspace / 1024));
+    } else {
+      Serial.println("QUEUE: falha ao pre-alocar workspace RGB — crop desabilitado enquanto SSE ativo");
+    }
+  }
+
   // ---- Ring buffer: aloca slots na PSRAM ----
   gHistMutex = xSemaphoreCreateMutex();
   int allocOk = 0;

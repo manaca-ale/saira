@@ -1137,13 +1137,18 @@ BULK_UPLOAD_ROOT = os.path.join(
 def _get_or_create_sse_queue(device_id: str) -> queue.Queue:
     with _sse_lock:
         if device_id not in _sse_queues:
-            _sse_queues[device_id] = queue.Queue()
+            # maxsize=1: only one pending trigger per device at a time.
+            # Prevents flood when device reconnects after an offline period.
+            _sse_queues[device_id] = queue.Queue(maxsize=1)
         return _sse_queues[device_id]
 
 
 def _push_sse_cmd(device_id: str, cmd: str) -> None:
     q = _get_or_create_sse_queue(device_id)
-    q.put(cmd)
+    try:
+        q.put_nowait(cmd)
+    except queue.Full:
+        pass  # already one pending — discard duplicate
 
 
 @app.route("/device/<device_id>/events", methods=["GET"])
