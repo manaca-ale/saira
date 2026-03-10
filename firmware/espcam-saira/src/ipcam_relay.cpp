@@ -915,6 +915,7 @@ static bool ensureQueueRgbWorkspace(size_t needed) {
   return true;
 }
 
+
 static bool isLikelyValidJpeg(const uint8_t* data, int len) {
   if (!data || len < 4) return false;
   return (data[0] == 0xFF && data[1] == 0xD8 &&
@@ -937,7 +938,6 @@ static bool compactJpegForQueue(uint8_t*& data, int& len) {
   // Aplica crop se configurado (mesmo pass do decode, sem custo extra)
   uint16_t encW = width, encH = height;
   uint8_t* encRgb = rgb;
-  uint8_t* cropBuf = nullptr;
 
   if (gCropW > 0 && gCropH > 0) {
     int cx = gCropX < 0 ? 0 : gCropX;
@@ -947,21 +947,18 @@ static bool compactJpegForQueue(uint8_t*& data, int& len) {
     if (cx + cw > (int)width)  cw = (int)width  - cx;
     if (cy + ch > (int)height) ch = (int)height - cy;
     if (cw > 0 && ch > 0 && (cw < (int)width || ch < (int)height)) {
-      size_t cropRgbLen = (size_t)cw * (size_t)ch * 3;
-      cropBuf = (uint8_t*)ps_malloc(cropRgbLen);
-      if (!cropBuf) cropBuf = (uint8_t*)malloc(cropRgbLen);
-      if (cropBuf) {
-        for (int row = 0; row < ch; row++) {
-          memcpy(cropBuf + (size_t)row * cw * 3,
-                 rgb + ((size_t)(cy + row) * width + cx) * 3,
-                 (size_t)cw * 3);
-        }
-        encW   = (uint16_t)cw;
-        encH   = (uint16_t)ch;
-        encRgb = cropBuf;
-        Serial.printf("CROP: %dx%d -> %dx%d (x=%d y=%d)\n",
-                      (int)width, (int)height, cw, ch, cx, cy);
+      // Crop in-place no proprio workspace: sem alocacao extra de PSRAM.
+      // memmove garante seguranca mesmo em regioes sobrepostas.
+      for (int row = 0; row < ch; row++) {
+        memmove(rgb + (size_t)row * cw * 3,
+                rgb + ((size_t)(cy + row) * width + cx) * 3,
+                (size_t)cw * 3);
       }
+      encW   = (uint16_t)cw;
+      encH   = (uint16_t)ch;
+      encRgb = rgb;  // mesmo workspace, agora com dados do crop no inicio
+      Serial.printf("CROP: %dx%d -> %dx%d (x=%d y=%d)\n",
+                    (int)width, (int)height, cw, ch, cx, cy);
     }
   }
 
@@ -970,7 +967,6 @@ static bool compactJpegForQueue(uint8_t*& data, int& len) {
   size_t outLen = 0;
   bool ok = fmt2jpg(encRgb, encRgbLen, encW, encH, PIXFORMAT_RGB888,
                     QUEUE_REENCODE_JPEG_QUALITY, &out, &outLen);
-  free(cropBuf);
 
   if (!ok || !out || outLen == 0) {
     free(out);
