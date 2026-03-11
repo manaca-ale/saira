@@ -1113,6 +1113,23 @@ static TaskHandle_t      gBulkUploadHandle = NULL;
 static char gPollUrl[256] = {};   // long-polling: GET /device/<id>/poll
 static char gBulkUrl[256] = {};
 
+// Acumulador de resposta do poll — preenchido via HTTP_EVENT_ON_DATA
+static char  gPollRespBuf[256] = {};
+static int   gPollRespLen = 0;
+
+static esp_err_t poll_http_event_handler(esp_http_client_event_t *evt) {
+    if (evt->event_id == HTTP_EVENT_ON_DATA) {
+        int space = (int)sizeof(gPollRespBuf) - 1 - gPollRespLen;
+        int copy  = (evt->data_len < space) ? evt->data_len : space;
+        if (copy > 0) {
+            memcpy(gPollRespBuf + gPollRespLen, evt->data, copy);
+            gPollRespLen += copy;
+            gPollRespBuf[gPollRespLen] = '\0';
+        }
+    }
+    return ESP_OK;
+}
+
 // Copia src para o proximo slot circular; src pode ser liberado apos retorno.
 static bool historyPush(const uint8_t* src, uint32_t len, uint32_t ts) {
     if (!gHistSlots) return false;
@@ -1227,18 +1244,22 @@ static void bulk_upload_task(void* /*param*/) {
 // Usando request-response normal (sem streaming) para compatibilidade com esp_http_client.
 static void poll_listener_task(void* /*param*/) {
     Serial.printf("POLL_TASK: iniciando long-polling em %s\n", gPollUrl);
-    char respBuf[256];
     for (;;) {
         if (!gPollUrl[0]) {
             vTaskDelay(pdMS_TO_TICKS(5000));
             continue;
         }
 
+        // Reset acumulador antes de cada requisicao
+        gPollRespLen = 0;
+        gPollRespBuf[0] = '\0';
+
         esp_http_client_config_t cfg = {};
         cfg.url            = gPollUrl;
         // Timeout maior que o bloqueio do servidor (25s) + margem de rede
         cfg.timeout_ms     = 35000;
         cfg.disable_auto_redirect = true;
+        cfg.event_handler  = poll_http_event_handler;
 
         esp_http_client_handle_t client = esp_http_client_init(&cfg);
         if (!client) {
@@ -1251,13 +1272,11 @@ static void poll_listener_task(void* /*param*/) {
         esp_err_t err = esp_http_client_perform(client);
         if (err == ESP_OK) {
             int status = esp_http_client_get_status_code(client);
-            int bodyLen = esp_http_client_get_content_length(client);
-            if (status == 200 && bodyLen > 0 && bodyLen < (int)sizeof(respBuf) - 1) {
-                esp_http_client_read_response(client, respBuf, bodyLen);
-                respBuf[bodyLen] = '\0';
-                if (strstr(respBuf, "CMD_BULK_UPLOAD")) {
+            if (status == 200 && gPollRespLen > 0) {
+                Serial.printf("POLL: resposta %d bytes: %s\n", gPollRespLen, gPollRespBuf);
+                if (strstr(gPollRespBuf, "CMD_BULK_UPLOAD")) {
                     if (gBulkUploadHandle) {
-                        Serial.println("POLL: CMD_BULK_UPLOAD recebido — notificando bulk task");
+                        Serial.println("POLL: CMD_BULK_UPLOAD — notificando bulk task");
                         xTaskNotifyGive(gBulkUploadHandle);
                     } else {
                         Serial.println("POLL: CMD recebido mas handle NULL!");

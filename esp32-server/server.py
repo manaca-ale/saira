@@ -17,6 +17,15 @@ import json
 import time
 import threading
 import queue
+try:
+    import gevent.queue as _gqueue
+    _Queue     = _gqueue.Queue
+    _QueueFull = _gqueue.Full
+    _QueueEmpty = _gqueue.Empty
+except ImportError:
+    _Queue     = queue.Queue
+    _QueueFull = queue.Full
+    _QueueEmpty = queue.Empty
 import struct
 from collections import deque
 from typing import Optional
@@ -1145,12 +1154,14 @@ BULK_UPLOAD_ROOT = os.path.join(
 )
 
 
-def _get_or_create_sse_queue(device_id: str) -> queue.Queue:
+def _get_or_create_sse_queue(device_id: str):
     with _sse_lock:
         if device_id not in _sse_queues:
             # maxsize=1: only one pending trigger per device at a time.
             # Prevents flood when device reconnects after an offline period.
-            _sse_queues[device_id] = queue.Queue(maxsize=1)
+            # Uses gevent.queue.Queue when available so get(timeout=N) is truly
+            # cooperative and wakes immediately when an item is put().
+            _sse_queues[device_id] = _Queue(maxsize=1)
         return _sse_queues[device_id]
 
 
@@ -1158,7 +1169,7 @@ def _push_sse_cmd(device_id: str, cmd: str) -> None:
     q = _get_or_create_sse_queue(device_id)
     try:
         q.put_nowait(cmd)
-    except queue.Full:
+    except _QueueFull:
         pass  # already one pending — discard duplicate
 
 
@@ -1176,7 +1187,7 @@ def device_events(device_id: str):
             try:
                 cmd = q.get(timeout=SSE_HEARTBEAT_SECONDS)
                 yield f"data: {cmd}\n\n"
-            except queue.Empty:
+            except _QueueEmpty:
                 yield ": heartbeat\n\n"
 
     return Response(
@@ -1223,7 +1234,7 @@ def device_poll(device_id: str):
     try:
         cmd = q.get(timeout=timeout_s)
         return {"cmd": cmd}, 200
-    except queue.Empty:
+    except _QueueEmpty:
         return {"cmd": None}, 200
 
 
