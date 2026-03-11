@@ -1154,6 +1154,8 @@ static void bulk_upload_task(void* /*param*/) {
     for (;;) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);  // dorme ate SSE acordar
 
+        Serial.printf("BULK: wake — slots=%d count=%d head=%d\n",
+                      gHistSlots, gHistCount, gHistHead);
         if (!gHistSlots || !gHistCount) {
             Serial.println("BULK: historico vazio, ignorando");
             continue;
@@ -1229,8 +1231,8 @@ static void bulk_upload_task(void* /*param*/) {
             framesSent++;
         }
 
-        esp_http_client_fetch_headers(client);
-        int status = esp_http_client_get_status_code(client);
+        int fetchRet = esp_http_client_fetch_headers(client);
+        int status   = (fetchRet >= 0) ? esp_http_client_get_status_code(client) : fetchRet;
         esp_http_client_close(client);
         esp_http_client_cleanup(client);
 

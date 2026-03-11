@@ -15,7 +15,11 @@ services:
       - DEFAULT_CONFIG_FILE=${DEFAULT_CONFIG_FILE:-default.txt}
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
-      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
+      # 1 gevent worker: required for in-process queue to work correctly for
+      # long-polling (/device/<id>/poll). With multiple workers each process
+      # has its own queue; trigger → worker A but poll → worker B = missed CMD.
+      # For multi-worker prod deployments, replace the queue with Redis pub/sub.
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-1}
       - GUNICORN_THREADS=${GUNICORN_THREADS:-8}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
       - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-5}
