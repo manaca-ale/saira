@@ -1258,8 +1258,12 @@ static void sse_listener_task(void* /*param*/) {
                 if (len == 0) continue; // timeout parcial → tentar novamente
                 buf[len] = '\0';
                 if (strstr(buf, "CMD_BULK_UPLOAD")) {
-                    Serial.println("SSE: CMD_BULK_UPLOAD — notificando bulk task");
-                    if (gBulkUploadHandle) xTaskNotifyGive(gBulkUploadHandle);
+                    if (gBulkUploadHandle) {
+                        Serial.println("SSE: CMD_BULK_UPLOAD — notificando bulk task");
+                        xTaskNotifyGive(gBulkUploadHandle);
+                    } else {
+                        Serial.println("SSE: CMD_BULK_UPLOAD recebido mas handle NULL — task nao criada!");
+                    }
                 }
             }
         } else {
@@ -1358,7 +1362,7 @@ void setup() {
   }
 
   // ---- Cria bulk_upload_task primeiro (precisamos do handle) ----
-  xTaskCreatePinnedToCore(
+  BaseType_t bulkOk = xTaskCreatePinnedToCore(
       bulk_upload_task,    // funcao
       "bulk_upload",       // nome
       8192,                // stack bytes
@@ -1367,10 +1371,17 @@ void setup() {
       &gBulkUploadHandle,  // handle — usado pela sse_listener_task
       0                    // core 0 (rede)
   );
-  Serial.println("Bulk upload task criada no core 0");
+  if (bulkOk != pdPASS || !gBulkUploadHandle) {
+      Serial.printf("BULK_TASK: FALHA ao criar task (ret=%d handle=%p heap=%lu)\n",
+                    (int)bulkOk, (void*)gBulkUploadHandle,
+                    (unsigned long)esp_get_free_heap_size());
+  } else {
+      Serial.printf("Bulk upload task criada no core 0 (handle=%p)\n",
+                    (void*)gBulkUploadHandle);
+  }
 
   // ---- SSE listener (depende de gBulkUploadHandle estar valido) ----
-  xTaskCreatePinnedToCore(
+  BaseType_t sseOk = xTaskCreatePinnedToCore(
       sse_listener_task,   // funcao
       "sse_listener",      // nome
       8192,                // stack bytes
@@ -1379,7 +1390,12 @@ void setup() {
       NULL,                // handle (nao precisamos)
       0                    // core 0 (rede)
   );
-  Serial.println("SSE listener task criada no core 0");
+  if (sseOk != pdPASS) {
+      Serial.printf("SSE_TASK: FALHA ao criar task (ret=%d heap=%lu)\n",
+                    (int)sseOk, (unsigned long)esp_get_free_heap_size());
+  } else {
+      Serial.println("SSE listener task criada no core 0");
+  }
 #endif  // SAIRA_SSE_ENABLED
 
   netProbe();

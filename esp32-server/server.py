@@ -1,3 +1,12 @@
+# gevent monkey-patching must happen before any other imports so that
+# blocking stdlib calls (socket, threading, queue) become gevent-friendly.
+# This enables proper SSE streaming with gunicorn gevent workers.
+try:
+    from gevent import monkey as _monkey
+    _monkey.patch_all()
+except ImportError:
+    pass  # running without gevent (e.g., local dev) — SSE may not stream correctly
+
 from flask import Flask, request, send_from_directory, render_template, Response, stream_with_context
 from datetime import datetime, timedelta, timezone
 import os
@@ -1129,8 +1138,10 @@ _sse_queues: dict[str, queue.Queue] = {}
 _sse_lock = threading.Lock()
 
 SSE_HEARTBEAT_SECONDS = _int_env("SSE_HEARTBEAT_SECONDS", 30, minimum=5)
+# Use UPLOAD_DIR (same volume as regular uploads) so bulk frames land in the
+# same mounted directory and are accessible via the /uploads static route.
 BULK_UPLOAD_ROOT = os.path.join(
-    os.getenv("UPLOAD_ROOT", "/data/saira/uploads"), "bulk"
+    os.getenv("UPLOAD_DIR", os.getenv("UPLOAD_ROOT", "/app/uploads")), "bulk"
 )
 
 
