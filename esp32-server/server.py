@@ -1202,6 +1202,31 @@ def device_trigger(device_id: str):
     return {"status": "queued", "device_id": device_id, "cmd": cmd}, 200
 
 
+@app.route("/device/<device_id>/poll", methods=["GET"])
+def device_poll(device_id: str):
+    """Long-polling endpoint for device command delivery.
+
+    The device makes a GET request and this endpoint blocks for up to
+    POLL_TIMEOUT_SECONDS waiting for a queued command.  When a command
+    arrives it is returned immediately as JSON {"cmd": "<CMD>"}.  If no
+    command arrives within the timeout, {"cmd": null} is returned.
+
+    This is more reliable than SSE for ESP-IDF clients because it uses
+    a standard HTTP request-response cycle that esp_http_client handles
+    correctly (no chunked-streaming issues).
+    """
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+
+    timeout_s = _int_env("POLL_TIMEOUT_SECONDS", 25, minimum=5)
+    q = _get_or_create_sse_queue(device_id)
+    try:
+        cmd = q.get(timeout=timeout_s)
+        return {"cmd": cmd}, 200
+    except queue.Empty:
+        return {"cmd": None}, 200
+
+
 @app.route("/device/<device_id>/bulk-upload", methods=["POST"])
 def device_bulk_upload(device_id: str):
     """Receive TLV-framed JPEG history from device and save to disk.

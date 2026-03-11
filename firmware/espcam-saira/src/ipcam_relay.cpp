@@ -1110,7 +1110,7 @@ static SemaphoreHandle_t gHistMutex = NULL;
 static TaskHandle_t      gBulkUploadHandle = NULL;
 
 // URLs construidas em setup() a partir de SERVER_BASE + gDeviceId
-static char gSseUrl[256]  = {};
+static char gPollUrl[256] = {};   // long-polling: GET /device/<id>/poll
 static char gBulkUrl[256] = {};
 
 // Copia src para o proximo slot circular; src pode ser liberado apos retorno.
@@ -1222,57 +1222,56 @@ static void bulk_upload_task(void* /*param*/) {
     }
 }
 
-// Mantém conexão SSE persistente com o servidor; notifica bulk_upload_task
-// ao receber CMD_BULK_UPLOAD.
-static void sse_listener_task(void* /*param*/) {
-    Serial.printf("SSE_TASK: conectando em %s\n", gSseUrl);
+// Long-polling listener: faz GET /device/<id>/poll a cada ciclo.
+// O servidor bloqueia por ate 25s aguardando um CMD; retorna JSON {"cmd":"..."}.
+// Usando request-response normal (sem streaming) para compatibilidade com esp_http_client.
+static void poll_listener_task(void* /*param*/) {
+    Serial.printf("POLL_TASK: iniciando long-polling em %s\n", gPollUrl);
+    char respBuf[256];
     for (;;) {
-        if (!gSseUrl[0]) {
+        if (!gPollUrl[0]) {
             vTaskDelay(pdMS_TO_TICKS(5000));
             continue;
         }
 
         esp_http_client_config_t cfg = {};
-        cfg.url        = gSseUrl;
-        // 60s read timeout — servidor envia heartbeat a cada 30s
-        cfg.timeout_ms = 60000;
+        cfg.url            = gPollUrl;
+        // Timeout maior que o bloqueio do servidor (25s) + margem de rede
+        cfg.timeout_ms     = 35000;
         cfg.disable_auto_redirect = true;
 
         esp_http_client_handle_t client = esp_http_client_init(&cfg);
         if (!client) {
-            vTaskDelay(pdMS_TO_TICKS(5000));
+            vTaskDelay(pdMS_TO_TICKS(3000));
             continue;
         }
 
-        esp_http_client_set_header(client, "Accept",        "text/event-stream");
-        esp_http_client_set_header(client, "Cache-Control", "no-cache");
-        esp_http_client_set_header(client, "X-Device-Id",   gDeviceId.c_str());
+        esp_http_client_set_header(client, "X-Device-Id", gDeviceId.c_str());
 
-        esp_err_t err = esp_http_client_open(client, 0);  // 0 = GET (no body)
+        esp_err_t err = esp_http_client_perform(client);
         if (err == ESP_OK) {
-            esp_http_client_fetch_headers(client);
-            char buf[512];
-            while (true) {
-                int len = esp_http_client_read(client, buf, sizeof(buf) - 1);
-                if (len < 0) break;   // erro de rede → reconectar
-                if (len == 0) continue; // timeout parcial → tentar novamente
-                buf[len] = '\0';
-                if (strstr(buf, "CMD_BULK_UPLOAD")) {
+            int status = esp_http_client_get_status_code(client);
+            int bodyLen = esp_http_client_get_content_length(client);
+            if (status == 200 && bodyLen > 0 && bodyLen < (int)sizeof(respBuf) - 1) {
+                esp_http_client_read_response(client, respBuf, bodyLen);
+                respBuf[bodyLen] = '\0';
+                if (strstr(respBuf, "CMD_BULK_UPLOAD")) {
                     if (gBulkUploadHandle) {
-                        Serial.println("SSE: CMD_BULK_UPLOAD — notificando bulk task");
+                        Serial.println("POLL: CMD_BULK_UPLOAD recebido — notificando bulk task");
                         xTaskNotifyGive(gBulkUploadHandle);
                     } else {
-                        Serial.println("SSE: CMD_BULK_UPLOAD recebido mas handle NULL — task nao criada!");
+                        Serial.println("POLL: CMD recebido mas handle NULL!");
                     }
                 }
+                // {"cmd": null} = sem CMD, ciclo normal
             }
         } else {
-            Serial.printf("SSE: open falhou (%d)\n", (int)err);
+            Serial.printf("POLL: erro HTTP (%d) — retry em 3s\n", (int)err);
+            vTaskDelay(pdMS_TO_TICKS(3000));
         }
 
         esp_http_client_cleanup(client);
-        Serial.println("SSE: desconectado — reconectando em 5s...");
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        // Sem delay entre polls bem-sucedidos — server ja bloqueia 25s
     }
 }
 
@@ -1350,14 +1349,14 @@ void setup() {
                 allocOk, RING_HISTORY_FRAMES,
                 (unsigned long)(allocOk * RING_FRAME_MAX_BYTES / 1024));
 
-  // ---- Constroi URLs SSE e bulk-upload ----
+  // ---- Constroi URLs de poll e bulk-upload ----
   {
-      String base = String(SERVER_BASE);
-      String sseUrl  = base + "/device/" + gDeviceId + "/events";
+      String base    = String(SERVER_BASE);
+      String pollUrl = base + "/device/" + gDeviceId + "/poll";
       String bulkUrl = base + "/device/" + gDeviceId + "/bulk-upload";
-      strncpy(gSseUrl,  sseUrl.c_str(),  sizeof(gSseUrl)  - 1);
+      strncpy(gPollUrl, pollUrl.c_str(), sizeof(gPollUrl) - 1);
       strncpy(gBulkUrl, bulkUrl.c_str(), sizeof(gBulkUrl) - 1);
-      Serial.printf("SSE URL:  %s\n", gSseUrl);
+      Serial.printf("POLL URL: %s\n", gPollUrl);
       Serial.printf("BULK URL: %s\n", gBulkUrl);
   }
 
@@ -1368,7 +1367,7 @@ void setup() {
       8192,                // stack bytes
       NULL,                // param
       2,                   // prioridade (maior que upload para resposta rapida)
-      &gBulkUploadHandle,  // handle — usado pela sse_listener_task
+      &gBulkUploadHandle,  // handle — usado pela poll_listener_task
       0                    // core 0 (rede)
   );
   if (bulkOk != pdPASS || !gBulkUploadHandle) {
@@ -1380,21 +1379,21 @@ void setup() {
                     (void*)gBulkUploadHandle);
   }
 
-  // ---- SSE listener (depende de gBulkUploadHandle estar valido) ----
-  BaseType_t sseOk = xTaskCreatePinnedToCore(
-      sse_listener_task,   // funcao
-      "sse_listener",      // nome
+  // ---- Poll listener (long-polling; depende de gBulkUploadHandle estar valido) ----
+  BaseType_t pollOk = xTaskCreatePinnedToCore(
+      poll_listener_task,  // funcao
+      "poll_listener",     // nome
       8192,                // stack bytes
       NULL,                // param
       2,                   // prioridade
       NULL,                // handle (nao precisamos)
       0                    // core 0 (rede)
   );
-  if (sseOk != pdPASS) {
-      Serial.printf("SSE_TASK: FALHA ao criar task (ret=%d heap=%lu)\n",
-                    (int)sseOk, (unsigned long)esp_get_free_heap_size());
+  if (pollOk != pdPASS) {
+      Serial.printf("POLL_TASK: FALHA ao criar task (ret=%d heap=%lu)\n",
+                    (int)pollOk, (unsigned long)esp_get_free_heap_size());
   } else {
-      Serial.println("SSE listener task criada no core 0");
+      Serial.println("Poll listener task criada no core 0");
   }
 #endif  // SAIRA_SSE_ENABLED
 

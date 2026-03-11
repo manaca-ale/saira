@@ -455,25 +455,16 @@ async function loadDashboard(options = {}) {
     setRefreshStatus("warn", manual ? "Atualizando..." : "Sincronizando...");
 
     const selected = state.selectedDevice;
-    const summaryQ = toQuery({ device_id: selected });
-    const imagesQ = toQuery({ device_id: selected, limit: 12 });
-    const logsQ = toQuery({ device_id: selected, limit: 25 });
-
-    const [summaryResp, devicesResp, imagesResp, logsResp] = await Promise.all([
-      fetch(`/api/dashboard/summary${summaryQ}`, { cache: "no-store" }),
-      fetch("/api/dashboard/devices", { cache: "no-store" }),
-      fetch(`/api/dashboard/recent-images${imagesQ}`, { cache: "no-store" }),
-      fetch(`/api/dashboard/recent-logs${logsQ}`, { cache: "no-store" }),
-    ]);
-
-    if (!summaryResp.ok || !devicesResp.ok || !imagesResp.ok || !logsResp.ok) {
-      throw new Error(`Falha na API (${summaryResp.status}/${devicesResp.status}/${imagesResp.status}/${logsResp.status})`);
+    const stateQ = toQuery({ device_id: selected, image_limit: 12, log_limit: 25 });
+    const dashboardResp = await fetch(`/api/dashboard/state${stateQ}`, { cache: "no-store" });
+    if (!dashboardResp.ok) {
+      throw new Error(`Falha na API (${dashboardResp.status})`);
     }
-
-    const summary = await summaryResp.json();
-    const devicesData = await devicesResp.json();
-    const imagesData = await imagesResp.json();
-    const logsData = await logsResp.json();
+    const dashboardData = await dashboardResp.json();
+    const summary = dashboardData.summary || {};
+    const devicesData = dashboardData.devices || {};
+    const imagesData = dashboardData.recent_images || {};
+    const logsData = dashboardData.recent_logs || {};
 
     const allDevices = Array.isArray(devicesData.devices) ? devicesData.devices : [];
     renderDeviceFilter(allDevices);
