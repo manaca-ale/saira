@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Enum, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime
 from geoalchemy2 import Geometry
 import uuid
 import enum
 from app.core.database import Base
+from app.core.timezone import now_brazil_naive
 
 
 class DetectionStatus(str, enum.Enum):
@@ -38,5 +38,5 @@ class Detection(Base):
     forwarded_to_sector = Column(String(100), nullable=True)
     analysis_started_at = Column(DateTime, nullable=True)
     analysis_started_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=now_brazil_naive)
+    updated_at = Column(DateTime, default=now_brazil_naive, onupdate=now_brazil_naive)

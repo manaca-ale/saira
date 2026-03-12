@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Numeric
-from datetime import datetime
 from geoalchemy2 import Geometry
 from app.core.database import Base
+from app.core.timezone import now_brazil_naive
 
 
 class Camera(Base):
@@ -20,5 +20,5 @@ class Camera(Base):
     capture_interval_seconds = Column(Integer, default=30)
     is_active = Column(Boolean, default=True, index=True)
     last_capture_at = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=now_brazil_naive)
+    updated_at = Column(DateTime, default=now_brazil_naive, onupdate=now_brazil_naive)
