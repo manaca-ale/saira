@@ -113,10 +113,11 @@ def is_processed(image_path: Path) -> bool:
     return "processed" in image_path.parts
 
 
-def mark_processed(image_path: Path, device_base: Path, disposal: bool) -> None:
+def mark_processed(image_path: Path, device_base: Path, disposal: bool) -> Path:
     """Move image to the appropriate subfolder based on detection outcome."""
     if config.PROCESSED_STRATEGY == "marker":
         image_path.with_suffix(".jpg.processed").touch()
+        return image_path
     elif config.PROCESSED_STRATEGY == "two_folders":
         subfolder = "ocorrencias" if disposal else "sem_ocorrencia"
         try:
@@ -125,11 +126,72 @@ def mark_processed(image_path: Path, device_base: Path, disposal: bool) -> None:
             date_parts = Path("")
         dest_dir = device_base / subfolder / date_parts
         dest_dir.mkdir(parents=True, exist_ok=True)
-        image_path.rename(dest_dir / image_path.name)
+        dest = dest_dir / image_path.name
+        image_path.rename(dest)
+        return dest
     else:
         processed_dir = image_path.parent / "processed"
         processed_dir.mkdir(exist_ok=True)
-        image_path.rename(processed_dir / image_path.name)
+        dest = processed_dir / image_path.name
+        image_path.rename(dest)
+        return dest
+
+
+def _to_upload_relative(path: Path) -> Optional[Path]:
+    try:
+        return path.relative_to(Path(config.UPLOAD_DIR))
+    except Exception:
+        return None
+
+
+def _build_image_url_from_upload_path(path: Path) -> Optional[str]:
+    rel = _to_upload_relative(path)
+    if rel is None:
+        return None
+    return build_image_url(rel.as_posix())
+
+
+def _persist_detection_frame_index(
+    detection_id: str,
+    device_id: str,
+    moved_frames: list[Path],
+    selected_frame_name: Optional[str],
+) -> None:
+    if not detection_id or not moved_frames:
+        return
+
+    ordered = sorted(moved_frames, key=lambda p: (parse_timestamp(p.name), p.name))
+    frames_payload: list[dict[str, Any]] = []
+    for frame_path in ordered:
+        image_url = _build_image_url_from_upload_path(frame_path)
+        if not image_url:
+            continue
+        frames_payload.append(
+            {
+                "frame_name": frame_path.name,
+                "image_url": image_url,
+                "is_default": bool(selected_frame_name and frame_path.name == selected_frame_name),
+            }
+        )
+
+    if not frames_payload:
+        return
+
+    # Ensure one default frame.
+    if not any(frame.get("is_default") for frame in frames_payload):
+        frames_payload[0]["is_default"] = True
+
+    index = {
+        "detection_id": detection_id,
+        "device_id": device_id,
+        "selected_frame_name": selected_frame_name,
+        "frames": frames_payload,
+        "created_at": datetime.now(BRASILIA).isoformat(),
+    }
+    target_dir = Path(config.STATE_DIR) / "detection_frames"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / f"{detection_id}.json"
+    target.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 # ==========================================
@@ -323,7 +385,7 @@ def _record_detection(
     confidence_score: Decimal,
     offender_rows: list[OffenderRecord],
     annotated_bgr=None,
-) -> bool:
+) -> Optional[str]:
     if annotated_bgr is not None:
         labeled_rel = save_labeled_image(annotated_bgr, device_id, jpg)
     else:
@@ -357,9 +419,9 @@ def _record_detection(
             for row in offender_rows:
                 row.detection_id = detection.id
             insert_offenders(offender_rows)
-        return True
+        return str(detection.id)
 
-    return False
+    return None
 
 
 def _process_with_yolo(jpg: Path, device_id: str, camera, persist: bool = True) -> tuple[bool, dict[str, Any]]:
@@ -515,6 +577,7 @@ def _process_with_gemini(
             )
         )
 
+        detection_id: Optional[str] = None
         if disposal and persist and not config.GEMINI_DRY_RUN:
             evidence_jpg = next((p for p in sequence_paths if p.name == report.event_frame_name), jpg)
             offender_rows = [
@@ -531,7 +594,7 @@ def _process_with_gemini(
                 for otype in offender_types
             ]
 
-            _record_detection(
+            detection_id = _record_detection(
                 jpg=evidence_jpg,
                 device_id=device_id,
                 camera=camera,
@@ -543,6 +606,8 @@ def _process_with_gemini(
                 offender_rows=offender_rows,
                 annotated_bgr=None,
             )
+            if detection_id:
+                payload["detection_id"] = detection_id
 
         return disposal, payload
 
@@ -877,12 +942,23 @@ def scan_and_process() -> int:
                         continue
 
                     final_disposal = bool(disposal)
+                    moved_frames: list[Path] = []
                     for frame in window_paths:
-                        mark_processed(frame, device_dir, final_disposal)
+                        moved = mark_processed(frame, device_dir, final_disposal)
+                        moved_frames.append(moved)
                         processed_count += 1
                         device_processed += 1
 
                     if final_disposal:
+                        agent2_result = cascade_payload.get("agent2_result") or {}
+                        detection_id = agent2_result.get("detection_id")
+                        if detection_id:
+                            _persist_detection_frame_index(
+                                detection_id=detection_id,
+                                device_id=device_id,
+                                moved_frames=moved_frames,
+                                selected_frame_name=agent2_result.get("event_frame_name"),
+                            )
                         logger.info(
                             "Disposal event recorded (Gemini cascade): %s / window %s -> %s",
                             device_id,

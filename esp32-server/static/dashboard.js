@@ -62,6 +62,19 @@ const state = {
   registrationLoading: false,
   registrationLoadedAt: 0,
 };
+const BRAZIL_TZ = "America/Sao_Paulo";
+
+function parseSairaDate(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.includes(" ") ? raw.replace(" ", "T") : raw;
+  const hasTimezone = /([zZ]|[+-]\d{2}:\d{2})$/.test(normalized);
+  const withTimezone = hasTimezone ? normalized : `${normalized}-03:00`;
+  const dt = new Date(withTimezone);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
 
 function toQuery(params) {
   const usp = new URLSearchParams();
@@ -75,9 +88,9 @@ function toQuery(params) {
 
 function fmtDate(iso) {
   if (!iso) return "-";
-  const dt = new Date(iso);
-  if (!Number.isNaN(dt.getTime())) {
-    return dt.toLocaleString("pt-BR", { hour12: false });
+  const dt = parseSairaDate(iso);
+  if (dt) {
+    return dt.toLocaleString("pt-BR", { hour12: false, timeZone: BRAZIL_TZ });
   }
   const raw = String(iso).trim();
   return raw.replace("T", " ").replace("Z", "");
@@ -85,8 +98,8 @@ function fmtDate(iso) {
 
 function fmtRelative(iso) {
   if (!iso) return "-";
-  const dt = new Date(iso);
-  if (Number.isNaN(dt.getTime())) return fmtDate(iso);
+  const dt = parseSairaDate(iso);
+  if (!dt) return fmtDate(iso);
   const diffSec = Math.max(0, Math.round((Date.now() - dt.getTime()) / 1000));
   if (diffSec < 60) return `${diffSec}s atras`;
   if (diffSec < 3600) return `${Math.floor(diffSec / 60)}min atras`;

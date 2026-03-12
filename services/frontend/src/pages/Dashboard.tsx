@@ -692,6 +692,17 @@ export const Dashboard: React.FC = () => {
     setAnalysisTarget(selectedOccurrence);
   };
 
+  const handleOccurrencePhotoUpdated = (imageUrl: string) => {
+    const currentId = selectedOccurrence?.id;
+    if (!currentId) return;
+    setSelectedOccurrence((prev) => (prev ? { ...prev, photoUrl: imageUrl } : prev));
+    setDetections((prev) =>
+      prev.map((item) =>
+        item.id === currentId ? { ...item, photoUrl: imageUrl } : item,
+      ),
+    );
+  };
+
   return (
     // --- Main Layout Container ---
     <div className="flex h-full bg-[#f8f9fa] font-sans relative">
@@ -1147,6 +1158,7 @@ export const Dashboard: React.FC = () => {
           data={modalData}
           onResolve={handleResolveFromModal}
           onStartAnalysis={handleStartAnalysisFromModal}
+          onPhotoUpdated={handleOccurrencePhotoUpdated}
         />
       )}
       {resolveTarget && (

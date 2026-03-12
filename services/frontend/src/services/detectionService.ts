@@ -11,6 +11,7 @@ export interface Detection {
   latitude: number;
   longitude: number;
   waste_type?: string;
+  material_type?: string;
   volume_m3?: number;
   offenders?: string;
   status: string;
@@ -47,6 +48,18 @@ export interface PaginatedDetections {
   total: number;
   skip: number;
   limit: number;
+}
+
+export interface DetectionAnalyzedFrame {
+  frame_name: string;
+  image_url: string;
+  is_default: boolean;
+}
+
+export interface DetectionAnalyzedFramesResponse {
+  detection_id: string;
+  selected_frame_name?: string | null;
+  frames: DetectionAnalyzedFrame[];
 }
 
 function normalizeImageUrl(url?: string | null): string {
@@ -222,6 +235,22 @@ export async function getDetectionById(id: string): Promise<PoiData> {
 export async function updateDetectionStatus(id: string, status: string): Promise<Detection> {
   const response = await api.patch(`/detections/${id}`, { status });
   return response.data;
+}
+
+export async function updateDetectionImage(id: string, image_url: string): Promise<Detection> {
+  const response = await api.patch(`/detections/${id}`, { image_url });
+  return response.data;
+}
+
+export async function getDetectionAnalyzedFrames(id: string): Promise<DetectionAnalyzedFramesResponse> {
+  const response = await api.get<DetectionAnalyzedFramesResponse>(`/detections/${id}/analyzed-frames`);
+  return {
+    ...response.data,
+    frames: (response.data.frames || []).map((frame) => ({
+      ...frame,
+      image_url: normalizeImageUrl(frame.image_url),
+    })),
+  };
 }
 
 export async function resolveDetection(

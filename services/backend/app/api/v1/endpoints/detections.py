@@ -1,8 +1,11 @@
 import asyncio
 import logging
+import json
+import os
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-from datetime import datetime
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func, or_
@@ -14,13 +17,17 @@ from app.models.detection import Detection, DetectionStatus
 from app.schemas.detection import (
     DetectionCreate, DetectionUpdate, DetectionResponse,
     DetectionResolve, DetectionStartAnalysis, DetectionListResponse,
+    DetectionAnalyzedFramesResponse,
 )
 from app.schemas.detection import DetectionStatus as DetectionStatusSchema
 from app.services import notification_service
+from app.core.timezone import now_brazil_naive
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+WORKER_STATE_DIR = Path(os.getenv("WORKER_STATE_DIR", "/app/yolo_state"))
+DETECTION_FRAMES_DIR = WORKER_STATE_DIR / "detection_frames"
 
 
 def _parse_csv(value: Optional[str]) -> List[str]:
@@ -59,6 +66,7 @@ def _expand_waste_type_aliases(values: List[str]) -> List[str]:
 async def get_detections(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
+    camera_id: Optional[int] = Query(None, ge=1),
     rpa: Optional[str] = None,
     status_filter: Optional[DetectionStatusSchema] = None,
     start_date: Optional[datetime] = None,
@@ -71,6 +79,8 @@ async def get_detections(
     query = select(Detection)
 
     filters = []
+    if camera_id is not None:
+        filters.append(Detection.camera_id == camera_id)
     if rpa:
         filters.append(Detection.rpa == rpa)
     if status_filter:
@@ -199,6 +209,102 @@ async def get_detection(
         )
 
     return detection
+
+
+@router.get("/{detection_id}/analyzed-frames", response_model=DetectionAnalyzedFramesResponse)
+async def get_detection_analyzed_frames(
+    detection_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return frame options analyzed by Gemini agent-2 for this detection."""
+    result = await db.execute(select(Detection).where(Detection.id == detection_id))
+    detection = result.scalar_one_or_none()
+    if not detection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Detection not found",
+        )
+
+    fallback_frame_name = ""
+    if detection.image_url:
+        fallback_frame_name = str(detection.image_url).rstrip("/").split("/")[-1]
+
+    index_file = DETECTION_FRAMES_DIR / f"{detection_id}.json"
+    if not index_file.exists():
+        frames = []
+        if detection.image_url:
+            frames = [
+                {
+                    "frame_name": fallback_frame_name or "selected_frame.jpg",
+                    "image_url": str(detection.image_url),
+                    "is_default": True,
+                }
+            ]
+        return DetectionAnalyzedFramesResponse(
+            detection_id=detection_id,
+            selected_frame_name=fallback_frame_name or None,
+            frames=frames,
+        )
+
+    try:
+        payload = json.loads(index_file.read_text(encoding="utf-8"))
+    except Exception:
+        payload = {}
+
+    raw_frames = payload.get("frames") or []
+    frames = []
+    for frame in raw_frames:
+        frame_name = str(frame.get("frame_name") or "").strip()
+        image_url = str(frame.get("image_url") or "").strip()
+        if not frame_name or not image_url:
+            continue
+        frames.append(
+            {
+                "frame_name": frame_name,
+                "image_url": image_url,
+                "is_default": bool(frame.get("is_default")),
+            }
+        )
+
+    if not frames and detection.image_url:
+        frames = [
+            {
+                "frame_name": fallback_frame_name or "selected_frame.jpg",
+                "image_url": str(detection.image_url),
+                "is_default": True,
+            }
+        ]
+
+    selected_name = str(payload.get("selected_frame_name") or "").strip() or None
+    persisted_image_url = str(detection.image_url or "").strip()
+
+    resolved_selected_frame = None
+    if persisted_image_url:
+        resolved_selected_frame = next(
+            (frame for frame in frames if frame["image_url"] == persisted_image_url),
+            None,
+        )
+    if resolved_selected_frame is None and selected_name:
+        resolved_selected_frame = next(
+            (frame for frame in frames if frame["frame_name"] == selected_name),
+            None,
+        )
+    if resolved_selected_frame is None:
+        resolved_selected_frame = next((frame for frame in frames if frame["is_default"]), None)
+    if resolved_selected_frame is None and frames:
+        resolved_selected_frame = frames[0]
+
+    if resolved_selected_frame:
+        selected_name = resolved_selected_frame["frame_name"]
+        for frame in frames:
+            frame["is_default"] = frame["frame_name"] == selected_name
+
+    return DetectionAnalyzedFramesResponse(
+        detection_id=detection_id,
+        selected_frame_name=selected_name,
+        frames=frames,
+    )
 
 
 @router.post("/", response_model=DetectionResponse, status_code=status.HTTP_201_CREATED)
@@ -357,7 +463,7 @@ async def start_analysis(
         )
 
     detection.status = DetectionStatus.EM_ANALISE
-    detection.analysis_started_at = datetime.utcnow()
+    detection.analysis_started_at = now_brazil_naive()
     detection.analysis_started_by = current_user.id
 
     await db.commit()

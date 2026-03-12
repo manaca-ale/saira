@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, Clock, UserPlus, Trash2 as UnlinkIcon } from "lucide-react";
+import JSZip from "jszip";
 import imgLixo from "../assets/lixo_exemplo.png";
 import imgInfrator from "../assets/infrator_exemplo.png";
 import { getDetectionOffenders, deleteDetectionOffender } from "../services/offenderService";
 import type { DetectionOffenderLink } from "../services/offenderService";
+import { getDetectionAnalyzedFrames, updateDetectionImage } from "../services/detectionService";
+import type { DetectionAnalyzedFrame } from "../services/detectionService";
 import { AddDetectionOffenderModal } from "./AddDetectionOffenderModal";
+import { formatDateTimeBrazil } from "../utils/datetime";
 
 interface OccurrenceModalProps {
   isOpen: boolean;
@@ -13,6 +17,7 @@ interface OccurrenceModalProps {
   data: any;
   onResolve?: () => void;
   onStartAnalysis?: () => void;
+  onPhotoUpdated?: (imageUrl: string) => void;
 }
 
 // --- Programmatic Canvas export (bypasses html2canvas + oklch issues) ---
@@ -222,6 +227,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   data,
   onResolve,
   onStartAnalysis,
+  onPhotoUpdated,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -229,6 +235,17 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const [offenderLinks, setOffenderLinks] = useState<DetectionOffenderLink[]>([]);
   const [loadingOffenders, setLoadingOffenders] = useState(false);
   const [isAddOffenderOpen, setIsAddOffenderOpen] = useState(false);
+  const [isFramesModalOpen, setIsFramesModalOpen] = useState(false);
+  const [isConfirmFrameChangeOpen, setIsConfirmFrameChangeOpen] = useState(false);
+  const [loadingFrames, setLoadingFrames] = useState(false);
+  const [savingFrame, setSavingFrame] = useState(false);
+  const [downloadingZip, setDownloadingZip] = useState(false);
+  const [analyzedFrames, setAnalyzedFrames] = useState<DetectionAnalyzedFrame[]>([]);
+  const [selectedPhotoSrc, setSelectedPhotoSrc] = useState<string>("");
+  const [pendingPhotoSrc, setPendingPhotoSrc] = useState<string>("");
+  const [candidatePhotoSrc, setCandidatePhotoSrc] = useState<string>("");
+  const [photoPositionX, setPhotoPositionX] = useState(50);
+  const [photoPositionY, setPhotoPositionY] = useState(50);
 
   useEffect(() => {
     if (isOpen && data?.id) {
@@ -241,6 +258,75 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
       setOffenderLinks([]);
     }
   }, [isOpen, data?.id]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsFramesModalOpen(false);
+      setIsConfirmFrameChangeOpen(false);
+      return;
+    }
+
+    const fallbackPhoto = data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
+    setSelectedPhotoSrc(fallbackPhoto);
+    setPendingPhotoSrc(fallbackPhoto);
+    setLoadingFrames(true);
+
+    if (!data?.id) {
+      setAnalyzedFrames([]);
+      setLoadingFrames(false);
+      return;
+    }
+
+    getDetectionAnalyzedFrames(data.id)
+      .then((response) => {
+        const frames = response.frames || [];
+        setAnalyzedFrames(frames);
+        const persistedImage = (data?.image_url || "").trim();
+        const persistedFrame = persistedImage
+          ? frames.find((frame) => frame.image_url === persistedImage)?.image_url
+          : undefined;
+        const defaultFrame =
+          persistedFrame ||
+          frames.find((frame) => frame.is_default)?.image_url ||
+          frames.find((frame) => frame.frame_name === response.selected_frame_name)?.image_url ||
+          fallbackPhoto;
+        setSelectedPhotoSrc(defaultFrame);
+        setPendingPhotoSrc(defaultFrame);
+      })
+      .catch(() => {
+        setAnalyzedFrames([]);
+        setSelectedPhotoSrc(fallbackPhoto);
+        setPendingPhotoSrc(fallbackPhoto);
+      })
+      .finally(() => setLoadingFrames(false));
+  }, [isOpen, data?.id, data?.image_url, data?.hasOffender]);
+
+  useEffect(() => {
+    if (!isOpen || !data?.id) return;
+    const key = `occurrence:crop:${data.id}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        setPhotoPositionX(50);
+        setPhotoPositionY(50);
+        return;
+      }
+      const parsed = JSON.parse(raw) as { x?: number; y?: number };
+      const x = Number(parsed?.x);
+      const y = Number(parsed?.y);
+      setPhotoPositionX(Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : 50);
+      setPhotoPositionY(Number.isFinite(y) ? Math.min(100, Math.max(0, y)) : 50);
+    } catch {
+      setPhotoPositionX(50);
+      setPhotoPositionY(50);
+    }
+  }, [isOpen, data?.id]);
+
+  useEffect(() => {
+    if (!isOpen || !data?.id) return;
+    const key = `occurrence:crop:${data.id}`;
+    localStorage.setItem(key, JSON.stringify({ x: photoPositionX, y: photoPositionY }));
+  }, [isOpen, data?.id, photoPositionX, photoPositionY]);
 
   const handleUnlink = async (linkId: string) => {
     try {
@@ -257,14 +343,14 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const formattedDate = occurrenceDate
     ? occurrenceDate.toLocaleString("pt-BR")
     : "—";
-  const photoSrc = data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
+  const photoSrc = selectedPhotoSrc || data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
 
   const handleExportPng = async () => {
     setIsExportMenuOpen(false);
     setIsCapturing(true);
     try {
-      const canvas = await renderExportCanvas(data);
+      const canvas = await renderExportCanvas({ ...data, image_url: photoSrc });
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = dataUrl;
@@ -281,7 +367,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
     setIsExportMenuOpen(false);
     setIsCapturing(true);
     try {
-      const canvas = await renderExportCanvas(data);
+      const canvas = await renderExportCanvas({ ...data, image_url: photoSrc });
       const imgData = canvas.toDataURL("image/png");
       const pxW = canvas.width;
       const pxH = canvas.height;
@@ -307,6 +393,82 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
     }
   };
 
+  const openFramesModal = () => {
+    setPendingPhotoSrc(photoSrc);
+    setCandidatePhotoSrc("");
+    setIsConfirmFrameChangeOpen(false);
+    setIsFramesModalOpen(true);
+  };
+
+  const handleRequestApplySelectedFrame = () => {
+    if (!pendingPhotoSrc || pendingPhotoSrc === photoSrc) {
+      setIsConfirmFrameChangeOpen(false);
+      setIsFramesModalOpen(false);
+      return;
+    }
+    setCandidatePhotoSrc(pendingPhotoSrc);
+    setIsConfirmFrameChangeOpen(true);
+  };
+
+  const handleConfirmApplySelectedFrame = async () => {
+    if (!data?.id || !candidatePhotoSrc) {
+      setIsConfirmFrameChangeOpen(false);
+      return;
+    }
+    setSavingFrame(true);
+    try {
+      await updateDetectionImage(data.id, candidatePhotoSrc);
+      setSelectedPhotoSrc(candidatePhotoSrc);
+      setPendingPhotoSrc(candidatePhotoSrc);
+      setAnalyzedFrames((prev) =>
+        prev.map((frame) => ({ ...frame, is_default: frame.image_url === candidatePhotoSrc })),
+      );
+      onPhotoUpdated?.(candidatePhotoSrc);
+      setCandidatePhotoSrc("");
+      setIsConfirmFrameChangeOpen(false);
+      setIsFramesModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao atualizar foto da ocorrência:", error);
+    } finally {
+      setSavingFrame(false);
+    }
+  };
+
+  const handleDownloadFramesZip = async () => {
+    if (!data?.id || analyzedFrames.length === 0) return;
+    setDownloadingZip(true);
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(`ocorrencia_${data.id}_frames`);
+      if (!folder) throw new Error("Falha ao criar pasta no ZIP");
+
+      await Promise.all(
+        analyzedFrames.map(async (frame, index) => {
+          const response = await fetch(frame.image_url);
+          if (!response.ok) return;
+          const blob = await response.blob();
+          const fallbackName = `frame_${String(index + 1).padStart(2, "0")}.jpg`;
+          const filename = (frame.frame_name || fallbackName).trim();
+          folder.file(filename, blob);
+        }),
+      );
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `ocorrencia_${data.id}_frames.zip`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao baixar ZIP dos frames:", error);
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
+
   return (
     <>
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -317,9 +479,18 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-2">
-          <h2 className="text-xl font-bold text-[#1a1a1a]">
-            Informações da ocorrência
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-[#1a1a1a]">
+              Informações da ocorrência
+            </h2>
+            <button
+              onClick={openFramesModal}
+              className="h-8 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-700 flex items-center gap-1"
+            >
+              <ImageIcon size={14} />
+              Escolher foto
+            </button>
+          </div>
           <button
             onClick={onClose}
             className={`text-gray-400 hover:text-gray-600 ${isCapturing ? "opacity-0 pointer-events-none" : ""}`}
@@ -336,7 +507,54 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               src={photoSrc}
               alt="Evidência"
               className="w-full h-full object-cover"
+              style={{ objectPosition: `${photoPositionX}% ${photoPositionY}%` }}
             />
+          </div>
+
+          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-600">Ajustar enquadramento da foto</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setPhotoPositionX(50);
+                  setPhotoPositionY(50);
+                }}
+                className="text-[11px] font-medium text-gray-500 hover:text-gray-700"
+              >
+                Centralizar
+              </button>
+            </div>
+            <div>
+              <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+                <span>Horizontal</span>
+                <span>{Math.round(photoPositionX)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={photoPositionX}
+                onChange={(event) => setPhotoPositionX(Number(event.target.value))}
+                className="w-full accent-lime-500"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+                <span>Vertical</span>
+                <span>{Math.round(photoPositionY)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={photoPositionY}
+                onChange={(event) => setPhotoPositionY(Number(event.target.value))}
+                className="w-full accent-lime-500"
+              />
+            </div>
           </div>
 
           {/* Info Grid */}
@@ -398,21 +616,13 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               </div>
             </div>
 
-            <div className="col-span-2 grid grid-cols-3 gap-2">
+            <div className="col-span-2 grid grid-cols-2 gap-2">
               <div>
                 <span className="block text-gray-400 text-xs mb-1">
                   Tipo de resíduo
                 </span>
                 <span className="font-bold text-gray-700">
                   {data?.tipo || data?.tipoResiduo || "—"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-gray-400 text-xs mb-1">
-                  Tipo de material
-                </span>
-                <span className="font-bold text-gray-700">
-                  {data?.material_type || "—"}
                 </span>
               </div>
               <div>
@@ -550,6 +760,127 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
             .catch(() => {});
         }}
       />
+    )}
+    {isFramesModalOpen && (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-bold text-[#1a1a1a]">Frames analisados</h3>
+            <button
+              onClick={() => setIsFramesModalOpen(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={22} />
+            </button>
+          </div>
+          <div className="p-5">
+            {loadingFrames ? (
+              <div className="h-40 flex items-center justify-center text-gray-500 text-sm">
+                <Loader2 size={18} className="animate-spin mr-2" />
+                Carregando frames...
+              </div>
+            ) : analyzedFrames.length === 0 ? (
+              <div className="h-40 flex items-center justify-center text-gray-500 text-sm">
+                Nenhum frame de análise disponível para esta ocorrência.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
+                {analyzedFrames.map((frame) => {
+                  const isSelected = pendingPhotoSrc === frame.image_url;
+                  return (
+                    <button
+                      key={`${frame.frame_name}-${frame.image_url}`}
+                      onClick={() => setPendingPhotoSrc(frame.image_url)}
+                      className={`rounded-xl border-2 overflow-hidden text-left transition-colors ${
+                        isSelected ? "border-[#84cc16]" : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="h-28 bg-gray-100">
+                        <img
+                          src={frame.image_url}
+                          alt={frame.frame_name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="px-2 py-2 bg-white">
+                        <div className="text-[11px] text-gray-500 truncate">{frame.frame_name}</div>
+                        {frame.is_default && (
+                          <div className="text-[10px] font-bold text-lime-600 mt-1">Padrão da IA</div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between gap-2 px-5 py-4 border-t border-gray-100 bg-gray-50">
+            <button
+              onClick={handleDownloadFramesZip}
+              disabled={downloadingZip || analyzedFrames.length === 0}
+              className="h-10 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-60 text-sm font-medium text-gray-700 flex items-center gap-2"
+            >
+              {downloadingZip ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              Baixar ZIP
+            </button>
+            <div className="flex gap-2">
+            <button
+              onClick={() => setIsFramesModalOpen(false)}
+              className="h-10 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleRequestApplySelectedFrame}
+              disabled={savingFrame || !pendingPhotoSrc}
+              className="h-10 px-4 rounded-lg bg-lime-500 hover:bg-lime-600 disabled:opacity-60 text-sm font-bold text-white flex items-center gap-2"
+            >
+              {savingFrame ? <Loader2 size={14} className="animate-spin" /> : null}
+              Aplicar foto
+            </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    {isConfirmFrameChangeOpen && (
+      <div className="fixed inset-0 z-[10010] flex items-center justify-center bg-black/55 p-4">
+        <div className="w-full max-w-md bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h3 className="text-base font-bold text-[#1a1a1a]">Confirmar troca da foto</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              A foto desta ocorrência será atualizada e ficará salva como padrão.
+            </p>
+          </div>
+          <div className="px-5 py-4">
+            <div className="text-xs text-gray-500">
+              Nova foto selecionada:
+            </div>
+            <div className="mt-1 text-sm font-medium text-gray-800 truncate">
+              {analyzedFrames.find((frame) => frame.image_url === candidatePhotoSrc)?.frame_name || "Frame selecionado"}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100 bg-gray-50">
+            <button
+              onClick={() => {
+                setCandidatePhotoSrc("");
+                setIsConfirmFrameChangeOpen(false);
+              }}
+              className="h-10 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleConfirmApplySelectedFrame}
+              disabled={savingFrame}
+              className="h-10 px-4 rounded-lg bg-lime-500 hover:bg-lime-600 disabled:opacity-60 text-sm font-bold text-white flex items-center gap-2"
+            >
+              {savingFrame ? <Loader2 size={14} className="animate-spin" /> : null}
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
     )}
     </>
   );

@@ -8,7 +8,7 @@ except ImportError:
     pass  # running without gevent (e.g., local dev) — SSE may not stream correctly
 
 from flask import Flask, request, send_from_directory, render_template, Response, stream_with_context
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import os
 import hashlib
 import re
@@ -44,7 +44,8 @@ DEVICE_ACTIVE_WINDOW_SECONDS = _int_env("DEVICE_ACTIVE_WINDOW_SECONDS", 60, mini
 DASHBOARD_RECENT_DAYS = _int_env("DASHBOARD_RECENT_DAYS", 2, minimum=1)
 DASHBOARD_RECENT_IMAGES_CAP = _int_env("DASHBOARD_RECENT_IMAGES_CAP", 180, minimum=40)
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
-CAPTURE_FILENAME_TZ = ZoneInfo(os.getenv("CAPTURE_FILENAME_TZ", "UTC"))
+BRAZIL_TZ = ZoneInfo(os.getenv("APP_TIMEZONE", "America/Sao_Paulo"))
+CAPTURE_FILENAME_TZ = ZoneInfo(os.getenv("CAPTURE_FILENAME_TZ", "America/Sao_Paulo"))
 UNKNOWN_DEVICE_IDS = {"unknown", "unknown_device", "unknow", "unknow_device"}
 CORE_API_BASE_URL = (os.getenv("CORE_API_BASE_URL", "") or "").strip().rstrip("/")
 CORE_API_LOGIN_EMAIL = (os.getenv("CORE_API_LOGIN_EMAIL", "admin@saira.com") or "").strip()
@@ -107,12 +108,12 @@ def _public_base_url() -> str:
 
 def _relative_path_for_now(filename: str) -> str:
     # Partition by date so the EC2 disk doesn't end up with one huge directory.
-    dt = datetime.utcnow()
+    dt = datetime.now(BRAZIL_TZ)
     return os.path.join(dt.strftime("%Y/%m/%d"), filename)
 
 
 def _utc_now_iso() -> str:
-    return datetime.utcnow().isoformat() + "Z"
+    return datetime.now(BRAZIL_TZ).isoformat()
 
 
 def _public_image_url(rel_path: str) -> str:
@@ -309,7 +310,7 @@ def _record_device_event(device_id: str, event: str, message: str) -> None:
         safe_id = "unknown_device"
     ts = time.time()
     entry = {
-        "timestamp": datetime.utcfromtimestamp(ts).isoformat() + "Z",
+        "timestamp": datetime.fromtimestamp(ts, BRAZIL_TZ).isoformat(),
         "device_id": safe_id,
         "event": event,
         "message": message,
@@ -322,8 +323,15 @@ def _record_device_event(device_id: str, event: str, message: str) -> None:
 
 
 def _iso_to_epoch(iso_text: str) -> Optional[float]:
+    text = str(iso_text or "").strip()
+    if not text:
+        return None
     try:
-        return datetime.fromisoformat(iso_text.replace("Z", "")).timestamp()
+        normalized = text.replace("Z", "+00:00")
+        parsed = datetime.fromisoformat(normalized)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=BRAZIL_TZ)
+        return parsed.timestamp()
     except ValueError:
         return None
 
@@ -396,11 +404,11 @@ def _guess_captured_at(name: str, mtime: float) -> str:
     stem = os.path.splitext(os.path.basename(name))[0]
     try:
         # Upload endpoint names files on the server, using a fixed timezone.
-        # Normalize to UTC for consistent APIs consumed by the dashboard.
+        # Keep values in Brazil timezone for consistency with SAIRA operations.
         parsed_local = datetime.strptime(stem, "%Y-%m-%d_%H-%M-%S").replace(tzinfo=CAPTURE_FILENAME_TZ)
-        return parsed_local.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+        return parsed_local.astimezone(BRAZIL_TZ).isoformat()
     except ValueError:
-        return datetime.utcfromtimestamp(mtime).isoformat() + "Z"
+        return datetime.fromtimestamp(mtime, BRAZIL_TZ).isoformat()
 
 
 def _is_unknown_device_id(device_id: str) -> bool:
@@ -426,7 +434,7 @@ def _drop_unknown_device_stats(
 
 
 def _iter_recent_day_tokens(days: int) -> list[str]:
-    today = datetime.utcnow().date()
+    today = datetime.now(BRAZIL_TZ).date()
     tokens: list[str] = []
     for offset in range(days):
         d = today - timedelta(days=offset)
@@ -606,9 +614,9 @@ def _dashboard_snapshot() -> dict[str, object]:
                 {
                     "device_id": device_id,
                     "is_active": is_active,
-                    "last_seen_at": datetime.utcfromtimestamp(last_seen_ts).isoformat() + "Z" if last_seen_ts > 0 else None,
-                    "last_event_at": datetime.utcfromtimestamp(last_event_ts).isoformat() + "Z" if last_event_ts > 0 else None,
-                    "last_image_at": datetime.utcfromtimestamp(last_image_ts).isoformat() + "Z" if last_image_ts > 0 else None,
+                    "last_seen_at": datetime.fromtimestamp(last_seen_ts, BRAZIL_TZ).isoformat() if last_seen_ts > 0 else None,
+                    "last_event_at": datetime.fromtimestamp(last_event_ts, BRAZIL_TZ).isoformat() if last_event_ts > 0 else None,
+                    "last_image_at": datetime.fromtimestamp(last_image_ts, BRAZIL_TZ).isoformat() if last_image_ts > 0 else None,
                     "recent_images_count": int(device_image_counts.get(device_id, 0)),
                     "recent_images_bytes": dev_bytes,
                     "estimated_4g_mb_per_day": round(dev_mb_day, 3),
@@ -1117,7 +1125,7 @@ def set_device_config(device_id: str):
         if kk in allowed:
             cleaned[kk] = v.strip()
 
-    version = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+    version = datetime.now(BRAZIL_TZ).strftime("%Y-%m-%d_%H-%M-%S")
     lines = [f"version={version}"]
     for k in sorted(cleaned.keys()):
         lines.append(f"{k}={cleaned[k]}")
@@ -1359,7 +1367,7 @@ def upload_ota_firmware():
 
     version = (request.form.get("version") or "").strip()
     if not version:
-        version = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+        version = datetime.now(BRAZIL_TZ).strftime("%Y-%m-%d_%H-%M-%S")
 
     try:
         with open(_ota_version_path(), "w", encoding="utf-8") as f:
@@ -1411,7 +1419,7 @@ def upload_file():
         return {"error": "Empty filename"}, 400
 
     # Build path: {device_id}/YYYY/MM/DD/HH-MM-SS.jpg
-    dt = datetime.utcnow()
+    dt = datetime.now(CAPTURE_FILENAME_TZ)
     timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"{timestamp_str}.jpg"
     rel_path = os.path.join(device_id, dt.strftime("%Y/%m/%d"), filename)

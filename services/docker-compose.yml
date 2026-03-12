@@ -82,6 +82,7 @@
       - ENABLE_WHATSAPP_TEST_ROUTE=${ENABLE_WHATSAPP_TEST_ROUTE:-false}
       - WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE=${WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE:-5}
       - ENVIRONMENT=production
+      - WORKER_STATE_DIR=/app/yolo_state
     depends_on:
       db:
         condition: service_healthy
@@ -90,6 +91,7 @@
     restart: always
     volumes:
       - ./backend:/app
+      - yolo_state:/app/yolo_state:ro
     command: ["bash", "/app/start.sh", "--workers", "4"]
 
   # PostgreSQL + PostGIS

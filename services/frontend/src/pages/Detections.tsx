@@ -317,6 +317,17 @@ export const Detections: React.FC = () => {
     setAnalysisTarget(selectedItem);
   };
 
+  const handleOccurrencePhotoUpdated = (imageUrl: string) => {
+    const currentId = selectedItem?.id;
+    if (!currentId) return;
+    setSelectedItem((prev) => (prev ? { ...prev, photoUrl: imageUrl } : prev));
+    setDetections((prev) =>
+      prev.map((item) =>
+        item.id === currentId ? { ...item, photoUrl: imageUrl } : item,
+      ),
+    );
+  };
+
   const handleDownloadCSV = async () => {
     setIsDownloadingCsv(true);
     try {
@@ -837,6 +848,7 @@ export const Detections: React.FC = () => {
           data={modalData}
           onResolve={handleResolveFromModal}
           onStartAnalysis={handleStartAnalysisFromModal}
+          onPhotoUpdated={handleOccurrencePhotoUpdated}
         />
       )}
       {resolveTarget && (

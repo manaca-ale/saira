@@ -1,6 +1,5 @@
 import enum
 import uuid
-from datetime import datetime
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Text, Numeric,
     ForeignKey, Enum, Index,
@@ -8,6 +7,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.core.timezone import now_brazil_naive
 
 
 class OffenderType(str, enum.Enum):
@@ -41,8 +41,8 @@ class Offender(Base):
     description = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True)
     created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=now_brazil_naive)
+    updated_at = Column(DateTime, default=now_brazil_naive, onupdate=now_brazil_naive)
 
     sightings = relationship("DetectionOffender", back_populates="offender")
 
@@ -80,7 +80,7 @@ class DetectionOffender(Base):
     confidence_score = Column(Numeric(3, 2), nullable=True)
     created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     notes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=now_brazil_naive)
 
     detection = relationship("Detection")
     offender = relationship("Offender", back_populates="sightings")
