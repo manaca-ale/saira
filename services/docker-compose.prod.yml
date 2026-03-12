@@ -56,6 +56,7 @@ services:
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=production
+      - WORKER_STATE_DIR=/app/yolo_state
     depends_on:
       db:
         condition: service_healthy
@@ -64,6 +65,7 @@ services:
     restart: always
     volumes:
       - esp32_uploads_prod:/app/uploads:ro
+      - yolo_state_prod:/app/yolo_state:ro
     command: ["bash", "/app/start.sh", "--workers", "4"]
 
   # PostgreSQL + PostGIS
