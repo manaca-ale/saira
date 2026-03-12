@@ -15,7 +15,9 @@ export function parseSairaDate(value?: string | Date | null): Date {
   let target = normalized;
 
   if (!hasTimezone && NO_TIMEZONE_PATTERN.test(normalized)) {
-    target = normalized.includes("T") ? `${normalized}-03:00` : `${normalized}T00:00:00-03:00`;
+    // Backend timestamps without timezone are stored in UTC in practice.
+    // Force UTC parse to avoid rendering +3h in America/Sao_Paulo.
+    target = normalized.includes("T") ? `${normalized}Z` : `${normalized}T00:00:00Z`;
   }
 
   return new Date(target);

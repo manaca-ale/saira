@@ -47,6 +47,9 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
+      - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-http://localhost:5002}
       - REDIS_URL=redis://redis:6379/0
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
@@ -77,6 +80,8 @@ services:
       redis:
         condition: service_healthy
     restart: always
+    volumes:
+      - ../esp32-server/uploads:/app/uploads:ro
     command: ["bash", "/app/start.sh", "--workers", "4"]
 
   # YOLO worker — frame comparison + DB insertion

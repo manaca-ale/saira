@@ -391,6 +391,18 @@ async function loadCameraRegistrationOptions({ silent = false } = {}) {
   }
 }
 
+async function fetchLatestCameraImageByDevice(deviceId) {
+  const did = String(deviceId || "").trim();
+  if (!did) return null;
+  const resp = await fetch(`/api/dashboard/camera-latest-image${toQuery({ device_id: did })}`, {
+    cache: "no-store",
+  });
+  if (!resp.ok) return null;
+  const payload = await resp.json().catch(() => null);
+  if (!payload || typeof payload !== "object") return null;
+  return payload;
+}
+
 async function submitCameraRegistration(event) {
   event.preventDefault();
   if (!cameraRegistrationForm) return;
@@ -508,7 +520,13 @@ async function loadDashboard(options = {}) {
     const windowSeconds = Number(summary.active_window_seconds || 60);
     safeSetText(activeRuleEl, `Ativo se ultimo evento/imagem em ate ${windowSeconds}s`);
 
-    if (summary.latest_image) {
+    let latestCapture = null;
+    if (selectedNow) {
+      latestCapture = await fetchLatestCameraImageByDevice(selectedNow);
+    }
+    if (latestCapture && latestCapture.captured_at) {
+      safeSetText(latestCaptureEl, `${selectedNow} | ${fmtDate(latestCapture.captured_at)}`);
+    } else if (summary.latest_image) {
       safeSetText(latestCaptureEl, `${summary.latest_image.device_id} | ${fmtDate(summary.latest_image.captured_at)}`);
     } else {
       safeSetText(latestCaptureEl, "Sem dados");

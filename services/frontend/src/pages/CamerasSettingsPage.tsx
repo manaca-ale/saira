@@ -25,21 +25,20 @@ import {
   createCamera,
   deleteCamera,
   getCameras,
-  getLatestDetectionForCamera,
+  getLatestCameraImageFromFolder,
   updateCamera,
   type Camera as CameraEntity,
+  type CameraLatestImage,
   type CameraPayload,
-  type DetectionSummary,
 } from "../services/cameraService";
+import { formatDateTimeBrazil } from "../utils/datetime";
 
 const formatDateTime = (value?: string | null): string => {
-  if (!value) return "Sem comunicação";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "Sem comunicação";
-  return new Intl.DateTimeFormat("pt-BR", {
+  const formatted = formatDateTimeBrazil(value, {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(parsed);
+  });
+  return formatted === "—" ? "Sem comunicação" : formatted;
 };
 
 const cameraStatusLabel = (camera: CameraEntity): string =>
@@ -75,10 +74,10 @@ export const CamerasSettingsPage: React.FC = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDetailsModalClosing, setIsDetailsModalClosing] = useState(false);
   const [detailsCamera, setDetailsCamera] = useState<CameraEntity | null>(null);
-  const [latestDetection, setLatestDetection] = useState<DetectionSummary | null>(
+  const [latestCameraImage, setLatestCameraImage] = useState<CameraLatestImage | null>(
     null,
   );
-  const [isLoadingLatestDetection, setIsLoadingLatestDetection] = useState(false);
+  const [isLoadingLatestImage, setIsLoadingLatestImage] = useState(false);
 
   const loadCameras = async () => {
     try {
@@ -177,7 +176,7 @@ export const CamerasSettingsPage: React.FC = () => {
       setIsDetailsModalOpen(false);
       setIsDetailsModalClosing(false);
       setDetailsCamera(null);
-      setLatestDetection(null);
+      setLatestCameraImage(null);
     }, 500);
   };
 
@@ -201,19 +200,19 @@ export const CamerasSettingsPage: React.FC = () => {
 
   const openDetailsModal = async (camera: CameraEntity) => {
     setDetailsCamera(camera);
-    setLatestDetection(null);
-    setIsLoadingLatestDetection(true);
+    setLatestCameraImage(null);
+    setIsLoadingLatestImage(true);
     setIsDetailsModalClosing(false);
     setIsDetailsModalOpen(true);
 
     try {
-      const latest = await getLatestDetectionForCamera(camera.id);
-      setLatestDetection(latest);
+      const latest = await getLatestCameraImageFromFolder(camera.id);
+      setLatestCameraImage(latest);
     } catch (error) {
-      console.error("Failed to load latest detection for camera:", error);
-      setLatestDetection(null);
+      console.error("Failed to load latest camera image from folder:", error);
+      setLatestCameraImage(null);
     } finally {
-      setIsLoadingLatestDetection(false);
+      setIsLoadingLatestImage(false);
     }
   };
 
@@ -582,8 +581,8 @@ export const CamerasSettingsPage: React.FC = () => {
       {isDetailsModalOpen && detailsCamera ? (
         <CameraDetailsModal
           camera={detailsCamera}
-          latestDetection={latestDetection}
-          isLoadingLatest={isLoadingLatestDetection}
+          latestCameraImage={latestCameraImage}
+          isLoadingLatest={isLoadingLatestImage}
           isClosing={isDetailsModalClosing}
           onClose={closeDetailsModal}
         />

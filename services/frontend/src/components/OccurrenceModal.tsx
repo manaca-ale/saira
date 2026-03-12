@@ -103,8 +103,7 @@ async function renderExportCanvas(data: any): Promise<HTMLCanvasElement> {
   const p = PADDING;
   const colW = (w - p * 2) / 2;
 
-  const occurrenceDate = data?.timestamp ? new Date(data.timestamp) : null;
-  const formattedDate = occurrenceDate ? occurrenceDate.toLocaleString("pt-BR") : "—";
+  const formattedDate = formatDateTimeBrazil(data?.timestamp);
   const photoSrc = data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
   const status = data?.status || "—";
@@ -339,10 +338,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
 
   if (!isOpen) return null;
 
-  const occurrenceDate = data?.timestamp ? new Date(data.timestamp) : null;
-  const formattedDate = occurrenceDate
-    ? occurrenceDate.toLocaleString("pt-BR")
-    : "—";
+  const formattedDate = formatDateTimeBrazil(data?.timestamp);
   const photoSrc = selectedPhotoSrc || data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
 

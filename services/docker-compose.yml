@@ -54,6 +54,9 @@
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
+      - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-http://localhost:5002}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
@@ -91,6 +94,7 @@
     restart: always
     volumes:
       - ./backend:/app
+      - esp32_uploads:/app/uploads:ro
       - yolo_state:/app/yolo_state:ro
     command: ["bash", "/app/start.sh", "--workers", "4"]
 

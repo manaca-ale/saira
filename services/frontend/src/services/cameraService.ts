@@ -37,6 +37,14 @@ export interface DetectionSummary {
   image_url?: string | null;
 }
 
+export interface CameraLatestImage {
+  camera_id: number;
+  device_id?: string | null;
+  image_url?: string | null;
+  captured_at?: string | null;
+  file_path?: string | null;
+}
+
 export async function getCameras(params?: {
   skip?: number;
   limit?: number;
@@ -72,4 +80,11 @@ export async function getLatestDetectionForCamera(
   });
   const detections = response.data as DetectionSummary[];
   return detections.length > 0 ? detections[0] : null;
+}
+
+export async function getLatestCameraImageFromFolder(
+  cameraId: number,
+): Promise<CameraLatestImage | null> {
+  const response = await api.get<CameraLatestImage>(`/cameras/${cameraId}/latest-image`);
+  return response.data ?? null;
 }

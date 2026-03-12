@@ -1,34 +1,33 @@
 import React from "react";
 import { Activity, CalendarClock, Camera, ImageOff, MapPin, Radio, X } from "lucide-react";
-import type { Camera as CameraEntity, DetectionSummary } from "../services/cameraService";
+import type { Camera as CameraEntity, CameraLatestImage } from "../services/cameraService";
+import { formatDateTimeBrazil } from "../utils/datetime";
 
 interface CameraDetailsModalProps {
   camera: CameraEntity;
-  latestDetection: DetectionSummary | null;
+  latestCameraImage: CameraLatestImage | null;
   isLoadingLatest: boolean;
   isClosing: boolean;
   onClose: () => void;
 }
 
 const formatDateTime = (value?: string | null): string => {
-  if (!value) return "Sem registro";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "Sem registro";
-  return new Intl.DateTimeFormat("pt-BR", {
+  const formatted = formatDateTimeBrazil(value, {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(parsed);
+  });
+  return formatted === "—" ? "Sem registro" : formatted;
 };
 
 export const CameraDetailsModal: React.FC<CameraDetailsModalProps> = ({
   camera,
-  latestDetection,
+  latestCameraImage,
   isLoadingLatest,
   isClosing,
   onClose,
 }) => {
   const lastCommunication =
-    camera.last_capture_at || latestDetection?.timestamp || camera.updated_at;
+    camera.last_capture_at || latestCameraImage?.captured_at || camera.updated_at;
 
   return (
     <div
@@ -68,9 +67,9 @@ export const CameraDetailsModal: React.FC<CameraDetailsModalProps> = ({
                 <Activity size={16} className="animate-spin" />
                 Carregando última imagem...
               </div>
-            ) : latestDetection?.image_url ? (
+            ) : latestCameraImage?.image_url ? (
               <img
-                src={latestDetection.image_url}
+                src={latestCameraImage.image_url}
                 alt={`Última foto da câmera ${camera.name}`}
                 className="w-full h-full min-h-[280px] object-cover"
               />

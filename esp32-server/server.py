@@ -846,6 +846,75 @@ def dashboard_state():
     return _dashboard_payload(data, selected_device, image_limit=image_limit, log_limit=log_limit), 200
 
 
+@app.route("/api/dashboard/camera-latest-image", methods=["GET"])
+def dashboard_camera_latest_image():
+    raw_device_id = (request.args.get("device_id") or "").strip()
+    device_id = _sanitize_device_id(raw_device_id)
+    if not device_id:
+        return {"error": "device_id invalido"}, 400
+
+    cameras, base, err = _fetch_cameras_from_core(CORE_API_CAMERA_LIMIT)
+    if err:
+        return {
+            "error": "nao foi possivel consultar cameras no backend",
+            "backend_error": err,
+            "backend_base_url": base,
+        }, 502
+
+    camera = next(
+        (
+            item
+            for item in cameras
+            if _sanitize_device_id(str(item.get("device_id") or "")) == device_id
+        ),
+        None,
+    )
+    if not camera:
+        return {
+            "error": "camera nao encontrada para o device_id informado",
+            "device_id": device_id,
+            "backend_base_url": base,
+        }, 404
+
+    camera_id = camera.get("id")
+    if camera_id is None:
+        return {
+            "error": "camera sem id valido no backend",
+            "device_id": device_id,
+            "backend_base_url": base,
+        }, 502
+
+    resp, image_base, image_err = _core_api_request(
+        "GET",
+        f"/cameras/{camera_id}/latest-image",
+    )
+    if resp is None:
+        return {
+            "error": "nao foi possivel consultar imagem mais recente",
+            "device_id": device_id,
+            "camera_id": camera_id,
+            "backend_error": image_err,
+            "backend_base_url": image_base or base,
+        }, 502
+    if resp.status_code != 200:
+        return {
+            "error": "backend recusou consulta da imagem mais recente",
+            "device_id": device_id,
+            "camera_id": camera_id,
+            "backend_status": resp.status_code,
+            "backend_response": resp.text[:400],
+            "backend_base_url": image_base or base,
+        }, resp.status_code
+
+    payload = resp.json() if resp.content else {}
+    if not isinstance(payload, dict):
+        payload = {}
+    payload["device_id"] = device_id
+    payload["camera_id"] = camera_id
+    payload["backend_base_url"] = image_base or base
+    return payload, 200
+
+
 def _bool_from_payload(value: object, default: bool = True) -> bool:
     if value is None:
         return default

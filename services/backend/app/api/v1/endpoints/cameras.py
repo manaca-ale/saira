@@ -1,3 +1,6 @@
+import os
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,9 +10,56 @@ from geoalchemy2.functions import ST_SetSRID, ST_MakePoint
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.camera import Camera
-from app.schemas.camera import CameraCreate, CameraUpdate, CameraResponse
+from app.schemas.camera import (
+    CameraCreate,
+    CameraLatestImageResponse,
+    CameraResponse,
+    CameraUpdate,
+)
 
 router = APIRouter()
+UPLOADS_ROOT = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
+UPLOAD_PUBLIC_BASE_URL = os.getenv(
+    "CAMERA_UPLOAD_PUBLIC_BASE_URL",
+    os.getenv("PUBLIC_BASE_URL", "http://localhost:5002"),
+).rstrip("/")
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+
+
+def _build_upload_image_url(relative_path: str) -> str:
+    normalized = relative_path.lstrip("/").replace("\\", "/")
+    if UPLOAD_PUBLIC_BASE_URL:
+        return f"{UPLOAD_PUBLIC_BASE_URL}/uploads/{normalized}"
+    return f"/uploads/{normalized}"
+
+
+def _find_latest_image_for_device(device_id: str) -> Optional[tuple[Path, float]]:
+    if not device_id:
+        return None
+
+    camera_dir = UPLOADS_ROOT / device_id
+    if not camera_dir.exists() or not camera_dir.is_dir():
+        return None
+
+    latest_path: Optional[Path] = None
+    latest_mtime = float("-inf")
+
+    for root, _, files in os.walk(camera_dir):
+        for file_name in files:
+            path = Path(root) / file_name
+            if path.suffix.lower() not in IMAGE_EXTENSIONS:
+                continue
+            try:
+                mtime = path.stat().st_mtime
+            except OSError:
+                continue
+            if mtime > latest_mtime:
+                latest_mtime = mtime
+                latest_path = path
+
+    if latest_path is None:
+        return None
+    return latest_path, latest_mtime
 
 
 @router.get("/", response_model=List[CameraResponse])
@@ -55,6 +105,46 @@ async def get_camera(
         )
 
     return camera
+
+
+@router.get("/{camera_id}/latest-image", response_model=CameraLatestImageResponse)
+async def get_camera_latest_image(
+    camera_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retorna a imagem mais recente na pasta da câmera (uploads/<device_id>)."""
+    result = await db.execute(select(Camera).where(Camera.id == camera_id))
+    camera = result.scalar_one_or_none()
+
+    if not camera:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Camera not found",
+        )
+
+    device_id = (camera.device_id or "").strip() or None
+    if not device_id:
+        return CameraLatestImageResponse(camera_id=camera_id, device_id=None)
+
+    latest = _find_latest_image_for_device(device_id)
+    if not latest:
+        return CameraLatestImageResponse(camera_id=camera_id, device_id=device_id)
+
+    latest_path, latest_mtime = latest
+    try:
+        relative = latest_path.relative_to(UPLOADS_ROOT).as_posix()
+    except ValueError:
+        relative = f"{device_id}/{latest_path.name}"
+
+    captured_at = datetime.fromtimestamp(latest_mtime, tz=timezone.utc)
+    return CameraLatestImageResponse(
+        camera_id=camera_id,
+        device_id=device_id,
+        image_url=_build_upload_image_url(relative),
+        captured_at=captured_at,
+        file_path=relative,
+    )
 
 
 @router.post("/", response_model=CameraResponse, status_code=status.HTTP_201_CREATED)
