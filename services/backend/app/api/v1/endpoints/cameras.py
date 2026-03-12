@@ -19,10 +19,7 @@ from app.schemas.camera import (
 
 router = APIRouter()
 UPLOADS_ROOT = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
-UPLOAD_PUBLIC_BASE_URL = os.getenv(
-    "CAMERA_UPLOAD_PUBLIC_BASE_URL",
-    os.getenv("PUBLIC_BASE_URL", "http://localhost:5002"),
-).rstrip("/")
+UPLOAD_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("/")
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 
 

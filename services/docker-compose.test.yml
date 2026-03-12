@@ -11,6 +11,9 @@ services:
     restart: always
     depends_on:
       - backend
+    networks:
+      - default
+      - saira_esp32_test_net
 
   # Api-Gateway (Nginx)
   api-gateway:
@@ -49,7 +52,7 @@ services:
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
-      - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-http://localhost:5002}
+      - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
       - REDIS_URL=redis://redis:6379/0
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
@@ -92,6 +95,9 @@ services:
     environment:
       - UPLOAD_DIR=/app/uploads
       - STATE_DIR=/app/state
+      - WORKER_METRICS_ENABLED=${WORKER_METRICS_ENABLED:-true}
+      - WORKER_METRICS_HOST=${WORKER_METRICS_HOST:-0.0.0.0}
+      - WORKER_METRICS_PORT=${WORKER_METRICS_PORT:-9108}
       - P1_MODEL_PATH=/app/models/yolov8_2142.pt
       - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
       - CONF_THRESHOLD=0.25
@@ -135,6 +141,8 @@ services:
       - ../esp32-server/uploads:/app/uploads
       - yolo_state_test:/app/state
       - ./yolo-worker-vm/models:/app/models
+    ports:
+      - "9108:9108"
       # To enable Drive sync: place your service account key on the server and uncomment:
       # - /home/ubuntu/saira/gdrive-sa-key.json:/app/gdrive-sa-key.json:ro
     networks:
@@ -146,6 +154,39 @@ services:
       redis:
         condition: service_healthy
     restart: on-failure
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: saira-prometheus-test
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus/prometheus.test.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_test:/prometheus
+    ports:
+      - "9091:9090"
+    depends_on:
+      - yolo-worker
+    restart: always
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: saira-grafana-test
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data_test:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3004:3000"
+    depends_on:
+      - prometheus
+    restart: always
 
   # PostgreSQL + PostGIS
   db:
@@ -183,6 +224,8 @@ volumes:
   postgres_data_test:
   redis_data_test:
   yolo_state_test:
+  prometheus_data_test:
+  grafana_data_test:
 
 networks:
   default:

@@ -31,6 +31,15 @@ from .detector_gemini import (
     analyze_with_gemini,
     normalize_offender_types,
 )
+from .metrics import (
+    observe_gemini_call,
+    observe_gemini_error,
+    observe_gemini_success,
+    observe_scan_cycle,
+    observe_scan_error,
+    set_gemini_avg_latency_ms,
+    start_metrics_server,
+)
 from .models import DetectionRecord, GeminiUsage, OffenderRecord
 
 if config.AI_MODE in {"yolo", "shadow"}:
@@ -73,6 +82,35 @@ GEMINI_METRICS: dict[str, float] = {
 
 # Tracks the last day the Google Drive sync ran (reset on container restart - acceptable).
 _last_sync_day = None
+
+
+def _register_gemini_call() -> None:
+    GEMINI_METRICS["gemini_calls_total"] += 1
+    observe_gemini_call()
+
+
+def _register_gemini_success(latency_ms: int, usage: GeminiUsage) -> None:
+    GEMINI_METRICS["gemini_latency_ms_total"] += int(latency_ms)
+    GEMINI_METRICS["gemini_input_tokens"] += int(usage.input_tokens)
+    GEMINI_METRICS["gemini_output_tokens"] += int(usage.output_tokens)
+    observe_gemini_success(
+        latency_ms=int(latency_ms),
+        input_tokens=int(usage.input_tokens),
+        output_tokens=int(usage.output_tokens),
+        estimated_cost_usd=float(usage.estimated_cost_usd),
+    )
+
+
+def _register_gemini_error(error_message: str) -> None:
+    msg = str(error_message).lower()
+    timeout = "timeout" in msg
+    parse_fail = "validation" in msg or "json" in msg
+    GEMINI_METRICS["gemini_errors_total"] += 1
+    if timeout:
+        GEMINI_METRICS["gemini_timeout_total"] += 1
+    if parse_fail:
+        GEMINI_METRICS["gemini_parse_fail_total"] += 1
+    observe_gemini_error(timeout=timeout, parse_fail=parse_fail)
 
 
 # ==========================================
@@ -500,7 +538,7 @@ def _process_with_gemini(
 ) -> tuple[Optional[bool], dict[str, Any]]:
     """Run Gemini inference and optionally persist resulting occurrence."""
     request_id = str(uuid4())
-    GEMINI_METRICS["gemini_calls_total"] += 1
+    _register_gemini_call()
 
     camera_context = {
         "camera_name": camera.name,
@@ -519,9 +557,7 @@ def _process_with_gemini(
         report = result.report
         usage: GeminiUsage = result.usage
 
-        GEMINI_METRICS["gemini_latency_ms_total"] += result.latency_ms
-        GEMINI_METRICS["gemini_input_tokens"] += usage.input_tokens
-        GEMINI_METRICS["gemini_output_tokens"] += usage.output_tokens
+        _register_gemini_success(result.latency_ms, usage)
 
         disposal = bool(report.infraction_confirmed)
         offender_types = normalize_offender_types(report.offender_types)
@@ -613,11 +649,7 @@ def _process_with_gemini(
 
     except Exception as exc:  # noqa: BLE001
         error_message = str(exc)
-        GEMINI_METRICS["gemini_errors_total"] += 1
-        if "timeout" in error_message.lower():
-            GEMINI_METRICS["gemini_timeout_total"] += 1
-        if "validation" in error_message.lower() or "json" in error_message.lower():
-            GEMINI_METRICS["gemini_parse_fail_total"] += 1
+        _register_gemini_error(error_message)
 
         logger.error(
             json.dumps(
@@ -657,7 +689,7 @@ def _process_with_gemini_cascade_window(
     first_frame = window_paths[0]
     last_frame = window_paths[-1]
     gate_request_id = str(uuid4())
-    GEMINI_METRICS["gemini_calls_total"] += 1
+    _register_gemini_call()
 
     camera_context = {
         "camera_name": camera.name,
@@ -673,16 +705,10 @@ def _process_with_gemini_cascade_window(
             camera_context=camera_context,
             request_id=gate_request_id,
         )
-        GEMINI_METRICS["gemini_latency_ms_total"] += gate.latency_ms
-        GEMINI_METRICS["gemini_input_tokens"] += gate.usage.input_tokens
-        GEMINI_METRICS["gemini_output_tokens"] += gate.usage.output_tokens
+        _register_gemini_success(gate.latency_ms, gate.usage)
     except Exception as exc:  # noqa: BLE001
         message = str(exc)
-        GEMINI_METRICS["gemini_errors_total"] += 1
-        if "timeout" in message.lower():
-            GEMINI_METRICS["gemini_timeout_total"] += 1
-        if "validation" in message.lower() or "json" in message.lower():
-            GEMINI_METRICS["gemini_parse_fail_total"] += 1
+        _register_gemini_error(message)
         return None, {
             "provider": "gemini_cascade",
             "success": False,
@@ -866,6 +892,7 @@ def _update_shadow_metrics(day_dir: Path, record: dict[str, Any]) -> None:
 def _log_gemini_metrics_snapshot() -> None:
     calls = GEMINI_METRICS["gemini_calls_total"]
     avg_latency = round(GEMINI_METRICS["gemini_latency_ms_total"] / calls, 2) if calls else 0.0
+    set_gemini_avg_latency_ms(avg_latency)
     logger.info(
         json.dumps(
             {
@@ -1091,6 +1118,8 @@ def main() -> None:
     logger.info("STATE_DIR          = %s", config.STATE_DIR)
     logger.info("CONF               = %.2f", config.CONF_THRESHOLD)
     logger.info("POLL_INTERVAL      = %ds", config.POLL_INTERVAL)
+    logger.info("METRICS_ENABLED    = %s", config.WORKER_METRICS_ENABLED)
+    logger.info("METRICS_ENDPOINT   = %s:%s", config.WORKER_METRICS_HOST, config.WORKER_METRICS_PORT)
     logger.info("REDIS_URL          = %s", config.REDIS_URL)
     logger.info("PROCESSED_STRATEGY = %s", config.PROCESSED_STRATEGY)
     logger.info("WORKER_ENABLED     = %s", config.WORKER_ENABLED)
@@ -1124,6 +1153,7 @@ def main() -> None:
     if config.AI_MODE in {"shadow", "gemini"} and not config.GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is required when AI_MODE is shadow or gemini")
 
+    start_metrics_server()
     init_connections()
 
     if config.AI_MODE in {"yolo", "shadow"}:
@@ -1132,6 +1162,7 @@ def main() -> None:
     while True:
         try:
             n = scan_and_process()
+            observe_scan_cycle(n)
             if n:
                 logger.info("Cycle complete: %d images processed", n)
 
@@ -1144,6 +1175,7 @@ def main() -> None:
             logger.info("Shutting down.")
             break
         except Exception:
+            observe_scan_error()
             logger.exception("Unhandled error in scan cycle")
 
         time.sleep(config.POLL_INTERVAL)

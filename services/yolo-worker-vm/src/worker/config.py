@@ -49,6 +49,11 @@ PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://localhost:5002")
 # How often to scan the uploads directory for new images (seconds).
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "10"))
 
+# Prometheus metrics endpoint exposed by the worker process.
+WORKER_METRICS_ENABLED = os.getenv("WORKER_METRICS_ENABLED", "true").strip().lower() in ("true", "1", "yes")
+WORKER_METRICS_HOST = os.getenv("WORKER_METRICS_HOST", "0.0.0.0").strip()
+WORKER_METRICS_PORT = int(os.getenv("WORKER_METRICS_PORT", "9108"))
+
 # Processed images strategy:
 #   "two_folders" - move to ocorrencias/ or sem_ocorrencia/ based on detection outcome (default)
 #   "marker"      - create .jpg.processed sibling file (legacy)
