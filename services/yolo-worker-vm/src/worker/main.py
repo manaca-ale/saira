@@ -194,6 +194,7 @@ def _persist_detection_frame_index(
     device_id: str,
     moved_frames: list[Path],
     selected_frame_name: Optional[str],
+    evidence_summary: Optional[str] = None,
 ) -> None:
     if not detection_id or not moved_frames:
         return
@@ -223,6 +224,7 @@ def _persist_detection_frame_index(
         "detection_id": detection_id,
         "device_id": device_id,
         "selected_frame_name": selected_frame_name,
+        "evidence_summary": evidence_summary,
         "frames": frames_payload,
         "created_at": datetime.now(BRASILIA).isoformat(),
     }
@@ -230,6 +232,34 @@ def _persist_detection_frame_index(
     target_dir.mkdir(parents=True, exist_ok=True)
     target = target_dir / f"{detection_id}.json"
     target.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _persist_detection_summary(
+    detection_id: str,
+    *,
+    device_id: str,
+    evidence_summary: Optional[str],
+    request_id: Optional[str],
+    event_frame_name: Optional[str],
+    offender_frame_name: Optional[str],
+    offender_detected: bool,
+) -> None:
+    if not detection_id:
+        return
+    payload = {
+        "detection_id": detection_id,
+        "device_id": device_id,
+        "evidence_summary": evidence_summary,
+        "request_id": request_id,
+        "event_frame_name": event_frame_name,
+        "offender_frame_name": offender_frame_name,
+        "offender_detected": bool(offender_detected),
+        "created_at": datetime.now(BRASILIA).isoformat(),
+    }
+    target_dir = Path(config.STATE_DIR) / "detection_summaries"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / f"{detection_id}.json"
+    target.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 # ==========================================
@@ -423,6 +453,7 @@ def _record_detection(
     confidence_score: Decimal,
     offender_rows: list[OffenderRecord],
     annotated_bgr=None,
+    evidence_summary: Optional[str] = None,
 ) -> Optional[str]:
     if annotated_bgr is not None:
         labeled_rel = save_labeled_image(annotated_bgr, device_id, jpg)
@@ -457,6 +488,19 @@ def _record_detection(
             for row in offender_rows:
                 row.detection_id = detection.id
             insert_offenders(offender_rows)
+        logger.info(
+            json.dumps(
+                {
+                    "event": "detection_persisted",
+                    "detection_id": str(detection.id),
+                    "device_id": device_id,
+                    "camera_id": camera.id,
+                    "offender_rows_count": len(offender_rows),
+                    "evidence_summary": evidence_summary,
+                },
+                ensure_ascii=False,
+            )
+        )
         return str(detection.id)
 
     return None
@@ -608,6 +652,7 @@ def _process_with_gemini(
                     "event_frame_name": report.event_frame_name,
                     "sequence_size": len(sequence_paths),
                     "window_size": len(sequence_paths),
+                    "evidence_summary": report.evidence_summary,
                 },
                 ensure_ascii=False,
             )
@@ -641,9 +686,35 @@ def _process_with_gemini(
                 confidence_score=confidence,
                 offender_rows=offender_rows,
                 annotated_bgr=None,
+                evidence_summary=report.evidence_summary,
             )
             if detection_id:
                 payload["detection_id"] = detection_id
+                _persist_detection_summary(
+                    detection_id=detection_id,
+                    device_id=device_id,
+                    evidence_summary=report.evidence_summary,
+                    request_id=request_id,
+                    event_frame_name=report.event_frame_name,
+                    offender_frame_name=report.offender_frame_name,
+                    offender_detected=bool(report.offender_detected),
+                )
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "gemini_occurrence_persisted",
+                            "request_id": request_id,
+                            "detection_id": detection_id,
+                            "disposal": True,
+                            "offender_detected": bool(report.offender_detected),
+                            "offender_types_count": len(offender_types),
+                            "event_frame_name": report.event_frame_name,
+                            "offender_frame_name": report.offender_frame_name,
+                            "evidence_summary": report.evidence_summary,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
 
         return disposal, payload
 
@@ -760,6 +831,7 @@ def _process_with_gemini_cascade_window(
                 "triggered_agent2": gate_trigger,
                 "new_litter_detected": bool(gate_report.new_litter_detected),
                 "confidence_0_100": int(gate_report.confidence_0_100),
+                "evidence_summary": gate_report.evidence_summary,
             },
             ensure_ascii=False,
         )
@@ -808,6 +880,7 @@ def _process_with_gemini_cascade_window(
                 "event_frame_name": agent2_payload.get("event_frame_name"),
                 "offender_detected": bool((agent2_payload.get("offender_types") or [])),
                 "offender_types_count": len(agent2_payload.get("offender_types") or []),
+                "evidence_summary": agent2_payload.get("evidence_summary"),
             },
             ensure_ascii=False,
         )
@@ -985,6 +1058,7 @@ def scan_and_process() -> int:
                                 device_id=device_id,
                                 moved_frames=moved_frames,
                                 selected_frame_name=agent2_result.get("event_frame_name"),
+                                evidence_summary=agent2_result.get("evidence_summary"),
                             )
                         logger.info(
                             "Disposal event recorded (Gemini cascade): %s / window %s -> %s",

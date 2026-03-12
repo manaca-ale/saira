@@ -48,6 +48,28 @@ if "redis" not in sys.modules:
     redis_mod.Redis = _RedisStub
     sys.modules["redis"] = redis_mod
 
+if "prometheus_client" not in sys.modules:
+    prom_mod = types.ModuleType("prometheus_client")
+
+    class _MetricStub:
+        def labels(self, *args, **kwargs):
+            return self
+
+        def inc(self, *args, **kwargs):
+            return None
+
+        def observe(self, *args, **kwargs):
+            return None
+
+        def set(self, *args, **kwargs):
+            return None
+
+    prom_mod.Counter = lambda *args, **kwargs: _MetricStub()
+    prom_mod.Gauge = lambda *args, **kwargs: _MetricStub()
+    prom_mod.Histogram = lambda *args, **kwargs: _MetricStub()
+    prom_mod.start_http_server = lambda *args, **kwargs: None
+    sys.modules["prometheus_client"] = prom_mod
+
 from worker import main as main_mod
 
 
@@ -102,6 +124,7 @@ def test_case_a_infraction_true_without_offender_still_records(monkeypatch: pyte
     jpg.write_bytes(b"jpg")
     seq = [jpg]
     calls: list[dict] = []
+    summary_calls: list[dict] = []
 
     monkeypatch.setattr(config, "GEMINI_DRY_RUN", False, raising=False)
     monkeypatch.setattr(
@@ -110,6 +133,7 @@ def test_case_a_infraction_true_without_offender_still_records(monkeypatch: pyte
         lambda **_: _result(_report(infraction_confirmed=True, offender_detected=False, offender_types=None)),
     )
     monkeypatch.setattr(main_mod, "_record_detection", lambda **kwargs: calls.append(kwargs) or True)
+    monkeypatch.setattr(main_mod, "_persist_detection_summary", lambda **kwargs: summary_calls.append(kwargs))
 
     disposal, payload = main_mod._process_with_gemini(
         jpg=jpg,
@@ -125,6 +149,8 @@ def test_case_a_infraction_true_without_offender_still_records(monkeypatch: pyte
     assert len(calls) == 1
     assert calls[0]["offenders_summary"] is None
     assert calls[0]["offender_rows"] == []
+    assert len(summary_calls) == 1
+    assert summary_calls[0]["offender_detected"] is False
 
 
 def test_case_b_infraction_true_with_offender_records_detection_and_offender(
@@ -134,6 +160,7 @@ def test_case_b_infraction_true_with_offender_records_detection_and_offender(
     jpg.write_bytes(b"jpg")
     seq = [jpg]
     calls: list[dict] = []
+    summary_calls: list[dict] = []
 
     monkeypatch.setattr(config, "GEMINI_DRY_RUN", False, raising=False)
     monkeypatch.setattr(
@@ -142,6 +169,7 @@ def test_case_b_infraction_true_with_offender_records_detection_and_offender(
         lambda **_: _result(_report(infraction_confirmed=True, offender_detected=True, offender_types=["car"])),
     )
     monkeypatch.setattr(main_mod, "_record_detection", lambda **kwargs: calls.append(kwargs) or True)
+    monkeypatch.setattr(main_mod, "_persist_detection_summary", lambda **kwargs: summary_calls.append(kwargs))
 
     disposal, payload = main_mod._process_with_gemini(
         jpg=jpg,
@@ -156,6 +184,8 @@ def test_case_b_infraction_true_with_offender_records_detection_and_offender(
     assert payload["offender_types"] == ["Carro"]
     assert len(calls) == 1
     assert len(calls[0]["offender_rows"]) == 1
+    assert len(summary_calls) == 1
+    assert summary_calls[0]["offender_detected"] is True
 
 
 def test_case_c_infraction_false_does_not_record_occurrence(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -163,6 +193,7 @@ def test_case_c_infraction_false_does_not_record_occurrence(monkeypatch: pytest.
     jpg.write_bytes(b"jpg")
     seq = [jpg]
     calls: list[dict] = []
+    summary_calls: list[dict] = []
 
     monkeypatch.setattr(config, "GEMINI_DRY_RUN", False, raising=False)
     monkeypatch.setattr(
@@ -171,6 +202,7 @@ def test_case_c_infraction_false_does_not_record_occurrence(monkeypatch: pytest.
         lambda **_: _result(_report(infraction_confirmed=False, offender_detected=False, offender_types=None)),
     )
     monkeypatch.setattr(main_mod, "_record_detection", lambda **kwargs: calls.append(kwargs) or True)
+    monkeypatch.setattr(main_mod, "_persist_detection_summary", lambda **kwargs: summary_calls.append(kwargs))
 
     disposal, payload = main_mod._process_with_gemini(
         jpg=jpg,
@@ -183,6 +215,7 @@ def test_case_c_infraction_false_does_not_record_occurrence(monkeypatch: pytest.
     assert disposal is False
     assert payload["disposal"] is False
     assert calls == []
+    assert summary_calls == []
 
 
 def test_case_d_error_keeps_window_for_retry(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
