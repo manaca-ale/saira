@@ -173,10 +173,21 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
                 """
                 INSERT INTO detection_offenders (
                     id, detection_id, offender_type,
-                    source, confidence_score, created_at
-                ) VALUES (%s, %s, %s, 'ai', %s, NOW())
+                    plate, vehicle_color, waste_type, estimated_volume_m3,
+                    source, confidence_score, notes, created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, NOW())
                 """,
-                (o.id, o.detection_id, o.offender_type, o.confidence_score),
+                (
+                    o.id,
+                    o.detection_id,
+                    o.offender_type,
+                    o.plate,
+                    o.vehicle_color,
+                    o.waste_type,
+                    o.estimated_volume_m3,
+                    o.confidence_score,
+                    o.notes,
+                ),
             )
         conn.commit()
         cur.close()
