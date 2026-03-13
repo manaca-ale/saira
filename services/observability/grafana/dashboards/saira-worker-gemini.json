@@ -26,15 +26,12 @@
           "color": { "mode": "thresholds" },
           "thresholds": {
             "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
-            ]
+            "steps": [{ "color": "blue", "value": null }]
           }
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 0 },
       "id": 1,
       "options": {
         "colorMode": "value",
@@ -45,9 +42,37 @@
         "textMode": "auto"
       },
       "targets": [
-        { "expr": "sum(saira_gemini_calls_total)", "refId": "A", "legendFormat": "total" }
+        { "expr": "sum(saira_gemini_calls_total{agent=\"gate\"})", "refId": "A" }
       ],
-      "title": "Gemini Calls (total)",
+      "title": "Gate Calls (Ag.1)",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "purple", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 0 },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        { "expr": "sum(saira_gemini_calls_total{agent=\"detail\"})", "refId": "A" }
+      ],
+      "title": "Detail Calls (Ag.2)",
       "type": "stat"
     },
     {
