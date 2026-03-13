@@ -101,6 +101,17 @@ class GeminiInfractionReport(BaseModel):
 class GeminiNewLitterReport(BaseModel):
     """Structured response for stage-1 gate: compare first vs last frame of a time window."""
 
+    scene_delta_analysis: str = Field(
+        default="",
+        max_length=1500,
+        description=(
+            "Required reasoning before the final decision. "
+            "List: (1) solid objects visible in the first frame, "
+            "(2) solid objects visible in the last frame, "
+            "(3) each difference classified as one of: "
+            "SHADOW | LIGHTING | PUDDLE | MOVING_OBJECT | NEW_SOLID_WASTE | EXISTING_WASTE_SHIFTED."
+        ),
+    )
     new_litter_detected: bool = Field(
         description="True only if new solid waste appears or increases between first and last frame."
     )

@@ -762,12 +762,37 @@ def _process_with_gemini_cascade_window(
     gate_request_id = str(uuid4())
     _register_gemini_call()
 
+    # --- Option B: load prior-window litter state ---
+    state = load_state(device_id)
+    prior_had_litter: bool = bool(state.get("last_window_had_litter", False))
+    prior_waste_type: Optional[str] = state.get("last_window_waste_type")
+
+    prior_window_context: Optional[str] = None
+    if prior_had_litter:
+        waste_label = f" (tipo: {prior_waste_type})" if prior_waste_type else ""
+        prior_window_context = (
+            f"- A janela anterior de 2 minutos JA apresentava lixo neste local{waste_label}. "
+            "Confirme NEW_SOLID_WASTE somente se um NOVO objeto apareceu ou o volume aumentou visivelmente."
+        )
+
+    # Inject local time for time-of-day awareness (long shadows at dawn/dusk)
+    last_frame_ts = parse_timestamp(last_frame.name)
+    local_time_hhmm = last_frame_ts.strftime("%H:%M")
+
     camera_context = {
         "camera_name": camera.name,
         "logradouro": camera.logradouro or "",
         "bairro": camera.bairro or "",
         "rpa": camera.rpa or "",
+        "horario_local": local_time_hhmm,
     }
+
+    # When pre-existing litter is known, require higher confidence to trigger Stage 2
+    effective_threshold = (
+        max(config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE, 80)
+        if prior_had_litter
+        else config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE
+    )
 
     try:
         gate = analyze_new_litter_with_gemini(
@@ -775,6 +800,7 @@ def _process_with_gemini_cascade_window(
             last_frame=last_frame,
             camera_context=camera_context,
             request_id=gate_request_id,
+            prior_window_context=prior_window_context,
         )
         _register_gemini_success(gate.latency_ms, gate.usage)
     except Exception as exc:  # noqa: BLE001
@@ -791,9 +817,17 @@ def _process_with_gemini_cascade_window(
         }
 
     gate_report = gate.report
+
+    # --- Option B: persist litter state for next window ---
+    save_state(device_id, {
+        **state,
+        "last_window_had_litter": bool(gate_report.last_frame_has_litter),
+        "last_window_waste_type": gate_report.waste_type,
+    })
+
     gate_trigger = (
         bool(gate_report.new_litter_detected)
-        and int(gate_report.confidence_0_100) >= config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE
+        and int(gate_report.confidence_0_100) >= effective_threshold
     )
     gate_payload = {
         "success": True,
@@ -806,6 +840,9 @@ def _process_with_gemini_cascade_window(
         "window_size": len(window_paths),
         "new_litter_detected": bool(gate_report.new_litter_detected),
         "confidence_0_100": int(gate_report.confidence_0_100),
+        "effective_threshold": effective_threshold,
+        "prior_had_litter": prior_had_litter,
+        "scene_delta_analysis": gate_report.scene_delta_analysis or "",
         "first_frame_has_litter": bool(gate_report.first_frame_has_litter),
         "last_frame_has_litter": bool(gate_report.last_frame_has_litter),
         "waste_type": gate_report.waste_type,
@@ -831,6 +868,9 @@ def _process_with_gemini_cascade_window(
                 "triggered_agent2": gate_trigger,
                 "new_litter_detected": bool(gate_report.new_litter_detected),
                 "confidence_0_100": int(gate_report.confidence_0_100),
+                "effective_threshold": effective_threshold,
+                "prior_had_litter": prior_had_litter,
+                "scene_delta_analysis": gate_report.scene_delta_analysis or "",
                 "evidence_summary": gate_report.evidence_summary,
             },
             ensure_ascii=False,

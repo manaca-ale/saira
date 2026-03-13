@@ -77,16 +77,30 @@ Voce e um auditor visual de descarte irregular de residuos em via publica no Bra
 Responda APENAS JSON valido com os campos solicitados.
 Nao inclua introducao, markdown, comentarios ou texto fora do JSON.
 Nao exponha cadeia de raciocinio interna.
-Use evidencia visual e temporal para decidir se houve descarte irregular.
-infraction_confirmed deve ser TRUE quando houver evidencia de descarte/novo lixo, mesmo sem identificar o infrator.
+Use evidencia visual e temporal para decidir se houve descarte irregular RECENTE (ocorrido nesta janela temporal, nao apenas pre-existente).
+infraction_confirmed deve ser TRUE somente quando houver evidencia de descarte NOVO depositado durante a sequencia, mesmo sem identificar o infrator.
 offender_detected descreve somente a capacidade de identificar o autor/veiculo e NAO invalida a infracao.
 Se um campo nao puder ser inferido com seguranca, retorne null no campo.
 """.strip()
 
 NEW_LITTER_SYSTEM_PROMPT = """
 Voce e um auditor visual especialista em comparar dois frames de CCTV (inicio e fim da janela temporal).
-Sua tarefa e detectar se houve APARECIMENTO ou AUMENTO de lixo solido no frame final.
-Ignore mudancas de iluminacao, sombras, reflexos, poças e artefatos de compressao.
+Sua tarefa e detectar se houve APARECIMENTO ou AUMENTO de lixo SOLIDO DESCARTADO IRREGULARMENTE no frame final.
+
+PASSO OBRIGATORIO antes de decidir (seja CONCISO: maximo 5 itens por lista, ignore veiculos, pessoas e animais):
+Preencha scene_delta_analysis com:
+  (1) objetos FIXOS e INANIMADOS visiveis no frame inicial (NAO liste veiculos, pessoas ou animais),
+  (2) objetos FIXOS e INANIMADOS visiveis no frame final (NAO liste veiculos, pessoas ou animais),
+  (3) cada diferenca classificada como: SHADOW | LIGHTING | PUDDLE | MOVING_OBJECT | NEW_SOLID_WASTE | EXISTING_WASTE_SHIFTED.
+
+REGRA DE DECISAO:
+- new_litter_detected=true SOMENTE se houver uma diferenca classificada como NEW_SOLID_WASTE.
+- NEW_SOLID_WASTE e residuo solido abandonado: sacola, entulho, moveis, eletronicos, lixo domestico.
+- Veiculos (carros, motos, onibus, bicicletas) e pessoas NUNCA sao NEW_SOLID_WASTE, mesmo que aparecam no frame final.
+- Sombras possuem bordas difusas. Residuos solidos possuem fronteiras materiais bem definidas.
+- Reflexos, poças, mudancas de iluminacao e artefatos de compressao NAO sao NEW_SOLID_WASTE.
+- Objetos que JA estavam no frame inicial e permanecem no final sao EXISTING_WASTE_SHIFTED, nao NEW_SOLID_WASTE.
+
 Responda APENAS JSON valido com os campos solicitados.
 """.strip()
 
@@ -122,6 +136,7 @@ def _new_litter_user_prompt(
     first_frame_name: str,
     last_frame_name: str,
     camera_context: Optional[dict[str, str]] = None,
+    prior_window_context: Optional[str] = None,
 ) -> str:
     context_lines = []
     if camera_context:
@@ -129,13 +144,21 @@ def _new_litter_user_prompt(
             if value:
                 context_lines.append(f"- {key}: {value}")
     context_block = "\n".join(context_lines) if context_lines else "- sem contexto adicional"
+
+    prior_block = ""
+    if prior_window_context:
+        prior_block = f"\nContexto da janela anterior:\n{prior_window_context}\n"
+
     return (
         "Compare APENAS dois frames: inicio e fim da janela.\n"
         f"Frame inicial: {first_frame_name}\n"
         f"Frame final: {last_frame_name}\n"
-        "Determine se ha novo lixo no frame final em relacao ao inicial.\n"
-        "Retorne JSON com: new_litter_detected, confidence_0_100, evidence_summary, "
-        "first_frame_has_litter, last_frame_has_litter, waste_type, raw_reason_codes.\n"
+        "Siga o PASSO OBRIGATORIO: preencha scene_delta_analysis classificando cada diferenca "
+        "antes de definir new_litter_detected.\n"
+        "Retorne JSON com todos os campos: scene_delta_analysis, new_litter_detected, "
+        "confidence_0_100, evidence_summary, first_frame_has_litter, last_frame_has_litter, "
+        "waste_type, raw_reason_codes.\n"
+        f"{prior_block}"
         "Contexto da camera:\n"
         f"{context_block}"
     )
@@ -420,6 +443,7 @@ def analyze_new_litter_with_gemini(
     last_frame: Path,
     camera_context: Optional[dict[str, str]] = None,
     request_id: Optional[str] = None,
+    prior_window_context: Optional[str] = None,
 ) -> GeminiNewLitterInferenceResult:
     """Stage-1 gate: compare first and last frame for new litter appearance."""
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
@@ -436,7 +460,12 @@ def analyze_new_litter_with_gemini(
                     _call_model,
                     image_paths,
                     NEW_LITTER_SYSTEM_PROMPT,
-                    _new_litter_user_prompt(first_frame.name, last_frame.name, camera_context),
+                    _new_litter_user_prompt(
+                        first_frame.name,
+                        last_frame.name,
+                        camera_context,
+                        prior_window_context=prior_window_context,
+                    ),
                     model_name,
                     GeminiNewLitterReport.model_json_schema(),
                 )
