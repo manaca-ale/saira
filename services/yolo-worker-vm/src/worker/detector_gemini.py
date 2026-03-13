@@ -245,13 +245,13 @@ def normalize_offender_types(values: Optional[list[str]]) -> list[str]:
     return normalized
 
 
-def _build_generate_config(schema: dict):
+def _build_generate_config(schema: dict, max_output_tokens: Optional[int] = None):
     # The SDK supports response_schema for structured outputs.
     if types is None:
         raise RuntimeError("google-genai types are unavailable")
     return types.GenerateContentConfig(
         temperature=config.GEMINI_TEMPERATURE,
-        max_output_tokens=config.GEMINI_MAX_OUTPUT_TOKENS,
+        max_output_tokens=max_output_tokens or config.GEMINI_MAX_OUTPUT_TOKENS,
         response_mime_type="application/json",
         response_schema=schema,
     )
@@ -263,6 +263,7 @@ def _call_model(
     user_prompt: str,
     model_name: str,
     response_schema: dict,
+    max_output_tokens: Optional[int] = None,
 ):
     client = _get_client()
 
@@ -281,7 +282,7 @@ def _call_model(
     return client.models.generate_content(
         model=model_name,
         contents=contents,
-        config=_build_generate_config(response_schema),
+        config=_build_generate_config(response_schema, max_output_tokens=max_output_tokens),
     )
 
 
@@ -468,6 +469,7 @@ def analyze_new_litter_with_gemini(
                     ),
                     model_name,
                     GeminiNewLitterReport.model_json_schema(),
+                    config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS,
                 )
                 response = fut.result(timeout=timeout_s)
 
