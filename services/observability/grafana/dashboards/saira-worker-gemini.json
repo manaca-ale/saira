@@ -45,7 +45,7 @@
         "textMode": "auto"
       },
       "targets": [
-        { "expr": "saira_gemini_calls_total", "refId": "A" }
+        { "expr": "sum(saira_gemini_calls_total)", "refId": "A", "legendFormat": "total" }
       ],
       "title": "Gemini Calls (total)",
       "type": "stat"
@@ -93,11 +93,25 @@
     },
     {
       "datasource": "Prometheus",
-      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.10 },
+              { "color": "red", "value": 0.25 }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
       "id": 4,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "horizontal",
@@ -105,9 +119,14 @@
         "textMode": "auto"
       },
       "targets": [
-        { "expr": "saira_worker_last_cycle_images", "refId": "A" }
+        {
+          "expr": "sum(rate(saira_gemini_calls_total{agent=\"detail\"}[5m])) / clamp_min(sum(rate(saira_gemini_calls_total{agent=\"gate\"}[5m])), 0.001)",
+          "refId": "A",
+          "legendFormat": "gate → detail"
+        }
       ],
-      "title": "Images (last cycle)",
+      "title": "Gate Trigger Rate (5m)",
+      "description": "Fraction of Agent-1 gate calls that escalate to Agent-2 detail analysis. Target < 10%.",
       "type": "stat"
     },
     {
@@ -121,15 +140,22 @@
       },
       "targets": [
         {
-          "expr": "1000 * histogram_quantile(0.95, sum(rate(saira_gemini_latency_seconds_bucket[5m])) by (le))",
-          "refId": "A"
+          "expr": "1000 * histogram_quantile(0.95, sum(rate(saira_gemini_latency_seconds_bucket{agent=\"gate\"}[5m])) by (le))",
+          "refId": "A",
+          "legendFormat": "gate p95"
+        },
+        {
+          "expr": "1000 * histogram_quantile(0.95, sum(rate(saira_gemini_latency_seconds_bucket{agent=\"detail\"}[5m])) by (le))",
+          "refId": "B",
+          "legendFormat": "detail p95"
         },
         {
           "expr": "1000 * histogram_quantile(0.50, sum(rate(saira_gemini_latency_seconds_bucket[5m])) by (le))",
-          "refId": "B"
+          "refId": "C",
+          "legendFormat": "all p50"
         }
       ],
-      "title": "Gemini Latency (p95/p50, 5m)",
+      "title": "Gemini Latency by Agent (p95/p50, 5m)",
       "type": "timeseries"
     },
     {
@@ -142,10 +168,12 @@
         "tooltip": { "mode": "multi", "sort": "none" }
       },
       "targets": [
-        { "expr": "rate(saira_gemini_input_tokens_total[5m])", "legendFormat": "input tokens/s", "refId": "A" },
-        { "expr": "rate(saira_gemini_output_tokens_total[5m])", "legendFormat": "output tokens/s", "refId": "B" }
+        { "expr": "rate(saira_gemini_input_tokens_total{agent=\"gate\"}[5m])", "legendFormat": "gate input/s", "refId": "A" },
+        { "expr": "rate(saira_gemini_output_tokens_total{agent=\"gate\"}[5m])", "legendFormat": "gate output/s", "refId": "B" },
+        { "expr": "rate(saira_gemini_input_tokens_total{agent=\"detail\"}[5m])", "legendFormat": "detail input/s", "refId": "C" },
+        { "expr": "rate(saira_gemini_output_tokens_total{agent=\"detail\"}[5m])", "legendFormat": "detail output/s", "refId": "D" }
       ],
-      "title": "Token Throughput",
+      "title": "Token Throughput by Agent",
       "type": "timeseries"
     },
     {
@@ -155,13 +183,31 @@
       "id": 7,
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "tooltip": { "mode": "multi", "sort": "none" }
       },
       "targets": [
-        { "expr": "saira_gemini_estimated_cost_usd_total", "refId": "A", "legendFormat": "cumulative cost" },
-        { "expr": "rate(saira_gemini_estimated_cost_usd_total[5m]) * 3600", "refId": "B", "legendFormat": "cost/hour (5m)" }
+        {
+          "expr": "sum(saira_gemini_estimated_cost_usd_total)",
+          "refId": "A",
+          "legendFormat": "cumulative (all)"
+        },
+        {
+          "expr": "saira_gemini_estimated_cost_usd_total{agent=\"gate\"}",
+          "refId": "B",
+          "legendFormat": "cumulative gate"
+        },
+        {
+          "expr": "saira_gemini_estimated_cost_usd_total{agent=\"detail\"}",
+          "refId": "C",
+          "legendFormat": "cumulative detail"
+        },
+        {
+          "expr": "sum(rate(saira_gemini_estimated_cost_usd_total[5m])) * 3600",
+          "refId": "D",
+          "legendFormat": "cost/hour (5m)"
+        }
       ],
-      "title": "Estimated Cost",
+      "title": "Estimated Cost (USD) by Agent",
       "type": "timeseries"
     },
     {
@@ -175,9 +221,11 @@
       },
       "targets": [
         { "expr": "increase(saira_worker_images_processed_total[5m])", "legendFormat": "processed/5m", "refId": "A" },
-        { "expr": "increase(saira_worker_scan_errors_total[5m])", "legendFormat": "scan errors/5m", "refId": "B" }
+        { "expr": "increase(saira_gemini_calls_total{agent=\"gate\"}[5m])", "legendFormat": "gate calls/5m", "refId": "B" },
+        { "expr": "increase(saira_gemini_calls_total{agent=\"detail\"}[5m])", "legendFormat": "detail calls/5m", "refId": "C" },
+        { "expr": "increase(saira_worker_scan_errors_total[5m])", "legendFormat": "scan errors/5m", "refId": "D" }
       ],
-      "title": "Worker Throughput & Errors",
+      "title": "Worker Throughput & Cascade Activity",
       "type": "timeseries"
     }
   ],
@@ -191,6 +239,6 @@
   "timezone": "browser",
   "title": "SAIRA Worker / Gemini",
   "uid": "saira-worker-gemini",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

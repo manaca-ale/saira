@@ -84,12 +84,12 @@ GEMINI_METRICS: dict[str, float] = {
 _last_sync_day = None
 
 
-def _register_gemini_call() -> None:
+def _register_gemini_call(*, agent: str = "detail") -> None:
     GEMINI_METRICS["gemini_calls_total"] += 1
-    observe_gemini_call()
+    observe_gemini_call(agent=agent)
 
 
-def _register_gemini_success(latency_ms: int, usage: GeminiUsage) -> None:
+def _register_gemini_success(latency_ms: int, usage: GeminiUsage, *, agent: str = "detail") -> None:
     GEMINI_METRICS["gemini_latency_ms_total"] += int(latency_ms)
     GEMINI_METRICS["gemini_input_tokens"] += int(usage.input_tokens)
     GEMINI_METRICS["gemini_output_tokens"] += int(usage.output_tokens)
@@ -98,10 +98,11 @@ def _register_gemini_success(latency_ms: int, usage: GeminiUsage) -> None:
         input_tokens=int(usage.input_tokens),
         output_tokens=int(usage.output_tokens),
         estimated_cost_usd=float(usage.estimated_cost_usd),
+        agent=agent,
     )
 
 
-def _register_gemini_error(error_message: str) -> None:
+def _register_gemini_error(error_message: str, *, agent: str = "detail") -> None:
     msg = str(error_message).lower()
     timeout = "timeout" in msg
     parse_fail = "validation" in msg or "json" in msg
@@ -110,7 +111,7 @@ def _register_gemini_error(error_message: str) -> None:
         GEMINI_METRICS["gemini_timeout_total"] += 1
     if parse_fail:
         GEMINI_METRICS["gemini_parse_fail_total"] += 1
-    observe_gemini_error(timeout=timeout, parse_fail=parse_fail)
+    observe_gemini_error(timeout=timeout, parse_fail=parse_fail, agent=agent)
 
 
 # ==========================================
@@ -760,7 +761,7 @@ def _process_with_gemini_cascade_window(
     first_frame = window_paths[0]
     last_frame = window_paths[-1]
     gate_request_id = str(uuid4())
-    _register_gemini_call()
+    _register_gemini_call(agent="gate")
 
     # --- Option B: load prior-window litter state ---
     state = load_state(device_id)
@@ -802,10 +803,10 @@ def _process_with_gemini_cascade_window(
             request_id=gate_request_id,
             prior_window_context=prior_window_context,
         )
-        _register_gemini_success(gate.latency_ms, gate.usage)
+        _register_gemini_success(gate.latency_ms, gate.usage, agent="gate")
     except Exception as exc:  # noqa: BLE001
         message = str(exc)
-        _register_gemini_error(message)
+        _register_gemini_error(message, agent="gate")
         return None, {
             "provider": "gemini_cascade",
             "success": False,

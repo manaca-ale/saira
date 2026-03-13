@@ -31,44 +31,53 @@ WORKER_LAST_CYCLE_IMAGES = Gauge(
     "Number of images processed in the last completed cycle.",
 )
 
+# agent label values: "gate" (Agent-1 cascade gate) or "detail" (Agent-2 / direct Gemini call)
 GEMINI_CALLS_TOTAL = Counter(
     "saira_gemini_calls_total",
     "Total Gemini API calls performed by the worker.",
+    ["agent"],
 )
 
 GEMINI_ERRORS_TOTAL = Counter(
     "saira_gemini_errors_total",
     "Total Gemini call failures.",
+    ["agent"],
 )
 
 GEMINI_TIMEOUT_TOTAL = Counter(
     "saira_gemini_timeout_total",
     "Total Gemini timeout failures.",
+    ["agent"],
 )
 
 GEMINI_PARSE_FAIL_TOTAL = Counter(
     "saira_gemini_parse_fail_total",
     "Total Gemini JSON/schema parse failures.",
+    ["agent"],
 )
 
 GEMINI_INPUT_TOKENS_TOTAL = Counter(
     "saira_gemini_input_tokens_total",
     "Total Gemini input tokens consumed.",
+    ["agent"],
 )
 
 GEMINI_OUTPUT_TOKENS_TOTAL = Counter(
     "saira_gemini_output_tokens_total",
     "Total Gemini output tokens consumed.",
+    ["agent"],
 )
 
 GEMINI_COST_USD_TOTAL = Counter(
     "saira_gemini_estimated_cost_usd_total",
     "Estimated Gemini cumulative cost in USD.",
+    ["agent"],
 )
 
 GEMINI_LATENCY_SECONDS = Histogram(
     "saira_gemini_latency_seconds",
     "Gemini call latency in seconds.",
+    ["agent"],
     buckets=(0.25, 0.5, 1, 1.5, 2, 3, 5, 8, 13, 21, 34),
 )
 
@@ -121,8 +130,8 @@ def observe_scan_error() -> None:
     WORKER_SCAN_ERRORS_TOTAL.inc()
 
 
-def observe_gemini_call() -> None:
-    GEMINI_CALLS_TOTAL.inc()
+def observe_gemini_call(*, agent: str = "detail") -> None:
+    GEMINI_CALLS_TOTAL.labels(agent=agent).inc()
 
 
 def observe_gemini_success(
@@ -131,22 +140,23 @@ def observe_gemini_success(
     input_tokens: int,
     output_tokens: int,
     estimated_cost_usd: float,
+    agent: str = "detail",
 ) -> None:
-    GEMINI_LATENCY_SECONDS.observe(max(0.0, float(latency_ms) / 1000.0))
-    GEMINI_INPUT_TOKENS_TOTAL.inc(max(0, int(input_tokens)))
-    GEMINI_OUTPUT_TOKENS_TOTAL.inc(max(0, int(output_tokens)))
-    GEMINI_COST_USD_TOTAL.inc(max(0.0, float(estimated_cost_usd)))
+    GEMINI_LATENCY_SECONDS.labels(agent=agent).observe(max(0.0, float(latency_ms) / 1000.0))
+    GEMINI_INPUT_TOKENS_TOTAL.labels(agent=agent).inc(max(0, int(input_tokens)))
+    GEMINI_OUTPUT_TOKENS_TOTAL.labels(agent=agent).inc(max(0, int(output_tokens)))
+    GEMINI_COST_USD_TOTAL.labels(agent=agent).inc(max(0.0, float(estimated_cost_usd)))
     GEMINI_LAST_INPUT_TOKENS.set(max(0, int(input_tokens)))
     GEMINI_LAST_OUTPUT_TOKENS.set(max(0, int(output_tokens)))
     GEMINI_LAST_ESTIMATED_COST_USD.set(max(0.0, float(estimated_cost_usd)))
 
 
-def observe_gemini_error(*, timeout: bool, parse_fail: bool) -> None:
-    GEMINI_ERRORS_TOTAL.inc()
+def observe_gemini_error(*, timeout: bool, parse_fail: bool, agent: str = "detail") -> None:
+    GEMINI_ERRORS_TOTAL.labels(agent=agent).inc()
     if timeout:
-        GEMINI_TIMEOUT_TOTAL.inc()
+        GEMINI_TIMEOUT_TOTAL.labels(agent=agent).inc()
     if parse_fail:
-        GEMINI_PARSE_FAIL_TOTAL.inc()
+        GEMINI_PARSE_FAIL_TOTAL.labels(agent=agent).inc()
 
 
 def set_gemini_avg_latency_ms(value: float) -> None:
