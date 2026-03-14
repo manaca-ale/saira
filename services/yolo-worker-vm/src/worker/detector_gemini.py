@@ -79,6 +79,8 @@ Nao inclua introducao, markdown, comentarios ou texto fora do JSON.
 Nao exponha cadeia de raciocinio interna.
 Use evidencia visual e temporal para decidir se houve descarte irregular RECENTE (ocorrido nesta janela temporal, nao apenas pre-existente).
 infraction_confirmed deve ser TRUE somente quando houver evidencia de descarte NOVO depositado durante a sequencia, mesmo sem identificar o infrator.
+A mera presenca de um objeto novo e pesado/volumoso (saco, mobilia, entulho, pilha de terra) que NAO estava no primeiro frame e nao tem explicacao natural (vento, gravidade) e evidencia suficiente — NAO e necessario ver o ato de depositar nem o infrator.
+Lixeiras municipais (containers, lixeiras de calcada com tampa) sao infraestrutura urbana — NAO sao residuo irregular e nao confirmam infracao. Uso correto de lixeira publica (depositar residuos dentro dela) e comportamento cidadao correto, infraction_confirmed deve ser FALSE.
 offender_detected descreve somente a capacidade de identificar o autor/veiculo e NAO invalida a infracao.
 Se um campo nao puder ser inferido com seguranca, retorne null no campo.
 """.strip()
@@ -93,6 +95,23 @@ Fill scene_delta_analysis with:
   (2) FIXED and INANIMATE objects visible in the final frame — INCLUDING objects left behind by people
       (bags, boxes, rubble, furniture) but do NOT list the people, vehicles, or animals themselves,
   (3) each difference classified as: SHADOW | LIGHTING | PUDDLE | MOVING_OBJECT | NEW_SOLID_WASTE | EXISTING_WASTE_SHIFTED.
+  (4) BEHAVIORAL CONTEXT CHECK — after completing (1)-(3), evaluate if EITHER pattern applies:
+
+    PATTERN A (vehicle stays throughout window): set new_litter_detected=true if ALL are true:
+      a) A non-moving vehicle (truck, pickup, van) appears in BOTH initial AND final frame object lists,
+      b) At least one person is visible near that vehicle or near a waste pile, AND
+      c) Any change involving the waste pile area was detected in step (3) — including EXISTING_WASTE_SHIFTED.
+
+    PATTERN B (vehicle departs during window): set new_litter_detected=true if ALL are true:
+      a) A vehicle was listed near a waste pile in the INITIAL frame but is ABSENT in the final frame
+         (it arrived, stayed briefly, then left before the window ended),
+      b) People were visible near the vehicle or waste pile in the initial frame, AND
+      c) A waste pile exists near where the vehicle was positioned.
+
+    If EITHER pattern applies, set new_litter_detected=true, waste_type="Dumping behavior detected",
+    confidence_0_100=85, regardless of individual delta classifications in step (3).
+    Rationale: vehicles stopped near waste piles with nearby people are strong behavioral indicators
+    of illegal dumping even when deposited material visually blends into existing waste.
 
 DECISION RULE:
 - new_litter_detected=true ONLY if there is a difference classified as NEW_SOLID_WASTE.
@@ -101,6 +120,8 @@ DECISION RULE:
 - Shadows have diffuse edges. Solid waste has well-defined material boundaries.
 - Reflections, puddles, lighting changes, and compression artifacts are NOT NEW_SOLID_WASTE.
 - Objects ALREADY present in the initial frame that remain in the final frame are EXISTING_WASTE_SHIFTED, not NEW_SOLID_WASTE.
+- Municipal trash bins, recycling containers, or any lidded/wheeled waste container installed on the sidewalk are FIXED URBAN INFRASTRUCTURE — list them in (1) and (2) as fixed inanimate objects and NEVER classify them as NEW_SOLID_WASTE, regardless of color (orange, green, yellow, etc.).
+- A person placing items INSIDE a public trash bin is correct use of urban infrastructure — this is NOT illegal dumping and must NOT set new_litter_detected=true.
 
 Respond with ONLY valid JSON with the requested fields.
 """.strip()
