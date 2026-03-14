@@ -758,22 +758,33 @@ def _process_with_gemini_cascade_window(
     if not window_paths:
         return False, {"provider": "gemini_cascade", "success": False, "error": "empty_window"}
 
-    first_frame = window_paths[0]
     last_frame = window_paths[-1]
     gate_request_id = str(uuid4())
     _register_gemini_call(agent="gate")
 
-    # --- Option B: load prior-window litter state ---
+    # --- Load prior-window state ---
     state = load_state(device_id)
     prior_had_litter: bool = bool(state.get("last_window_had_litter", False))
     prior_waste_type: Optional[str] = state.get("last_window_waste_type")
 
+    # Correction 2: use last frame of previous window as reference to avoid post-deposit blindness
+    prev_last_frame_path = state.get("last_window_last_frame")
+    if prev_last_frame_path and Path(prev_last_frame_path).exists():
+        first_frame = Path(prev_last_frame_path)
+        logger.info(
+            "gate_reference device=%s frame=%s prev_window=True",
+            device_id,
+            first_frame.name,
+        )
+    else:
+        first_frame = window_paths[0]
+
     prior_window_context: Optional[str] = None
     if prior_had_litter:
-        waste_label = f" (tipo: {prior_waste_type})" if prior_waste_type else ""
+        waste_label = f" (type: {prior_waste_type})" if prior_waste_type else ""
         prior_window_context = (
-            f"- A janela anterior de 2 minutos JA apresentava lixo neste local{waste_label}. "
-            "Confirme NEW_SOLID_WASTE somente se um NOVO objeto apareceu ou o volume aumentou visivelmente."
+            f"- The previous 2-minute window ALREADY had waste at this location{waste_label}. "
+            "Confirm NEW_SOLID_WASTE only if a NEW object appeared or the volume visibly increased."
         )
 
     # Inject local time for time-of-day awareness (long shadows at dawn/dusk)
@@ -819,11 +830,12 @@ def _process_with_gemini_cascade_window(
 
     gate_report = gate.report
 
-    # --- Option B: persist litter state for next window ---
+    # Persist litter state and last-frame reference for next window (Correction 2)
     save_state(device_id, {
         **state,
         "last_window_had_litter": bool(gate_report.last_frame_has_litter),
         "last_window_waste_type": gate_report.waste_type,
+        "last_window_last_frame": str(last_frame),
     })
 
     gate_trigger = (

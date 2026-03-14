@@ -122,18 +122,23 @@ def run_cascade_window(
     device_id: str,
     prior_had_litter: bool,
     prior_waste_type: Optional[str],
+    prev_last_frame: Optional[Path] = None,
 ) -> dict:
     """Run one cascade window and return a result dict (no DB/Redis calls)."""
-    first_frame = window_paths[0]
+    # Correction 2: use last frame of previous window as reference when available
+    if prev_last_frame and prev_last_frame.exists():
+        first_frame = prev_last_frame
+    else:
+        first_frame = window_paths[0]
     last_frame = window_paths[-1]
 
-    # Build prior-window context (Option B)
+    # Build prior-window context (English, consistent with updated prompt)
     prior_window_context: Optional[str] = None
     if prior_had_litter:
-        waste_label = f" (tipo: {prior_waste_type})" if prior_waste_type else ""
+        waste_label = f" (type: {prior_waste_type})" if prior_waste_type else ""
         prior_window_context = (
-            f"- A janela anterior de 2 minutos JA apresentava lixo neste local{waste_label}. "
-            "Confirme NEW_SOLID_WASTE somente se um NOVO objeto apareceu ou o volume aumentou visivelmente."
+            f"- The previous 2-minute window ALREADY had waste at this location{waste_label}. "
+            "Confirm NEW_SOLID_WASTE only if a NEW object appeared or the volume visibly increased."
         )
 
     # Inject local time for time-of-day awareness (Option B)
@@ -188,6 +193,7 @@ def run_cascade_window(
     except Exception as exc:
         gate_error = str(exc)
         print(f"  [GATE ERROR] {device_id} | {first_frame.name}: {exc}")
+        prior_had_litter = False
 
     # --- Stage 2: Detail (only if gate triggered) ---
     stage2_result: dict = {}
@@ -244,6 +250,7 @@ def run_cascade_window(
         # Updated prior state to carry forward
         "_next_prior_had_litter": prior_had_litter,
         "_next_prior_waste_type": prior_waste_type,
+        "_next_prev_last_frame": last_frame,
     }
 
 
@@ -251,8 +258,13 @@ def run_cascade_window(
 # Main
 # ---------------------------------------------------------------------------
 
-def run_once(dataset_dir: Path, run_index: int) -> tuple[list[dict], dict]:
-    """Process all devices/windows once. Returns (results, summary)."""
+def run_once(dataset_dir: Path, run_index: int, hour_ranges: Optional[list[tuple[int, int]]] = None) -> tuple[list[dict], dict]:
+    """Process all devices/windows once. Returns (results, summary).
+
+    Args:
+        hour_ranges: Optional list of (start_hour, end_hour) tuples (inclusive start,
+            exclusive end) to filter images by local time. E.g. [(6, 12), (14, 18)].
+    """
     all_results: list[dict] = []
     total_windows = 0
     gate_triggered_count = 0
@@ -269,12 +281,25 @@ def run_once(dataset_dir: Path, run_index: int) -> tuple[list[dict], dict]:
             print(f"  [{device_id}] No images found, skipping.")
             continue
 
+        # Filter by hour range when requested
+        if hour_ranges:
+            filtered = [
+                img for img in images
+                if any(start <= parse_timestamp(img.name).hour < end for start, end in hour_ranges)
+            ]
+            images = filtered
+
         windows = build_cascade_windows(images)
-        print(f"  [{device_id}] {len(images)} images -> {len(windows)} windows")
+        if hour_ranges:
+            hour_desc = ",".join(f"{s}-{e}" for s, e in hour_ranges)
+            print(f"  [{device_id}] {len(images)} images (hours={hour_desc}) -> {len(windows)} windows")
+        else:
+            print(f"  [{device_id}] {len(images)} images -> {len(windows)} windows")
 
         dev_stats = {"windows": 0, "gate_triggered": 0, "infractions": 0, "cost_usd": 0.0}
         prior_had_litter = False
         prior_waste_type: Optional[str] = None
+        prev_last_frame: Optional[Path] = None
 
         for wi, window_paths in enumerate(windows):
             print(
@@ -284,13 +309,17 @@ def run_once(dataset_dir: Path, run_index: int) -> tuple[list[dict], dict]:
                 end=" ",
                 flush=True,
             )
-            result = run_cascade_window(window_paths, device_id, prior_had_litter, prior_waste_type)
+            result = run_cascade_window(
+                window_paths, device_id, prior_had_litter, prior_waste_type,
+                prev_last_frame=prev_last_frame,
+            )
             result["run_index"] = run_index
             result["window_index"] = wi
 
-            # Carry forward litter state for next window
+            # Carry forward litter state and last frame for next window
             prior_had_litter = result.pop("_next_prior_had_litter")
             prior_waste_type = result.pop("_next_prior_waste_type")
+            prev_last_frame = result.pop("_next_prev_last_frame")
 
             all_results.append(result)
             total_windows += 1
@@ -323,12 +352,35 @@ def run_once(dataset_dir: Path, run_index: int) -> tuple[list[dict], dict]:
     return all_results, summary
 
 
+def parse_hour_ranges(value: str) -> list[tuple[int, int]]:
+    """Parse hour range string like '06-12,14-18' into [(6,12),(14,18)]."""
+    ranges = []
+    for part in value.split(","):
+        part = part.strip()
+        if "-" in part:
+            start_s, end_s = part.split("-", 1)
+            ranges.append((int(start_s), int(end_s)))
+        else:
+            h = int(part)
+            ranges.append((h, h + 1))
+    return ranges
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Test Gemini cascade pipeline on a dataset.")
     parser.add_argument("--dataset", required=True, type=Path, help="Path to dataset root directory.")
     parser.add_argument("--output", required=True, type=Path, help="Directory to write result files.")
     parser.add_argument("--runs", type=int, default=1, help="Number of times to process the full dataset.")
+    parser.add_argument(
+        "--hours",
+        type=str,
+        default=None,
+        help="Comma-separated hour ranges to filter images, e.g. '06-12,14-18'. "
+             "Uses local timestamps in filenames.",
+    )
     args = parser.parse_args()
+
+    hour_ranges = parse_hour_ranges(args.hours) if args.hours else None
 
     dataset_dir: Path = args.dataset.resolve()
     output_dir: Path = args.output.resolve()
@@ -352,12 +404,14 @@ def main() -> None:
     print(f"Runs     : {args.runs}")
     print(f"Model    : {config.GEMINI_MODEL}")
     print(f"Threshold: {THRESHOLD} (80 when prior litter known)")
+    if hour_ranges:
+        print(f"Hours    : {args.hours}")
     print()
 
     with results_path.open("w", encoding="utf-8") as fh:
         for run_idx in range(1, args.runs + 1):
             print(f"--- Run {run_idx}/{args.runs} ---")
-            run_results, run_summary = run_once(dataset_dir, run_idx)
+            run_results, run_summary = run_once(dataset_dir, run_idx, hour_ranges=hour_ranges)
 
             for r in run_results:
                 fh.write(json.dumps(r, ensure_ascii=False) + "\n")

@@ -84,24 +84,25 @@ Se um campo nao puder ser inferido com seguranca, retorne null no campo.
 """.strip()
 
 NEW_LITTER_SYSTEM_PROMPT = """
-Voce e um auditor visual especialista em comparar dois frames de CCTV (inicio e fim da janela temporal).
-Sua tarefa e detectar se houve APARECIMENTO ou AUMENTO de lixo SOLIDO DESCARTADO IRREGULARMENTE no frame final.
+You are a visual auditor specialized in comparing two CCTV frames (start and end of a time window).
+Your task is to detect whether SOLID WASTE appeared or increased in the final frame due to illegal dumping.
 
-PASSO OBRIGATORIO antes de decidir (seja CONCISO: maximo 5 itens por lista, ignore veiculos, pessoas e animais):
-Preencha scene_delta_analysis com:
-  (1) objetos FIXOS e INANIMADOS visiveis no frame inicial (NAO liste veiculos, pessoas ou animais),
-  (2) objetos FIXOS e INANIMADOS visiveis no frame final (NAO liste veiculos, pessoas ou animais),
-  (3) cada diferenca classificada como: SHADOW | LIGHTING | PUDDLE | MOVING_OBJECT | NEW_SOLID_WASTE | EXISTING_WASTE_SHIFTED.
+MANDATORY STEP before deciding (be CONCISE: max 5 items per list):
+Fill scene_delta_analysis with:
+  (1) FIXED and INANIMATE objects visible in the initial frame (do NOT list vehicles, people, or animals),
+  (2) FIXED and INANIMATE objects visible in the final frame — INCLUDING objects left behind by people
+      (bags, boxes, rubble, furniture) but do NOT list the people, vehicles, or animals themselves,
+  (3) each difference classified as: SHADOW | LIGHTING | PUDDLE | MOVING_OBJECT | NEW_SOLID_WASTE | EXISTING_WASTE_SHIFTED.
 
-REGRA DE DECISAO:
-- new_litter_detected=true SOMENTE se houver uma diferenca classificada como NEW_SOLID_WASTE.
-- NEW_SOLID_WASTE e residuo solido abandonado: sacola, entulho, moveis, eletronicos, lixo domestico.
-- Veiculos (carros, motos, onibus, bicicletas) e pessoas NUNCA sao NEW_SOLID_WASTE, mesmo que aparecam no frame final.
-- Sombras possuem bordas difusas. Residuos solidos possuem fronteiras materiais bem definidas.
-- Reflexos, poças, mudancas de iluminacao e artefatos de compressao NAO sao NEW_SOLID_WASTE.
-- Objetos que JA estavam no frame inicial e permanecem no final sao EXISTING_WASTE_SHIFTED, nao NEW_SOLID_WASTE.
+DECISION RULE:
+- new_litter_detected=true ONLY if there is a difference classified as NEW_SOLID_WASTE.
+- NEW_SOLID_WASTE is abandoned solid waste: bag, rubble, furniture, electronics, household waste, boxes left on the ground.
+- Vehicles (cars, motorcycles, buses, bicycles) and people themselves are NEVER NEW_SOLID_WASTE, even if they appear in the final frame.
+- Shadows have diffuse edges. Solid waste has well-defined material boundaries.
+- Reflections, puddles, lighting changes, and compression artifacts are NOT NEW_SOLID_WASTE.
+- Objects ALREADY present in the initial frame that remain in the final frame are EXISTING_WASTE_SHIFTED, not NEW_SOLID_WASTE.
 
-Responda APENAS JSON valido com os campos solicitados.
+Respond with ONLY valid JSON with the requested fields.
 """.strip()
 
 
@@ -147,19 +148,19 @@ def _new_litter_user_prompt(
 
     prior_block = ""
     if prior_window_context:
-        prior_block = f"\nContexto da janela anterior:\n{prior_window_context}\n"
+        prior_block = f"\nPrior window context:\n{prior_window_context}\n"
 
     return (
-        "Compare APENAS dois frames: inicio e fim da janela.\n"
-        f"Frame inicial: {first_frame_name}\n"
-        f"Frame final: {last_frame_name}\n"
-        "Siga o PASSO OBRIGATORIO: preencha scene_delta_analysis classificando cada diferenca "
-        "antes de definir new_litter_detected.\n"
-        "Retorne JSON com todos os campos: scene_delta_analysis, new_litter_detected, "
+        "Compare ONLY two frames: start and end of the window.\n"
+        f"Initial frame: {first_frame_name}\n"
+        f"Final frame: {last_frame_name}\n"
+        "Follow the MANDATORY STEP: fill scene_delta_analysis classifying each difference "
+        "before setting new_litter_detected.\n"
+        "Return JSON with all fields: scene_delta_analysis, new_litter_detected, "
         "confidence_0_100, evidence_summary, first_frame_has_litter, last_frame_has_litter, "
         "waste_type, raw_reason_codes.\n"
         f"{prior_block}"
-        "Contexto da camera:\n"
+        "Camera context:\n"
         f"{context_block}"
     )
 
