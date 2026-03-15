@@ -20,6 +20,7 @@ except Exception:  # pragma: no cover - optional dependency while running YOLO-o
 
 from . import config
 from .models import GeminiUsage
+from .mosaic import build_mosaic_2x1, build_mosaic_3x2_pair, build_mosaic_4x3
 from .schemas_gemini import GeminiInfractionReport, GeminiNewLitterReport
 
 logger = logging.getLogger(__name__)
@@ -130,6 +131,7 @@ Respond with ONLY valid JSON with the requested fields.
 def _user_prompt(
     camera_context: Optional[dict[str, str]] = None,
     frame_names: Optional[list[str]] = None,
+    mosaic_mode: str = "off",
 ) -> str:
     context_lines = []
     if camera_context:
@@ -138,6 +140,36 @@ def _user_prompt(
                 context_lines.append(f"- {key}: {value}")
 
     context_block = "\n".join(context_lines) if context_lines else "- sem contexto adicional"
+
+    if mosaic_mode != "off":
+        if mosaic_mode == "4x3":
+            frame_desc = (
+                "The image(s) provided are a 4-row × 3-column mosaic grid of frames "
+                "numbered 1-12 (left-to-right, top-to-bottom, chronological order). "
+                "Frame 1 is earliest, frame 12 is latest. "
+                "Use 'frame_N' (e.g. 'frame_7') as event_frame_name and offender_frame_name."
+            )
+        else:  # 3x2split
+            frame_desc = (
+                "Two mosaic images are provided: the first contains frames 1-6 "
+                "(3 columns × 2 rows, chronological), the second contains frames 7-12. "
+                "Frame 1 is earliest, frame 12 is latest. "
+                "Use 'frame_N' (e.g. 'frame_7') as event_frame_name and offender_frame_name."
+            )
+        return (
+            "Analise a sequencia temporal de imagens e retorne JSON estruturado com:\n"
+            "1) confirmacao de infracao\n"
+            "2) confianca 0..100\n"
+            "3) resumo factual curto da evidencia\n"
+            "4) classificacao de residuo/material e volume aproximado\n"
+            "5) dados de infrator e dados veiculares quando visiveis (opcional)\n"
+            "6) event_frame_name e offender_frame_name usando o formato 'frame_N'\n"
+            f"Regra de decisao: infraction_confirmed=true pode ocorrer mesmo com offender_detected=false.\n"
+            f"Formato das imagens: {frame_desc}\n"
+            "Contexto da camera:\n"
+            f"{context_block}"
+        )
+
     frame_block = ", ".join(frame_names) if frame_names else "desconhecido"
     return (
         "Analise a sequencia temporal de imagens e retorne JSON estruturado com:\n"
@@ -159,6 +191,7 @@ def _new_litter_user_prompt(
     last_frame_name: str,
     camera_context: Optional[dict[str, str]] = None,
     prior_window_context: Optional[str] = None,
+    mosaic: bool = False,
 ) -> str:
     context_lines = []
     if camera_context:
@@ -170,6 +203,24 @@ def _new_litter_user_prompt(
     prior_block = ""
     if prior_window_context:
         prior_block = f"\nPrior window context:\n{prior_window_context}\n"
+
+    if mosaic:
+        frame_desc = (
+            f"The single image provided is a side-by-side composite: "
+            f"LEFT = initial frame ({first_frame_name}), RIGHT = final frame ({last_frame_name}). "
+            "Compare the left half vs the right half."
+        )
+        return (
+            f"{frame_desc}\n"
+            "Follow the MANDATORY STEP: fill scene_delta_analysis classifying each difference "
+            "before setting new_litter_detected.\n"
+            "Return JSON with all fields: scene_delta_analysis, new_litter_detected, "
+            "confidence_0_100, evidence_summary, first_frame_has_litter, last_frame_has_litter, "
+            "waste_type, raw_reason_codes.\n"
+            f"{prior_block}"
+            "Camera context:\n"
+            f"{context_block}"
+        )
 
     return (
         "Compare ONLY two frames: start and end of the window.\n"
@@ -381,84 +432,113 @@ def analyze_with_gemini(
     image_paths: list[Path],
     camera_context: Optional[dict[str, str]] = None,
     request_id: Optional[str] = None,
+    mosaic_mode: str = "off",
 ) -> GeminiInferenceResult:
-    """Run Gemini inference with retry/timeout and strict schema validation."""
+    """Run Gemini inference with retry/timeout and strict schema validation.
+
+    Args:
+        mosaic_mode: "off" sends frames individually; "4x3" composes a single 4×3
+            grid image; "3x2split" composes two 3×2 grid images.
+    """
 
     if not image_paths:
         raise ValueError("image_paths must contain at least one frame")
+
     frame_names = [p.name for p in image_paths]
-    allowed_frame_names = set(frame_names)
+
+    # Build mosaic-aware allowed frame names and actual paths to send.
+    mosaic_temps: list[Path] = []
+    if mosaic_mode == "4x3":
+        mosaic_path = build_mosaic_4x3(image_paths)
+        mosaic_temps.append(mosaic_path)
+        send_paths = [mosaic_path]
+        allowed_frame_names = {f"frame_{i+1}" for i in range(len(image_paths))}
+    elif mosaic_mode == "3x2split":
+        path_a, path_b = build_mosaic_3x2_pair(image_paths)
+        mosaic_temps.extend([path_a, path_b])
+        send_paths = [path_a, path_b]
+        allowed_frame_names = {f"frame_{i+1}" for i in range(len(image_paths))}
+    else:
+        send_paths = image_paths
+        allowed_frame_names = set(frame_names)
 
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
     last_error: Optional[Exception] = None
 
-    for attempt in range(1, attempts + 1):
-        started = time.monotonic()
-        try:
-            with ThreadPoolExecutor(max_workers=1) as pool:
-                fut = pool.submit(
-                    _call_model,
-                    image_paths,
-                    SYSTEM_PROMPT,
-                    _user_prompt(camera_context, frame_names=frame_names),
-                    config.GEMINI_MODEL,
-                    GeminiInfractionReport.model_json_schema(),
+    try:
+        for attempt in range(1, attempts + 1):
+            started = time.monotonic()
+            try:
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    fut = pool.submit(
+                        _call_model,
+                        send_paths,
+                        SYSTEM_PROMPT,
+                        _user_prompt(camera_context, frame_names=frame_names, mosaic_mode=mosaic_mode),
+                        config.GEMINI_MODEL,
+                        GeminiInfractionReport.model_json_schema(),
+                    )
+                    response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
+
+                raw_text = _extract_text(response)
+                report = GeminiInfractionReport.model_validate_json(raw_text)
+                report = _sanitize_report(report, allowed_frame_names=allowed_frame_names)
+
+                usage = _extract_usage(response)
+                latency_ms = int((time.monotonic() - started) * 1000)
+
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "gemini_inference_ok",
+                            "request_id": request_id,
+                            "model": config.GEMINI_MODEL,
+                            "latency_ms": latency_ms,
+                            "input_tokens": usage.input_tokens,
+                            "output_tokens": usage.output_tokens,
+                            "total_tokens": usage.total_tokens,
+                        },
+                        ensure_ascii=False,
+                    )
                 )
-                response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
 
-            raw_text = _extract_text(response)
-            report = GeminiInfractionReport.model_validate_json(raw_text)
-            report = _sanitize_report(report, allowed_frame_names=allowed_frame_names)
-
-            usage = _extract_usage(response)
-            latency_ms = int((time.monotonic() - started) * 1000)
-
-            logger.info(
-                json.dumps(
-                    {
-                        "event": "gemini_inference_ok",
-                        "request_id": request_id,
-                        "model": config.GEMINI_MODEL,
-                        "latency_ms": latency_ms,
-                        "input_tokens": usage.input_tokens,
-                        "output_tokens": usage.output_tokens,
-                        "total_tokens": usage.total_tokens,
-                    },
-                    ensure_ascii=False,
+                return GeminiInferenceResult(
+                    report=report,
+                    usage=usage,
+                    latency_ms=latency_ms,
+                    model=config.GEMINI_MODEL,
+                    raw_json=raw_text,
                 )
-            )
 
-            return GeminiInferenceResult(
-                report=report,
-                usage=usage,
-                latency_ms=latency_ms,
-                model=config.GEMINI_MODEL,
-                raw_json=raw_text,
-            )
+            except FutureTimeoutError as exc:
+                last_error = TimeoutError(f"Gemini timeout after {config.GEMINI_TIMEOUT_SECONDS}s")
+                logger.warning(
+                    "gemini timeout request_id=%s attempt=%d/%d",
+                    request_id,
+                    attempt,
+                    attempts,
+                )
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                logger.warning(
+                    "gemini error request_id=%s attempt=%d/%d error=%s",
+                    request_id,
+                    attempt,
+                    attempts,
+                    exc,
+                )
 
-        except FutureTimeoutError as exc:
-            last_error = TimeoutError(f"Gemini timeout after {config.GEMINI_TIMEOUT_SECONDS}s")
-            logger.warning(
-                "gemini timeout request_id=%s attempt=%d/%d",
-                request_id,
-                attempt,
-                attempts,
-            )
-        except Exception as exc:  # noqa: BLE001
-            last_error = exc
-            logger.warning(
-                "gemini error request_id=%s attempt=%d/%d error=%s",
-                request_id,
-                attempt,
-                attempts,
-                exc,
-            )
+            if attempt < attempts:
+                backoff_s = min(2 ** (attempt - 1), 10)
+                time.sleep(backoff_s)
 
-        if attempt < attempts:
-            backoff_s = min(2 ** (attempt - 1), 10)
-            time.sleep(backoff_s)
-
-    raise RuntimeError(f"Gemini inference failed after {attempts} attempts: {last_error}") from last_error
+        raise RuntimeError(f"Gemini inference failed after {attempts} attempts: {last_error}") from last_error
+    finally:
+        for tmp in mosaic_temps:
+            try:
+                tmp.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 def analyze_new_litter_with_gemini(
@@ -467,83 +547,102 @@ def analyze_new_litter_with_gemini(
     camera_context: Optional[dict[str, str]] = None,
     request_id: Optional[str] = None,
     prior_window_context: Optional[str] = None,
+    use_mosaic: bool = False,
 ) -> GeminiNewLitterInferenceResult:
-    """Stage-1 gate: compare first and last frame for new litter appearance."""
+    """Stage-1 gate: compare first and last frame for new litter appearance.
+
+    Args:
+        use_mosaic: when True, composes a 2×1 side-by-side image before sending.
+    """
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
     last_error: Optional[Exception] = None
-    image_paths = [first_frame, last_frame]
     model_name = config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL
     timeout_s = max(1, config.GEMINI_AGENT1_TIMEOUT_SECONDS)
 
-    for attempt in range(1, attempts + 1):
-        started = time.monotonic()
-        try:
-            with ThreadPoolExecutor(max_workers=1) as pool:
-                fut = pool.submit(
-                    _call_model,
-                    image_paths,
-                    NEW_LITTER_SYSTEM_PROMPT,
-                    _new_litter_user_prompt(
-                        first_frame.name,
-                        last_frame.name,
-                        camera_context,
-                        prior_window_context=prior_window_context,
-                    ),
-                    model_name,
-                    GeminiNewLitterReport.model_json_schema(),
-                    config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS,
+    mosaic_temp: Optional[Path] = None
+    if use_mosaic:
+        mosaic_temp = build_mosaic_2x1(first_frame, last_frame)
+        image_paths = [mosaic_temp]
+    else:
+        image_paths = [first_frame, last_frame]
+
+    try:
+        for attempt in range(1, attempts + 1):
+            started = time.monotonic()
+            try:
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    fut = pool.submit(
+                        _call_model,
+                        image_paths,
+                        NEW_LITTER_SYSTEM_PROMPT,
+                        _new_litter_user_prompt(
+                            first_frame.name,
+                            last_frame.name,
+                            camera_context,
+                            prior_window_context=prior_window_context,
+                            mosaic=use_mosaic,
+                        ),
+                        model_name,
+                        GeminiNewLitterReport.model_json_schema(),
+                        config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS,
+                    )
+                    response = fut.result(timeout=timeout_s)
+
+                raw_text = _extract_text(response)
+                report = GeminiNewLitterReport.model_validate_json(raw_text)
+                report.waste_type = normalize_waste_type(report.waste_type)
+                report.confidence_0_100 = max(0, min(100, int(report.confidence_0_100)))
+
+                usage = _extract_usage(response)
+                latency_ms = int((time.monotonic() - started) * 1000)
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "gemini_new_litter_gate_ok",
+                            "request_id": request_id,
+                            "model": model_name,
+                            "latency_ms": latency_ms,
+                            "input_tokens": usage.input_tokens,
+                            "output_tokens": usage.output_tokens,
+                            "total_tokens": usage.total_tokens,
+                            "first_frame": first_frame.name,
+                            "last_frame": last_frame.name,
+                        },
+                        ensure_ascii=False,
+                    )
                 )
-                response = fut.result(timeout=timeout_s)
-
-            raw_text = _extract_text(response)
-            report = GeminiNewLitterReport.model_validate_json(raw_text)
-            report.waste_type = normalize_waste_type(report.waste_type)
-            report.confidence_0_100 = max(0, min(100, int(report.confidence_0_100)))
-
-            usage = _extract_usage(response)
-            latency_ms = int((time.monotonic() - started) * 1000)
-            logger.info(
-                json.dumps(
-                    {
-                        "event": "gemini_new_litter_gate_ok",
-                        "request_id": request_id,
-                        "model": model_name,
-                        "latency_ms": latency_ms,
-                        "input_tokens": usage.input_tokens,
-                        "output_tokens": usage.output_tokens,
-                        "total_tokens": usage.total_tokens,
-                        "first_frame": first_frame.name,
-                        "last_frame": last_frame.name,
-                    },
-                    ensure_ascii=False,
+                return GeminiNewLitterInferenceResult(
+                    report=report,
+                    usage=usage,
+                    latency_ms=latency_ms,
+                    model=model_name,
+                    raw_json=raw_text,
                 )
-            )
-            return GeminiNewLitterInferenceResult(
-                report=report,
-                usage=usage,
-                latency_ms=latency_ms,
-                model=model_name,
-                raw_json=raw_text,
-            )
-        except FutureTimeoutError:
-            last_error = TimeoutError(f"Gemini gate timeout after {timeout_s}s")
-            logger.warning(
-                "gemini gate timeout request_id=%s attempt=%d/%d",
-                request_id,
-                attempt,
-                attempts,
-            )
-        except Exception as exc:  # noqa: BLE001
-            last_error = exc
-            logger.warning(
-                "gemini gate error request_id=%s attempt=%d/%d error=%s",
-                request_id,
-                attempt,
-                attempts,
-                exc,
-            )
-        if attempt < attempts:
-            backoff_s = min(2 ** (attempt - 1), 10)
-            time.sleep(backoff_s)
+            except FutureTimeoutError:
+                last_error = TimeoutError(f"Gemini gate timeout after {timeout_s}s")
+                logger.warning(
+                    "gemini gate timeout request_id=%s attempt=%d/%d",
+                    request_id,
+                    attempt,
+                    attempts,
+                )
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                logger.warning(
+                    "gemini gate error request_id=%s attempt=%d/%d error=%s",
+                    request_id,
+                    attempt,
+                    attempts,
+                    exc,
+                )
+            if attempt < attempts:
+                backoff_s = min(2 ** (attempt - 1), 10)
+                time.sleep(backoff_s)
 
-    raise RuntimeError(f"Gemini new-litter gate failed after {attempts} attempts: {last_error}") from last_error
+        raise RuntimeError(f"Gemini new-litter gate failed after {attempts} attempts: {last_error}") from last_error
+    finally:
+        if mosaic_temp is not None:
+            try:
+                mosaic_temp.unlink(missing_ok=True)
+            except OSError:
+                pass
