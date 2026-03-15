@@ -34,6 +34,8 @@ export interface DetectionSearchParams {
   volume_min?: number;
   volume_max?: number;
   has_offender?: boolean;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
 }
 
 interface DetectionSearchApiResponse {
@@ -185,6 +187,8 @@ export async function searchDetections(params?: DetectionSearchParams): Promise<
     volume_min: params?.volume_min,
     volume_max: params?.volume_max,
     has_offender: params?.has_offender,
+    sort_by: params?.sort_by,
+    sort_order: params?.sort_order,
   };
 
   const response = await api.get<DetectionSearchApiResponse>('/detections/search', { params: queryParams });

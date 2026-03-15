@@ -10,6 +10,9 @@ import {
   Plus,
   Trash2,
   X,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { Tooltip } from "../components/Tooltip";
@@ -56,6 +59,9 @@ export const CamerasSettingsPage: React.FC = () => {
   const [filterName, setFilterName] = useState("");
   const [filterDeviceId, setFilterDeviceId] = useState("");
   const [filterStatus, setFilterStatus] = useState<string[]>([]);
+
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -142,10 +148,35 @@ export const CamerasSettingsPage: React.FC = () => {
     return Array.from(new Set(filtered.map((camera) => cameraStatusLabel(camera))));
   }, [cameras, filterDeviceId, filterName, filterStatus]);
 
-  const filteredCameras = useMemo(
-    () => cameras.filter((camera) => matchesFilters(camera)),
-    [cameras, filterDeviceId, filterName, filterStatus],
-  );
+  const CAMERA_COLUMNS = [
+    { label: "Nome", sortKey: "name" as const },
+    { label: "Device ID", sortKey: "device_id" as const },
+    { label: "Local", sortKey: null },
+    { label: "Status", sortKey: "is_active" as const },
+    { label: "Última comunicação", sortKey: "last_capture_at" as const },
+    { label: "Ações", sortKey: null },
+  ] as const;
+
+  const handleSort = (key: string | null) => {
+    if (!key) return;
+    if (sortBy === key) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortOrder("asc");
+    }
+  };
+
+  const filteredCameras = useMemo(() => {
+    const list = cameras.filter((camera) => matchesFilters(camera));
+    if (!sortBy) return list;
+    return [...list].sort((a, b) => {
+      const aVal = String((a as any)[sortBy] ?? "").toLowerCase();
+      const bVal = String((b as any)[sortBy] ?? "").toLowerCase();
+      const cmp = aVal.localeCompare(bVal);
+      return sortOrder === "asc" ? cmp : -cmp;
+    });
+  }, [cameras, filterDeviceId, filterName, filterStatus, sortBy, sortOrder]);
 
   const totalPages = Math.ceil(filteredCameras.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -365,19 +396,24 @@ export const CamerasSettingsPage: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {[
-                    "Nome",
-                    "Device ID",
-                    "Local",
-                    "Status",
-                    "Última comunicação",
-                    "Ações",
-                  ].map((head) => (
+                  {CAMERA_COLUMNS.map((col, i) => (
                     <th
-                      key={head}
-                      className="px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap"
+                      key={i}
+                      onClick={() => handleSort(col.sortKey)}
+                      className={`px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap ${
+                        col.sortKey ? "cursor-pointer select-none hover:bg-gray-50 transition-colors" : ""
+                      }`}
                     >
-                      {head}
+                      <span className="inline-flex items-center gap-1">
+                        {col.label}
+                        {col.sortKey && (
+                          sortBy === col.sortKey
+                            ? sortOrder === "asc"
+                              ? <ArrowUp size={14} className="text-[#1a1a1a]" />
+                              : <ArrowDown size={14} className="text-[#1a1a1a]" />
+                            : <ArrowUpDown size={14} className="text-gray-300" />
+                        )}
+                      </span>
                     </th>
                   ))}
                 </tr>

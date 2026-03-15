@@ -85,6 +85,8 @@ async def get_detections(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     bairro: Optional[str] = None,
+    sort_by: Optional[str] = Query(None, description="Campo para ordenação"),
+    sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -108,7 +110,9 @@ async def get_detections(
     if filters:
         query = query.where(and_(*filters))
 
-    query = query.offset(skip).limit(limit).order_by(Detection.timestamp.desc())
+    col = DETECTION_SORTABLE_FIELDS.get(sort_by or DEFAULT_SORT_FIELD, Detection.timestamp)
+    order = col.asc() if sort_order == "asc" else col.desc()
+    query = query.offset(skip).limit(limit).order_by(order)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -127,6 +131,8 @@ async def search_detections(
     has_offender: Optional[bool] = None,
     volume_min: Optional[float] = Query(None, ge=0),
     volume_max: Optional[float] = Query(None, ge=0),
+    sort_by: Optional[str] = Query(None, description="Campo para ordenação"),
+    sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -198,7 +204,9 @@ async def search_detections(
     query = select(Detection)
     if filter_expression is not None:
         query = query.where(filter_expression)
-    query = query.order_by(Detection.timestamp.desc()).offset(skip).limit(limit)
+    col = DETECTION_SORTABLE_FIELDS.get(sort_by or DEFAULT_SORT_FIELD, Detection.timestamp)
+    order = col.asc() if sort_order == "asc" else col.desc()
+    query = query.order_by(order).offset(skip).limit(limit)
     result = await db.execute(query)
     items = result.scalars().all()
 

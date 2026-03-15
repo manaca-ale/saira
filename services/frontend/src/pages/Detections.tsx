@@ -20,6 +20,9 @@ import {
   ChevronLeft,
   CheckCircle,
   Clock,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { OccurrenceModal } from "../components/OccurrenceModal";
 import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
@@ -80,17 +83,17 @@ const getRpaForPoi = (poi: PoiData) => {
 
 // --- COLUMN CONFIGURATION ---
 const TABLE_COLUMNS = [
-  { label: "ID", width: "w-24" },
-  { label: "Logradouro", width: "w-64" },
-  { label: "Bairro", width: "w-48" },
-  { label: "RPA", width: "w-24" },
-  { label: "Data e Hora", width: "w-40" },
-  { label: "Tipo de resíduo", width: "w-48" },
-  { label: "Volumetria", width: "w-32" },
-  { label: "Infratores", width: "w-48" },
-  { label: "Status", width: "w-32" },
-  { label: "Ação", width: "w-36" },
-];
+  { label: "ID", width: "w-24", sortKey: null },
+  { label: "Logradouro", width: "w-64", sortKey: "logradouro" },
+  { label: "Bairro", width: "w-48", sortKey: "bairro" },
+  { label: "RPA", width: "w-24", sortKey: "rpa" },
+  { label: "Data e Hora", width: "w-40", sortKey: "timestamp" },
+  { label: "Tipo de resíduo", width: "w-48", sortKey: "waste_type" },
+  { label: "Volumetria", width: "w-32", sortKey: "volume_m3" },
+  { label: "Infratores", width: "w-48", sortKey: null },
+  { label: "Status", width: "w-32", sortKey: "status" },
+  { label: "Ação", width: "w-36", sortKey: null },
+] as const;
 
 // --- MAIN COMPONENT ---
 export const Detections: React.FC = () => {
@@ -120,6 +123,8 @@ export const Detections: React.FC = () => {
     infratores: [],
   });
   const [activePopover, setActivePopover] = useState<"period" | "volumetry" | null>(null);
+  const [sortBy, setSortBy] = useState<string>("timestamp");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [totalRecords, setTotalRecords] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloadingCsv, setIsDownloadingCsv] = useState(false);
@@ -181,6 +186,16 @@ export const Detections: React.FC = () => {
     return query;
   }, [filters]);
 
+  const handleSort = (key: string | null) => {
+    if (!key) return;
+    if (sortBy === key) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortOrder("asc");
+    }
+  };
+
   const loadDetectionsPage = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -188,6 +203,8 @@ export const Detections: React.FC = () => {
         ...queryFilters,
         skip: (currentPage - 1) * itemsPerPage,
         limit: itemsPerPage,
+        sort_by: sortBy,
+        sort_order: sortOrder,
       });
       const formattedDetections = response.items.map((poi) => ({
         ...poi,
@@ -202,7 +219,7 @@ export const Detections: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, itemsPerPage, queryFilters]);
+  }, [currentPage, itemsPerPage, queryFilters, sortBy, sortOrder]);
 
   useEffect(() => {
     loadDetectionsPage();
@@ -266,7 +283,7 @@ export const Detections: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, itemsPerPage]);
+  }, [filters, itemsPerPage, sortBy, sortOrder]);
 
   const handleOpenModal = (item: Detection) => {
     setSelectedItem(item);
@@ -641,9 +658,21 @@ export const Detections: React.FC = () => {
                   {TABLE_COLUMNS.map((c, i) => (
                     <th
                       key={i}
-                      className={`px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap ${c.width}`}
+                      onClick={() => handleSort(c.sortKey)}
+                      className={`px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap ${c.width} ${
+                        c.sortKey ? "cursor-pointer select-none hover:bg-gray-50 transition-colors" : ""
+                      }`}
                     >
-                      {c.label}
+                      <span className="inline-flex items-center gap-1">
+                        {c.label}
+                        {c.sortKey && (
+                          sortBy === c.sortKey
+                            ? sortOrder === "asc"
+                              ? <ArrowUp size={14} className="text-[#1a1a1a]" />
+                              : <ArrowDown size={14} className="text-[#1a1a1a]" />
+                            : <ArrowUpDown size={14} className="text-gray-300" />
+                        )}
+                      </span>
                     </th>
                   ))}
                 </tr>

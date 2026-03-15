@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
@@ -18,6 +18,17 @@ from app.schemas.camera import (
 )
 
 router = APIRouter()
+
+CAMERA_SORTABLE_FIELDS: dict[str, Any] = {
+    "name":       Camera.name,
+    "device_id":  Camera.device_id,
+    "bairro":     Camera.bairro,
+    "rpa":        Camera.rpa,
+    "is_active":  Camera.is_active,
+    "created_at": Camera.created_at,
+}
+CAMERA_DEFAULT_SORT = "created_at"
+
 UPLOADS_ROOT = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
 UPLOAD_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("/")
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
@@ -65,6 +76,8 @@ async def get_cameras(
     limit: int = Query(10, ge=1, le=100),
     rpa: Optional[str] = None,
     is_active: Optional[bool] = None,
+    sort_by: Optional[str] = Query(None, description="Campo para ordenação"),
+    sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -80,7 +93,9 @@ async def get_cameras(
     if filters:
         query = query.where(and_(*filters))
 
-    query = query.offset(skip).limit(limit).order_by(Camera.created_at.desc())
+    col = CAMERA_SORTABLE_FIELDS.get(sort_by or CAMERA_DEFAULT_SORT, Camera.created_at)
+    order = col.asc() if sort_order == "asc" else col.desc()
+    query = query.offset(skip).limit(limit).order_by(order)
     result = await db.execute(query)
     return result.scalars().all()
 
