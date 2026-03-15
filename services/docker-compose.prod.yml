@@ -114,10 +114,10 @@ services:
       context: ../esp32-server
     container_name: saira-esp32-server-prod
     ports:
-      - "5002:5000"
+      - "5003:5000"
     environment:
       - UPLOAD_DIR=/app/uploads
-      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5003}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
       - GUNICORN_WORKERS=2
       - GUNICORN_THREADS=4
@@ -141,7 +141,7 @@ services:
       - CONF_THRESHOLD=0.25
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
       - REDIS_URL=redis://redis:6379/0
-      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5003}
       - POLL_INTERVAL=10
       - PROCESSED_STRATEGY=${PROCESSED_STRATEGY:-two_folders}
       - WORKER_ENABLED=${WORKER_ENABLED:-true}
