@@ -11,3 +11,5 @@
 # Local build artifacts (do not commit)
 artifacts/
 
+# Data artifacts
+data/

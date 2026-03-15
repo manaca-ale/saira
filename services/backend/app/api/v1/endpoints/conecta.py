@@ -1,6 +1,6 @@
 import json
 import secrets
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 from urllib.parse import urlencode
 
@@ -23,6 +23,7 @@ from app.schemas.conecta import (
     ConectaRevokeResponse,
 )
 from app.services.conecta_service import conecta_service
+from app.core.timezone import now_brazil
 
 router = APIRouter()
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -84,7 +85,7 @@ async def _upsert_user_from_conecta(
             auth_provider="conecta",
             external_subject=subject,
             is_active=True,
-            last_login_at=datetime.utcnow(),
+            last_login_at=now_brazil(),
         )
         db.add(user)
     else:
@@ -94,7 +95,7 @@ async def _upsert_user_from_conecta(
         user.auth_provider = "conecta"
         user.external_subject = subject
         user.is_active = True
-        user.last_login_at = datetime.utcnow()
+        user.last_login_at = now_brazil()
 
     await db.commit()
     await db.refresh(user)
@@ -299,7 +300,7 @@ async def revoke_consent(
     user.external_subject = None
     user.auth_provider = "conecta_revoked"
     user.is_active = False
-    user.updated_at = datetime.utcnow()
+    user.updated_at = now_brazil()
 
     await db.commit()
 

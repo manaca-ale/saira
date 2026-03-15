@@ -10,11 +10,11 @@
 
 using SairaApplyConfigFn = bool (*)(const String& key, const String& value);
 
-static inline String _sairaDefaultRemoteConfigUrl(const String& serverBase) {
-  return sairaJoinPath(serverBase, String("/device/") + SAIRA_DEVICE_ID + "/config.txt");
+static inline String _sairaDefaultRemoteConfigUrl(const String& serverBase, const String& deviceId) {
+  return sairaJoinPath(serverBase, String("/device/") + deviceId + "/config.txt");
 }
 
-static inline bool sairaMaybeFetchRemoteConfig(const String& serverBase, SairaApplyConfigFn applyFn) {
+static inline bool sairaMaybeFetchRemoteConfig(const String& serverBase, SairaApplyConfigFn applyFn, const String& deviceId) {
   if (SAIRA_REMOTE_CONFIG_ENABLED == 0) return false;
   if (!applyFn) return false;
   if (WiFi.status() != WL_CONNECTED) return false;
@@ -26,7 +26,7 @@ static inline bool sairaMaybeFetchRemoteConfig(const String& serverBase, SairaAp
 
   String url = String(SAIRA_REMOTE_CONFIG_URL);
   url.trim();
-  if (!url.length()) url = _sairaDefaultRemoteConfigUrl(serverBase);
+  if (!url.length()) url = _sairaDefaultRemoteConfigUrl(serverBase, deviceId);
 
   SairaParsedUrl u = sairaParseHttpUrl(url);
   if (!u.ok) {

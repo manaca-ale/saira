@@ -8,9 +8,14 @@ services:
     ports:
       - "3001:80"
     container_name: saira-web-test
+    environment:
+      - TZ=America/Sao_Paulo
     restart: always
     depends_on:
       - backend
+    networks:
+      - default
+      - saira_esp32_test_net
 
   # Api-Gateway (Nginx)
   api-gateway:
@@ -24,6 +29,22 @@ services:
       - backend
     restart: always
 
+  # Redis (pub/sub para notificações em tempo real)
+  redis:
+    image: redis:7-alpine
+    container_name: saira-redis-test
+    environment:
+      - TZ=America/Sao_Paulo
+    volumes:
+      - redis_data_test:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: always
+
   # Backend API (FastAPI)
   backend:
     build: ./backend
@@ -33,6 +54,10 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
+      - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
+      - REDIS_URL=redis://redis:6379/0
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
       - CONECTA_ENV=${CONECTA_ENV:-test}
@@ -51,12 +76,132 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - WHATSAPP_PROVIDER=${WHATSAPP_PROVIDER:-waha}
+      - WAHA_BASE_URL=${WAHA_BASE_URL:-http://waha:3000}
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - WAHA_SESSION_NAME=${WAHA_SESSION_NAME:-default}
       - ENVIRONMENT=test
+      - WORKER_STATE_DIR=/app/yolo_state
+      - TZ=America/Sao_Paulo
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: always
+    volumes:
+      - ../esp32-server/uploads:/app/uploads:ro
+      - yolo_state_test:/app/yolo_state:ro
     command: ["bash", "/app/start.sh", "--workers", "4"]
+
+  # YOLO worker — frame comparison + DB insertion
+  yolo-worker:
+    build:
+      context: ./yolo-worker-vm
+    container_name: saira-yolo-worker-test
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - STATE_DIR=/app/state
+      - WORKER_METRICS_ENABLED=${WORKER_METRICS_ENABLED:-true}
+      - WORKER_METRICS_HOST=${WORKER_METRICS_HOST:-0.0.0.0}
+      - WORKER_METRICS_PORT=${WORKER_METRICS_PORT:-9108}
+      - P1_MODEL_PATH=/app/models/yolov8_2142.pt
+      - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
+      - CONF_THRESHOLD=0.25
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - REDIS_URL=redis://redis:6379/0
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
+      - POLL_INTERVAL=10
+      - PROCESSED_STRATEGY=${PROCESSED_STRATEGY:-two_folders}
+      - WORKER_ENABLED=${WORKER_ENABLED:-true}
+      - MOCK_MODE=${MOCK_MODE:-false}
+      - MOCK_DETECTION_PROB=${MOCK_DETECTION_PROB:-0.5}
+      - MOCK_MAX_OBJECTS=${MOCK_MAX_OBJECTS:-5}
+      - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
+      - AI_MODE=${AI_MODE:-shadow}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-15}
+      - GEMINI_MAX_RETRIES=${GEMINI_MAX_RETRIES:-2}
+      - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}
+      - GEMINI_MAX_OUTPUT_TOKENS=${GEMINI_MAX_OUTPUT_TOKENS:-2048}
+      - GEMINI_CASCADE_ENABLED=${GEMINI_CASCADE_ENABLED:-false}
+      - GEMINI_CASCADE_WINDOW_SECONDS=${GEMINI_CASCADE_WINDOW_SECONDS:-120}
+      - GEMINI_CASCADE_MAX_FRAMES=${GEMINI_CASCADE_MAX_FRAMES:-12}
+      - GEMINI_CASCADE_MIN_FRAMES=${GEMINI_CASCADE_MIN_FRAMES:-6}
+      - GEMINI_AGENT1_MODEL=${GEMINI_AGENT1_MODEL:-gemini-2.5-flash}
+      - GEMINI_AGENT1_TIMEOUT_SECONDS=${GEMINI_AGENT1_TIMEOUT_SECONDS:-15}
+      - GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE=${GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE:-75}
+      - GEMINI_AGENT1_MAX_OUTPUT_TOKENS=${GEMINI_AGENT1_MAX_OUTPUT_TOKENS:-4096}
+      - GEMINI_SEQUENCE_SIZE=${GEMINI_SEQUENCE_SIZE:-5}
+      - GEMINI_SEQUENCE_MAX_SPAN_SECONDS=${GEMINI_SEQUENCE_MAX_SPAN_SECONDS:-4}
+      - GEMINI_ENABLE_BATCH=${GEMINI_ENABLE_BATCH:-false}
+      - GEMINI_DRY_RUN=${GEMINI_DRY_RUN:-false}
+      - GEMINI_MAX_PAYLOAD_BYTES=${GEMINI_MAX_PAYLOAD_BYTES:-8000000}
+      - GEMINI_INPUT_TOKEN_PRICE_PER_1M=${GEMINI_INPUT_TOKEN_PRICE_PER_1M:-0.10}
+      - GEMINI_OUTPUT_TOKEN_PRICE_PER_1M=${GEMINI_OUTPUT_TOKEN_PRICE_PER_1M:-0.40}
+      - TZ=America/Sao_Paulo
+      - GDRIVE_ENABLED=${GDRIVE_ENABLED:-false}
+      - GDRIVE_FOLDER_ID=${GDRIVE_FOLDER_ID:-1sds3yeef0o9j902X2taxFoEE0iU42sF4}
+      - GDRIVE_SA_KEY_PATH=${GDRIVE_SA_KEY_PATH:-/app/gdrive-sa-key.json}
+      - GDRIVE_SYNC_HOUR=${GDRIVE_SYNC_HOUR:-3}
+      - S3_ENABLED=${S3_ENABLED:-false}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-saira-images}
+      - S3_REGION=${S3_REGION:-sa-east-1}
+      - S3_SYNC_HOUR=${S3_SYNC_HOUR:-3}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+    volumes:
+      - ../esp32-server/uploads:/app/uploads
+      - yolo_state_test:/app/state
+      - ./yolo-worker-vm/models:/app/models
+    ports:
+      - "9108:9108"
+      # To enable Drive sync: place your service account key on the server and uncomment:
+      # - /home/ubuntu/saira/gdrive-sa-key.json:/app/gdrive-sa-key.json:ro
+    networks:
+      - default
+      - saira_esp32_test_net
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: saira-prometheus-test
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus/prometheus.test.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_test:/prometheus
+    ports:
+      - "9091:9090"
+    depends_on:
+      - yolo-worker
+    restart: always
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: saira-grafana-test
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data_test:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3004:3000"
+    depends_on:
+      - prometheus
+    restart: always
 
   # PostgreSQL + PostGIS
   db:
@@ -66,6 +211,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=saira_db
+      - TZ=America/Sao_Paulo
+      - PGTZ=America/Sao_Paulo
     ports:
       - "5433:5432"
     volumes:
@@ -92,3 +239,16 @@ services:
 
 volumes:
   postgres_data_test:
+  redis_data_test:
+  yolo_state_test:
+  prometheus_data_test:
+  grafana_data_test:
+
+networks:
+  default:
+    name: saira-test_default
+  saira_esp32_test_net:
+    # Shared with the esp32-server compose (saira-esp32-test project)
+    # Allows yolo-worker to POST triggers to http://esp32-server:5000/device/<id>/trigger
+    external: true
+    name: saira-esp32-test_saira_test_net

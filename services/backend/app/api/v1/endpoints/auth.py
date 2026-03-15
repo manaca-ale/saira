@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.models.user import User
 from app.schemas.auth import Token, LoginRequest
 from app.schemas.user import UserCreate, UserResponse
+from app.core.timezone import now_brazil
 
 router = APIRouter()
 
@@ -43,7 +44,7 @@ async def login(
         )
 
     # Atualizar last_login_at
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = now_brazil()
 
     # Criar token de acesso
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -96,4 +97,3 @@ async def get_current_user_info(
 ):
     """Retorna dados do usuÃ¡rio logado"""
     return current_user
-

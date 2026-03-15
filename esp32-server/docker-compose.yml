@@ -12,13 +12,16 @@ services:
       - OTA_DIR=/app/ota
       # Remote config storage (per-device)
       - CONFIG_DIR=/app/config
+      - DEFAULT_TIMER_DELAY_MS=${DEFAULT_TIMER_DELAY_MS:-10000}
+      - DEFAULT_CONFIG_VERSION=${DEFAULT_CONFIG_VERSION:-2026-03-08_timer10s}
+      - DEFAULT_CONFIG_FILE=${DEFAULT_CONFIG_FILE:-default.txt}
       # Optional: protect /ota/upload
       # - ADMIN_TOKEN=change-me
       # Gunicorn tuning for upload throughput
       - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
       - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-90}
-      - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-15}
+      - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-65}
       - GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
       - UPLOAD_LOG_EVERY=${UPLOAD_LOG_EVERY:-20}
     volumes:

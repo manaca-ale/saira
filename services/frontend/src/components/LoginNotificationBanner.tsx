@@ -6,18 +6,29 @@ import { useNotifications } from "../contexts/NotificationContext";
 const AUTO_DISMISS_MS = 30000;
 
 export const LoginNotificationBanner: React.FC = () => {
-  const { sinceLastLogin } = useNotifications();
-  const [dismissed, setDismissed] = useState(false);
+  const { sinceLastLogin, bannerDismissed, dismissBanner } = useNotifications();
   const navigate = useNavigate();
 
-  // Auto-dismiss after 30 seconds
-  useEffect(() => {
-    if (sinceLastLogin <= 0) return;
-    const timer = setTimeout(() => setDismissed(true), AUTO_DISMISS_MS);
-    return () => clearTimeout(timer);
-  }, [sinceLastLogin]);
+  const [visible, setVisible] = useState(() => !bannerDismissed && sinceLastLogin > 0);
 
-  if (dismissed || sinceLastLogin <= 0) return null;
+  useEffect(() => {
+    if (bannerDismissed || sinceLastLogin <= 0) {
+      setVisible(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      dismissBanner();
+      setVisible(false);
+    }, AUTO_DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDismiss = () => {
+    dismissBanner();
+    setVisible(false);
+  };
+
+  if (!visible) return null;
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 mb-5 flex items-center gap-4">
@@ -39,7 +50,7 @@ export const LoginNotificationBanner: React.FC = () => {
         <ArrowRight size={14} />
       </button>
       <button
-        onClick={() => setDismissed(true)}
+        onClick={handleDismiss}
         className="text-amber-400 hover:text-amber-600 transition-colors flex-shrink-0"
       >
         <X size={18} />

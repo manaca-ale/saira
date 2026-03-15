@@ -13,12 +13,6 @@ __pycache__/
 *.log
 *.jsonl
 
-# Ingester artifacts
-ingester/logs/
-ingester/data/captures/*
-!ingester/data/captures/.gitkeep
-ingester/data/logs/
-
 # Arquivos do sistema e IDE
 .DS_Store
 .vscode/
@@ -38,5 +32,3 @@ ingester/data/logs/
 #Arquivos de teste
 worker/relatorios
 
-# Ingester tool outputs (local diagnostics)
-ingester/tools/recon_output/

@@ -2,9 +2,61 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#if defined(__has_include)
+#if __has_include("esp32-hal-rgb-led.h")
+#include "esp32-hal-rgb-led.h"
+#define SAIRA_HAS_RGB_HAL 1
+#endif
+#endif
 
 // Wi-Fi helper used by both firmwares.
 // Goal: make connection more reliable on ESP32-CAM and provide actionable logs.
+
+#if defined(RGB_BUILTIN) && defined(SAIRA_HAS_RGB_HAL)
+static constexpr int SAIRA_WIFI_RGB_PIN = RGB_BUILTIN;
+#define SAIRA_WIFI_RGB_AVAILABLE 1
+#else
+#define SAIRA_WIFI_RGB_AVAILABLE 0
+#endif
+
+#if defined(LED_BUILTIN)
+static constexpr int SAIRA_WIFI_LED_PIN = LED_BUILTIN;
+static constexpr int SAIRA_WIFI_LED_ON_LEVEL = HIGH;
+static constexpr int SAIRA_WIFI_LED_OFF_LEVEL = LOW;
+#define SAIRA_WIFI_LED_AVAILABLE 1
+#else
+static constexpr int SAIRA_WIFI_LED_PIN = -1;
+#define SAIRA_WIFI_LED_AVAILABLE 0
+#endif
+
+static inline void sairaInitWifiLed() {
+#if SAIRA_WIFI_RGB_AVAILABLE
+  neopixelWrite(SAIRA_WIFI_RGB_PIN, 0, 0, 0);
+#endif
+#if SAIRA_WIFI_LED_AVAILABLE
+  static bool initialized = false;
+  if (initialized) return;
+  initialized = true;
+  pinMode(SAIRA_WIFI_LED_PIN, OUTPUT);
+  digitalWrite(SAIRA_WIFI_LED_PIN, SAIRA_WIFI_LED_OFF_LEVEL);
+#endif
+}
+
+static inline void sairaSetWifiLed(bool connected) {
+#if SAIRA_WIFI_RGB_AVAILABLE
+  if (connected) {
+    // Green when Wi-Fi is connected.
+    neopixelWrite(SAIRA_WIFI_RGB_PIN, 0, 255, 0);
+  } else {
+    neopixelWrite(SAIRA_WIFI_RGB_PIN, 0, 0, 0);
+  }
+#endif
+#if SAIRA_WIFI_LED_AVAILABLE
+  digitalWrite(SAIRA_WIFI_LED_PIN, connected ? SAIRA_WIFI_LED_ON_LEVEL : SAIRA_WIFI_LED_OFF_LEVEL);
+#else
+  (void)connected;
+#endif
+}
 
 static inline void sairaLogWifiStatusOnce() {
   wl_status_t st = WiFi.status();
@@ -40,6 +92,12 @@ static inline void sairaSetupWifiEventLogs() {
     if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
       Serial.print("WiFi disconnected reason=");
       Serial.println((int)info.wifi_sta_disconnected.reason);
+      sairaSetWifiLed(false);
+    }
+#endif
+#if defined(ARDUINO_EVENT_WIFI_STA_GOT_IP)
+    if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
+      sairaSetWifiLed(true);
     }
 #endif
   });
@@ -47,6 +105,8 @@ static inline void sairaSetupWifiEventLogs() {
 
 static inline bool sairaConnectWiFi(const char* ssid, const char* password, const char* hostname,
                                    uint32_t timeoutMs = 30000) {
+  sairaInitWifiLed();
+  sairaSetWifiLed(false);
   sairaSetupWifiEventLogs();
 
   WiFi.mode(WIFI_STA);
@@ -81,6 +141,7 @@ static inline bool sairaConnectWiFi(const char* ssid, const char* password, cons
 
   Serial.println();
   if (WiFi.status() == WL_CONNECTED) {
+    sairaSetWifiLed(true);
     Serial.print("WiFi online. IP: ");
     Serial.println(WiFi.localIP());
     Serial.print("WiFi gateway: ");
@@ -93,6 +154,7 @@ static inline bool sairaConnectWiFi(const char* ssid, const char* password, cons
   }
 
   Serial.println("WiFi: falha ao conectar (timeout).");
+  sairaSetWifiLed(false);
   sairaLogWifiStatusOnce();
   sairaPrintWifiScan();
   return false;

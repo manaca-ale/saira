@@ -3,6 +3,7 @@ import { Sidebar } from "../components/Sidebar";
 import { Tooltip } from "../components/Tooltip";
 import { getAllDetections } from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
+import { toBrazilDateString, toBrazilTimeString } from "../utils/datetime";
 import type { WasteType } from "../services/mockData";
 import {
   Info,
@@ -37,6 +38,18 @@ import {
   FilterMultiSelect,
   FilterAutocomplete,
 } from "../components/SharedFilters";
+
+// --- DATE HELPERS ---
+function toDateInputStatic(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getDefault30DayRange() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 29);
+  return { start: toDateInputStatic(start), end: toDateInputStatic(end) };
+}
 
 // --- CONSTANTS & HELPERS ---
 const WASTE_TYPE_OPTIONS: WasteType[] = [
@@ -135,7 +148,13 @@ export const HistoryPage: React.FC = () => {
 
     async function loadDetections() {
       try {
-        const all = await getAllDetections();
+        const range = getDefault30DayRange();
+        const all = await getAllDetections({
+          start_date: `${range.start}T00:00:00`,
+          end_date: `${range.end}T23:59:59`,
+          maxRecords: 1000,
+          pageSize: 100,
+        });
 
         if (isMounted) {
           setDetections(all);
@@ -204,9 +223,8 @@ export const HistoryPage: React.FC = () => {
         if (!matches) return false;
       }
       if (filters.date) {
-        const itemDate = new Date(item.timestamp);
-        const itemIsoDate = itemDate.toISOString().slice(0, 10);
-        const itemTime = itemDate.toISOString().slice(11, 16);
+        const itemIsoDate = toBrazilDateString(item.timestamp);
+        const itemTime = toBrazilTimeString(item.timestamp);
         if (itemIsoDate !== filters.date) return false;
         if (filters.startTime && itemTime < filters.startTime) return false;
         if (filters.endTime && itemTime > filters.endTime) return false;

@@ -10,16 +10,34 @@ services:
       - UPLOAD_DIR=${UPLOAD_DIR:-/app/uploads}
       - OTA_DIR=${OTA_DIR:-/app/ota}
       - CONFIG_DIR=${CONFIG_DIR:-/app/config}
+      - DEFAULT_TIMER_DELAY_MS=${DEFAULT_TIMER_DELAY_MS:-10000}
+      - DEFAULT_CONFIG_VERSION=${DEFAULT_CONFIG_VERSION:-2026-03-08_timer10s}
+      - DEFAULT_CONFIG_FILE=${DEFAULT_CONFIG_FILE:-default.txt}
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
-      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
-      - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
-      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-90}
-      - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-15}
+      # 1 gevent worker: required for in-process queue to work correctly for
+      # long-polling (/device/<id>/poll). With multiple workers each process
+      # has its own queue; trigger → worker A but poll → worker B = missed CMD.
+      # For multi-worker prod deployments, replace the queue with Redis pub/sub.
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-1}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-8}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
+      - GUNICORN_KEEPALIVE=${GUNICORN_KEEPALIVE:-65}
       - GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
       - UPLOAD_LOG_EVERY=${UPLOAD_LOG_EVERY:-20}
+      - UPLOAD_EVENT_PRINT_EVERY=${UPLOAD_EVENT_PRINT_EVERY:-0}
     volumes:
       - ./uploads:/app/uploads
       - ./ota:/app/ota
       - ./config:/app/config
+    networks:
+      default:
+      saira_test_net:
+        aliases:
+          - esp32-server
     restart: unless-stopped
+
+networks:
+  saira_test_net:
+    external: true
+    name: saira-test_default

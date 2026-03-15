@@ -1,7 +1,8 @@
 import json
 import logging
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from uuid import UUID
 
 import redis.asyncio as aioredis
@@ -14,13 +15,7 @@ from app.models.user import User
 from app.services.whatsapp_service import WhatsAppService
 
 logger = logging.getLogger(__name__)
-
-
-def _as_naive_utc(value: datetime) -> datetime:
-    """Normalize datetimes to naive UTC for DB columns stored without timezone."""
-    if value.tzinfo is None:
-        return value
-    return value.astimezone(timezone.utc).replace(tzinfo=None)
+BRAZIL_TZ = ZoneInfo("America/Sao_Paulo")
 
 
 def _format_rpa_label(raw_rpa: str | None) -> str:
@@ -151,13 +146,13 @@ async def get_summary(user: User, db: AsyncSession) -> dict:
 
     # Count detections since last login
     if user.last_login_at:
-        cutoff = _as_naive_utc(user.last_login_at)
+        cutoff = user.last_login_at
         since_q = select(func.count(Detection.id)).where(
             Detection.timestamp > cutoff
         )
     else:
         # No last login: count last 24h
-        cutoff = datetime.utcnow() - timedelta(hours=24)
+        cutoff = datetime.now(BRAZIL_TZ) - timedelta(hours=24)
         since_q = select(func.count(Detection.id)).where(
             Detection.timestamp > cutoff
         )

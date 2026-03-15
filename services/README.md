@@ -66,7 +66,6 @@ services/
 ├── backend/            # FastAPI + SQLAlchemy
 ├── yolo-worker-vm/     # Worker YOLO (EC2)
 ├── nginx/              # Configuracao do gateway
-├── infra/              # Terraform (AWS)
 ├── db/                 # Migracoes SQL manuais
 ├── docs/               # Documentacao e runbooks
 │   ├── architecture.md
@@ -78,3 +77,4 @@ services/
 ├── docker-compose.test.yml     # Teste
 └── docker-compose.prod.yml     # Producao
 ```
+
