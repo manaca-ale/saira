@@ -96,44 +96,26 @@ Se um campo nao puder ser inferido com seguranca, retorne null no campo.
 """.strip()
 
 NEW_LITTER_SYSTEM_PROMPT = """
-You are a visual auditor specialized in comparing two CCTV frames (start and end of a time window).
-Your task is to detect whether SOLID WASTE appeared or increased in the final frame due to illegal dumping.
+You are a visual auditor comparing CCTV frames to detect illegal waste dumping.
+You receive 2 to 5 frames: initial, final, and optionally up to 3 mid-window frames at 25%, 50%, 75% of the time window.
 
-MANDATORY STEP before deciding (be CONCISE: max 5 items per list):
-Fill scene_delta_analysis with:
-  (1) FIXED and INANIMATE objects visible in the initial frame (do NOT list vehicles, people, or animals),
-  (2) FIXED and INANIMATE objects visible in the final frame — INCLUDING objects left behind by people
-      (bags, boxes, rubble, furniture) but do NOT list the people, vehicles, or animals themselves,
-  (3) each difference classified as: SHADOW | LIGHTING | PUDDLE | MOVING_OBJECT | NEW_SOLID_WASTE | EXISTING_WASTE_SHIFTED.
-  (4) BEHAVIORAL CONTEXT CHECK — after completing (1)-(3), evaluate if EITHER pattern applies:
+ANALYSIS (keep scene_delta_analysis under 400 chars — list max 5 items per step):
+(1) Fixed objects in initial frame (no vehicles/people), (2) Fixed objects in final frame, (3) Differences: SHADOW|LIGHTING|MOVING_OBJECT|NEW_SOLID_WASTE|EXISTING_WASTE_SHIFTED.
 
-    PATTERN A (vehicle stays throughout window): set new_litter_detected=true if ALL are true:
-      a) A non-moving vehicle (truck, pickup, van) appears in BOTH initial AND final frame object lists,
-      b) At least one person is visible near that vehicle or near a waste pile, AND
-      c) Any change involving the waste pile area was detected in step (3) — including EXISTING_WASTE_SHIFTED.
+BEHAVIORAL PATTERNS — if ANY pattern matches, set new_litter_detected=true, waste_type="Dumping behavior detected", confidence_0_100=85:
 
-    PATTERN B (vehicle departs during window): set new_litter_detected=true if ALL are true:
-      a) A vehicle was listed near a waste pile in the INITIAL frame but is ABSENT in the final frame
-         (it arrived, stayed briefly, then left before the window ended),
-      b) People were visible near the vehicle or waste pile in the initial frame, AND
-      c) A waste pile exists near where the vehicle was positioned.
+PATTERN A (vehicle stays): Vehicle in BOTH frames + person near vehicle/waste + any waste-area change.
+PATTERN B (vehicle departs): Vehicle near waste in initial frame, ABSENT in final + people visible near it + waste pile remains.
+PATTERN C (ghost event — requires mid frames): A vehicle or person appears in ANY mid frame but is ABSENT in both initial AND final frames. This indicates arrive-dump-leave within the window. Set new_litter_detected=true even if initial and final frames look identical. With multiple mid frames, ANY single mid frame showing activity is sufficient.
 
-    If EITHER pattern applies, set new_litter_detected=true, waste_type="Dumping behavior detected",
-    confidence_0_100=85, regardless of individual delta classifications in step (3).
-    Rationale: vehicles stopped near waste piles with nearby people are strong behavioral indicators
-    of illegal dumping even when deposited material visually blends into existing waste.
+DECISION RULES:
+- new_litter_detected=true if NEW_SOLID_WASTE detected OR any behavioral pattern matches.
+- NEW_SOLID_WASTE: bags, rubble, furniture, electronics, household waste left on ground.
+- Vehicles and people are NEVER waste. Shadows, reflections, lighting changes are NOT waste.
+- Objects in BOTH frames unchanged = EXISTING_WASTE_SHIFTED, not new.
+- Municipal trash bins are infrastructure, not waste. Using them correctly is NOT dumping.
 
-DECISION RULE:
-- new_litter_detected=true ONLY if there is a difference classified as NEW_SOLID_WASTE.
-- NEW_SOLID_WASTE is abandoned solid waste: bag, rubble, furniture, electronics, household waste, boxes left on the ground.
-- Vehicles (cars, motorcycles, buses, bicycles) and people themselves are NEVER NEW_SOLID_WASTE, even if they appear in the final frame.
-- Shadows have diffuse edges. Solid waste has well-defined material boundaries.
-- Reflections, puddles, lighting changes, and compression artifacts are NOT NEW_SOLID_WASTE.
-- Objects ALREADY present in the initial frame that remain in the final frame are EXISTING_WASTE_SHIFTED, not NEW_SOLID_WASTE.
-- Municipal trash bins, recycling containers, or any lidded/wheeled waste container installed on the sidewalk are FIXED URBAN INFRASTRUCTURE — list them in (1) and (2) as fixed inanimate objects and NEVER classify them as NEW_SOLID_WASTE, regardless of color (orange, green, yellow, etc.).
-- A person placing items INSIDE a public trash bin is correct use of urban infrastructure — this is NOT illegal dumping and must NOT set new_litter_detected=true.
-
-Respond with ONLY valid JSON with the requested fields.
+Respond with ONLY valid JSON.
 """.strip()
 
 
@@ -208,6 +190,7 @@ def _new_litter_user_prompt(
     camera_context: Optional[dict[str, str]] = None,
     prior_window_context: Optional[str] = None,
     mosaic: bool = False,
+    mid_frame_names: Optional[list[str]] = None,
 ) -> str:
     context_lines = []
     if camera_context:
@@ -220,6 +203,17 @@ def _new_litter_user_prompt(
     if prior_window_context:
         prior_block = f"\nPrior window context:\n{prior_window_context}\n"
 
+    mid_block = ""
+    if mid_frame_names:
+        labels = ", ".join(mid_frame_names)
+        mid_block = f"Mid-window frames (25%/50%/75%): {labels}\n"
+
+    json_fields = (
+        "Return JSON: new_litter_detected, confidence_0_100, evidence_summary, "
+        "first_frame_has_litter, last_frame_has_litter, waste_type, raw_reason_codes, "
+        "scene_delta_analysis.\n"
+    )
+
     if mosaic:
         frame_desc = (
             f"The single image provided is a side-by-side composite: "
@@ -228,25 +222,24 @@ def _new_litter_user_prompt(
         )
         return (
             f"{frame_desc}\n"
-            "Follow the MANDATORY STEP: fill scene_delta_analysis classifying each difference "
-            "before setting new_litter_detected.\n"
-            "Return JSON with all fields: scene_delta_analysis, new_litter_detected, "
-            "confidence_0_100, evidence_summary, first_frame_has_litter, last_frame_has_litter, "
-            "waste_type, raw_reason_codes.\n"
+            f"{mid_block}"
+            f"{json_fields}"
             f"{prior_block}"
             "Camera context:\n"
             f"{context_block}"
         )
 
-    return (
-        "Compare ONLY two frames: start and end of the window.\n"
+    frame_lines = (
         f"Initial frame: {first_frame_name}\n"
         f"Final frame: {last_frame_name}\n"
-        "Follow the MANDATORY STEP: fill scene_delta_analysis classifying each difference "
-        "before setting new_litter_detected.\n"
-        "Return JSON with all fields: scene_delta_analysis, new_litter_detected, "
-        "confidence_0_100, evidence_summary, first_frame_has_litter, last_frame_has_litter, "
-        "waste_type, raw_reason_codes.\n"
+        f"{mid_block}"
+    )
+
+    return (
+        f"{frame_lines}"
+        "Compare initial vs final frame. "
+        "If a mid-window frame is provided, also check for Pattern C (ghost events).\n"
+        f"{json_fields}"
         f"{prior_block}"
         "Camera context:\n"
         f"{context_block}"
@@ -565,11 +558,14 @@ def analyze_new_litter_with_gemini(
     request_id: Optional[str] = None,
     prior_window_context: Optional[str] = None,
     use_mosaic: bool = False,
+    mid_frames: Optional[list[Path]] = None,
 ) -> GeminiNewLitterInferenceResult:
     """Stage-1 gate: compare first and last frame for new litter appearance.
 
     Args:
-        use_mosaic: when True, composes a 2×1 side-by-side image before sending.
+        use_mosaic: when True, composes a 2x1 side-by-side image before sending.
+        mid_frames: optional list of mid-window frames (e.g. at 25%/50%/75%) to detect
+            ghost events (arrive-dump-leave within window).
     """
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
     last_error: Optional[Exception] = None
@@ -581,7 +577,12 @@ def analyze_new_litter_with_gemini(
         mosaic_temp = build_mosaic_2x1(first_frame, last_frame)
         image_paths = [mosaic_temp]
     else:
-        image_paths = [first_frame, last_frame]
+        image_paths = [first_frame]
+        if mid_frames:
+            image_paths.extend(mid_frames)
+        image_paths.append(last_frame)
+
+    mid_frame_names = [f.name for f in mid_frames] if mid_frames else None
 
     try:
         for attempt in range(1, attempts + 1):
@@ -598,6 +599,7 @@ def analyze_new_litter_with_gemini(
                             camera_context,
                             prior_window_context=prior_window_context,
                             mosaic=use_mosaic,
+                            mid_frame_names=mid_frame_names,
                         ),
                         model_name,
                         GeminiNewLitterReport.model_json_schema(),

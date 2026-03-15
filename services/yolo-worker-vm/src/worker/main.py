@@ -826,6 +826,18 @@ def _process_with_gemini_cascade_window(
         else config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE
     )
 
+    # Select mid-window frames at 25%/50%/75% to detect ghost events (arrive-dump-leave)
+    mid_frames: Optional[list[Path]] = None
+    n = len(window_paths)
+    if n >= 5:
+        mid_frames = [
+            window_paths[n // 4],       # ~25%
+            window_paths[n // 2],       # ~50%
+            window_paths[3 * n // 4],   # ~75%
+        ]
+    elif n >= 4:
+        mid_frames = [window_paths[n // 2]]
+
     try:
         gate = analyze_new_litter_with_gemini(
             first_frame=first_frame,
@@ -834,6 +846,7 @@ def _process_with_gemini_cascade_window(
             request_id=gate_request_id,
             prior_window_context=prior_window_context,
             use_mosaic=config.GEMINI_MOSAIC_AGENT1,
+            mid_frames=mid_frames,
         )
         _register_gemini_success(gate.latency_ms, gate.usage, agent="gate")
     except Exception as exc:  # noqa: BLE001

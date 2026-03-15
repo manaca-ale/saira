@@ -155,6 +155,14 @@ def run_cascade_window(
     # Dynamic threshold when pre-existing litter is known (Option B)
     effective_threshold = max(THRESHOLD, 80) if prior_had_litter else THRESHOLD
 
+    # Select mid-window frames at 25%/50%/75% for ghost event detection (Pattern C)
+    mid_frames: Optional[list[Path]] = None
+    wn = len(window_paths)
+    if wn >= 5:
+        mid_frames = [window_paths[wn // 4], window_paths[wn // 2], window_paths[3 * wn // 4]]
+    elif wn >= 4:
+        mid_frames = [window_paths[wn // 2]]
+
     # --- Stage 1: Gate ---
     gate_result: dict = {}
     gate_triggered = False
@@ -168,6 +176,7 @@ def run_cascade_window(
             camera_context=camera_context,
             prior_window_context=prior_window_context,
             use_mosaic=mosaic_agent1,
+            mid_frames=mid_frames,
         )
         gr = gate.report
         gate_result = {

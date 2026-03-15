@@ -101,17 +101,7 @@ class GeminiInfractionReport(BaseModel):
 class GeminiNewLitterReport(BaseModel):
     """Structured response for stage-1 gate: compare first vs last frame of a time window."""
 
-    scene_delta_analysis: str = Field(
-        default="",
-        max_length=1500,
-        description=(
-            "Required reasoning before the final decision. "
-            "List: (1) solid objects visible in the first frame, "
-            "(2) solid objects visible in the last frame, "
-            "(3) each difference classified as one of: "
-            "SHADOW | LIGHTING | PUDDLE | MOVING_OBJECT | NEW_SOLID_WASTE | EXISTING_WASTE_SHIFTED."
-        ),
-    )
+    # Decision fields FIRST — ensures they are written before token budget runs out.
     new_litter_detected: bool = Field(
         description="True only if new solid waste appears or increases between first and last frame."
     )
@@ -122,13 +112,23 @@ class GeminiNewLitterReport(BaseModel):
     )
     evidence_summary: str = Field(
         min_length=1,
-        max_length=400,
-        description="Short factual summary of visual comparison.",
+        max_length=300,
+        description="Short factual summary of visual comparison (1-2 sentences).",
     )
     first_frame_has_litter: bool = False
     last_frame_has_litter: bool = False
     waste_type: Optional[str] = Field(default=None, max_length=100)
     raw_reason_codes: Optional[list[str]] = Field(default=None)
+    # Reasoning field LAST — can be truncated without losing the decision.
+    scene_delta_analysis: str = Field(
+        default="",
+        max_length=500,
+        description=(
+            "Concise reasoning: (1) up to 5 fixed objects in first frame, "
+            "(2) up to 5 fixed objects in last frame, "
+            "(3) differences classified as SHADOW|LIGHTING|MOVING_OBJECT|NEW_SOLID_WASTE|EXISTING_WASTE_SHIFTED."
+        ),
+    )
 
     @field_validator("waste_type", mode="before")
     @classmethod
