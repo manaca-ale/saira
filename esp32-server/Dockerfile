@@ -13,4 +13,4 @@ EXPOSE 5000
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["/bin/sh", "-c", "exec gunicorn --bind 0.0.0.0:5000 --worker-class gevent --workers ${GUNICORN_WORKERS:-4} --worker-connections ${GUNICORN_WORKER_CONNECTIONS:-100} --timeout ${GUNICORN_TIMEOUT:-120} --keep-alive ${GUNICORN_KEEPALIVE:-5} --worker-tmp-dir /dev/shm --access-logfile - --error-logfile - --log-level ${GUNICORN_LOG_LEVEL:-info} server:app"]
+CMD ["/bin/sh", "-c", "exec gunicorn --bind 0.0.0.0:5000 --worker-class gevent --workers ${GUNICORN_WORKERS:-4} --worker-connections ${GUNICORN_WORKER_CONNECTIONS:-100} --timeout ${GUNICORN_TIMEOUT:-120} --keep-alive ${GUNICORN_KEEPALIVE:-65} --worker-tmp-dir /dev/shm --access-logfile - --error-logfile - --log-level ${GUNICORN_LOG_LEVEL:-info} server:app"]
