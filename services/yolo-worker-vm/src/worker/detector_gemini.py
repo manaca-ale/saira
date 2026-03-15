@@ -31,10 +31,17 @@ MERCOSUL_PLATE_RE = re.compile(r"^[A-Z]{3}\d[A-Z]\d{2}$")
 WASTE_TYPE_MAP = {
     "entulho": "Entulho",
     "construcao": "Entulho",
+    "construção": "Entulho",
     "debris": "Entulho",
     "lixo domiciliar": "Lixo domiciliar",
     "domestic waste": "Lixo domiciliar",
     "household waste": "Lixo domiciliar",
+    "residuo solido": "Lixo domiciliar",
+    "resíduo sólido": "Lixo domiciliar",
+    "residuo": "Lixo domiciliar",
+    "resíduo": "Lixo domiciliar",
+    "solid waste": "Lixo domiciliar",
+    "lixo": "Lixo domiciliar",
     "poda": "Poda",
     "pruning": "Poda",
     "plastico": "Plastico",
@@ -82,6 +89,8 @@ Use evidencia visual e temporal para decidir se houve descarte irregular RECENTE
 infraction_confirmed deve ser TRUE somente quando houver evidencia de descarte NOVO depositado durante a sequencia, mesmo sem identificar o infrator.
 A mera presenca de um objeto novo e pesado/volumoso (saco, mobilia, entulho, pilha de terra) que NAO estava no primeiro frame e nao tem explicacao natural (vento, gravidade) e evidencia suficiente — NAO e necessario ver o ato de depositar nem o infrator.
 Lixeiras municipais (containers, lixeiras de calcada com tampa) sao infraestrutura urbana — NAO sao residuo irregular e nao confirmam infracao. Uso correto de lixeira publica (depositar residuos dentro dela) e comportamento cidadao correto, infraction_confirmed deve ser FALSE.
+Se prior_window_context indica que ja existia residuo nesta localizacao na janela anterior, o objeto suspeito pode ser residuo pre-existente ou infraestrutura. Neste caso, infraction_confirmed=TRUE somente se houver evidencia clara de ACRESCIMO de material (volume visivelmente maior) ou comportamento de descarte ativo (pessoa carregando, jogando ou depositando algo novo).
+waste_type deve ser um dos seguintes valores: Entulho, Lixo domiciliar, Poda, Plastico. NAO use valores genericos como "Residuo solido".
 offender_detected descreve somente a capacidade de identificar o autor/veiculo e NAO invalida a infracao.
 Se um campo nao puder ser inferido com seguranca, retorne null no campo.
 """.strip()
@@ -132,6 +141,7 @@ def _user_prompt(
     camera_context: Optional[dict[str, str]] = None,
     frame_names: Optional[list[str]] = None,
     mosaic_mode: str = "off",
+    prior_window_context: Optional[str] = None,
 ) -> str:
     context_lines = []
     if camera_context:
@@ -140,6 +150,10 @@ def _user_prompt(
                 context_lines.append(f"- {key}: {value}")
 
     context_block = "\n".join(context_lines) if context_lines else "- sem contexto adicional"
+
+    prior_block = ""
+    if prior_window_context:
+        prior_block = f"\nPrior window context:\n{prior_window_context}\n"
 
     if mosaic_mode != "off":
         if mosaic_mode == "4x3":
@@ -166,6 +180,7 @@ def _user_prompt(
             "6) event_frame_name e offender_frame_name usando o formato 'frame_N'\n"
             f"Regra de decisao: infraction_confirmed=true pode ocorrer mesmo com offender_detected=false.\n"
             f"Formato das imagens: {frame_desc}\n"
+            f"{prior_block}"
             "Contexto da camera:\n"
             f"{context_block}"
         )
@@ -181,6 +196,7 @@ def _user_prompt(
         "6) event_frame_name e offender_frame_name escolhidos somente dentre os nomes permitidos\n"
         "Regra de decisao: infraction_confirmed=true pode ocorrer mesmo com offender_detected=false.\n"
         f"Nomes de frame permitidos: {frame_block}\n"
+        f"{prior_block}"
         "Contexto da camera:\n"
         f"{context_block}"
     )
@@ -433,6 +449,7 @@ def analyze_with_gemini(
     camera_context: Optional[dict[str, str]] = None,
     request_id: Optional[str] = None,
     mosaic_mode: str = "off",
+    prior_window_context: Optional[str] = None,
 ) -> GeminiInferenceResult:
     """Run Gemini inference with retry/timeout and strict schema validation.
 
@@ -474,7 +491,7 @@ def analyze_with_gemini(
                         _call_model,
                         send_paths,
                         SYSTEM_PROMPT,
-                        _user_prompt(camera_context, frame_names=frame_names, mosaic_mode=mosaic_mode),
+                        _user_prompt(camera_context, frame_names=frame_names, mosaic_mode=mosaic_mode, prior_window_context=prior_window_context),
                         config.GEMINI_MODEL,
                         GeminiInfractionReport.model_json_schema(),
                     )

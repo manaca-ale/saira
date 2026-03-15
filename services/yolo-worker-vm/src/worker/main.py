@@ -581,6 +581,7 @@ def _process_with_gemini(
     camera,
     sequence_paths: list[Path],
     persist: bool,
+    prior_window_context: Optional[str] = None,
 ) -> tuple[Optional[bool], dict[str, Any]]:
     """Run Gemini inference and optionally persist resulting occurrence."""
     request_id = str(uuid4())
@@ -599,6 +600,7 @@ def _process_with_gemini(
             camera_context=camera_context,
             request_id=request_id,
             mosaic_mode=config.GEMINI_MOSAIC_AGENT2,
+            prior_window_context=prior_window_context,
         )
 
         report = result.report
@@ -926,6 +928,7 @@ def _process_with_gemini_cascade_window(
         camera=camera,
         sequence_paths=window_paths,
         persist=persist,
+        prior_window_context=prior_window_context,
     )
 
     success = bool(agent2_payload.get("success"))

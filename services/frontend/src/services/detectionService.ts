@@ -88,6 +88,9 @@ function normalizeWasteType(raw?: string): WasteType {
   if (value === 'lixo domiciliar' || value === 'household waste') return 'Lixo domiciliar';
   if (value === 'poda' || value === 'pruning') return 'Poda';
   if (value === 'plastico' || value === 'plástico' || value === 'plastic') return 'Plástico';
+  if (value === 'entulho' || value === 'construcao' || value === 'construção' || value === 'debris') return 'Entulho';
+  if (value.includes('residuo') || value.includes('resíduo') || value.includes('lixo') || value === 'solid waste')
+    return 'Lixo domiciliar';
   return 'Entulho';
 }
 
