@@ -201,6 +201,12 @@
       - GDRIVE_FOLDER_ID=${GDRIVE_FOLDER_ID:-}
       - GDRIVE_SA_KEY_PATH=${GDRIVE_SA_KEY_PATH:-/app/gdrive-sa-key.json}
       - GDRIVE_SYNC_HOUR=${GDRIVE_SYNC_HOUR:-3}
+      - S3_ENABLED=${S3_ENABLED:-false}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - S3_REGION=${S3_REGION:-sa-east-1}
+      - S3_SYNC_HOUR=${S3_SYNC_HOUR:-3}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
     volumes:
       - esp32_uploads:/app/uploads
       - yolo_state:/app/state

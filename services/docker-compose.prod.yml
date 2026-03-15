@@ -164,6 +164,12 @@ services:
       - GDRIVE_FOLDER_ID=${GDRIVE_FOLDER_ID:-15GxmM3W8fA3xrteLaSw4h3JRtRx-HnQP}
       - GDRIVE_SA_KEY_PATH=${GDRIVE_SA_KEY_PATH:-/app/gdrive-sa-key.json}
       - GDRIVE_SYNC_HOUR=${GDRIVE_SYNC_HOUR:-3}
+      - S3_ENABLED=${S3_ENABLED:-true}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-saira-images}
+      - S3_REGION=${S3_REGION:-sa-east-1}
+      - S3_SYNC_HOUR=${S3_SYNC_HOUR:-3}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
     volumes:
       - esp32_uploads_prod:/app/uploads

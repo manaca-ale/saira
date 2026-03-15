@@ -597,12 +597,29 @@ def _process_with_gemini(
             image_paths=sequence_paths,
             camera_context=camera_context,
             request_id=request_id,
+            mosaic_mode=config.GEMINI_MOSAIC_AGENT2,
         )
 
         report = result.report
         usage: GeminiUsage = result.usage
 
         _register_gemini_success(result.latency_ms, usage)
+
+        # Resolve "frame_N" labels (used in mosaic mode) back to real filenames
+        if report.event_frame_name and report.event_frame_name.startswith("frame_"):
+            try:
+                idx = int(report.event_frame_name.split("_")[1]) - 1
+                if 0 <= idx < len(sequence_paths):
+                    report.event_frame_name = sequence_paths[idx].name
+            except (ValueError, IndexError):
+                pass
+        if report.offender_frame_name and report.offender_frame_name.startswith("frame_"):
+            try:
+                idx = int(report.offender_frame_name.split("_")[1]) - 1
+                if 0 <= idx < len(sequence_paths):
+                    report.offender_frame_name = sequence_paths[idx].name
+            except (ValueError, IndexError):
+                pass
 
         disposal = bool(report.infraction_confirmed)
         offender_types = normalize_offender_types(report.offender_types)
@@ -813,6 +830,7 @@ def _process_with_gemini_cascade_window(
             camera_context=camera_context,
             request_id=gate_request_id,
             prior_window_context=prior_window_context,
+            use_mosaic=config.GEMINI_MOSAIC_AGENT1,
         )
         _register_gemini_success(gate.latency_ms, gate.usage, agent="gate")
     except Exception as exc:  # noqa: BLE001
@@ -1235,6 +1253,34 @@ def _maybe_run_drive_sync() -> None:
 
 
 # ==========================================
+# OPTIONAL DAILY S3 SYNC
+# ==========================================
+_last_s3_sync_day: Optional[date] = None
+
+
+def _maybe_run_s3_sync() -> None:
+    """Run S3 migration once per day at or after S3_SYNC_HOUR."""
+    global _last_s3_sync_day
+    if not config.S3_ENABLED:
+        return
+
+    today = date.today()
+    now_hour = datetime.now(BRASILIA).hour
+    if _last_s3_sync_day == today or now_hour < config.S3_SYNC_HOUR:
+        return
+
+    _last_s3_sync_day = today
+    logger.info("Starting daily S3 sync (hour=%d)...", now_hour)
+    try:
+        from .storage_s3 import sync_uploads_to_s3
+
+        sync_uploads_to_s3()
+        logger.info("S3 sync completed.")
+    except Exception:
+        logger.exception("S3 sync failed")
+
+
+# ==========================================
 # ENTRYPOINT
 # ==========================================
 def main() -> None:
@@ -1270,6 +1316,11 @@ def main() -> None:
     if config.GDRIVE_ENABLED:
         logger.info("GDRIVE_FOLDER_ID   = %s", config.GDRIVE_FOLDER_ID)
         logger.info("GDRIVE_SYNC_HOUR   = %d", config.GDRIVE_SYNC_HOUR)
+    logger.info("S3_ENABLED         = %s", config.S3_ENABLED)
+    if config.S3_ENABLED:
+        logger.info("S3_BUCKET_NAME     = %s", config.S3_BUCKET_NAME)
+        logger.info("S3_REGION          = %s", config.S3_REGION)
+        logger.info("S3_SYNC_HOUR       = %d", config.S3_SYNC_HOUR)
     logger.info("=" * 60)
 
     if not config.WORKER_ENABLED:
@@ -1297,6 +1348,7 @@ def main() -> None:
                 _log_gemini_metrics_snapshot()
 
             _maybe_run_drive_sync()
+            _maybe_run_s3_sync()
 
         except KeyboardInterrupt:
             logger.info("Shutting down.")
