@@ -3,6 +3,9 @@
 Thumbs.db
 desktop.ini
 
+# Data artifacts
+data/
+
 # Local editor state
 .vscode/
 .idea/
