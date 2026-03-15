@@ -21,7 +21,7 @@ from app.schemas.detection import (
 )
 from app.schemas.detection import DetectionStatus as DetectionStatusSchema
 from app.services import notification_service
-from app.core.timezone import now_brazil_naive
+from app.core.timezone import now_brazil
 
 logger = logging.getLogger(__name__)
 
@@ -484,7 +484,7 @@ async def start_analysis(
         )
 
     detection.status = DetectionStatus.EM_ANALISE
-    detection.analysis_started_at = now_brazil_naive()
+    detection.analysis_started_at = now_brazil()
     detection.analysis_started_by = current_user.id
 
     await db.commit()

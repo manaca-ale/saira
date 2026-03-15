@@ -9,6 +9,7 @@ import {
 } from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
 import { Sidebar } from "../components/Sidebar";
+import { formatDateTimeBrazil } from "../utils/datetime";
 
 type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 import {
@@ -361,7 +362,7 @@ export const Detections: React.FC = () => {
 
       const headers = ["Data", "Local", "Tipo", "Volume", "Status", "Infrator"];
       const rows = formattedDetections.map((item) => {
-        const date = new Date(item.timestamp).toLocaleString("pt-BR");
+        const date = formatDateTimeBrazil(item.timestamp);
         const local = `${item.logradouro} - ${item.bairro}`;
         const tipo = item.wasteType;
         const volume = `${item.volume} m³`;
@@ -716,7 +717,7 @@ export const Detections: React.FC = () => {
                         {row.rpa}
                       </td>
                       <td className="px-6 py-4 text-sm text-[#1a1a1a] whitespace-nowrap">
-                        {new Date(row.timestamp).toLocaleString("pt-BR")}
+                        {formatDateTimeBrazil(row.timestamp)}
                       </td>
                       <td className="px-6 py-4 text-sm text-[#1a1a1a]">
                         <Tooltip text={row.wasteType}>

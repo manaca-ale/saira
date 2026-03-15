@@ -18,13 +18,6 @@ logger = logging.getLogger(__name__)
 BRAZIL_TZ = ZoneInfo("America/Sao_Paulo")
 
 
-def _as_naive_brazil(value: datetime) -> datetime:
-    """Normalize datetimes to naive Brazil local time for DB columns without timezone."""
-    if value.tzinfo is None:
-        return value
-    return value.astimezone(BRAZIL_TZ).replace(tzinfo=None)
-
-
 def _format_rpa_label(raw_rpa: str | None) -> str:
     value = (raw_rpa or "").strip()
     if not value:
@@ -153,13 +146,13 @@ async def get_summary(user: User, db: AsyncSession) -> dict:
 
     # Count detections since last login
     if user.last_login_at:
-        cutoff = _as_naive_brazil(user.last_login_at)
+        cutoff = user.last_login_at
         since_q = select(func.count(Detection.id)).where(
             Detection.timestamp > cutoff
         )
     else:
         # No last login: count last 24h
-        cutoff = datetime.now(BRAZIL_TZ).replace(tzinfo=None) - timedelta(hours=24)
+        cutoff = datetime.now(BRAZIL_TZ) - timedelta(hours=24)
         since_q = select(func.count(Detection.id)).where(
             Detection.timestamp > cutoff
         )

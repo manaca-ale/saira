@@ -1,8 +1,5 @@
 export const BRAZIL_TIME_ZONE = "America/Sao_Paulo";
 
-const NO_TIMEZONE_PATTERN =
-  /^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)?$/;
-
 export function parseSairaDate(value?: string | Date | null): Date {
   if (!value) return new Date(Number.NaN);
   if (value instanceof Date) return value;
@@ -11,16 +8,7 @@ export function parseSairaDate(value?: string | Date | null): Date {
   if (!raw) return new Date(Number.NaN);
 
   const normalized = raw.includes(" ") ? raw.replace(" ", "T") : raw;
-  const hasTimezone = /([zZ]|[+-]\d{2}:\d{2})$/.test(normalized);
-  let target = normalized;
-
-  if (!hasTimezone && NO_TIMEZONE_PATTERN.test(normalized)) {
-    // Backend timestamps without timezone are stored in UTC in practice.
-    // Force UTC parse to avoid rendering +3h in America/Sao_Paulo.
-    target = normalized.includes("T") ? `${normalized}Z` : `${normalized}T00:00:00Z`;
-  }
-
-  return new Date(target);
+  return new Date(normalized);
 }
 
 export function formatDateTimeBrazil(
@@ -32,5 +20,21 @@ export function formatDateTimeBrazil(
   return parsed.toLocaleString("pt-BR", {
     timeZone: BRAZIL_TIME_ZONE,
     ...options,
+  });
+}
+
+export function toBrazilDateString(value?: string | Date | null): string {
+  const parsed = parseSairaDate(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString("sv-SE", { timeZone: BRAZIL_TIME_ZONE });
+}
+
+export function toBrazilTimeString(value?: string | Date | null): string {
+  const parsed = parseSairaDate(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleTimeString("sv-SE", {
+    timeZone: BRAZIL_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }

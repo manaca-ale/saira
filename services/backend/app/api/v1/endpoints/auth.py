@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.models.user import User
 from app.schemas.auth import Token, LoginRequest
 from app.schemas.user import UserCreate, UserResponse
-from app.core.timezone import now_brazil_naive
+from app.core.timezone import now_brazil
 
 router = APIRouter()
 
@@ -44,7 +44,7 @@ async def login(
         )
 
     # Atualizar last_login_at
-    user.last_login_at = now_brazil_naive()
+    user.last_login_at = now_brazil()
 
     # Criar token de acesso
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

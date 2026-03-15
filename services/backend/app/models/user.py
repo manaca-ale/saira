@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
-from app.core.timezone import now_brazil_naive
+from app.core.timezone import now_brazil
 
 
 class User(Base):
@@ -18,8 +18,8 @@ class User(Base):
     auth_provider = Column(String(50), nullable=False, default="local")
     external_subject = Column(String(255), unique=True, nullable=True, index=True)
     is_active = Column(Boolean, default=True)
-    last_login_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=now_brazil_naive)
-    updated_at = Column(DateTime, default=now_brazil_naive, onupdate=now_brazil_naive)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=now_brazil)
+    updated_at = Column(DateTime(timezone=True), default=now_brazil, onupdate=now_brazil)
 
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")

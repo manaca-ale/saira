@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 
 
 def _brasilia_now() -> datetime:
-    return datetime.now(ZoneInfo("America/Sao_Paulo")).replace(tzinfo=None)
+    return datetime.now(ZoneInfo("America/Sao_Paulo"))
 
 
 @dataclass

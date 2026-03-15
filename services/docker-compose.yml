@@ -8,6 +8,8 @@
     ports:
       - "3000:80"
     container_name: vite-react-ts-app
+    environment:
+      - TZ=America/Sao_Paulo
     restart: always
     depends_on:
       - backend
@@ -35,6 +37,8 @@
     container_name: saira-redis
     ports:
       - "6380:6379"  # 6380 evita conflito com outros projetos que usem 6379
+    environment:
+      - TZ=America/Sao_Paulo
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -86,6 +90,7 @@
       - WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE=${WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE:-5}
       - ENVIRONMENT=production
       - WORKER_STATE_DIR=/app/yolo_state
+      - TZ=America/Sao_Paulo
     depends_on:
       db:
         condition: service_healthy
@@ -106,6 +111,8 @@
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=saira_db
+      - TZ=America/Sao_Paulo
+      - PGTZ=America/Sao_Paulo
     ports:
       - "5432:5432"
     volumes:
@@ -143,6 +150,7 @@
       - ADMIN_TOKEN=
       - GUNICORN_WORKERS=2
       - GUNICORN_THREADS=4
+      - TZ=America/Sao_Paulo
     volumes:
       - esp32_uploads:/app/uploads
       - ../esp32-server/config:/app/config
@@ -197,6 +205,7 @@
       - GEMINI_MAX_PAYLOAD_BYTES=${GEMINI_MAX_PAYLOAD_BYTES:-8000000}
       - GEMINI_INPUT_TOKEN_PRICE_PER_1M=${GEMINI_INPUT_TOKEN_PRICE_PER_1M:-0.10}
       - GEMINI_OUTPUT_TOKEN_PRICE_PER_1M=${GEMINI_OUTPUT_TOKEN_PRICE_PER_1M:-0.40}
+      - TZ=America/Sao_Paulo
       - GDRIVE_ENABLED=${GDRIVE_ENABLED:-false}
       - GDRIVE_FOLDER_ID=${GDRIVE_FOLDER_ID:-}
       - GDRIVE_SA_KEY_PATH=${GDRIVE_SA_KEY_PATH:-/app/gdrive-sa-key.json}

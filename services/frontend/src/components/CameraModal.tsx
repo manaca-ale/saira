@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { AlertCircle, Camera, Clock3, MapPin, Radio, X } from "lucide-react";
 import type { Camera as CameraEntity } from "../services/cameraService";
+import type { GeocodingResult } from "../types/geocoding";
+import { AddressSearch } from "./AddressSearch";
+import { CameraMapPicker } from "./CameraMapPicker";
 
 interface CameraModalProps {
   onClose: () => void;
@@ -112,6 +115,25 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     setFormError("");
   }, [initialData]);
 
+  const handleAddressSelect = (result: GeocodingResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: result.latitude.toFixed(8),
+      longitude: result.longitude.toFixed(8),
+      logradouro: result.logradouro ?? prev.logradouro,
+      bairro: result.bairro ?? prev.bairro,
+    }));
+    setFormError("");
+  };
+
+  const handleMapPositionChange = (lat: number, lng: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: lat.toFixed(8),
+      longitude: lng.toFixed(8),
+    }));
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setFormError("");
@@ -201,6 +223,15 @@ export const CameraModal: React.FC<CameraModalProps> = ({
               placeholder="Ex: esp32_002"
               icon={Radio}
             />
+
+            <AddressSearch onSelect={handleAddressSelect} />
+
+            <CameraMapPicker
+              latitude={formData.latitude ? parseFloat(formData.latitude) : null}
+              longitude={formData.longitude ? parseFloat(formData.longitude) : null}
+              onPositionChange={handleMapPositionChange}
+            />
+
             <Field
               label="Logradouro"
               value={formData.logradouro}

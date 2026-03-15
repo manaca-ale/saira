@@ -9,6 +9,7 @@ import L from "leaflet";
 import "leaflet.heat";
 import { masterPois } from "../services/mockData";
 import type { PoiData } from "../services/mockData";
+import { BRAZIL_TIME_ZONE } from "../utils/datetime";
 
 // --- ENVIRONMENT VARIABLE ---
 const mapMode = import.meta.env.VITE_MAP_MODE || 'heatmap';
@@ -35,7 +36,7 @@ export const OccurrencesChart: React.FC<{ data?: PoiData[]; series?: { name: str
     const monthLabels = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
     const counts = new Array(12).fill(0);
     sourceData.forEach((item) => {
-        const monthIndex = new Date(item.timestamp).getMonth();
+        const monthIndex = Number(new Intl.DateTimeFormat("en", { month: "numeric", timeZone: BRAZIL_TIME_ZONE }).format(new Date(item.timestamp))) - 1;
         counts[monthIndex] += 1;
     });
     const fallbackData = monthLabels.map((name, index) => ({ name, val: counts[index] }));

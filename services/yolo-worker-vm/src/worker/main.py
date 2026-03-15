@@ -283,9 +283,10 @@ def parse_timestamp(filename: str) -> datetime:
     """Parse Brasilia timestamp from filename (YYYY-MM-DD_HH-MM-SS)."""
     stem = Path(filename).stem
     try:
-        return datetime.strptime(stem, "%Y-%m-%d_%H-%M-%S")
+        naive = datetime.strptime(stem, "%Y-%m-%d_%H-%M-%S")
+        return naive.replace(tzinfo=BRASILIA)
     except ValueError:
-        return datetime.now(BRASILIA).replace(tzinfo=None)
+        return datetime.now(BRASILIA)
 
 
 def estimate_volume(detections: list[dict], img_w: int, img_h: int) -> Decimal:

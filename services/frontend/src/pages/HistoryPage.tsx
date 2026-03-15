@@ -3,6 +3,7 @@ import { Sidebar } from "../components/Sidebar";
 import { Tooltip } from "../components/Tooltip";
 import { getAllDetections } from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
+import { toBrazilDateString, toBrazilTimeString } from "../utils/datetime";
 import type { WasteType } from "../services/mockData";
 import {
   Info,
@@ -222,9 +223,8 @@ export const HistoryPage: React.FC = () => {
         if (!matches) return false;
       }
       if (filters.date) {
-        const itemDate = new Date(item.timestamp);
-        const itemIsoDate = itemDate.toISOString().slice(0, 10);
-        const itemTime = itemDate.toISOString().slice(11, 16);
+        const itemIsoDate = toBrazilDateString(item.timestamp);
+        const itemTime = toBrazilTimeString(item.timestamp);
         if (itemIsoDate !== filters.date) return false;
         if (filters.startTime && itemTime < filters.startTime) return false;
         if (filters.endTime && itemTime > filters.endTime) return false;

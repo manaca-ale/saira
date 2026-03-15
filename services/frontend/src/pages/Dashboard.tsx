@@ -25,6 +25,7 @@ import { LoginNotificationBanner } from "../components/LoginNotificationBanner";
 import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
 import { AnalysisConfirmationModal } from "../components/AnalysisConfirmationModal";
 import { OffenderDashboardTab } from "../components/OffenderDashboardTab";
+import { toBrazilDateString, BRAZIL_TIME_ZONE } from "../utils/datetime";
 
 type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 
@@ -118,10 +119,18 @@ const dedupeLatestByLocation = (items: PoiData[]) => {
 const diffDays = (start: Date, end: Date) =>
   Math.max(0, Math.ceil((end.getTime() - start.getTime()) / 86400000));
 
-const formatDayLabel = (date: Date) =>
-  `${String(date.getDate()).padStart(2, "0")}/${String(
-    date.getMonth() + 1,
-  ).padStart(2, "0")}`;
+const formatDayLabel = (date: Date) => {
+  const parts = new Intl.DateTimeFormat("en", { day: "2-digit", month: "2-digit", timeZone: BRAZIL_TIME_ZONE }).formatToParts(date);
+  const day = parts.find(p => p.type === "day")!.value;
+  const month = parts.find(p => p.type === "month")!.value;
+  return `${day}/${month}`;
+};
+
+const toBrazilHourKey = (date: Date): string => {
+  const d = toBrazilDateString(date);
+  const h = String(Number(new Intl.DateTimeFormat("en", { hour: "numeric", hour12: false, timeZone: BRAZIL_TIME_ZONE }).format(date))).padStart(2, "0");
+  return `${d}T${h}`;
+};
 
 const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
   const daysSpan = diffDays(start, end);
@@ -130,7 +139,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     const buckets = new Map<string, number>();
     data.forEach((item) => {
       const date = new Date(item.timestamp);
-      const key = `${date.toISOString().slice(0, 13)}`;
+      const key = toBrazilHourKey(date);
       buckets.set(key, (buckets.get(key) || 0) + 1);
     });
 
@@ -138,10 +147,9 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     const cursor = new Date(start);
     cursor.setMinutes(0, 0, 0);
     while (cursor <= end) {
-      const key = cursor.toISOString().slice(0, 13);
-      const label = `${formatDayLabel(cursor)} ${String(
-        cursor.getHours(),
-      ).padStart(2, "0")}h`;
+      const key = toBrazilHourKey(cursor);
+      const hour = String(Number(new Intl.DateTimeFormat("en", { hour: "numeric", hour12: false, timeZone: BRAZIL_TIME_ZONE }).format(cursor))).padStart(2, "0");
+      const label = `${formatDayLabel(cursor)} ${hour}h`;
       series.push({ name: label, val: buckets.get(key) || 0 });
       cursor.setHours(cursor.getHours() + 1);
     }
@@ -151,8 +159,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
   if (daysSpan <= 31) {
     const buckets = new Map<string, number>();
     data.forEach((item) => {
-      const date = new Date(item.timestamp);
-      const key = date.toISOString().slice(0, 10);
+      const key = toBrazilDateString(item.timestamp);
       buckets.set(key, (buckets.get(key) || 0) + 1);
     });
 
@@ -160,7 +167,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     const cursor = new Date(start);
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= end) {
-      const key = cursor.toISOString().slice(0, 10);
+      const key = toBrazilDateString(cursor);
       series.push({ name: formatDayLabel(cursor), val: buckets.get(key) || 0 });
       cursor.setDate(cursor.getDate() + 1);
     }
@@ -175,7 +182,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
       const day = (weekStart.getDay() + 6) % 7;
       weekStart.setDate(weekStart.getDate() - day);
       weekStart.setHours(0, 0, 0, 0);
-      const key = weekStart.toISOString().slice(0, 10);
+      const key = toBrazilDateString(weekStart);
       buckets.set(key, (buckets.get(key) || 0) + 1);
     });
 
@@ -185,7 +192,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     cursor.setDate(cursor.getDate() - day);
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= end) {
-      const key = cursor.toISOString().slice(0, 10);
+      const key = toBrazilDateString(cursor);
       series.push({ name: formatDayLabel(cursor), val: buckets.get(key) || 0 });
       cursor.setDate(cursor.getDate() + 7);
     }
@@ -245,6 +252,7 @@ export const Dashboard: React.FC = () => {
   const [resolveTarget, setResolveTarget] = useState<PoiData | null>(null);
   const [analysisTarget, setAnalysisTarget] = useState<PoiData | null>(null);
   const [isResolving, setIsResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
   const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
 
   // --- Load Data from API ---
@@ -647,6 +655,7 @@ export const Dashboard: React.FC = () => {
   }) => {
     if (!resolveTarget) return;
     setIsResolving(true);
+    setResolveError(null);
     try {
       await resolveDetection(resolveTarget.id, data);
       setDetections((prev) =>
@@ -654,9 +663,18 @@ export const Dashboard: React.FC = () => {
           d.id === resolveTarget.id ? { ...d, status: "Resolvido" as const } : d,
         ),
       );
+      if (selectedOccurrence?.id === resolveTarget.id) {
+        setSelectedOccurrence((prev) =>
+          prev ? { ...prev, status: "Resolvido" as const } : null,
+        );
+      }
       setResolveTarget(null);
-    } catch (e) {
-      console.error("Erro ao resolver:", e);
+    } catch (e: any) {
+      const detail =
+        e?.response?.data?.detail ||
+        (typeof e?.message === "string" ? e.message : null) ||
+        "Falha ao atualizar ocorrência. Tente novamente.";
+      setResolveError(detail);
     } finally {
       setIsResolving(false);
     }
@@ -1164,9 +1182,10 @@ export const Dashboard: React.FC = () => {
       {resolveTarget && (
         <ResolveConfirmationModal
           isOpen={!!resolveTarget}
-          onClose={() => setResolveTarget(null)}
+          onClose={() => { setResolveTarget(null); setResolveError(null); }}
           onConfirm={handleResolve}
           isLoading={isResolving}
+          errorMessage={resolveError}
         />
       )}
       {analysisTarget && (
