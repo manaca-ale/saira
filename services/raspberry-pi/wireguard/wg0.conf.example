@@ -1,0 +1,9 @@
+[Interface]
+Address = 10.8.0.2/24
+PrivateKey = <PI_PRIVATE_KEY>
+
+[Peer]
+PublicKey = <EC2_PUBLIC_KEY>
+Endpoint = <EC2_PUBLIC_IP>:51820
+AllowedIPs = 10.8.0.0/24
+PersistentKeepalive = 25

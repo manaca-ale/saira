@@ -1,0 +1,3906 @@
+[
+  {
+    "label": "home",
+    "timestamp": "20260129_120849",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_home_20260129_120849.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            140
+          ],
+          "gray_mean": 141.5,
+          "gray_std": 59.09,
+          "gray_min": 0,
+          "gray_max": 247,
+          "rgb_mean": [
+            129.9,
+            136.78,
+            197.18
+          ],
+          "rgb_std": [
+            55.84,
+            64.86,
+            57.34
+          ],
+          "dominant_rgb": [
+            130,
+            137,
+            197
+          ],
+          "edge_density": 27.77
+        },
+        {
+          "region": "top_quarter",
+          "box_px": [
+            0,
+            140,
+            1080,
+            585
+          ],
+          "gray_mean": 173.26,
+          "gray_std": 55.02,
+          "gray_min": 2,
+          "gray_max": 255,
+          "rgb_mean": [
+            148.11,
+            176.65,
+            222.47
+          ],
+          "rgb_std": [
+            74.7,
+            54.5,
+            42.05
+          ],
+          "dominant_rgb": [
+            148,
+            177,
+            222
+          ],
+          "edge_density": 24.39
+        },
+        {
+          "region": "center",
+          "box_px": [
+            108,
+            585,
+            972,
+            1755
+          ],
+          "gray_mean": 160.97,
+          "gray_std": 49.31,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            136.66,
+            161.64,
+            221.1
+          ],
+          "rgb_std": [
+            76.18,
+            51.63,
+            48.89
+          ],
+          "dominant_rgb": [
+            137,
+            162,
+            221
+          ],
+          "edge_density": 40.39
+        },
+        {
+          "region": "bottom_quarter",
+          "box_px": [
+            0,
+            1755,
+            1080,
+            2199
+          ],
+          "gray_mean": 178.88,
+          "gray_std": 57.45,
+          "gray_min": 6,
+          "gray_max": 255,
+          "rgb_mean": [
+            151.63,
+            185.03,
+            218.41
+          ],
+          "rgb_std": [
+            87.45,
+            53.53,
+            58.85
+          ],
+          "dominant_rgb": [
+            152,
+            185,
+            218
+          ],
+          "edge_density": 37.24
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2199,
+            1080,
+            2340
+          ],
+          "gray_mean": 184.65,
+          "gray_std": 54.06,
+          "gray_min": 14,
+          "gray_max": 255,
+          "rgb_mean": [
+            160.23,
+            187.54,
+            232.47
+          ],
+          "rgb_std": [
+            65.31,
+            51.34,
+            45.64
+          ],
+          "dominant_rgb": [
+            160,
+            188,
+            232
+          ],
+          "edge_density": 10.8
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 167.24,
+          "gray_std": 52.82,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            140.05,
+            170.68,
+            220.81
+          ],
+          "rgb_std": [
+            78.08,
+            53.41,
+            49.34
+          ],
+          "dominant_rgb": [
+            140,
+            171,
+            221
+          ],
+          "edge_density": 45.3
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            234,
+            54,
+            2106
+          ],
+          "gray_mean": 156.98,
+          "gray_std": 43.62,
+          "gray_min": 17,
+          "gray_max": 207,
+          "rgb_mean": [
+            122.8,
+            161.12,
+            225.2
+          ],
+          "rgb_std": [
+            59.59,
+            41.66,
+            30.93
+          ],
+          "dominant_rgb": [
+            123,
+            161,
+            225
+          ],
+          "edge_density": 10.1
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1026,
+            234,
+            1080,
+            2106
+          ],
+          "gray_mean": 153.78,
+          "gray_std": 44.16,
+          "gray_min": 26,
+          "gray_max": 224,
+          "rgb_mean": [
+            78.33,
+            178.23,
+            225.65
+          ],
+          "rgb_std": [
+            88.03,
+            34.1,
+            29.53
+          ],
+          "dominant_rgb": [
+            78,
+            178,
+            226
+          ],
+          "edge_density": 7.86
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.1672,
+          0.0637,
+          0.0307,
+          0.0215,
+          0.25,
+          0.2545,
+          0.0745,
+          0.1379
+        ],
+        "g_hist": [
+          0.0126,
+          0.05,
+          0.0612,
+          0.0645,
+          0.0819,
+          0.3558,
+          0.2552,
+          0.1189
+        ],
+        "b_hist": [
+          0.0122,
+          0.0122,
+          0.0165,
+          0.0385,
+          0.0348,
+          0.0482,
+          0.0964,
+          0.7411
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "edges_uniform": false,
+        "center_complex": true,
+        "top_bar_gray_mean": 141.5,
+        "bottom_bar_gray_mean": 184.65,
+        "center_edge_density": 40.39
+      }
+    }
+  },
+  {
+    "label": "camera_list",
+    "timestamp": "20260129_120901",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_list_20260129_120901.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            140
+          ],
+          "gray_mean": 222.54,
+          "gray_std": 51.25,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            213.08,
+            226.59,
+            226.29
+          ],
+          "rgb_std": [
+            49.88,
+            52.03,
+            53.71
+          ],
+          "dominant_rgb": [
+            213,
+            227,
+            226
+          ],
+          "edge_density": 30.21
+        },
+        {
+          "region": "top_quarter",
+          "box_px": [
+            0,
+            140,
+            1080,
+            585
+          ],
+          "gray_mean": 190.94,
+          "gray_std": 74.43,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            186.17,
+            193.58,
+            190.0
+          ],
+          "rgb_std": [
+            74.13,
+            75.53,
+            84.7
+          ],
+          "dominant_rgb": [
+            186,
+            194,
+            190
+          ],
+          "edge_density": 45.87
+        },
+        {
+          "region": "center",
+          "box_px": [
+            108,
+            585,
+            972,
+            1755
+          ],
+          "gray_mean": 221.04,
+          "gray_std": 61.85,
+          "gray_min": 3,
+          "gray_max": 255,
+          "rgb_mean": [
+            220.01,
+            221.47,
+            221.73
+          ],
+          "rgb_std": [
+            64.79,
+            61.26,
+            61.12
+          ],
+          "dominant_rgb": [
+            220,
+            221,
+            222
+          ],
+          "edge_density": 22.78
+        },
+        {
+          "region": "bottom_quarter",
+          "box_px": [
+            0,
+            1755,
+            1080,
+            2199
+          ],
+          "gray_mean": 246.67,
+          "gray_std": 12.7,
+          "gray_min": 145,
+          "gray_max": 255,
+          "rgb_mean": [
+            245.77,
+            247.07,
+            247.03
+          ],
+          "rgb_std": [
+            20.87,
+            10.28,
+            10.45
+          ],
+          "dominant_rgb": [
+            246,
+            247,
+            247
+          ],
+          "edge_density": 4.73
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2199,
+            1080,
+            2340
+          ],
+          "gray_mean": 251.57,
+          "gray_std": 20.65,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            251.57,
+            251.57,
+            251.57
+          ],
+          "rgb_std": [
+            20.65,
+            20.65,
+            20.65
+          ],
+          "dominant_rgb": [
+            252,
+            252,
+            252
+          ],
+          "edge_density": 7.18
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 224.4,
+          "gray_std": 57.22,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            222.25,
+            225.42,
+            224.87
+          ],
+          "rgb_std": [
+            59.36,
+            56.92,
+            59.8
+          ],
+          "dominant_rgb": [
+            222,
+            225,
+            225
+          ],
+          "edge_density": 31.69
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            234,
+            54,
+            2106
+          ],
+          "gray_mean": 246.8,
+          "gray_std": 4.89,
+          "gray_min": 240,
+          "gray_max": 255,
+          "rgb_mean": [
+            245.39,
+            247.25,
+            248.14
+          ],
+          "rgb_std": [
+            6.39,
+            4.49,
+            3.85
+          ],
+          "dominant_rgb": [
+            245,
+            247,
+            248
+          ],
+          "edge_density": 1.06
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1026,
+            234,
+            1080,
+            2106
+          ],
+          "gray_mean": 245.49,
+          "gray_std": 6.92,
+          "gray_min": 230,
+          "gray_max": 255,
+          "rgb_mean": [
+            243.52,
+            246.17,
+            247.11
+          ],
+          "rgb_std": [
+            10.36,
+            5.83,
+            4.76
+          ],
+          "dominant_rgb": [
+            244,
+            246,
+            247
+          ],
+          "edge_density": 1.36
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.0203,
+          0.0153,
+          0.0459,
+          0.0357,
+          0.0234,
+          0.0241,
+          0.0642,
+          0.7712
+        ],
+        "g_hist": [
+          0.0149,
+          0.0119,
+          0.0548,
+          0.0392,
+          0.0138,
+          0.0149,
+          0.0282,
+          0.8224
+        ],
+        "b_hist": [
+          0.0224,
+          0.0171,
+          0.0279,
+          0.0595,
+          0.0106,
+          0.0114,
+          0.0187,
+          0.8324
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "edges_uniform": true,
+        "center_complex": true,
+        "top_bar_gray_mean": 222.54,
+        "bottom_bar_gray_mean": 251.57,
+        "center_edge_density": 22.78
+      }
+    }
+  },
+  {
+    "label": "camera_normal",
+    "timestamp": "20260129_120911",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_normal_20260129_120911.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            140
+          ],
+          "gray_mean": 40.66,
+          "gray_std": 66.72,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            40.56,
+            40.82,
+            40.15
+          ],
+          "rgb_std": [
+            66.67,
+            67.06,
+            66.38
+          ],
+          "dominant_rgb": [
+            41,
+            41,
+            40
+          ],
+          "edge_density": 35.46
+        },
+        {
+          "region": "top_quarter",
+          "box_px": [
+            0,
+            140,
+            1080,
+            585
+          ],
+          "gray_mean": 4.76,
+          "gray_std": 30.76,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            4.25,
+            5.06,
+            4.56
+          ],
+          "rgb_std": [
+            29.91,
+            32.06,
+            30.21
+          ],
+          "dominant_rgb": [
+            4,
+            5,
+            5
+          ],
+          "edge_density": 8.48
+        },
+        {
+          "region": "center",
+          "box_px": [
+            108,
+            585,
+            972,
+            1755
+          ],
+          "gray_mean": 164.28,
+          "gray_std": 111.93,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            166.17,
+            162.4,
+            169.17
+          ],
+          "rgb_std": [
+            113.15,
+            112.26,
+            114.1
+          ],
+          "dominant_rgb": [
+            166,
+            162,
+            169
+          ],
+          "edge_density": 30.65
+        },
+        {
+          "region": "bottom_quarter",
+          "box_px": [
+            0,
+            1755,
+            1080,
+            2199
+          ],
+          "gray_mean": 253.42,
+          "gray_std": 17.47,
+          "gray_min": 7,
+          "gray_max": 255,
+          "rgb_mean": [
+            253.36,
+            253.44,
+            253.48
+          ],
+          "rgb_std": [
+            17.96,
+            17.36,
+            17.35
+          ],
+          "dominant_rgb": [
+            253,
+            253,
+            253
+          ],
+          "edge_density": 3.08
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2199,
+            1080,
+            2340
+          ],
+          "gray_mean": 251.57,
+          "gray_std": 20.65,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            251.57,
+            251.57,
+            251.57
+          ],
+          "rgb_std": [
+            20.65,
+            20.65,
+            20.65
+          ],
+          "dominant_rgb": [
+            252,
+            252,
+            252
+          ],
+          "edge_density": 7.18
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 149.47,
+          "gray_std": 119.56,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            150.27,
+            148.71,
+            151.32
+          ],
+          "rgb_std": [
+            120.35,
+            119.58,
+            120.79
+          ],
+          "dominant_rgb": [
+            150,
+            149,
+            151
+          ],
+          "edge_density": 26.46
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            234,
+            54,
+            2106
+          ],
+          "gray_mean": 157.16,
+          "gray_std": 120.03,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            155.38,
+            157.72,
+            158.91
+          ],
+          "rgb_std": [
+            120.62,
+            119.98,
+            121.22
+          ],
+          "dominant_rgb": [
+            155,
+            158,
+            159
+          ],
+          "edge_density": 12.5
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1026,
+            234,
+            1080,
+            2106
+          ],
+          "gray_mean": 154.04,
+          "gray_std": 119.96,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            157.59,
+            152.99,
+            150.2
+          ],
+          "rgb_std": [
+            121.84,
+            119.69,
+            119.61
+          ],
+          "dominant_rgb": [
+            158,
+            153,
+            150
+          ],
+          "edge_density": 12.71
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.3905,
+          0.0017,
+          0.0015,
+          0.0036,
+          0.0322,
+          0.0032,
+          0.0177,
+          0.5496
+        ],
+        "g_hist": [
+          0.3896,
+          0.0016,
+          0.0013,
+          0.0077,
+          0.0327,
+          0.0264,
+          0.0049,
+          0.5357
+        ],
+        "b_hist": [
+          0.3887,
+          0.0027,
+          0.0033,
+          0.0043,
+          0.0227,
+          0.0017,
+          0.0037,
+          0.5728
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "edges_uniform": false,
+        "center_complex": true,
+        "top_bar_gray_mean": 40.66,
+        "bottom_bar_gray_mean": 251.57,
+        "center_edge_density": 30.65
+      }
+    }
+  },
+  {
+    "label": "camera_normal",
+    "timestamp": "20260129_120917",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_normal_20260129_120917.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            140
+          ],
+          "gray_mean": 40.66,
+          "gray_std": 66.72,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            40.56,
+            40.82,
+            40.15
+          ],
+          "rgb_std": [
+            66.67,
+            67.06,
+            66.38
+          ],
+          "dominant_rgb": [
+            41,
+            41,
+            40
+          ],
+          "edge_density": 35.46
+        },
+        {
+          "region": "top_quarter",
+          "box_px": [
+            0,
+            140,
+            1080,
+            585
+          ],
+          "gray_mean": 106.62,
+          "gray_std": 76.25,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            94.87,
+            113.28,
+            103.21
+          ],
+          "rgb_std": [
+            70.7,
+            79.87,
+            87.49
+          ],
+          "dominant_rgb": [
+            95,
+            113,
+            103
+          ],
+          "edge_density": 59.32
+        },
+        {
+          "region": "center",
+          "box_px": [
+            108,
+            585,
+            972,
+            1755
+          ],
+          "gray_mean": 193.16,
+          "gray_std": 85.72,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            194.87,
+            191.65,
+            196.65
+          ],
+          "rgb_std": [
+            87.9,
+            86.45,
+            88.01
+          ],
+          "dominant_rgb": [
+            195,
+            192,
+            197
+          ],
+          "edge_density": 48.84
+        },
+        {
+          "region": "bottom_quarter",
+          "box_px": [
+            0,
+            1755,
+            1080,
+            2199
+          ],
+          "gray_mean": 249.51,
+          "gray_std": 32.59,
+          "gray_min": 7,
+          "gray_max": 255,
+          "rgb_mean": [
+            249.37,
+            249.57,
+            249.67
+          ],
+          "rgb_std": [
+            33.22,
+            32.46,
+            32.45
+          ],
+          "dominant_rgb": [
+            249,
+            250,
+            250
+          ],
+          "edge_density": 10.67
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2199,
+            1080,
+            2340
+          ],
+          "gray_mean": 251.57,
+          "gray_std": 20.65,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            251.57,
+            251.57,
+            251.57
+          ],
+          "rgb_std": [
+            20.65,
+            20.65,
+            20.65
+          ],
+          "dominant_rgb": [
+            252,
+            252,
+            252
+          ],
+          "edge_density": 7.18
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 181.48,
+          "gray_std": 94.19,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            180.21,
+            182.09,
+            181.77
+          ],
+          "rgb_std": [
+            96.18,
+            94.0,
+            98.15
+          ],
+          "dominant_rgb": [
+            180,
+            182,
+            182
+          ],
+          "edge_density": 51.51
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            234,
+            54,
+            2106
+          ],
+          "gray_mean": 178.8,
+          "gray_std": 97.9,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            177.74,
+            180.96,
+            170.42
+          ],
+          "rgb_std": [
+            98.02,
+            96.83,
+            109.26
+          ],
+          "dominant_rgb": [
+            178,
+            181,
+            170
+          ],
+          "edge_density": 27.99
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1026,
+            234,
+            1080,
+            2106
+          ],
+          "gray_mean": 201.78,
+          "gray_std": 78.12,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            203.48,
+            201.87,
+            196.81
+          ],
+          "rgb_std": [
+            78.33,
+            78.68,
+            85.83
+          ],
+          "dominant_rgb": [
+            203,
+            202,
+            197
+          ],
+          "edge_density": 33.03
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.166,
+          0.0272,
+          0.0473,
+          0.0449,
+          0.0734,
+          0.0385,
+          0.034,
+          0.5688
+        ],
+        "g_hist": [
+          0.1548,
+          0.0325,
+          0.032,
+          0.0455,
+          0.0852,
+          0.052,
+          0.0269,
+          0.5711
+        ],
+        "b_hist": [
+          0.1725,
+          0.0356,
+          0.0385,
+          0.0367,
+          0.0525,
+          0.0374,
+          0.0177,
+          0.6091
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "edges_uniform": false,
+        "center_complex": true,
+        "top_bar_gray_mean": 40.66,
+        "bottom_bar_gray_mean": 251.57,
+        "center_edge_density": 48.84
+      }
+    }
+  },
+  {
+    "label": "camera_fullscreen",
+    "timestamp": "20260129_120930",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_fullscreen_20260129_120930.png",
+    "fingerprint": {
+      "size": {
+        "width": 2340,
+        "height": 1080,
+        "aspect": 2.1667
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            2340,
+            64
+          ],
+          "gray_mean": 197.19,
+          "gray_std": 56.0,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            175.39,
+            204.15,
+            218.77
+          ],
+          "rgb_std": [
+            54.71,
+            58.32,
+            63.33
+          ],
+          "dominant_rgb": [
+            175,
+            204,
+            219
+          ],
+          "edge_density": 30.22
+        },
+        {
+          "region": "top_quarter",
+          "box_px": [
+            0,
+            64,
+            2340,
+            270
+          ],
+          "gray_mean": 176.38,
+          "gray_std": 63.17,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            146.61,
+            187.82,
+            195.64
+          ],
+          "rgb_std": [
+            56.22,
+            65.99,
+            82.9
+          ],
+          "dominant_rgb": [
+            147,
+            188,
+            196
+          ],
+          "edge_density": 37.85
+        },
+        {
+          "region": "center",
+          "box_px": [
+            234,
+            270,
+            2106,
+            810
+          ],
+          "gray_mean": 112.13,
+          "gray_std": 63.7,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            106.28,
+            118.24,
+            95.93
+          ],
+          "rgb_std": [
+            65.41,
+            65.03,
+            70.22
+          ],
+          "dominant_rgb": [
+            106,
+            118,
+            96
+          ],
+          "edge_density": 73.4
+        },
+        {
+          "region": "bottom_quarter",
+          "box_px": [
+            0,
+            810,
+            2340,
+            1015
+          ],
+          "gray_mean": 143.68,
+          "gray_std": 84.48,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            144.94,
+            144.77,
+            134.76
+          ],
+          "rgb_std": [
+            86.71,
+            84.42,
+            85.55
+          ],
+          "dominant_rgb": [
+            145,
+            145,
+            135
+          ],
+          "edge_density": 57.74
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            1015,
+            2340,
+            1080
+          ],
+          "gray_mean": 182.67,
+          "gray_std": 76.86,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            191.4,
+            180.52,
+            170.84
+          ],
+          "rgb_std": [
+            76.94,
+            77.4,
+            77.74
+          ],
+          "dominant_rgb": [
+            191,
+            181,
+            171
+          ],
+          "edge_density": 42.61
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            2340,
+            1080
+          ],
+          "gray_mean": 141.69,
+          "gray_std": 78.38,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            133.16,
+            147.16,
+            135.85
+          ],
+          "rgb_std": [
+            76.76,
+            79.72,
+            91.25
+          ],
+          "dominant_rgb": [
+            133,
+            147,
+            136
+          ],
+          "edge_density": 68.39
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            108,
+            117,
+            972
+          ],
+          "gray_mean": 26.39,
+          "gray_std": 48.39,
+          "gray_min": 0,
+          "gray_max": 243,
+          "rgb_mean": [
+            26.95,
+            28.68,
+            13.12
+          ],
+          "rgb_std": [
+            48.81,
+            52.35,
+            31.47
+          ],
+          "dominant_rgb": [
+            27,
+            29,
+            13
+          ],
+          "edge_density": 19.67
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            2223,
+            108,
+            2340,
+            972
+          ],
+          "gray_mean": 249.44,
+          "gray_std": 26.07,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            249.44,
+            249.44,
+            249.44
+          ],
+          "rgb_std": [
+            26.07,
+            26.07,
+            26.07
+          ],
+          "dominant_rgb": [
+            249,
+            249,
+            249
+          ],
+          "edge_density": 10.47
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.1241,
+          0.0866,
+          0.1088,
+          0.1229,
+          0.1728,
+          0.1537,
+          0.0884,
+          0.1425
+        ],
+        "g_hist": [
+          0.0874,
+          0.1038,
+          0.1089,
+          0.1234,
+          0.1033,
+          0.0993,
+          0.1385,
+          0.2353
+        ],
+        "b_hist": [
+          0.1578,
+          0.111,
+          0.1279,
+          0.1139,
+          0.0699,
+          0.0774,
+          0.0671,
+          0.275
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "edges_uniform": false,
+        "center_complex": true,
+        "top_bar_gray_mean": 197.19,
+        "bottom_bar_gray_mean": 182.67,
+        "center_edge_density": 73.4
+      }
+    }
+  },
+  {
+    "label": "home",
+    "timestamp": "20260129_121240",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_home_20260129_121240.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            93
+          ],
+          "gray_mean": 139.37,
+          "gray_std": 59.35,
+          "gray_min": 0,
+          "gray_max": 247,
+          "rgb_mean": [
+            127.6,
+            134.59,
+            195.91
+          ],
+          "rgb_std": [
+            55.74,
+            65.72,
+            56.73
+          ],
+          "dominant_rgb": [
+            128,
+            135,
+            196
+          ],
+          "edge_density": 26.67
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2246,
+            1080,
+            2340
+          ],
+          "gray_mean": 185.41,
+          "gray_std": 55.37,
+          "gray_min": 14,
+          "gray_max": 255,
+          "rgb_mean": [
+            162.21,
+            187.92,
+            231.97
+          ],
+          "rgb_std": [
+            64.83,
+            53.32,
+            47.78
+          ],
+          "dominant_rgb": [
+            162,
+            188,
+            232
+          ],
+          "edge_density": 12.06
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            93,
+            1080,
+            280
+          ],
+          "gray_mean": 154.48,
+          "gray_std": 62.81,
+          "gray_min": 0,
+          "gray_max": 239,
+          "rgb_mean": [
+            140.85,
+            151.21,
+            207.67
+          ],
+          "rgb_std": [
+            64.46,
+            66.99,
+            52.7
+          ],
+          "dominant_rgb": [
+            141,
+            151,
+            208
+          ],
+          "edge_density": 15.94
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            2059,
+            1080,
+            2246
+          ],
+          "gray_mean": 189.49,
+          "gray_std": 61.17,
+          "gray_min": 6,
+          "gray_max": 255,
+          "rgb_mean": [
+            170.77,
+            192.13,
+            224.36
+          ],
+          "rgb_std": [
+            80.83,
+            58.96,
+            58.54
+          ],
+          "dominant_rgb": [
+            171,
+            192,
+            224
+          ],
+          "edge_density": 42.89
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            280,
+            43,
+            2059
+          ],
+          "gray_mean": 158.11,
+          "gray_std": 44.41,
+          "gray_min": 17,
+          "gray_max": 207,
+          "rgb_mean": [
+            126.68,
+            161.13,
+            224.88
+          ],
+          "rgb_std": [
+            56.49,
+            43.24,
+            32.69
+          ],
+          "dominant_rgb": [
+            127,
+            161,
+            225
+          ],
+          "edge_density": 9.71
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1036,
+            280,
+            1080,
+            2059
+          ],
+          "gray_mean": 155.2,
+          "gray_std": 41.57,
+          "gray_min": 41,
+          "gray_max": 221,
+          "rgb_mean": [
+            77.74,
+            180.57,
+            227.72
+          ],
+          "rgb_std": [
+            87.94,
+            29.27,
+            25.27
+          ],
+          "dominant_rgb": [
+            78,
+            181,
+            228
+          ],
+          "edge_density": 7.26
+        },
+        {
+          "region": "center",
+          "box_px": [
+            162,
+            702,
+            918,
+            1638
+          ],
+          "gray_mean": 158.98,
+          "gray_std": 49.88,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            139.59,
+            156.16,
+            224.24
+          ],
+          "rgb_std": [
+            72.54,
+            51.36,
+            45.11
+          ],
+          "dominant_rgb": [
+            140,
+            156,
+            224
+          ],
+          "edge_density": 38.94
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 167.19,
+          "gray_std": 52.77,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            139.99,
+            170.63,
+            220.79
+          ],
+          "rgb_std": [
+            78.02,
+            53.37,
+            49.34
+          ],
+          "dominant_rgb": [
+            140,
+            171,
+            221
+          ],
+          "edge_density": 45.2
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.1672,
+          0.0637,
+          0.0307,
+          0.0215,
+          0.2507,
+          0.2545,
+          0.0744,
+          0.1373
+        ],
+        "g_hist": [
+          0.0126,
+          0.05,
+          0.0612,
+          0.0645,
+          0.0819,
+          0.3565,
+          0.2551,
+          0.1183
+        ],
+        "b_hist": [
+          0.0122,
+          0.0123,
+          0.0165,
+          0.0385,
+          0.0348,
+          0.0482,
+          0.0964,
+          0.7411
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": true,
+        "edges_dark": false,
+        "top_bar_gray_mean": 139.37,
+        "top_bar_gray_std": 59.35,
+        "bottom_bar_gray_mean": 185.41,
+        "bottom_bar_gray_std": 55.37,
+        "app_header_gray_mean": 154.48,
+        "app_header_edge_density": 15.94,
+        "app_footer_gray_mean": 189.49,
+        "app_footer_edge_density": 42.89,
+        "left_edge_gray_mean": 158.11,
+        "left_edge_gray_std": 44.41,
+        "right_edge_gray_mean": 155.2,
+        "right_edge_gray_std": 41.57,
+        "center_edge_density": 38.94,
+        "dark_ratio_top": 0.0167,
+        "dark_ratio_bottom": 0.0188,
+        "dark_ratio_header": 0.0158,
+        "dark_ratio_footer": 0.003,
+        "dark_ratio_left": 0.0038,
+        "dark_ratio_right": 0.0,
+        "h_line_status_bottom": 0.112,
+        "h_line_top_border": 0.788,
+        "h_line_bottom_border": 0.3352
+      }
+    }
+  },
+  {
+    "label": "camera_list",
+    "timestamp": "20260129_121251",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_list_20260129_121251.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            93
+          ],
+          "gray_mean": 222.96,
+          "gray_std": 47.62,
+          "gray_min": 0,
+          "gray_max": 249,
+          "rgb_mean": [
+            213.07,
+            227.28,
+            226.38
+          ],
+          "rgb_std": [
+            46.38,
+            48.41,
+            50.98
+          ],
+          "dominant_rgb": [
+            213,
+            227,
+            226
+          ],
+          "edge_density": 26.51
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2246,
+            1080,
+            2340
+          ],
+          "gray_mean": 249.67,
+          "gray_std": 26.05,
+          "gray_min": 117,
+          "gray_max": 255,
+          "rgb_mean": [
+            249.67,
+            249.67,
+            249.67
+          ],
+          "rgb_std": [
+            26.05,
+            26.05,
+            26.05
+          ],
+          "dominant_rgb": [
+            250,
+            250,
+            250
+          ],
+          "edge_density": 10.53
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            93,
+            1080,
+            280
+          ],
+          "gray_mean": 225.28,
+          "gray_std": 54.71,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            217.42,
+            228.47,
+            229.61
+          ],
+          "rgb_std": [
+            53.85,
+            55.34,
+            55.55
+          ],
+          "dominant_rgb": [
+            217,
+            228,
+            230
+          ],
+          "edge_density": 22.98
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            2059,
+            1080,
+            2246
+          ],
+          "gray_mean": 249.86,
+          "gray_std": 19.75,
+          "gray_min": 76,
+          "gray_max": 255,
+          "rgb_mean": [
+            247.71,
+            250.79,
+            250.7
+          ],
+          "rgb_std": [
+            32.43,
+            15.87,
+            16.16
+          ],
+          "dominant_rgb": [
+            248,
+            251,
+            251
+          ],
+          "edge_density": 9.41
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            280,
+            43,
+            2059
+          ],
+          "gray_mean": 245.3,
+          "gray_std": 3.89,
+          "gray_min": 240,
+          "gray_max": 255,
+          "rgb_mean": [
+            243.56,
+            245.83,
+            246.97
+          ],
+          "rgb_std": [
+            5.51,
+            3.48,
+            2.85
+          ],
+          "dominant_rgb": [
+            244,
+            246,
+            247
+          ],
+          "edge_density": 0.75
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1036,
+            280,
+            1080,
+            2059
+          ],
+          "gray_mean": 244.07,
+          "gray_std": 6.15,
+          "gray_min": 230,
+          "gray_max": 255,
+          "rgb_mean": [
+            241.84,
+            244.83,
+            245.94
+          ],
+          "rgb_std": [
+            9.73,
+            5.0,
+            3.86
+          ],
+          "dominant_rgb": [
+            242,
+            245,
+            246
+          ],
+          "edge_density": 1.04
+        },
+        {
+          "region": "center",
+          "box_px": [
+            162,
+            702,
+            918,
+            1638
+          ],
+          "gray_mean": 216.8,
+          "gray_std": 66.29,
+          "gray_min": 7,
+          "gray_max": 255,
+          "rgb_mean": [
+            215.41,
+            217.37,
+            217.88
+          ],
+          "rgb_std": [
+            69.72,
+            65.4,
+            64.6
+          ],
+          "dominant_rgb": [
+            215,
+            217,
+            218
+          ],
+          "edge_density": 23.6
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 224.44,
+          "gray_std": 57.12,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            222.33,
+            225.46,
+            224.83
+          ],
+          "rgb_std": [
+            59.23,
+            56.82,
+            59.83
+          ],
+          "dominant_rgb": [
+            222,
+            225,
+            225
+          ],
+          "edge_density": 31.63
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.02,
+          0.0152,
+          0.0459,
+          0.0359,
+          0.0227,
+          0.0246,
+          0.0643,
+          0.7715
+        ],
+        "g_hist": [
+          0.0146,
+          0.0118,
+          0.0548,
+          0.0393,
+          0.0137,
+          0.015,
+          0.0284,
+          0.8224
+        ],
+        "b_hist": [
+          0.0225,
+          0.0174,
+          0.0277,
+          0.0593,
+          0.0107,
+          0.0114,
+          0.019,
+          0.8321
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": true,
+        "edges_dark": false,
+        "top_bar_gray_mean": 222.96,
+        "top_bar_gray_std": 47.62,
+        "bottom_bar_gray_mean": 249.67,
+        "bottom_bar_gray_std": 26.05,
+        "app_header_gray_mean": 225.28,
+        "app_header_edge_density": 22.98,
+        "app_footer_gray_mean": 249.86,
+        "app_footer_edge_density": 9.41,
+        "left_edge_gray_mean": 245.3,
+        "left_edge_gray_std": 3.89,
+        "right_edge_gray_mean": 244.07,
+        "right_edge_gray_std": 6.15,
+        "center_edge_density": 23.6,
+        "dark_ratio_top": 0.0102,
+        "dark_ratio_bottom": 0.0,
+        "dark_ratio_header": 0.0518,
+        "dark_ratio_footer": 0.0,
+        "dark_ratio_left": 0.0,
+        "dark_ratio_right": 0.0,
+        "h_line_status_bottom": 0.7898,
+        "h_line_top_border": 0.9111,
+        "h_line_bottom_border": 1.0
+      }
+    }
+  },
+  {
+    "label": "camera_normal",
+    "timestamp": "20260129_121303",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_normal_20260129_121303.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            93
+          ],
+          "gray_mean": 35.39,
+          "gray_std": 65.83,
+          "gray_min": 0,
+          "gray_max": 243,
+          "rgb_mean": [
+            35.24,
+            35.61,
+            34.6
+          ],
+          "rgb_std": [
+            65.76,
+            66.37,
+            65.25
+          ],
+          "dominant_rgb": [
+            35,
+            36,
+            35
+          ],
+          "edge_density": 31.81
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2246,
+            1080,
+            2340
+          ],
+          "gray_mean": 249.86,
+          "gray_std": 25.12,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            249.86,
+            249.86,
+            249.86
+          ],
+          "rgb_std": [
+            25.12,
+            25.12,
+            25.12
+          ],
+          "dominant_rgb": [
+            250,
+            250,
+            250
+          ],
+          "edge_density": 10.15
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            93,
+            1080,
+            280
+          ],
+          "gray_mean": 51.89,
+          "gray_std": 68.12,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            53.76,
+            51.52,
+            48.81
+          ],
+          "rgb_std": [
+            69.73,
+            69.02,
+            69.04
+          ],
+          "dominant_rgb": [
+            54,
+            52,
+            49
+          ],
+          "edge_density": 29.47
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            2059,
+            1080,
+            2246
+          ],
+          "gray_mean": 255.0,
+          "gray_std": 0.0,
+          "gray_min": 255,
+          "gray_max": 255,
+          "rgb_mean": [
+            255.0,
+            255.0,
+            255.0
+          ],
+          "rgb_std": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "dominant_rgb": [
+            255,
+            255,
+            255
+          ],
+          "edge_density": 0.0
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            280,
+            43,
+            2059
+          ],
+          "gray_mean": 213.97,
+          "gray_std": 70.57,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            209.8,
+            215.21,
+            218.7
+          ],
+          "rgb_std": [
+            71.21,
+            70.55,
+            71.6
+          ],
+          "dominant_rgb": [
+            210,
+            215,
+            219
+          ],
+          "edge_density": 26.2
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1036,
+            280,
+            1080,
+            2059
+          ],
+          "gray_mean": 188.18,
+          "gray_std": 82.08,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            209.92,
+            182.14,
+            162.44
+          ],
+          "rgb_std": [
+            69.72,
+            86.8,
+            105.97
+          ],
+          "dominant_rgb": [
+            210,
+            182,
+            162
+          ],
+          "edge_density": 18.36
+        },
+        {
+          "region": "center",
+          "box_px": [
+            162,
+            702,
+            918,
+            1638
+          ],
+          "gray_mean": 189.19,
+          "gray_std": 89.38,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            192.65,
+            186.32,
+            195.06
+          ],
+          "rgb_std": [
+            88.54,
+            91.12,
+            94.08
+          ],
+          "dominant_rgb": [
+            193,
+            186,
+            195
+          ],
+          "edge_density": 37.84
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 180.88,
+          "gray_std": 94.27,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            184.76,
+            179.19,
+            179.52
+          ],
+          "rgb_std": [
+            92.01,
+            95.98,
+            102.07
+          ],
+          "dominant_rgb": [
+            185,
+            179,
+            180
+          ],
+          "edge_density": 44.93
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.16,
+          0.018,
+          0.019,
+          0.0281,
+          0.0868,
+          0.0782,
+          0.0638,
+          0.5461
+        ],
+        "g_hist": [
+          0.1684,
+          0.0253,
+          0.0438,
+          0.0457,
+          0.0695,
+          0.0521,
+          0.0348,
+          0.5603
+        ],
+        "b_hist": [
+          0.2048,
+          0.0434,
+          0.0195,
+          0.0148,
+          0.0512,
+          0.0224,
+          0.0315,
+          0.6124
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": false,
+        "edges_dark": false,
+        "top_bar_gray_mean": 35.39,
+        "top_bar_gray_std": 65.83,
+        "bottom_bar_gray_mean": 249.86,
+        "bottom_bar_gray_std": 25.12,
+        "app_header_gray_mean": 51.89,
+        "app_header_edge_density": 29.47,
+        "app_footer_gray_mean": 255.0,
+        "app_footer_edge_density": 0.0,
+        "left_edge_gray_mean": 213.97,
+        "left_edge_gray_std": 70.57,
+        "right_edge_gray_mean": 188.18,
+        "right_edge_gray_std": 82.08,
+        "center_edge_density": 37.84,
+        "dark_ratio_top": 0.7553,
+        "dark_ratio_bottom": 0.0,
+        "dark_ratio_header": 0.5856,
+        "dark_ratio_footer": 0.0,
+        "dark_ratio_left": 0.0913,
+        "dark_ratio_right": 0.0836,
+        "h_line_status_bottom": 0.8028,
+        "h_line_top_border": 0.2898,
+        "h_line_bottom_border": 1.0
+      }
+    }
+  },
+  {
+    "label": "camera_fullscreen",
+    "timestamp": "20260129_121313",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_fullscreen_20260129_121313.png",
+    "fingerprint": {
+      "size": {
+        "width": 2340,
+        "height": 1080,
+        "aspect": 2.1667
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            2340,
+            43
+          ],
+          "gray_mean": 185.57,
+          "gray_std": 63.12,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            194.75,
+            182.19,
+            178.67
+          ],
+          "rgb_std": [
+            60.59,
+            65.97,
+            72.19
+          ],
+          "dominant_rgb": [
+            195,
+            182,
+            179
+          ],
+          "edge_density": 32.95
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            1036,
+            2340,
+            1080
+          ],
+          "gray_mean": 101.16,
+          "gray_std": 72.23,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            123.8,
+            94.05,
+            78.45
+          ],
+          "rgb_std": [
+            63.64,
+            77.08,
+            86.57
+          ],
+          "dominant_rgb": [
+            124,
+            94,
+            78
+          ],
+          "edge_density": 37.56
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            43,
+            2340,
+            129
+          ],
+          "gray_mean": 155.91,
+          "gray_std": 83.35,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            166.41,
+            152.41,
+            146.58
+          ],
+          "rgb_std": [
+            78.96,
+            86.83,
+            99.14
+          ],
+          "dominant_rgb": [
+            166,
+            152,
+            147
+          ],
+          "edge_density": 33.01
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            950,
+            2340,
+            1036
+          ],
+          "gray_mean": 111.88,
+          "gray_std": 67.73,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            129.17,
+            106.86,
+            92.23
+          ],
+          "rgb_std": [
+            60.14,
+            72.17,
+            85.97
+          ],
+          "dominant_rgb": [
+            129,
+            107,
+            92
+          ],
+          "edge_density": 33.58
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            129,
+            93,
+            950
+          ],
+          "gray_mean": 32.1,
+          "gray_std": 74.5,
+          "gray_min": 0,
+          "gray_max": 233,
+          "rgb_mean": [
+            29.89,
+            32.89,
+            33.99
+          ],
+          "rgb_std": [
+            68.97,
+            76.45,
+            79.74
+          ],
+          "dominant_rgb": [
+            30,
+            33,
+            34
+          ],
+          "edge_density": 8.33
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            2246,
+            129,
+            2340,
+            950
+          ],
+          "gray_mean": 247.72,
+          "gray_std": 29.63,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            247.72,
+            247.72,
+            247.72
+          ],
+          "rgb_std": [
+            29.63,
+            29.63,
+            29.63
+          ],
+          "dominant_rgb": [
+            248,
+            248,
+            248
+          ],
+          "edge_density": 12.83
+        },
+        {
+          "region": "center",
+          "box_px": [
+            351,
+            324,
+            1989,
+            756
+          ],
+          "gray_mean": 133.57,
+          "gray_std": 69.6,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            144.18,
+            130.27,
+            122.69
+          ],
+          "rgb_std": [
+            61.79,
+            75.51,
+            94.77
+          ],
+          "dominant_rgb": [
+            144,
+            130,
+            123
+          ],
+          "edge_density": 42.77
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            2340,
+            1080
+          ],
+          "gray_mean": 137.81,
+          "gray_std": 76.16,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            151.01,
+            133.93,
+            123.29
+          ],
+          "rgb_std": [
+            69.59,
+            80.74,
+            97.71
+          ],
+          "dominant_rgb": [
+            151,
+            134,
+            123
+          ],
+          "edge_density": 45.6
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.107,
+          0.0496,
+          0.0467,
+          0.0643,
+          0.1281,
+          0.3064,
+          0.2171,
+          0.0807
+        ],
+        "g_hist": [
+          0.142,
+          0.0651,
+          0.1339,
+          0.17,
+          0.0647,
+          0.11,
+          0.1119,
+          0.2023
+        ],
+        "b_hist": [
+          0.2653,
+          0.1381,
+          0.0667,
+          0.0448,
+          0.0619,
+          0.0738,
+          0.1023,
+          0.2471
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": true,
+        "edges_dark": false,
+        "top_bar_gray_mean": 185.57,
+        "top_bar_gray_std": 63.12,
+        "bottom_bar_gray_mean": 101.16,
+        "bottom_bar_gray_std": 72.23,
+        "app_header_gray_mean": 155.91,
+        "app_header_edge_density": 33.01,
+        "app_footer_gray_mean": 111.88,
+        "app_footer_edge_density": 33.58,
+        "left_edge_gray_mean": 32.1,
+        "left_edge_gray_std": 74.5,
+        "right_edge_gray_mean": 247.72,
+        "right_edge_gray_std": 29.63,
+        "center_edge_density": 42.77,
+        "dark_ratio_top": 0.049,
+        "dark_ratio_bottom": 0.1504,
+        "dark_ratio_header": 0.1483,
+        "dark_ratio_footer": 0.1359,
+        "dark_ratio_left": 0.8387,
+        "dark_ratio_right": 0.0,
+        "h_line_status_bottom": 0.0641,
+        "h_line_top_border": 0.2252,
+        "h_line_bottom_border": 0.0637
+      }
+    }
+  },
+  {
+    "label": "home",
+    "timestamp": "20260129_122648",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_home_20260129_122648.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            93
+          ],
+          "gray_mean": 138.99,
+          "gray_std": 59.5,
+          "gray_min": 0,
+          "gray_max": 247,
+          "rgb_mean": [
+            127.08,
+            134.28,
+            195.54
+          ],
+          "rgb_std": [
+            55.75,
+            65.77,
+            57.0
+          ],
+          "dominant_rgb": [
+            127,
+            134,
+            196
+          ],
+          "edge_density": 27.32
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2246,
+            1080,
+            2340
+          ],
+          "gray_mean": 185.41,
+          "gray_std": 55.37,
+          "gray_min": 14,
+          "gray_max": 255,
+          "rgb_mean": [
+            162.21,
+            187.93,
+            231.98
+          ],
+          "rgb_std": [
+            64.83,
+            53.31,
+            47.76
+          ],
+          "dominant_rgb": [
+            162,
+            188,
+            232
+          ],
+          "edge_density": 12.05
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            93,
+            1080,
+            280
+          ],
+          "gray_mean": 154.33,
+          "gray_std": 62.92,
+          "gray_min": 0,
+          "gray_max": 239,
+          "rgb_mean": [
+            140.61,
+            151.1,
+            207.54
+          ],
+          "rgb_std": [
+            64.5,
+            67.05,
+            52.87
+          ],
+          "dominant_rgb": [
+            141,
+            151,
+            208
+          ],
+          "edge_density": 16.22
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            2059,
+            1080,
+            2246
+          ],
+          "gray_mean": 189.49,
+          "gray_std": 61.17,
+          "gray_min": 6,
+          "gray_max": 255,
+          "rgb_mean": [
+            170.77,
+            192.13,
+            224.36
+          ],
+          "rgb_std": [
+            80.83,
+            58.96,
+            58.54
+          ],
+          "dominant_rgb": [
+            171,
+            192,
+            224
+          ],
+          "edge_density": 42.89
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            280,
+            43,
+            2059
+          ],
+          "gray_mean": 158.11,
+          "gray_std": 44.41,
+          "gray_min": 17,
+          "gray_max": 207,
+          "rgb_mean": [
+            126.68,
+            161.13,
+            224.88
+          ],
+          "rgb_std": [
+            56.49,
+            43.24,
+            32.69
+          ],
+          "dominant_rgb": [
+            127,
+            161,
+            225
+          ],
+          "edge_density": 9.71
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1036,
+            280,
+            1080,
+            2059
+          ],
+          "gray_mean": 155.2,
+          "gray_std": 41.57,
+          "gray_min": 41,
+          "gray_max": 221,
+          "rgb_mean": [
+            77.74,
+            180.57,
+            227.72
+          ],
+          "rgb_std": [
+            87.94,
+            29.27,
+            25.27
+          ],
+          "dominant_rgb": [
+            78,
+            181,
+            228
+          ],
+          "edge_density": 7.26
+        },
+        {
+          "region": "center",
+          "box_px": [
+            162,
+            702,
+            918,
+            1638
+          ],
+          "gray_mean": 158.94,
+          "gray_std": 49.9,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            139.59,
+            156.1,
+            224.15
+          ],
+          "rgb_std": [
+            72.56,
+            51.42,
+            45.21
+          ],
+          "dominant_rgb": [
+            140,
+            156,
+            224
+          ],
+          "edge_density": 39.02
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 167.19,
+          "gray_std": 52.83,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            140.0,
+            170.62,
+            220.74
+          ],
+          "rgb_std": [
+            78.07,
+            53.43,
+            49.43
+          ],
+          "dominant_rgb": [
+            140,
+            171,
+            221
+          ],
+          "edge_density": 45.23
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.1673,
+          0.0637,
+          0.0307,
+          0.0216,
+          0.2504,
+          0.2544,
+          0.0743,
+          0.1376
+        ],
+        "g_hist": [
+          0.0127,
+          0.0499,
+          0.0614,
+          0.0646,
+          0.0818,
+          0.356,
+          0.2551,
+          0.1186
+        ],
+        "b_hist": [
+          0.0124,
+          0.0122,
+          0.0165,
+          0.0385,
+          0.0349,
+          0.0482,
+          0.0963,
+          0.7408
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": true,
+        "edges_dark": false,
+        "top_bar_gray_mean": 138.99,
+        "top_bar_gray_std": 59.5,
+        "bottom_bar_gray_mean": 185.41,
+        "bottom_bar_gray_std": 55.37,
+        "app_header_gray_mean": 154.33,
+        "app_header_edge_density": 16.22,
+        "app_footer_gray_mean": 189.49,
+        "app_footer_edge_density": 42.89,
+        "left_edge_gray_mean": 158.11,
+        "left_edge_gray_std": 44.41,
+        "right_edge_gray_mean": 155.2,
+        "right_edge_gray_std": 41.57,
+        "center_edge_density": 39.02,
+        "dark_ratio_top": 0.0181,
+        "dark_ratio_bottom": 0.0188,
+        "dark_ratio_header": 0.0165,
+        "dark_ratio_footer": 0.003,
+        "dark_ratio_left": 0.0038,
+        "dark_ratio_right": 0.0,
+        "h_line_status_bottom": 0.1139,
+        "h_line_top_border": 0.788,
+        "h_line_bottom_border": 0.3352
+      }
+    }
+  },
+  {
+    "label": "camera_list",
+    "timestamp": "20260129_122703",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_list_20260129_122703.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            93
+          ],
+          "gray_mean": 222.91,
+          "gray_std": 47.61,
+          "gray_min": 0,
+          "gray_max": 249,
+          "rgb_mean": [
+            212.91,
+            227.27,
+            226.37
+          ],
+          "rgb_std": [
+            46.45,
+            48.26,
+            50.83
+          ],
+          "dominant_rgb": [
+            213,
+            227,
+            226
+          ],
+          "edge_density": 26.07
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2246,
+            1080,
+            2340
+          ],
+          "gray_mean": 249.86,
+          "gray_std": 25.12,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            249.86,
+            249.86,
+            249.86
+          ],
+          "rgb_std": [
+            25.12,
+            25.12,
+            25.12
+          ],
+          "dominant_rgb": [
+            250,
+            250,
+            250
+          ],
+          "edge_density": 10.15
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            93,
+            1080,
+            280
+          ],
+          "gray_mean": 225.31,
+          "gray_std": 54.71,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            217.38,
+            228.52,
+            229.66
+          ],
+          "rgb_std": [
+            53.9,
+            55.28,
+            55.48
+          ],
+          "dominant_rgb": [
+            217,
+            229,
+            230
+          ],
+          "edge_density": 22.92
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            2059,
+            1080,
+            2246
+          ],
+          "gray_mean": 249.86,
+          "gray_std": 19.74,
+          "gray_min": 145,
+          "gray_max": 255,
+          "rgb_mean": [
+            247.71,
+            250.8,
+            250.71
+          ],
+          "rgb_std": [
+            32.43,
+            15.84,
+            16.13
+          ],
+          "dominant_rgb": [
+            248,
+            251,
+            251
+          ],
+          "edge_density": 9.39
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            280,
+            43,
+            2059
+          ],
+          "gray_mean": 245.3,
+          "gray_std": 3.89,
+          "gray_min": 240,
+          "gray_max": 255,
+          "rgb_mean": [
+            243.56,
+            245.83,
+            246.97
+          ],
+          "rgb_std": [
+            5.51,
+            3.48,
+            2.85
+          ],
+          "dominant_rgb": [
+            244,
+            246,
+            247
+          ],
+          "edge_density": 0.75
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1036,
+            280,
+            1080,
+            2059
+          ],
+          "gray_mean": 244.07,
+          "gray_std": 6.15,
+          "gray_min": 230,
+          "gray_max": 255,
+          "rgb_mean": [
+            241.84,
+            244.83,
+            245.94
+          ],
+          "rgb_std": [
+            9.73,
+            5.0,
+            3.86
+          ],
+          "dominant_rgb": [
+            242,
+            245,
+            246
+          ],
+          "edge_density": 1.04
+        },
+        {
+          "region": "center",
+          "box_px": [
+            162,
+            702,
+            918,
+            1638
+          ],
+          "gray_mean": 216.8,
+          "gray_std": 66.29,
+          "gray_min": 7,
+          "gray_max": 255,
+          "rgb_mean": [
+            215.41,
+            217.37,
+            217.88
+          ],
+          "rgb_std": [
+            69.72,
+            65.4,
+            64.6
+          ],
+          "dominant_rgb": [
+            215,
+            217,
+            218
+          ],
+          "edge_density": 23.6
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 224.33,
+          "gray_std": 57.23,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            222.19,
+            225.36,
+            224.75
+          ],
+          "rgb_std": [
+            59.46,
+            56.91,
+            59.96
+          ],
+          "dominant_rgb": [
+            222,
+            225,
+            225
+          ],
+          "edge_density": 31.54
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.0204,
+          0.0155,
+          0.0462,
+          0.0359,
+          0.0222,
+          0.0254,
+          0.0632,
+          0.7713
+        ],
+        "g_hist": [
+          0.015,
+          0.0113,
+          0.0548,
+          0.0397,
+          0.0141,
+          0.0156,
+          0.0281,
+          0.8215
+        ],
+        "b_hist": [
+          0.0234,
+          0.0167,
+          0.0274,
+          0.0593,
+          0.0108,
+          0.0116,
+          0.019,
+          0.8318
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": true,
+        "edges_dark": false,
+        "top_bar_gray_mean": 222.91,
+        "top_bar_gray_std": 47.61,
+        "bottom_bar_gray_mean": 249.86,
+        "bottom_bar_gray_std": 25.12,
+        "app_header_gray_mean": 225.31,
+        "app_header_edge_density": 22.92,
+        "app_footer_gray_mean": 249.86,
+        "app_footer_edge_density": 9.39,
+        "left_edge_gray_mean": 245.3,
+        "left_edge_gray_std": 3.89,
+        "right_edge_gray_mean": 244.07,
+        "right_edge_gray_std": 6.15,
+        "center_edge_density": 23.6,
+        "dark_ratio_top": 0.0103,
+        "dark_ratio_bottom": 0.0,
+        "dark_ratio_header": 0.0518,
+        "dark_ratio_footer": 0.0,
+        "dark_ratio_left": 0.0,
+        "dark_ratio_right": 0.0,
+        "h_line_status_bottom": 0.7843,
+        "h_line_top_border": 0.9111,
+        "h_line_bottom_border": 1.0
+      }
+    }
+  },
+  {
+    "label": "camera_normal",
+    "timestamp": "20260129_122716",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_normal_20260129_122716.png",
+    "fingerprint": {
+      "size": {
+        "width": 1080,
+        "height": 2340,
+        "aspect": 0.4615
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            1080,
+            93
+          ],
+          "gray_mean": 35.41,
+          "gray_std": 65.85,
+          "gray_min": 0,
+          "gray_max": 243,
+          "rgb_mean": [
+            35.32,
+            35.61,
+            34.6
+          ],
+          "rgb_std": [
+            65.9,
+            66.38,
+            65.26
+          ],
+          "dominant_rgb": [
+            35,
+            36,
+            35
+          ],
+          "edge_density": 31.96
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            2246,
+            1080,
+            2340
+          ],
+          "gray_mean": 249.86,
+          "gray_std": 25.12,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            249.86,
+            249.86,
+            249.86
+          ],
+          "rgb_std": [
+            25.12,
+            25.12,
+            25.12
+          ],
+          "dominant_rgb": [
+            250,
+            250,
+            250
+          ],
+          "edge_density": 10.15
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            93,
+            1080,
+            280
+          ],
+          "gray_mean": 60.67,
+          "gray_std": 71.33,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            52.45,
+            63.7,
+            66.74
+          ],
+          "rgb_std": [
+            65.82,
+            74.39,
+            77.96
+          ],
+          "dominant_rgb": [
+            52,
+            64,
+            67
+          ],
+          "edge_density": 29.19
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            2059,
+            1080,
+            2246
+          ],
+          "gray_mean": 255.0,
+          "gray_std": 0.0,
+          "gray_min": 255,
+          "gray_max": 255,
+          "rgb_mean": [
+            255.0,
+            255.0,
+            255.0
+          ],
+          "rgb_std": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "dominant_rgb": [
+            255,
+            255,
+            255
+          ],
+          "edge_density": 0.0
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            280,
+            43,
+            2059
+          ],
+          "gray_mean": 171.27,
+          "gray_std": 106.7,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            170.38,
+            172.52,
+            167.12
+          ],
+          "rgb_std": [
+            106.87,
+            105.55,
+            114.05
+          ],
+          "dominant_rgb": [
+            170,
+            173,
+            167
+          ],
+          "edge_density": 22.52
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            1036,
+            280,
+            1080,
+            2059
+          ],
+          "gray_mean": 206.16,
+          "gray_std": 75.05,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            208.55,
+            206.2,
+            199.73
+          ],
+          "rgb_std": [
+            74.41,
+            75.93,
+            84.28
+          ],
+          "dominant_rgb": [
+            209,
+            206,
+            200
+          ],
+          "edge_density": 31.1
+        },
+        {
+          "region": "center",
+          "box_px": [
+            162,
+            702,
+            918,
+            1638
+          ],
+          "gray_mean": 196.46,
+          "gray_std": 85.73,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            199.86,
+            193.64,
+            202.19
+          ],
+          "rgb_std": [
+            86.83,
+            87.38,
+            87.01
+          ],
+          "dominant_rgb": [
+            200,
+            194,
+            202
+          ],
+          "edge_density": 42.84
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            1080,
+            2340
+          ],
+          "gray_mean": 178.94,
+          "gray_std": 96.12,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            177.44,
+            179.5,
+            180.08
+          ],
+          "rgb_std": [
+            98.36,
+            95.83,
+            99.35
+          ],
+          "dominant_rgb": [
+            177,
+            179,
+            180
+          ],
+          "edge_density": 50.95
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.1785,
+          0.0324,
+          0.0468,
+          0.0429,
+          0.0652,
+          0.0336,
+          0.0348,
+          0.5656
+        ],
+        "g_hist": [
+          0.1644,
+          0.0366,
+          0.0365,
+          0.0423,
+          0.0805,
+          0.0501,
+          0.0228,
+          0.5668
+        ],
+        "b_hist": [
+          0.1817,
+          0.0366,
+          0.0369,
+          0.0346,
+          0.0477,
+          0.0398,
+          0.0195,
+          0.6031
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": false,
+        "edges_dark": false,
+        "top_bar_gray_mean": 35.41,
+        "top_bar_gray_std": 65.85,
+        "bottom_bar_gray_mean": 249.86,
+        "bottom_bar_gray_std": 25.12,
+        "app_header_gray_mean": 60.67,
+        "app_header_edge_density": 29.19,
+        "app_footer_gray_mean": 255.0,
+        "app_footer_edge_density": 0.0,
+        "left_edge_gray_mean": 171.27,
+        "left_edge_gray_std": 106.7,
+        "right_edge_gray_mean": 206.16,
+        "right_edge_gray_std": 75.05,
+        "center_edge_density": 42.84,
+        "dark_ratio_top": 0.755,
+        "dark_ratio_bottom": 0.0,
+        "dark_ratio_header": 0.5452,
+        "dark_ratio_footer": 0.0,
+        "dark_ratio_left": 0.2247,
+        "dark_ratio_right": 0.0843,
+        "h_line_status_bottom": 0.7963,
+        "h_line_top_border": 0.5796,
+        "h_line_bottom_border": 1.0
+      }
+    }
+  },
+  {
+    "label": "camera_fullscreen",
+    "timestamp": "20260129_122726",
+    "device_id": "1073e8400412",
+    "screenshot_path": "C:\\saira\\services\\ingester\\logs\\fingerprint_camera_fullscreen_20260129_122726.png",
+    "fingerprint": {
+      "size": {
+        "width": 2340,
+        "height": 1080,
+        "aspect": 2.1667
+      },
+      "regions": [
+        {
+          "region": "top_bar",
+          "box_px": [
+            0,
+            0,
+            2340,
+            43
+          ],
+          "gray_mean": 169.82,
+          "gray_std": 49.71,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            158.52,
+            173.5,
+            180.37
+          ],
+          "rgb_std": [
+            50.94,
+            50.63,
+            50.89
+          ],
+          "dominant_rgb": [
+            159,
+            173,
+            180
+          ],
+          "edge_density": 24.82
+        },
+        {
+          "region": "bottom_bar",
+          "box_px": [
+            0,
+            1036,
+            2340,
+            1080
+          ],
+          "gray_mean": 157.98,
+          "gray_std": 69.7,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            171.89,
+            153.74,
+            143.4
+          ],
+          "rgb_std": [
+            73.46,
+            69.74,
+            69.32
+          ],
+          "dominant_rgb": [
+            172,
+            154,
+            143
+          ],
+          "edge_density": 42.49
+        },
+        {
+          "region": "app_header",
+          "box_px": [
+            0,
+            43,
+            2340,
+            129
+          ],
+          "gray_mean": 130.33,
+          "gray_std": 50.52,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            111.65,
+            136.84,
+            145.95
+          ],
+          "rgb_std": [
+            53.24,
+            50.46,
+            51.22
+          ],
+          "dominant_rgb": [
+            112,
+            137,
+            146
+          ],
+          "edge_density": 22.75
+        },
+        {
+          "region": "app_footer",
+          "box_px": [
+            0,
+            950,
+            2340,
+            1036
+          ],
+          "gray_mean": 143.56,
+          "gray_std": 88.39,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            149.15,
+            142.5,
+            134.43
+          ],
+          "rgb_std": [
+            89.4,
+            88.59,
+            88.46
+          ],
+          "dominant_rgb": [
+            149,
+            143,
+            134
+          ],
+          "edge_density": 44.41
+        },
+        {
+          "region": "left_edge",
+          "box_px": [
+            0,
+            129,
+            93,
+            950
+          ],
+          "gray_mean": 10.2,
+          "gray_std": 29.41,
+          "gray_min": 0,
+          "gray_max": 211,
+          "rgb_mean": [
+            9.97,
+            11.2,
+            5.61
+          ],
+          "rgb_std": [
+            28.75,
+            31.95,
+            20.34
+          ],
+          "dominant_rgb": [
+            10,
+            11,
+            6
+          ],
+          "edge_density": 9.42
+        },
+        {
+          "region": "right_edge",
+          "box_px": [
+            2246,
+            129,
+            2340,
+            950
+          ],
+          "gray_mean": 247.72,
+          "gray_std": 29.63,
+          "gray_min": 122,
+          "gray_max": 255,
+          "rgb_mean": [
+            247.72,
+            247.72,
+            247.72
+          ],
+          "rgb_std": [
+            29.63,
+            29.63,
+            29.63
+          ],
+          "dominant_rgb": [
+            248,
+            248,
+            248
+          ],
+          "edge_density": 12.83
+        },
+        {
+          "region": "center",
+          "box_px": [
+            351,
+            324,
+            1989,
+            756
+          ],
+          "gray_mean": 98.31,
+          "gray_std": 62.22,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            89.01,
+            104.95,
+            88.54
+          ],
+          "rgb_std": [
+            65.16,
+            63.25,
+            67.11
+          ],
+          "dominant_rgb": [
+            89,
+            105,
+            89
+          ],
+          "edge_density": 69.39
+        },
+        {
+          "region": "full",
+          "box_px": [
+            0,
+            0,
+            2340,
+            1080
+          ],
+          "gray_mean": 122.98,
+          "gray_std": 75.86,
+          "gray_min": 0,
+          "gray_max": 255,
+          "rgb_mean": [
+            114.55,
+            128.02,
+            119.15
+          ],
+          "rgb_std": [
+            76.56,
+            76.49,
+            83.46
+          ],
+          "dominant_rgb": [
+            115,
+            128,
+            119
+          ],
+          "edge_density": 68.11
+        }
+      ],
+      "histogram": {
+        "r_hist": [
+          0.1659,
+          0.1155,
+          0.1506,
+          0.1576,
+          0.1141,
+          0.1269,
+          0.0571,
+          0.1123
+        ],
+        "g_hist": [
+          0.1084,
+          0.1294,
+          0.1345,
+          0.1383,
+          0.1606,
+          0.093,
+          0.0721,
+          0.1637
+        ],
+        "b_hist": [
+          0.1789,
+          0.1299,
+          0.1263,
+          0.1194,
+          0.1003,
+          0.1188,
+          0.0659,
+          0.1605
+        ]
+      },
+      "indicators": {
+        "has_status_bar": true,
+        "has_nav_bar": true,
+        "has_app_header": true,
+        "has_app_footer": true,
+        "edges_dark": false,
+        "top_bar_gray_mean": 169.82,
+        "top_bar_gray_std": 49.71,
+        "bottom_bar_gray_mean": 157.98,
+        "bottom_bar_gray_std": 69.7,
+        "app_header_gray_mean": 130.33,
+        "app_header_edge_density": 22.75,
+        "app_footer_gray_mean": 143.56,
+        "app_footer_edge_density": 44.41,
+        "left_edge_gray_mean": 10.2,
+        "left_edge_gray_std": 29.41,
+        "right_edge_gray_mean": 247.72,
+        "right_edge_gray_std": 29.63,
+        "center_edge_density": 69.39,
+        "dark_ratio_top": 0.0365,
+        "dark_ratio_bottom": 0.0862,
+        "dark_ratio_header": 0.0437,
+        "dark_ratio_footer": 0.1088,
+        "dark_ratio_left": 0.8812,
+        "dark_ratio_right": 0.0,
+        "h_line_status_bottom": 0.5816,
+        "h_line_top_border": 0.45,
+        "h_line_bottom_border": 0.2607
+      }
+    }
+  }
+]

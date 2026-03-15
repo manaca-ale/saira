@@ -9,7 +9,6 @@ import L from "leaflet";
 import "leaflet.heat";
 import { masterPois } from "../services/mockData";
 import type { PoiData } from "../services/mockData";
-import { BRAZIL_TIME_ZONE } from "../utils/datetime";
 
 // --- ENVIRONMENT VARIABLE ---
 const mapMode = import.meta.env.VITE_MAP_MODE || 'heatmap';
@@ -36,7 +35,7 @@ export const OccurrencesChart: React.FC<{ data?: PoiData[]; series?: { name: str
     const monthLabels = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
     const counts = new Array(12).fill(0);
     sourceData.forEach((item) => {
-        const monthIndex = Number(new Intl.DateTimeFormat("en", { month: "numeric", timeZone: BRAZIL_TIME_ZONE }).format(new Date(item.timestamp))) - 1;
+        const monthIndex = new Date(item.timestamp).getMonth();
         counts[monthIndex] += 1;
     });
     const fallbackData = monthLabels.map((name, index) => ({ name, val: counts[index] }));
@@ -87,18 +86,9 @@ const HeatmapLayer: React.FC<{ points: L.HeatLatLngTuple[]; options: L.HeatMapOp
 };
 
 const BubbleMapLayer: React.FC<{ points: PoiData[]; scaleFactor: number; onMarkerClick?: (poi: PoiData) => void }> = ({ points, scaleFactor, onMarkerClick }) => {
-    const getBubbleRadius = (volume: number) => {
-        // Normalize tiny m³ values (e.g., 0.05) so markers stay visible without overgrowing large events.
-        const safeVolume = Math.max(volume, 0);
-        const normalized = Math.sqrt((safeVolume * 100) + 1);
-        return Math.min(80, Math.max(10, normalized * scaleFactor));
-    };
-
     return <> {points.map(point => (
-        <CircleMarker
-            key={point.id}
-            center={[point.latitude, point.longitude]}
-            radius={getBubbleRadius(point.volume)}
+        <CircleMarker key={point.id} center={[point.latitude, point.longitude]}
+            radius={Math.sqrt(point.volume) * scaleFactor}
             pathOptions={{ color: statusColors[point.status], fillColor: statusColors[point.status], fillOpacity: 0.6, weight: 1 }}
         >
             <LeafletTooltip>
@@ -207,7 +197,7 @@ export const MapWidget: React.FC<{ isExpanded: boolean; onToggleExpand: () => vo
   const [highThreshold, setHighThreshold] = useState(0.6);
 
   // Bubble map settings
-  const [scaleFactor, setScaleFactor] = useState(3.0);
+  const [scaleFactor, setScaleFactor] = useState(2.0);
 
   const heatmapPoints = dataPoints.map(p => [p.latitude, p.longitude, p.volume / 100] as L.HeatLatLngTuple);
   const heatmapOptions: L.HeatMapOptions = { radius, blur, minOpacity, max: maxIntensity, gradient: { 0.0: 'blue', [lowThreshold]: 'cyan', [highThreshold]: 'purple', 1.0: 'red' } };
@@ -233,7 +223,7 @@ export const MapWidget: React.FC<{ isExpanded: boolean; onToggleExpand: () => vo
                             <Slider label="Min Opacity" value={minOpacity} min={0} max={1} step={0.05} onChange={setMinOpacity} />
                         </>
                     ) : ( // bubble mode
-                        <Slider label="Fator de Escala" value={scaleFactor} min={1} max={12} step={0.1} unit="x" onChange={setScaleFactor} />
+                        <Slider label="Fator de Escala" value={scaleFactor} min={0.5} max={5} step={0.1} unit="x" onChange={setScaleFactor} />
                     )}
                 </div>
             </div>

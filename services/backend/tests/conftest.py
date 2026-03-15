@@ -8,7 +8,6 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.core.security import create_access_token
-from app.core.timezone import now_brazil
 
 
 # ── Fake ORM objects ─────────────────────────────────────────────────────
@@ -25,8 +24,8 @@ class FakeUser:
         self.password_hash = "fake"
         self.is_active = is_active
         self.last_login_at = last_login_at
-        self.created_at = now_brazil()
-        self.updated_at = now_brazil()
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
 
 
 class FakeDetection:
@@ -36,7 +35,7 @@ class FakeDetection:
         self.rpa = rpa
         self.bairro = bairro
         self.logradouro = logradouro
-        self.timestamp = now_brazil()
+        self.timestamp = datetime.utcnow()
         self.camera_id = 1
         self.latitude = -8.05
         self.longitude = -34.87
@@ -53,7 +52,7 @@ class FakeNotification:
         self.message = "Rua do Sol, Boa Vista"
         self.metadata_ = {"rpa": "3", "detection_id": str(self.detection_id)}
         self.is_read = is_read
-        self.created_at = now_brazil()
+        self.created_at = datetime.utcnow()
 
 
 # ── Fixtures ─────────────────────────────────────────────────────────────

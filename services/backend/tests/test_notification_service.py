@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 
-from app.core.timezone import now_brazil
 from tests.conftest import FakeUser, FakeDetection, FakeNotification
 
 
@@ -204,7 +203,7 @@ async def test_get_summary_with_last_login(mock_db):
     """Should return summary with correct structure."""
     from app.services.notification_service import get_summary
 
-    user = FakeUser(id=1, last_login_at=now_brazil() - timedelta(hours=2))
+    user = FakeUser(id=1, last_login_at=datetime.utcnow() - timedelta(hours=2))
 
     call_count = 0
 

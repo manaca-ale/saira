@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Loader2, AlertCircle } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 
 const SECTOR_OPTIONS = [
   "Emlurb",
@@ -18,7 +18,6 @@ interface ResolveConfirmationModalProps {
     resolution_justification: string;
   }) => void;
   isLoading: boolean;
-  errorMessage?: string | null;
 }
 
 export const ResolveConfirmationModal: React.FC<ResolveConfirmationModalProps> = ({
@@ -26,7 +25,6 @@ export const ResolveConfirmationModal: React.FC<ResolveConfirmationModalProps> =
   onClose,
   onConfirm,
   isLoading,
-  errorMessage,
 }) => {
   const [resolvedAt, setResolvedAt] = useState("");
   const [sector, setSector] = useState("");
@@ -39,7 +37,7 @@ export const ResolveConfirmationModal: React.FC<ResolveConfirmationModalProps> =
   const handleSubmit = () => {
     if (!isValid || isLoading) return;
     onConfirm({
-      resolved_at: `${resolvedAt}T00:00:00-03:00`,
+      resolved_at: new Date(resolvedAt).toISOString(),
       forwarded_to_sector: sector,
       resolution_justification: justification,
     });
@@ -125,13 +123,6 @@ export const ResolveConfirmationModal: React.FC<ResolveConfirmationModalProps> =
               {justification.length}/400 caracteres
             </span>
           </div>
-
-          {errorMessage && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
-              <AlertCircle size={16} className="text-red-500 shrink-0" />
-              <span className="text-sm text-red-700">{errorMessage}</span>
-            </div>
-          )}
 
           {/* Actions */}
           <div className="flex gap-3 justify-end">

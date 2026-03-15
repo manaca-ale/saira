@@ -1,5 +1,2 @@
 *.pt
 *.pt.tmp
-!models/yolov8_MDM_200_n.pt
-experiments/dataset/
-experiments/final_saved_models/

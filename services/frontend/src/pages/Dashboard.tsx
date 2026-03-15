@@ -25,7 +25,6 @@ import { LoginNotificationBanner } from "../components/LoginNotificationBanner";
 import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
 import { AnalysisConfirmationModal } from "../components/AnalysisConfirmationModal";
 import { OffenderDashboardTab } from "../components/OffenderDashboardTab";
-import { toBrazilDateString, BRAZIL_TIME_ZONE } from "../utils/datetime";
 
 type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 
@@ -83,17 +82,6 @@ const buildDateRange = (start?: string, end?: string) => {
   return { start: startDate, end: endDate };
 };
 
-function toDateInputStatic(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getDefaultDateRange() {
-  const end = new Date();
-  const start = new Date();
-  start.setFullYear(end.getFullYear() - 1);
-  return { dateStart: toDateInputStatic(start), dateEnd: toDateInputStatic(end) };
-}
-
 const getRpaForPoi = (poi: PoiData) => {
   const key = `${poi.bairro}-${poi.logradouro}`;
   let hash = 0;
@@ -119,18 +107,10 @@ const dedupeLatestByLocation = (items: PoiData[]) => {
 const diffDays = (start: Date, end: Date) =>
   Math.max(0, Math.ceil((end.getTime() - start.getTime()) / 86400000));
 
-const formatDayLabel = (date: Date) => {
-  const parts = new Intl.DateTimeFormat("en", { day: "2-digit", month: "2-digit", timeZone: BRAZIL_TIME_ZONE }).formatToParts(date);
-  const day = parts.find(p => p.type === "day")!.value;
-  const month = parts.find(p => p.type === "month")!.value;
-  return `${day}/${month}`;
-};
-
-const toBrazilHourKey = (date: Date): string => {
-  const d = toBrazilDateString(date);
-  const h = String(Number(new Intl.DateTimeFormat("en", { hour: "numeric", hour12: false, timeZone: BRAZIL_TIME_ZONE }).format(date))).padStart(2, "0");
-  return `${d}T${h}`;
-};
+const formatDayLabel = (date: Date) =>
+  `${String(date.getDate()).padStart(2, "0")}/${String(
+    date.getMonth() + 1,
+  ).padStart(2, "0")}`;
 
 const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
   const daysSpan = diffDays(start, end);
@@ -139,7 +119,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     const buckets = new Map<string, number>();
     data.forEach((item) => {
       const date = new Date(item.timestamp);
-      const key = toBrazilHourKey(date);
+      const key = `${date.toISOString().slice(0, 13)}`;
       buckets.set(key, (buckets.get(key) || 0) + 1);
     });
 
@@ -147,9 +127,10 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     const cursor = new Date(start);
     cursor.setMinutes(0, 0, 0);
     while (cursor <= end) {
-      const key = toBrazilHourKey(cursor);
-      const hour = String(Number(new Intl.DateTimeFormat("en", { hour: "numeric", hour12: false, timeZone: BRAZIL_TIME_ZONE }).format(cursor))).padStart(2, "0");
-      const label = `${formatDayLabel(cursor)} ${hour}h`;
+      const key = cursor.toISOString().slice(0, 13);
+      const label = `${formatDayLabel(cursor)} ${String(
+        cursor.getHours(),
+      ).padStart(2, "0")}h`;
       series.push({ name: label, val: buckets.get(key) || 0 });
       cursor.setHours(cursor.getHours() + 1);
     }
@@ -159,7 +140,8 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
   if (daysSpan <= 31) {
     const buckets = new Map<string, number>();
     data.forEach((item) => {
-      const key = toBrazilDateString(item.timestamp);
+      const date = new Date(item.timestamp);
+      const key = date.toISOString().slice(0, 10);
       buckets.set(key, (buckets.get(key) || 0) + 1);
     });
 
@@ -167,7 +149,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     const cursor = new Date(start);
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= end) {
-      const key = toBrazilDateString(cursor);
+      const key = cursor.toISOString().slice(0, 10);
       series.push({ name: formatDayLabel(cursor), val: buckets.get(key) || 0 });
       cursor.setDate(cursor.getDate() + 1);
     }
@@ -182,7 +164,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
       const day = (weekStart.getDay() + 6) % 7;
       weekStart.setDate(weekStart.getDate() - day);
       weekStart.setHours(0, 0, 0, 0);
-      const key = toBrazilDateString(weekStart);
+      const key = weekStart.toISOString().slice(0, 10);
       buckets.set(key, (buckets.get(key) || 0) + 1);
     });
 
@@ -192,7 +174,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
     cursor.setDate(cursor.getDate() - day);
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= end) {
-      const key = toBrazilDateString(cursor);
+      const key = cursor.toISOString().slice(0, 10);
       series.push({ name: formatDayLabel(cursor), val: buckets.get(key) || 0 });
       cursor.setDate(cursor.getDate() + 7);
     }
@@ -226,22 +208,19 @@ export const Dashboard: React.FC = () => {
   const [detections, setDetections] = useState<PoiData[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
-  const [filters, setFilters] = useState<FilterState>(() => {
-    const { dateStart, dateEnd } = getDefaultDateRange();
-    return {
-      dateStart,
-      dateEnd,
-      startTime: "",
-      endTime: "",
-      status: [],
-      logradouro: "",
-      bairro: "",
-      rpa: [],
-      tipoResiduo: [],
-      volMin: "",
-      volMax: "",
-      infratores: [],
-    };
+  const [filters, setFilters] = useState<FilterState>({
+    dateStart: "",
+    dateEnd: "",
+    startTime: "",
+    endTime: "",
+    status: [],
+    logradouro: "",
+    bairro: "",
+    rpa: [],
+    tipoResiduo: [],
+    volMin: "",
+    volMax: "",
+    infratores: [],
   });
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [activePopover, setActivePopover] = useState<
@@ -252,28 +231,22 @@ export const Dashboard: React.FC = () => {
   const [resolveTarget, setResolveTarget] = useState<PoiData | null>(null);
   const [analysisTarget, setAnalysisTarget] = useState<PoiData | null>(null);
   const [isResolving, setIsResolving] = useState(false);
-  const [resolveError, setResolveError] = useState<string | null>(null);
   const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
 
   // --- Load Data from API ---
   useEffect(() => {
-    let cancelled = false;
     async function loadDetections() {
-      setLoading(true);
       try {
-        const startDate = filters.dateStart ? `${filters.dateStart}T${filters.startTime || "00:00"}:00` : undefined;
-        const endDate = filters.dateEnd ? `${filters.dateEnd}T${filters.endTime || "23:59"}:59` : undefined;
-        const data = await getAllDetections({ start_date: startDate, end_date: endDate, maxRecords: 2000, pageSize: 100 });
-        if (!cancelled) setDetections(data);
+        const data = await getAllDetections();
+        setDetections(data);
       } catch (e) {
         console.error("Failed to load detections:", e);
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     }
     loadDetections();
-    return () => { cancelled = true; };
-  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
+  }, []);
 
   const toDateInput = (date: Date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
@@ -644,7 +617,6 @@ export const Dashboard: React.FC = () => {
         latitude: selectedOccurrence.latitude,
         longitude: selectedOccurrence.longitude,
         hasOffender: selectedOccurrence.hasOffender,
-        image_url: selectedOccurrence.photoUrl || undefined,
       }
     : null;
 
@@ -655,7 +627,6 @@ export const Dashboard: React.FC = () => {
   }) => {
     if (!resolveTarget) return;
     setIsResolving(true);
-    setResolveError(null);
     try {
       await resolveDetection(resolveTarget.id, data);
       setDetections((prev) =>
@@ -663,18 +634,9 @@ export const Dashboard: React.FC = () => {
           d.id === resolveTarget.id ? { ...d, status: "Resolvido" as const } : d,
         ),
       );
-      if (selectedOccurrence?.id === resolveTarget.id) {
-        setSelectedOccurrence((prev) =>
-          prev ? { ...prev, status: "Resolvido" as const } : null,
-        );
-      }
       setResolveTarget(null);
-    } catch (e: any) {
-      const detail =
-        e?.response?.data?.detail ||
-        (typeof e?.message === "string" ? e.message : null) ||
-        "Falha ao atualizar ocorrência. Tente novamente.";
-      setResolveError(detail);
+    } catch (e) {
+      console.error("Erro ao resolver:", e);
     } finally {
       setIsResolving(false);
     }
@@ -708,17 +670,6 @@ export const Dashboard: React.FC = () => {
     if (!selectedOccurrence) return;
     setIsOccurrenceModalOpen(false);
     setAnalysisTarget(selectedOccurrence);
-  };
-
-  const handleOccurrencePhotoUpdated = (imageUrl: string) => {
-    const currentId = selectedOccurrence?.id;
-    if (!currentId) return;
-    setSelectedOccurrence((prev) => (prev ? { ...prev, photoUrl: imageUrl } : prev));
-    setDetections((prev) =>
-      prev.map((item) =>
-        item.id === currentId ? { ...item, photoUrl: imageUrl } : item,
-      ),
-    );
   };
 
   return (
@@ -1176,16 +1127,14 @@ export const Dashboard: React.FC = () => {
           data={modalData}
           onResolve={handleResolveFromModal}
           onStartAnalysis={handleStartAnalysisFromModal}
-          onPhotoUpdated={handleOccurrencePhotoUpdated}
         />
       )}
       {resolveTarget && (
         <ResolveConfirmationModal
           isOpen={!!resolveTarget}
-          onClose={() => { setResolveTarget(null); setResolveError(null); }}
+          onClose={() => setResolveTarget(null)}
           onConfirm={handleResolve}
           isLoading={isResolving}
-          errorMessage={resolveError}
         />
       )}
       {analysisTarget && (

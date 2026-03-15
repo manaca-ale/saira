@@ -9,7 +9,6 @@ import {
 } from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
 import { Sidebar } from "../components/Sidebar";
-import { formatDateTimeBrazil } from "../utils/datetime";
 
 type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 import {
@@ -21,9 +20,6 @@ import {
   ChevronLeft,
   CheckCircle,
   Clock,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
 } from "lucide-react";
 import { OccurrenceModal } from "../components/OccurrenceModal";
 import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
@@ -84,17 +80,17 @@ const getRpaForPoi = (poi: PoiData) => {
 
 // --- COLUMN CONFIGURATION ---
 const TABLE_COLUMNS = [
-  { label: "ID", width: "w-24", sortKey: null },
-  { label: "Logradouro", width: "w-64", sortKey: "logradouro" },
-  { label: "Bairro", width: "w-48", sortKey: "bairro" },
-  { label: "RPA", width: "w-24", sortKey: "rpa" },
-  { label: "Data e Hora", width: "w-40", sortKey: "timestamp" },
-  { label: "Tipo de resíduo", width: "w-48", sortKey: "waste_type" },
-  { label: "Volumetria", width: "w-32", sortKey: "volume_m3" },
-  { label: "Infratores", width: "w-48", sortKey: null },
-  { label: "Status", width: "w-32", sortKey: "status" },
-  { label: "Ação", width: "w-36", sortKey: null },
-] as const;
+  { label: "ID", width: "w-24" },
+  { label: "Logradouro", width: "w-64" },
+  { label: "Bairro", width: "w-48" },
+  { label: "RPA", width: "w-24" },
+  { label: "Data e Hora", width: "w-40" },
+  { label: "Tipo de resíduo", width: "w-48" },
+  { label: "Volumetria", width: "w-32" },
+  { label: "Infratores", width: "w-48" },
+  { label: "Status", width: "w-32" },
+  { label: "Ação", width: "w-36" },
+];
 
 // --- MAIN COMPONENT ---
 export const Detections: React.FC = () => {
@@ -124,8 +120,6 @@ export const Detections: React.FC = () => {
     infratores: [],
   });
   const [activePopover, setActivePopover] = useState<"period" | "volumetry" | null>(null);
-  const [sortBy, setSortBy] = useState<string>("timestamp");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [totalRecords, setTotalRecords] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloadingCsv, setIsDownloadingCsv] = useState(false);
@@ -187,16 +181,6 @@ export const Detections: React.FC = () => {
     return query;
   }, [filters]);
 
-  const handleSort = (key: string | null) => {
-    if (!key) return;
-    if (sortBy === key) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(key);
-      setSortOrder("asc");
-    }
-  };
-
   const loadDetectionsPage = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -204,8 +188,6 @@ export const Detections: React.FC = () => {
         ...queryFilters,
         skip: (currentPage - 1) * itemsPerPage,
         limit: itemsPerPage,
-        sort_by: sortBy,
-        sort_order: sortOrder,
       });
       const formattedDetections = response.items.map((poi) => ({
         ...poi,
@@ -220,7 +202,7 @@ export const Detections: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, itemsPerPage, queryFilters, sortBy, sortOrder]);
+  }, [currentPage, itemsPerPage, queryFilters]);
 
   useEffect(() => {
     loadDetectionsPage();
@@ -284,7 +266,7 @@ export const Detections: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, itemsPerPage, sortBy, sortOrder]);
+  }, [filters, itemsPerPage]);
 
   const handleOpenModal = (item: Detection) => {
     setSelectedItem(item);
@@ -335,17 +317,6 @@ export const Detections: React.FC = () => {
     setAnalysisTarget(selectedItem);
   };
 
-  const handleOccurrencePhotoUpdated = (imageUrl: string) => {
-    const currentId = selectedItem?.id;
-    if (!currentId) return;
-    setSelectedItem((prev) => (prev ? { ...prev, photoUrl: imageUrl } : prev));
-    setDetections((prev) =>
-      prev.map((item) =>
-        item.id === currentId ? { ...item, photoUrl: imageUrl } : item,
-      ),
-    );
-  };
-
   const handleDownloadCSV = async () => {
     setIsDownloadingCsv(true);
     try {
@@ -362,7 +333,7 @@ export const Detections: React.FC = () => {
 
       const headers = ["Data", "Local", "Tipo", "Volume", "Status", "Infrator"];
       const rows = formattedDetections.map((item) => {
-        const date = formatDateTimeBrazil(item.timestamp);
+        const date = new Date(item.timestamp).toLocaleString("pt-BR");
         const local = `${item.logradouro} - ${item.bairro}`;
         const tipo = item.wasteType;
         const volume = `${item.volume} m³`;
@@ -454,7 +425,6 @@ export const Detections: React.FC = () => {
         latitude: selectedItem.latitude,
         longitude: selectedItem.longitude,
         hasOffender: selectedItem.hasOffender,
-        image_url: selectedItem.photoUrl || undefined,
       }
     : null;
 
@@ -659,21 +629,9 @@ export const Detections: React.FC = () => {
                   {TABLE_COLUMNS.map((c, i) => (
                     <th
                       key={i}
-                      onClick={() => handleSort(c.sortKey)}
-                      className={`px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap ${c.width} ${
-                        c.sortKey ? "cursor-pointer select-none hover:bg-gray-50 transition-colors" : ""
-                      }`}
+                      className={`px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap ${c.width}`}
                     >
-                      <span className="inline-flex items-center gap-1">
-                        {c.label}
-                        {c.sortKey && (
-                          sortBy === c.sortKey
-                            ? sortOrder === "asc"
-                              ? <ArrowUp size={14} className="text-[#1a1a1a]" />
-                              : <ArrowDown size={14} className="text-[#1a1a1a]" />
-                            : <ArrowUpDown size={14} className="text-gray-300" />
-                        )}
-                      </span>
+                      {c.label}
                     </th>
                   ))}
                 </tr>
@@ -717,7 +675,7 @@ export const Detections: React.FC = () => {
                         {row.rpa}
                       </td>
                       <td className="px-6 py-4 text-sm text-[#1a1a1a] whitespace-nowrap">
-                        {formatDateTimeBrazil(row.timestamp)}
+                        {new Date(row.timestamp).toLocaleString("pt-BR")}
                       </td>
                       <td className="px-6 py-4 text-sm text-[#1a1a1a]">
                         <Tooltip text={row.wasteType}>
@@ -878,7 +836,6 @@ export const Detections: React.FC = () => {
           data={modalData}
           onResolve={handleResolveFromModal}
           onStartAnalysis={handleStartAnalysisFromModal}
-          onPhotoUpdated={handleOccurrencePhotoUpdated}
         />
       )}
       {resolveTarget && (

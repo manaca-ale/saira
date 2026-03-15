@@ -8,7 +8,6 @@ import asyncio
 import calendar
 import random
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 from decimal import Decimal
 
 from faker import Faker
@@ -18,7 +17,6 @@ from sqlalchemy import delete, select
 
 from app.core.database import AsyncSessionLocal
 from app.core.security import get_password_hash
-from app.core.timezone import now_brazil
 from app.models.camera import Camera
 from app.models.detection import Detection, DetectionStatus
 from app.models.offender import (
@@ -152,9 +150,8 @@ OFFENDER_PROFILE_SEED = [
 def _random_month_timestamp(year: int, month_index: int) -> datetime:
     month = month_index + 1
     last_day = calendar.monthrange(year, month)[1]
-    tz = ZoneInfo("America/Sao_Paulo")
-    start = datetime(year, month, 1, 0, 0, 0, tzinfo=tz)
-    end = datetime(year, month, last_day, 23, 59, 59, tzinfo=tz)
+    start = datetime(year, month, 1, 0, 0, 0)
+    end = datetime(year, month, last_day, 23, 59, 59)
     delta_seconds = int((end - start).total_seconds())
     return start + timedelta(seconds=random.randint(0, delta_seconds))
 
@@ -258,7 +255,7 @@ async def seed() -> None:
                 rtsp_url=f"rtsp://example.com/camera/{idx:02d}",
                 capture_interval_seconds=30,
                 is_active=True,
-                last_capture_at=now_brazil(),
+                last_capture_at=datetime.utcnow(),
             )
             db.add(camera)
             await db.flush()

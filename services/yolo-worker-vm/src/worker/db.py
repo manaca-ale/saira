@@ -1,9 +1,7 @@
 """Database operations for the worker (sync psycopg2 pool + Redis notifications)."""
 import json
 import logging
-import time
 from typing import Optional
-from uuid import uuid4
 
 import psycopg2
 import psycopg2.extras
@@ -21,36 +19,16 @@ _pool: Optional[psycopg2.pool.ThreadedConnectionPool] = None
 _redis: Optional[redis.Redis] = None
 
 
-def init_connections(max_retries: int = 12, base_delay: float = 2.0) -> None:
-    """Initialize DB connection pool and Redis client.
-
-    Retries with exponential backoff (up to 60 s per attempt) so the worker
-    survives a slow DB startup without crashing the container.
-    """
+def init_connections() -> None:
+    """Initialize DB connection pool and Redis client. Call once at startup."""
     global _pool, _redis
 
-    for attempt in range(1, max_retries + 1):
-        try:
-            _pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn=1,
-                maxconn=5,
-                dsn=config.DATABASE_URL,
-            )
-            logger.info("DB connection pool initialized (min=1, max=5).")
-            break
-        except Exception as exc:
-            delay = min(base_delay * (2 ** (attempt - 1)), 60.0)
-            if attempt == max_retries:
-                logger.error(
-                    "Could not connect to DB after %d attempts — giving up: %s",
-                    max_retries, exc,
-                )
-                raise
-            logger.warning(
-                "DB connection failed (attempt %d/%d): %s — retrying in %.0fs",
-                attempt, max_retries, exc, delay,
-            )
-            time.sleep(delay)
+    _pool = psycopg2.pool.ThreadedConnectionPool(
+        minconn=1,
+        maxconn=5,
+        dsn=config.DATABASE_URL,
+    )
+    logger.info("DB connection pool initialized (min=1, max=5).")
 
     try:
         _redis = redis.Redis.from_url(config.REDIS_URL, decode_responses=True)
@@ -173,21 +151,10 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
                 """
                 INSERT INTO detection_offenders (
                     id, detection_id, offender_type,
-                    plate, vehicle_color, waste_type, estimated_volume_m3,
-                    source, confidence_score, notes, created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, NOW())
+                    source, confidence_score, created_at
+                ) VALUES (%s, %s, %s, 'ai', %s, NOW())
                 """,
-                (
-                    o.id,
-                    o.detection_id,
-                    o.offender_type,
-                    o.plate,
-                    o.vehicle_color,
-                    o.waste_type,
-                    o.estimated_volume_m3,
-                    o.confidence_score,
-                    o.notes,
-                ),
+                (o.id, o.detection_id, o.offender_type, o.confidence_score),
             )
         conn.commit()
         cur.close()
@@ -202,65 +169,6 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
 # ==========================================
 # REDIS NOTIFICATIONS
 # ==========================================
-
-def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
-    """Insert Notification records for all active users that share the same RPA.
-
-    Mirrors the logic in backend/app/services/notification_service.py so that
-    worker-created detections produce persistent notification history.
-    Returns the number of rows inserted.
-    """
-    conn = _get_conn()
-    count = 0
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT id, rpa FROM users WHERE is_active = true")
-        users = cur.fetchall()
-
-        def _rpa_key(value: Optional[str]) -> str:
-            raw = (value or "").strip().lower()
-            digits = "".join(ch for ch in raw if ch.isdigit())
-            return digits if digits else raw.replace(" ", "").replace("-", "")
-
-        det_key = _rpa_key(camera.rpa)
-        rpa_label = f"RPA {camera.rpa}" if camera.rpa else "RPA ?"
-        location = ", ".join(filter(None, [camera.logradouro, camera.bairro]))
-        meta = json.dumps({
-            "rpa": camera.rpa,
-            "detection_id": str(detection.id),
-            "bairro": camera.bairro,
-            "timestamp": detection.timestamp.isoformat() if detection.timestamp else None,
-        })
-
-        for user_id, user_rpa in users:
-            if _rpa_key(user_rpa) != det_key:
-                continue
-            cur.execute(
-                """
-                INSERT INTO notifications (
-                    id, user_id, detection_id, type,
-                    title, message, metadata, is_read, created_at
-                ) VALUES (
-                    %s, %s, %s, 'nova_ocorrencia',
-                    %s, %s, %s::jsonb, false, NOW()
-                )
-                """,
-                (uuid4(), user_id, detection.id,
-                 f"Nova ocorrência - {rpa_label}", location, meta),
-            )
-            count += 1
-
-        conn.commit()
-        cur.close()
-        if count:
-            logger.info("Inserted %d notification(s) for detection %s", count, detection.id)
-    except Exception:
-        conn.rollback()
-        logger.exception("Error inserting notifications for detection %s", detection.id)
-    finally:
-        _put_conn(conn)
-    return count
-
 
 def publish_detection_event(detection: DetectionRecord, camera: CameraInfo) -> None:
     """Publish a new_detection event to Redis so the backend SSE stream delivers

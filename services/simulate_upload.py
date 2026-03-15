@@ -5,7 +5,7 @@ Usage:
     python simulate_upload.py [image_folder] [device_id] [interval_seconds]
 
 Defaults:
-    image_folder  = ./test_images
+    image_folder  = ../../sairaResgisterAnaliseDetections/imagens teste
     device_id     = test-cam-001
     interval      = 2  seconds between uploads
 """
@@ -16,7 +16,7 @@ from pathlib import Path
 from datetime import datetime
 
 ESP32_SERVER = "http://localhost:5002"
-IMAGE_FOLDER = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent / "test_images"
+IMAGE_FOLDER = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent / "sairaResgisterAnaliseDetections/imagens teste"
 DEVICE_ID    = sys.argv[2] if len(sys.argv) > 2 else "test-cam-001"
 INTERVAL     = float(sys.argv[3]) if len(sys.argv) > 3 else 2.0
 
@@ -121,4 +121,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

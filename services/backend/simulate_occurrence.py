@@ -20,7 +20,6 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
-from app.core.timezone import now_brazil
 from app.models.camera import Camera
 from app.models.detection import Detection, DetectionStatus
 from app.services import notification_service
@@ -115,7 +114,7 @@ async def simulate(args: argparse.Namespace) -> None:
 
             detection = Detection(
                 camera_id=db_camera.id,
-                timestamp=now_brazil(),
+                timestamp=datetime.utcnow(),
                 logradouro=db_camera.logradouro or "Logradouro nao informado",
                 bairro=db_camera.bairro or "Bairro nao informado",
                 rpa=db_camera.rpa or "RPA ?",

@@ -5,6 +5,8 @@ on:
     branches:
       - main      # Producao
       - develop   # Teste
+    paths-ignore:
+      - "services/ingester/**"
 
 jobs:
   # --- AMBIENTE DE TESTE ---
@@ -30,9 +32,6 @@ jobs:
             cd services
 
             echo "Reiniciando Ambiente de Teste..."
-            # Pre-create shared network so yolo-worker can reach esp32-server by hostname.
-            # (saira-esp32-test compose creates this network, but starts after saira-test.)
-            docker network create saira-esp32-test_saira_test_net 2>/dev/null || true
             docker compose -p saira-test -f docker-compose.test.yml down
             docker compose -p saira-test -f docker-compose.test.yml up -d --build --force-recreate
 
@@ -53,9 +52,6 @@ jobs:
             mkdir -p uploads ota config
             docker compose -p saira-esp32-test -f docker-compose.test.yml down --remove-orphans
             docker rm -f saira-esp32-test-esp32-receiver-1 2>/dev/null || true
-            # Force-release port 5002 in case a container from a different project still holds it
-            docker ps -q --filter "publish=5002" | xargs -r docker stop 2>/dev/null || true
-            docker ps -aq --filter "publish=5002" | xargs -r docker rm -f 2>/dev/null || true
             docker compose -p saira-esp32-test -f docker-compose.test.yml up -d --build --force-recreate
 
             echo "Teste rodando (Projeto: saira-test)"

@@ -5,18 +5,12 @@ interface DeleteModalProps {
   onClose: () => void;
   onConfirm: () => void;
   isClosing: boolean; // Animation state
-  title?: string;
-  description?: string;
-  confirmLabel?: string;
 }
 
 export const DeleteModal: React.FC<DeleteModalProps> = ({
   onClose,
   onConfirm,
   isClosing,
-  title = "Excluir Usuário?",
-  description = "Essa ação não pode ser desfeita. O usuário perderá acesso ao sistema imediatamente.",
-  confirmLabel = "Excluir",
 }) => {
   return (
     <div
@@ -38,9 +32,12 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
           <AlertTriangle size={32} className="text-red-500" />
         </div>
 
-        <h3 className="text-xl font-bold text-[#1a1a1a] mb-2 select-none">{title}</h3>
+        <h3 className="text-xl font-bold text-[#1a1a1a] mb-2 select-none">
+          Excluir Usuário?
+        </h3>
         <p className="text-gray-500 text-sm mb-8 select-none leading-relaxed">
-          {description}
+          Essa ação não pode ser desfeita. O usuário perderá acesso ao sistema
+          imediatamente.
         </p>
 
         <div className="flex gap-3">
@@ -54,7 +51,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
             onClick={onConfirm}
             className="flex-1 py-3 rounded-xl font-bold bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 transition-all select-none"
           >
-            {confirmLabel}
+            Excluir
           </button>
         </div>
       </div>

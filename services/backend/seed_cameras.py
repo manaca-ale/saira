@@ -29,15 +29,6 @@ CAMERAS = [
         "latitude": -8.063170,
         "longitude": -34.871140,
     },
-    {
-        "name": "Camera ESP32-005 - Manaça",
-        "device_id": "esp32_005",
-        "logradouro": "Av. Agamenon Magalhães, 0",
-        "bairro": "Encruzilhada",
-        "rpa": "RPA 3",
-        "latitude": -8.044900,
-        "longitude": -34.904700,
-    },
     # Add more cameras as needed:
     # {
     #     "name": "Camera 02 - Boa Viagem",

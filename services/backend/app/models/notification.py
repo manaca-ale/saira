@@ -1,5 +1,6 @@
 import enum
 import uuid
+from datetime import datetime
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Text,
     ForeignKey, Enum, Index,
@@ -7,7 +8,6 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
-from app.core.timezone import now_brazil
 
 
 class NotificationType(str, enum.Enum):
@@ -36,7 +36,7 @@ class Notification(Base):
     message = Column(Text, nullable=False)
     metadata_ = Column("metadata", JSONB, nullable=True)
     is_read = Column(Boolean, default=False, index=True)
-    created_at = Column(DateTime(timezone=True), default=now_brazil)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="notifications")
     detection = relationship("Detection")

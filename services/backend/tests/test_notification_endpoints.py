@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 
-from app.core.timezone import now_brazil
 from tests.conftest import FakeNotification, FakeUser
 
 
@@ -73,7 +72,7 @@ async def test_get_summary(client):
     summary = {
         "unread_count": 5,
         "since_last_login": 10,
-        "last_login_at": now_brazil(),
+        "last_login_at": datetime.utcnow(),
         "by_rpa": {"3": 6, "5": 4},
     }
 
@@ -157,7 +156,7 @@ def test_notification_response_schema():
         "message": "Test msg",
         "metadata_": {"key": "value"},
         "is_read": False,
-        "created_at": now_brazil(),
+        "created_at": datetime.utcnow(),
     }
     schema = NotificationResponse(**data)
     assert schema.id == nid
@@ -192,7 +191,7 @@ def test_notification_list_response_schema():
         title="T",
         message="M",
         is_read=False,
-        created_at=now_brazil(),
+        created_at=datetime.utcnow(),
     )
     schema = NotificationListResponse(items=[item], unread_count=1, total=1)
     assert schema.total == 1

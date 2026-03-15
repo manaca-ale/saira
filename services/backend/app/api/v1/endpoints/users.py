@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
@@ -8,16 +8,6 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 
 router = APIRouter()
-
-USER_SORTABLE_FIELDS: dict[str, Any] = {
-    "name":       User.name,
-    "email":      User.email,
-    "cargo":      User.cargo,
-    "rpa":        User.rpa,
-    "is_active":  User.is_active,
-    "created_at": User.created_at,
-}
-USER_DEFAULT_SORT = "created_at"
 
 
 @router.get("/", response_model=List[UserResponse])
@@ -29,8 +19,6 @@ async def get_users(
     rpa: Optional[str] = None,
     cargo: Optional[str] = None,
     is_active: Optional[bool] = None,
-    sort_by: Optional[str] = Query(None, description="Campo para ordenação"),
-    sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -58,9 +46,7 @@ async def get_users(
     if filters:
         query = query.where(and_(*filters))
 
-    col = USER_SORTABLE_FIELDS.get(sort_by or USER_DEFAULT_SORT, User.created_at)
-    order = col.asc() if sort_order == "asc" else col.desc()
-    query = query.offset(skip).limit(limit).order_by(order)
+    query = query.offset(skip).limit(limit).order_by(User.created_at.desc())
     result = await db.execute(query)
     return result.scalars().all()
 

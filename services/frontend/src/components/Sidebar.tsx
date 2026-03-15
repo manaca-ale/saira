@@ -28,8 +28,6 @@ export const Sidebar: React.FC = () => {
     { icon: Cctv, path: "/detections" },
     { icon: Users, path: "/users" },
   ];
-  const settingsPath = "/settings/cameras";
-  const isSettingsActive = location.pathname.startsWith("/settings");
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
@@ -97,14 +95,7 @@ export const Sidebar: React.FC = () => {
         </nav>
 
         <div className="flex flex-col gap-6 w-full items-center mb-4">
-          <button
-            onClick={() => navigate(settingsPath)}
-            className={`transition-colors ${
-              isSettingsActive
-                ? "text-[#d9f99d]"
-                : "text-gray-500 hover:text-white"
-            }`}
-          >
+          <button className="text-gray-500 hover:text-white transition-colors">
             <Settings size={24} />
           </button>
           <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden border-2 border-transparent hover:border-[#d9f99d] transition-all cursor-pointer">

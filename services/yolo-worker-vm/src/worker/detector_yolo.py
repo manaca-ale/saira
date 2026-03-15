@@ -1,6 +1,6 @@
 """YOLO inference engine.
 
-P1: garbage detection  (yolov8_MDM_200_n.pt) — classes: entulho, lixo domiciliar, restos de madeira, terra
+P1: garbage detection  (yolov8_2142.pt)   — classes: entulho, lixo domiciliar, restos de madeira, terra
 P2: infrator detection (yolov8_PeopleCar_200_n.pt) — classes: person, car, motorcycle, ...
 """
 from __future__ import annotations

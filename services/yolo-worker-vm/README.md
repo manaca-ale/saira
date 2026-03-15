@@ -1,58 +1,48 @@
-# Worker de IA (YOLO + Gemini)
+# YOLO Worker VM
 
-Worker responsavel por processar imagens em `UPLOAD_DIR`, identificar ocorrencias de descarte irregular e persistir resultados no PostgreSQL.
+Servico de deteccao de residuos por visao computacional, executado em uma instancia EC2 dedicada. Consome mensagens de uma fila SQS, processa imagens com o modelo YOLO e persiste os resultados no banco de dados.
 
-## Modos de execucao
+## Stack
 
-- `AI_MODE=yolo`: fluxo legado YOLO.
-- `AI_MODE=shadow`: YOLO persiste ocorrencias e Gemini roda em paralelo para auditoria/custos.
-- `AI_MODE=gemini`: Gemini persiste ocorrencias (sem edge computing).
-
-## Stack principal
-
-- Python 3.11
-- OpenCV + YOLO (modos `yolo` e `shadow`)
-- Gemini Developer API (modos `shadow` e `gemini`)
-- PostgreSQL + Redis
+- **YOLO** (deteccao de objetos)
+- **AWS SQS** (fila de mensagens)
+- **AWS S3** (armazenamento de imagens)
+- **PostgreSQL** (persistencia de deteccoes)
 
 ## Estrutura
 
 ```text
 src/worker/
-├── main.py              # Loop principal com AI_MODE yolo|shadow|gemini
-├── config.py            # Variaveis de ambiente
-├── detector_yolo.py     # Inferencia YOLO
-├── detector_mock.py     # Inferencia mock
-├── detector_gemini.py   # Cliente Gemini + retries + structured output
-├── schemas_gemini.py    # Contrato Pydantic da resposta Gemini
-├── models.py            # Dataclasses internas
-├── db.py                # Persistencia em detections e detection_offenders
-└── gdrive_sync.py       # Sync opcional para Google Drive
+├── main.py              # Entry point - loop de consumo da fila SQS
+├── config.py            # Configuracoes (credenciais, URLs, thresholds)
+├── detector_yolo.py     # Inferencia do modelo YOLO sobre imagens
+├── models.py            # Modelos de dados internos
+├── queue_sqs.py         # Consumo e acknowledge de mensagens SQS
+├── storage_s3.py        # Download/upload de imagens no S3
+└── db.py                # Conexao e insercao de deteccoes no PostgreSQL
 ```
 
-## Variaveis importantes
+## Fluxo
 
-- `AI_MODE` (`yolo|shadow|gemini`)
-- `GEMINI_API_KEY` (obrigatoria em `shadow` e `gemini`)
-- `GEMINI_MODEL` (default `gemini-2.5-flash`)
-- `GEMINI_SEQUENCE_SIZE` e `GEMINI_SEQUENCE_MAX_SPAN_SECONDS`
-- `GEMINI_DRY_RUN` (chama Gemini sem persistir)
-- `WORKER_ENABLED`
+1. Camera captura frame e envia mensagem para fila SQS
+2. Worker consome a mensagem, faz download da imagem do S3
+3. Modelo YOLO processa a imagem e identifica residuos
+4. Resultado (tipo, volume estimado, confianca) e salvo no banco
+5. Imagem anotada e reenviada ao S3
 
-## Auditoria Shadow
+## Deploy
 
-No modo `shadow`, o worker grava:
-
-- JSONL por dispositivo/dia em `STATE_DIR/shadow_audit/<YYYY-MM-DD>/<device_id>.jsonl`
-- metricas diarias agregadas em `STATE_DIR/shadow_audit/<YYYY-MM-DD>/metrics.json`
-
-## Execucao local
+O worker roda como servico systemd em uma EC2:
 
 ```bash
-docker compose --profile worker up -d --build
-docker compose logs -f yolo-worker
+# Arquivo de servico
+systemd/saira-yolo-worker.service
 ```
 
-## Observacao
+### Download dos pesos do modelo
 
-Nao versionar chave real em `.env`.
+```bash
+./scripts/download_weights.sh
+```
+
+Consulte o runbook em `docs/runbooks/yolo-vm.md` para instrucoes detalhadas de provisionamento e operacao.

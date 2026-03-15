@@ -39,7 +39,6 @@ class DetectionUpdate(BaseModel):
     waste_type: Optional[str] = Field(None, max_length=100)
     material_type: Optional[str] = Field(None, max_length=100)
     volume_m3: Optional[Decimal] = None
-    image_url: Optional[str] = Field(None, max_length=512)
 
 
 class DetectionResolve(BaseModel):
@@ -72,15 +71,3 @@ class DetectionListResponse(BaseModel):
     total: int
     skip: int
     limit: int
-
-
-class DetectionAnalyzedFrame(BaseModel):
-    frame_name: str
-    image_url: str
-    is_default: bool = False
-
-
-class DetectionAnalyzedFramesResponse(BaseModel):
-    detection_id: UUID
-    selected_frame_name: Optional[str] = None
-    frames: List[DetectionAnalyzedFrame]

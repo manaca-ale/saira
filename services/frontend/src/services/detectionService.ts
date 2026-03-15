@@ -11,7 +11,6 @@ export interface Detection {
   latitude: number;
   longitude: number;
   waste_type?: string;
-  material_type?: string;
   volume_m3?: number;
   offenders?: string;
   status: string;
@@ -34,8 +33,6 @@ export interface DetectionSearchParams {
   volume_min?: number;
   volume_max?: number;
   has_offender?: boolean;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
 }
 
 interface DetectionSearchApiResponse {
@@ -50,27 +47,6 @@ export interface PaginatedDetections {
   total: number;
   skip: number;
   limit: number;
-}
-
-export interface DetectionAnalyzedFrame {
-  frame_name: string;
-  image_url: string;
-  is_default: boolean;
-}
-
-export interface DetectionAnalyzedFramesResponse {
-  detection_id: string;
-  selected_frame_name?: string | null;
-  frames: DetectionAnalyzedFrame[];
-}
-
-function normalizeImageUrl(url?: string | null): string {
-  if (!url) return '';
-  // Strip scheme + host so the browser loads the image through the same-origin
-  // nginx proxy (/uploads/ → esp32-server:5000), regardless of what PUBLIC_BASE_URL
-  // was configured in the worker (e.g. http://localhost:5002 or http://esp32-server:5000).
-  const match = url.match(/(\/uploads\/.+)/);
-  return match ? match[1] : url;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -88,9 +64,6 @@ function normalizeWasteType(raw?: string): WasteType {
   if (value === 'lixo domiciliar' || value === 'household waste') return 'Lixo domiciliar';
   if (value === 'poda' || value === 'pruning') return 'Poda';
   if (value === 'plastico' || value === 'plástico' || value === 'plastic') return 'Plástico';
-  if (value === 'entulho' || value === 'construcao' || value === 'construção' || value === 'debris') return 'Entulho';
-  if (value.includes('residuo') || value.includes('resíduo') || value.includes('lixo') || value === 'solid waste')
-    return 'Lixo domiciliar';
   return 'Entulho';
 }
 
@@ -140,7 +113,7 @@ function toFrontendFormat(d: Detection): PoiData {
     wasteType: normalizeWasteType(d.waste_type),
     volume: toNumber(d.volume_m3),
     status: normalizeStatus(d.status),
-    photoUrl: normalizeImageUrl(d.image_url),
+    photoUrl: d.image_url || '',
     hasOffender: !!d.offenders,
   };
 }
@@ -190,8 +163,6 @@ export async function searchDetections(params?: DetectionSearchParams): Promise<
     volume_min: params?.volume_min,
     volume_max: params?.volume_max,
     has_offender: params?.has_offender,
-    sort_by: params?.sort_by,
-    sort_order: params?.sort_order,
   };
 
   const response = await api.get<DetectionSearchApiResponse>('/detections/search', { params: queryParams });
@@ -242,22 +213,6 @@ export async function getDetectionById(id: string): Promise<PoiData> {
 export async function updateDetectionStatus(id: string, status: string): Promise<Detection> {
   const response = await api.patch(`/detections/${id}`, { status });
   return response.data;
-}
-
-export async function updateDetectionImage(id: string, image_url: string): Promise<Detection> {
-  const response = await api.patch(`/detections/${id}`, { image_url });
-  return response.data;
-}
-
-export async function getDetectionAnalyzedFrames(id: string): Promise<DetectionAnalyzedFramesResponse> {
-  const response = await api.get<DetectionAnalyzedFramesResponse>(`/detections/${id}/analyzed-frames`);
-  return {
-    ...response.data,
-    frames: (response.data.frames || []).map((frame) => ({
-      ...frame,
-      image_url: normalizeImageUrl(frame.image_url),
-    })),
-  };
 }
 
 export async function resolveDetection(
