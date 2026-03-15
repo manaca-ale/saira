@@ -3,7 +3,7 @@ import logging
 import json
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -28,6 +28,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 WORKER_STATE_DIR = Path(os.getenv("WORKER_STATE_DIR", "/app/yolo_state"))
 DETECTION_FRAMES_DIR = WORKER_STATE_DIR / "detection_frames"
+
+# --- Sorting whitelist (previne SQL injection via campo inválido) ---
+DETECTION_SORTABLE_FIELDS: dict[str, Any] = {
+    "timestamp":   Detection.timestamp,
+    "created_at":  Detection.created_at,
+    "volume_m3":   Detection.volume_m3,
+    "bairro":      Detection.bairro,
+    "logradouro":  Detection.logradouro,
+    "status":      Detection.status,
+    "rpa":         Detection.rpa,
+    "waste_type":  Detection.waste_type,
+}
+DEFAULT_SORT_FIELD = "timestamp"
 
 
 def _parse_csv(value: Optional[str]) -> List[str]:

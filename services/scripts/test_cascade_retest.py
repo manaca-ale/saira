@@ -123,6 +123,8 @@ def run_cascade_window(
     prior_had_litter: bool,
     prior_waste_type: Optional[str],
     prev_last_frame: Optional[Path] = None,
+    mosaic_agent1: bool = False,
+    mosaic_agent2: str = "off",
 ) -> dict:
     """Run one cascade window and return a result dict (no DB/Redis calls)."""
     # Correction 2: use last frame of previous window as reference when available
@@ -165,6 +167,7 @@ def run_cascade_window(
             last_frame=last_frame,
             camera_context=camera_context,
             prior_window_context=prior_window_context,
+            use_mosaic=mosaic_agent1,
         )
         gr = gate.report
         gate_result = {
@@ -206,8 +209,29 @@ def run_cascade_window(
             detail = analyze_with_gemini(
                 image_paths=window_paths,
                 camera_context=camera_context,
+                mosaic_mode=mosaic_agent2,
             )
             dr = detail.report
+
+            # Resolve "frame_N" labels back to real filenames when mosaic is active
+            event_frame = dr.event_frame_name
+            offender_frame = dr.offender_frame_name
+            if mosaic_agent2 != "off":
+                if event_frame and event_frame.startswith("frame_"):
+                    try:
+                        idx = int(event_frame.split("_")[1]) - 1
+                        if 0 <= idx < len(window_paths):
+                            event_frame = window_paths[idx].name
+                    except (ValueError, IndexError):
+                        pass
+                if offender_frame and offender_frame.startswith("frame_"):
+                    try:
+                        idx = int(offender_frame.split("_")[1]) - 1
+                        if 0 <= idx < len(window_paths):
+                            offender_frame = window_paths[idx].name
+                    except (ValueError, IndexError):
+                        pass
+
             stage2_result = {
                 "infraction_confirmed": bool(dr.infraction_confirmed),
                 "confidence_0_100": int(dr.confidence_0_100),
@@ -217,8 +241,8 @@ def run_cascade_window(
                 "offender_detected": bool(dr.offender_detected),
                 "offender_types": dr.offender_types,
                 "vehicle_plate": dr.vehicle_plate,
-                "event_frame_name": dr.event_frame_name,
-                "offender_frame_name": dr.offender_frame_name,
+                "event_frame_name": event_frame,
+                "offender_frame_name": offender_frame,
                 "evidence_summary": dr.evidence_summary,
                 "raw_reason_codes": dr.raw_reason_codes,
                 "latency_ms": detail.latency_ms,
@@ -239,6 +263,8 @@ def run_cascade_window(
         "window_size": len(window_paths),
         "window_frames": [p.name for p in window_paths],
         "prior_had_litter": prior_had_litter,
+        "mosaic_agent1": mosaic_agent1,
+        "mosaic_agent2": mosaic_agent2,
         "gate_error": gate_error,
         "gate_triggered": gate_triggered,
         "gate_result": gate_result,
@@ -258,12 +284,23 @@ def run_cascade_window(
 # Main
 # ---------------------------------------------------------------------------
 
-def run_once(dataset_dir: Path, run_index: int, hour_ranges: Optional[list[tuple[int, int]]] = None) -> tuple[list[dict], dict]:
+def run_once(
+    dataset_dir: Path,
+    run_index: int,
+    hour_ranges: Optional[list[tuple[int, int]]] = None,
+    max_windows: Optional[int] = None,
+    datasets_filter: Optional[set[str]] = None,
+    mosaic_agent1: bool = False,
+    mosaic_agent2: str = "off",
+) -> tuple[list[dict], dict]:
     """Process all devices/windows once. Returns (results, summary).
 
     Args:
         hour_ranges: Optional list of (start_hour, end_hour) tuples (inclusive start,
             exclusive end) to filter images by local time. E.g. [(6, 12), (14, 18)].
+        datasets_filter: Optional set of device directory names to include. Others are skipped.
+        mosaic_agent1: Pass to run_cascade_window for Agent 1 mosaic.
+        mosaic_agent2: Pass to run_cascade_window for Agent 2 mosaic mode.
     """
     all_results: list[dict] = []
     total_windows = 0
@@ -276,6 +313,8 @@ def run_once(dataset_dir: Path, run_index: int, hour_ranges: Optional[list[tuple
         if not device_dir.is_dir():
             continue
         device_id = device_dir.name
+        if datasets_filter and device_id not in datasets_filter:
+            continue
         images = collect_device_images(device_dir)
         if not images:
             print(f"  [{device_id}] No images found, skipping.")
@@ -290,6 +329,8 @@ def run_once(dataset_dir: Path, run_index: int, hour_ranges: Optional[list[tuple
             images = filtered
 
         windows = build_cascade_windows(images)
+        if max_windows is not None:
+            windows = windows[:max_windows]
         if hour_ranges:
             hour_desc = ",".join(f"{s}-{e}" for s, e in hour_ranges)
             print(f"  [{device_id}] {len(images)} images (hours={hour_desc}) -> {len(windows)} windows")
@@ -312,6 +353,8 @@ def run_once(dataset_dir: Path, run_index: int, hour_ranges: Optional[list[tuple
             result = run_cascade_window(
                 window_paths, device_id, prior_had_litter, prior_waste_type,
                 prev_last_frame=prev_last_frame,
+                mosaic_agent1=mosaic_agent1,
+                mosaic_agent2=mosaic_agent2,
             )
             result["run_index"] = run_index
             result["window_index"] = wi
@@ -378,9 +421,36 @@ def main() -> None:
         help="Comma-separated hour ranges to filter images, e.g. '06-12,14-18'. "
              "Uses local timestamps in filenames.",
     )
+    parser.add_argument(
+        "--max-windows",
+        type=int,
+        default=None,
+        help="Limit number of windows processed per device.",
+    )
+    parser.add_argument(
+        "--datasets",
+        type=str,
+        default=None,
+        help="Comma-separated list of device directory names to include (others skipped).",
+    )
+    parser.add_argument(
+        "--mosaic-agent1",
+        action="store_true",
+        default=False,
+        help="Use 2x1 mosaic for Agent 1 (gate): send BEFORE/AFTER side-by-side.",
+    )
+    parser.add_argument(
+        "--mosaic-agent2",
+        choices=["off", "4x3", "3x2split"],
+        default="off",
+        help="Mosaic mode for Agent 2 (detail): off | 4x3 | 3x2split.",
+    )
     args = parser.parse_args()
 
     hour_ranges = parse_hour_ranges(args.hours) if args.hours else None
+    datasets_filter = {d.strip() for d in args.datasets.split(",") if d.strip()} if args.datasets else None
+    mosaic_agent1: bool = args.mosaic_agent1
+    mosaic_agent2: str = args.mosaic_agent2
 
     dataset_dir: Path = args.dataset.resolve()
     output_dir: Path = args.output.resolve()
@@ -392,9 +462,10 @@ def main() -> None:
     if not dataset_dir.exists():
         sys.exit(f"ERROR: Dataset directory not found: {dataset_dir}")
 
+    mosaic_label = f"a1={'yes' if mosaic_agent1 else 'no'}_a2={mosaic_agent2}"
     ts_label = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_path = output_dir / f"cascade_retest_results_{ts_label}.jsonl"
-    summary_path = output_dir / f"cascade_retest_summary_{ts_label}.json"
+    results_path = output_dir / f"cascade_retest_results_{mosaic_label}_{ts_label}.jsonl"
+    summary_path = output_dir / f"cascade_retest_summary_{mosaic_label}_{ts_label}.json"
 
     all_summaries: list[dict] = []
 
@@ -404,6 +475,9 @@ def main() -> None:
     print(f"Runs     : {args.runs}")
     print(f"Model    : {config.GEMINI_MODEL}")
     print(f"Threshold: {THRESHOLD} (80 when prior litter known)")
+    print(f"Mosaic   : Agent1={mosaic_agent1}  Agent2={mosaic_agent2}")
+    if datasets_filter:
+        print(f"Datasets : {', '.join(sorted(datasets_filter))}")
     if hour_ranges:
         print(f"Hours    : {args.hours}")
     print()
@@ -411,7 +485,15 @@ def main() -> None:
     with results_path.open("w", encoding="utf-8") as fh:
         for run_idx in range(1, args.runs + 1):
             print(f"--- Run {run_idx}/{args.runs} ---")
-            run_results, run_summary = run_once(dataset_dir, run_idx, hour_ranges=hour_ranges)
+            run_results, run_summary = run_once(
+                dataset_dir,
+                run_idx,
+                hour_ranges=hour_ranges,
+                max_windows=args.max_windows,
+                datasets_filter=datasets_filter,
+                mosaic_agent1=mosaic_agent1,
+                mosaic_agent2=mosaic_agent2,
+            )
 
             for r in run_results:
                 fh.write(json.dumps(r, ensure_ascii=False) + "\n")
