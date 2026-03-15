@@ -37,7 +37,7 @@ export const CameraMapPicker: React.FC<CameraMapPickerProps> = ({
     latitude !== null && longitude !== null ? [latitude, longitude] : null;
 
   return (
-    <div className="col-span-2 rounded-xl overflow-hidden border border-gray-200 mt-1">
+    <div className="rounded-xl overflow-hidden border border-gray-200">
       <MapContainer
         center={position ?? DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}

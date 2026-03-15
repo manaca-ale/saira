@@ -175,7 +175,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
       `}
     >
       <div
-        className="bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl p-8 relative overflow-hidden"
+        className="bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl p-8 relative overflow-y-auto max-h-[90vh]"
         style={{
           animation: isClosing
             ? "modalPopExit 0.5s ease-in forwards"
@@ -224,22 +224,12 @@ export const CameraModal: React.FC<CameraModalProps> = ({
               icon={Radio}
             />
 
-            <AddressSearch onSelect={handleAddressSelect} />
-
-            <CameraMapPicker
-              latitude={formData.latitude ? parseFloat(formData.latitude) : null}
-              longitude={formData.longitude ? parseFloat(formData.longitude) : null}
-              onPositionChange={handleMapPositionChange}
-            />
-
-            <Field
-              label="Logradouro"
+            <AddressSearch
               value={formData.logradouro}
               onChange={(value) =>
                 setFormData((prev) => ({ ...prev, logradouro: value }))
               }
-              placeholder="Ex: Av. Agamenon Magalhães"
-              icon={MapPin}
+              onSelect={handleAddressSelect}
             />
             <Field
               label="Bairro"
@@ -316,6 +306,12 @@ export const CameraModal: React.FC<CameraModalProps> = ({
               </button>
             </div>
           </div>
+
+          <CameraMapPicker
+            latitude={formData.latitude ? parseFloat(formData.latitude) : null}
+            longitude={formData.longitude ? parseFloat(formData.longitude) : null}
+            onPositionChange={handleMapPositionChange}
+          />
 
           <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-gray-100">
             <button
