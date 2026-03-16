@@ -66,11 +66,13 @@ export interface DetectionAnalyzedFramesResponse {
 
 function normalizeImageUrl(url?: string | null): string {
   if (!url) return '';
-  // Strip scheme + host so the browser loads the image through the same-origin
-  // nginx proxy (/uploads/ → esp32-server:5000), regardless of what PUBLIC_BASE_URL
-  // was configured in the worker (e.g. http://localhost:5002 or http://esp32-server:5000).
-  const match = url.match(/(\/uploads\/.+)/);
-  return match ? match[1] : url;
+  // Local uploads → same-origin proxy via /uploads/ → esp32-server:5000
+  const uploadsMatch = url.match(/(\/uploads\/.+)/);
+  if (uploadsMatch) return uploadsMatch[1];
+  // S3 images → same-origin proxy via /s3-images/{key} → S3 bucket
+  const s3Match = url.match(/https?:\/\/[^/]+\.s3\.[^/]+\.amazonaws\.com\/(.+)/);
+  if (s3Match) return `/s3-images/${s3Match[1]}`;
+  return url;
 }
 
 function toNumber(value: unknown, fallback = 0): number {

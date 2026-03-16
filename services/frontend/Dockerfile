@@ -27,11 +27,15 @@ FROM nginx:alpine
 # Copy the build output from Stage 1 to the Nginx html directory
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy Nginx template (envsubst replaces $S3_BUCKET_HOST at runtime)
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+
+ENV S3_BUCKET_HOST=saira-images.s3.sa-east-1.amazonaws.com
 
 # Expose port 80
 EXPOSE 80
 
-# Start Nginx in the foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Substitute S3_BUCKET_HOST into nginx config, then start Nginx.
+# Single-quoted arg to envsubst ensures only $S3_BUCKET_HOST is replaced,
+# leaving nginx variables ($host, $uri, etc.) intact.
+CMD ["/bin/sh", "-c", "envsubst '$S3_BUCKET_HOST' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
