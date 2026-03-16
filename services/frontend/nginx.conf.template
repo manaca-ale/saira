@@ -1,0 +1,57 @@
+server {
+    listen 80;
+    server_name localhost;
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Proxy image uploads from ESP32 server so the browser never needs to hit port 5002 directly.
+    # ^~ ensures this prefix match takes priority over the static-asset regex below.
+    location ^~ /uploads/ {
+        set $esp32_upstream http://esp32-server:5000;
+        proxy_pass $esp32_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        expires 1h;
+        add_header Cache-Control "public";
+    }
+
+    # Proxy S3 bucket images through same-origin to avoid CORS / canvas taint.
+    # normalizeImageUrl() rewrites S3 URLs to /s3-images/{key} paths.
+    # NOTE: ${S3_BUCKET_HOST} is replaced by envsubst at container start.
+    location ^~ /s3-images/ {
+        proxy_pass https://${S3_BUCKET_HOST}/;
+        proxy_set_header Host ${S3_BUCKET_HOST};
+        proxy_ssl_server_name on;
+        proxy_hide_header x-amz-id-2;
+        proxy_hide_header x-amz-request-id;
+        proxy_intercept_errors on;
+        expires 7d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Proxy API requests to the backend inside the docker network.
+    # With VITE_API_URL defaulting to /api/v1, the browser hits this same-origin path.
+    location /api {
+        set $backend_upstream http://backend:8001;
+        proxy_pass $backend_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+    }
+
+    # Serve all routes (dashboard, detections, etc.) through index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets (images, styles)
+    location ~* \.(?:ico|css|js|gif|jpe?g|png)$ {
+        expires 6M;
+        access_log off;
+        add_header Cache-Control "public";
+    }
+}

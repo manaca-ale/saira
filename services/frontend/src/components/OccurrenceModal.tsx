@@ -313,7 +313,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
       <div
         ref={modalRef}
         data-export-root="occurrence-modal"
-        className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200"
+        className="bg-white rounded-3xl w-full max-w-lg max-h-[calc(100vh-2rem)] shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200 flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-2">
@@ -329,7 +329,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 pt-2 space-y-5">
+        <div className="p-6 pt-2 space-y-5 overflow-y-auto flex-1 min-h-0">
           {/* Image */}
           <div className="relative w-full h-48 bg-gray-200 rounded-xl overflow-hidden group">
             <img

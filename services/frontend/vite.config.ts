@@ -13,6 +13,16 @@ export default defineConfig({
         target: "http://localhost:8001",
         changeOrigin: true,
       },
+      "/uploads": {
+        target: "http://localhost:5002",
+        changeOrigin: true,
+      },
+      "/s3-images": {
+        target: "https://saira-images.s3.sa-east-1.amazonaws.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/s3-images/, ""),
+        secure: true,
+      },
     },
   },
 });
