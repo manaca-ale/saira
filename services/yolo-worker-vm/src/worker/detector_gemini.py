@@ -86,10 +86,21 @@ Responda APENAS JSON valido com os campos solicitados.
 Nao inclua introducao, markdown, comentarios ou texto fora do JSON.
 Nao exponha cadeia de raciocinio interna.
 Use evidencia visual e temporal para decidir se houve descarte irregular RECENTE (ocorrido nesta janela temporal, nao apenas pre-existente).
-infraction_confirmed deve ser TRUE somente quando houver evidencia de descarte NOVO depositado durante a sequencia, mesmo sem identificar o infrator.
-A mera presenca de um objeto novo e pesado/volumoso (saco, mobilia, entulho, pilha de terra) que NAO estava no primeiro frame e nao tem explicacao natural (vento, gravidade) e evidencia suficiente — NAO e necessario ver o ato de depositar nem o infrator.
+infraction_confirmed deve ser TRUE somente quando houver evidencia CLARA e VISIVEL de descarte NOVO depositado durante a sequencia.
+
+REGRA CRITICA — NAO ALUCINAR OBJETOS:
+Se a calcada e a via estao LIMPAS nos frames (sem sacos, entulho, pilhas ou detritos visiveis), infraction_confirmed DEVE ser FALSE.
+Confirme APENAS objetos que voce consegue CLARAMENTE identificar nos pixels da imagem.
+NAO assuma, fabrique ou infira a presenca de objetos que nao sao claramente visiveis.
+Sombras, manchas no asfalto, marcacoes viarias e artefatos de compressao NAO sao residuos.
+
+Para confirmar infracao, e necessario evidencia VISUAL de pelo menos UM dos seguintes:
+1. Objetos de residuo CLARAMENTE VISIVEIS no chao (sacos, entulho, moveis, pilhas) que NAO estavam no primeiro frame
+2. Comportamento de descarte ativo: pessoa carregando, jogando ou depositando material no chao
+
 Lixeiras municipais (containers, lixeiras de calcada com tampa) sao infraestrutura urbana — NAO sao residuo irregular e nao confirmam infracao. Uso correto de lixeira publica (depositar residuos dentro dela) e comportamento cidadao correto, infraction_confirmed deve ser FALSE.
-Se prior_window_context indica que ja existia residuo nesta localizacao na janela anterior, o objeto suspeito pode ser residuo pre-existente ou infraestrutura. Neste caso, infraction_confirmed=TRUE somente se houver evidencia clara de ACRESCIMO de material (volume visivelmente maior) ou comportamento de descarte ativo (pessoa carregando, jogando ou depositando algo novo).
+Se prior_window_context indica que ja existia residuo nesta localizacao na janela anterior, o objeto suspeito pode ser residuo pre-existente ou infraestrutura. Neste caso, infraction_confirmed=TRUE somente se houver evidencia clara de ACRESCIMO de material (volume visivelmente maior) ou comportamento de descarte ativo.
+Veiculos parando para embarque/desembarque de passageiros NAO e descarte — isso e comportamento normal de transporte urbano.
 waste_type deve ser um dos seguintes valores: Entulho, Lixo domiciliar, Poda, Plastico. NAO use valores genericos como "Residuo solido".
 offender_detected descreve somente a capacidade de identificar o autor/veiculo e NAO invalida a infracao.
 Se um campo nao puder ser inferido com seguranca, retorne null no campo.
@@ -113,6 +124,7 @@ scene_type=DUMPING requires ALL THREE visible in the images:
 
 NOT dumping (do NOT classify as DUMPING):
 - Vehicles driving through = TRAFFIC
+- Vehicle stopped briefly for passenger pickup/dropoff (person enters/exits vehicle, no material on ground) = TRAFFIC
 - Orange/red bollards at pole bases = permanent infrastructure, not waste
 - Pedestrians walking or standing = TRAFFIC
 - Parked cars with nobody unloading = PARKED
