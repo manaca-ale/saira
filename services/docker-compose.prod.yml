@@ -130,10 +130,13 @@ services:
     restart: always
 
   # YOLO worker — frame comparison + DB insertion
+  # Habilitado via profile: docker compose --profile worker -f docker-compose.prod.yml up -d
   yolo-worker:
     build:
       context: ./yolo-worker-vm
     container_name: saira-yolo-worker-prod
+    profiles:
+      - worker
     environment:
       - UPLOAD_DIR=/app/uploads
       - STATE_DIR=/app/state
