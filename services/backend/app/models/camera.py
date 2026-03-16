@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Numeric
-from datetime import datetime
 from geoalchemy2 import Geometry
 from app.core.database import Base
+from app.core.timezone import now_brazil
 
 
 class Camera(Base):
@@ -19,6 +19,6 @@ class Camera(Base):
     rtsp_url = Column(String(512))
     capture_interval_seconds = Column(Integer, default=30)
     is_active = Column(Boolean, default=True, index=True)
-    last_capture_at = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_capture_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), default=now_brazil)
+    updated_at = Column(DateTime(timezone=True), default=now_brazil, onupdate=now_brazil)

@@ -13,6 +13,8 @@ import type {
   SSENotificationEvent,
 } from "../services/notificationService";
 
+export const SESSION_BANNER_KEY = "@Saira:notif_banner_dismissed";
+
 interface NotificationContextType {
   notifications: NotificationData[];
   unreadCount: number;
@@ -20,8 +22,10 @@ interface NotificationContextType {
   lastLoginAt: string | null;
   byRpa: Record<string, number>;
   isDrawerOpen: boolean;
+  bannerDismissed: boolean;
   toggleDrawer: () => void;
   closeDrawer: () => void;
+  dismissBanner: () => void;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   clearViewedNotifications: () => void;
@@ -39,7 +43,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [byRpa, setByRpa] = useState<Record<string, number>>({});
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [realtimeEvent, setRealtimeEvent] = useState<SSENotificationEvent | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    return sessionStorage.getItem(SESSION_BANNER_KEY) === "true";
+  });
   const sseConnected = useRef(false);
+
+  const dismissBanner = useCallback(() => {
+    sessionStorage.setItem(SESSION_BANNER_KEY, "true");
+    setBannerDismissed(true);
+  }, []);
+
+  // Reset banner flag on logout
+  useEffect(() => {
+    if (!isAuthenticated) {
+      sessionStorage.removeItem(SESSION_BANNER_KEY);
+      setBannerDismissed(false);
+    }
+  }, [isAuthenticated]);
 
   // Fetch initial data when authenticated
   useEffect(() => {
@@ -164,8 +184,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         lastLoginAt,
         byRpa,
         isDrawerOpen,
+        bannerDismissed,
         toggleDrawer,
         closeDrawer,
+        dismissBanner,
         markAsRead,
         markAllAsRead: markAllAsReadFn,
         clearViewedNotifications,

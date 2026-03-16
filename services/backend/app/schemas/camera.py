@@ -42,3 +42,11 @@ class CameraResponse(CameraBase):
 
     class Config:
         from_attributes = True
+
+
+class CameraLatestImageResponse(BaseModel):
+    camera_id: int
+    device_id: Optional[str] = None
+    image_url: Optional[str] = None
+    captured_at: Optional[datetime] = None
+    file_path: Optional[str] = None

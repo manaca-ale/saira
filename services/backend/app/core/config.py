@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     ENABLE_LOCAL_LOGIN: bool = True
     ENABLE_CONECTA_LOGIN: bool = False
 
@@ -64,6 +64,14 @@ class Settings(BaseSettings):
 
     # Offender recurrence
     HIGH_RECURRENCE_THRESHOLD: int = 5
+
+    # Geocodificação
+    NOMINATIM_BASE_URL: str = "https://nominatim.openstreetmap.org"
+    NOMINATIM_USER_AGENT: str = "saira-dashboard/1.0 (contato@saira.com)"
+    GEOCODING_COUNTRYCODES: str = "br"
+    # viewbox: lon_min,lat_max,lon_max,lat_min  (Região Metropolitana do Recife)
+    GEOCODING_VIEWBOX: str = "-35.10,-7.80,-34.70,-8.20"
+    GEOCODING_TIMEOUT_SECONDS: float = 5.0
 
     class Config:
         env_file = ".env"

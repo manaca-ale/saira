@@ -131,6 +131,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('@Saira:token');
     localStorage.removeItem('@Saira:user');
     localStorage.removeItem('@Saira:auth_provider');
+    sessionStorage.removeItem('@Saira:notif_banner_dismissed');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
 

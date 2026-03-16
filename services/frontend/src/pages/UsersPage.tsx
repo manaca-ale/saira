@@ -8,6 +8,9 @@ import {
   Trash2,
   Info,
   X,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { UserModal } from "../components/UserModal";
 import { DeleteModal } from "../components/DeleteModal";
@@ -50,6 +53,10 @@ export const UsersPage: React.FC = () => {
   const [filterEmail, setFilterEmail] = useState("");
   const [filterRoles, setFilterRoles] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState<string[]>([]);
+
+  // --- Sort States ---
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // --- Pagination States ---
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -107,7 +114,36 @@ export const UsersPage: React.FC = () => {
     return Array.from(new Set(filtered.map((user) => user.status))).sort();
   }, [filterEmail, filterName, filterRoles, filterStatus, users]);
 
-  const filteredUsers = users.filter((user) => matchesFilters(user));
+  const USER_COLUMNS = [
+    { label: "Nome", sortKey: "name" as const },
+    { label: "E-mail", sortKey: "email" as const },
+    { label: "Telefone", sortKey: "phone" as const },
+    { label: "Secretaria", sortKey: "secretaria" as const },
+    { label: "Cargo", sortKey: "cargo" as const },
+    { label: "RPA", sortKey: "rpa" as const },
+    { label: "Ação", sortKey: null },
+  ] as const;
+
+  const handleSort = (key: string | null) => {
+    if (!key) return;
+    if (sortBy === key) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortOrder("asc");
+    }
+  };
+
+  const filteredUsers = useMemo(() => {
+    const list = users.filter((user) => matchesFilters(user));
+    if (!sortBy) return list;
+    return [...list].sort((a, b) => {
+      const aVal = String((a as any)[sortBy] ?? "").toLowerCase();
+      const bVal = String((b as any)[sortBy] ?? "").toLowerCase();
+      const cmp = aVal.localeCompare(bVal);
+      return sortOrder === "asc" ? cmp : -cmp;
+    });
+  }, [users, filterName, filterEmail, filterRoles, filterStatus, sortBy, sortOrder]);
 
   // --- Pagination Logic ---
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -334,20 +370,24 @@ export const UsersPage: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {[
-                    "Nome",
-                    "E-mail",
-                    "Telefone",
-                    "Secretaria",
-                    "Cargo",
-                    "RPA",
-                    "Ação",
-                  ].map((head, i) => (
+                  {USER_COLUMNS.map((col, i) => (
                     <th
                       key={i}
-                      className="px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap"
+                      onClick={() => handleSort(col.sortKey)}
+                      className={`px-6 py-5 text-sm font-bold text-[#1a1a1a] whitespace-nowrap ${
+                        col.sortKey ? "cursor-pointer select-none hover:bg-gray-50 transition-colors" : ""
+                      }`}
                     >
-                      {head}
+                      <span className="inline-flex items-center gap-1">
+                        {col.label}
+                        {col.sortKey && (
+                          sortBy === col.sortKey
+                            ? sortOrder === "asc"
+                              ? <ArrowUp size={14} className="text-[#1a1a1a]" />
+                              : <ArrowDown size={14} className="text-[#1a1a1a]" />
+                            : <ArrowUpDown size={14} className="text-gray-300" />
+                        )}
+                      </span>
                     </th>
                   ))}
                 </tr>
