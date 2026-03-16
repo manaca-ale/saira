@@ -101,9 +101,18 @@ class GeminiInfractionReport(BaseModel):
 class GeminiNewLitterReport(BaseModel):
     """Structured response for stage-1 gate: compare first vs last frame of a time window."""
 
-    # Decision fields FIRST — ensures they are written before token budget runs out.
+    # Scene classification FIRST — forces model to categorize before deciding.
+    scene_type: str = Field(
+        description=(
+            "Classify the scene: EMPTY (no vehicles/people), "
+            "TRAFFIC (vehicles/people moving through), "
+            "PARKED (vehicles parked, no material handling), "
+            "DUMPING (vehicle stopped + person depositing material on ground)."
+        ),
+    )
+    # Decision fields — only meaningful when scene_type=DUMPING.
     new_litter_detected: bool = Field(
-        description="True only if new solid waste appears or increases between first and last frame."
+        description="True only when active dumping behavior is visible — vehicle stopped AND person depositing material."
     )
     confidence_0_100: int = Field(
         ge=0,
@@ -112,7 +121,7 @@ class GeminiNewLitterReport(BaseModel):
     )
     evidence_summary: str = Field(
         min_length=1,
-        max_length=300,
+        max_length=500,
         description="Short factual summary of visual comparison (1-2 sentences).",
     )
     first_frame_has_litter: bool = False
@@ -126,7 +135,7 @@ class GeminiNewLitterReport(BaseModel):
         description=(
             "Concise reasoning: (1) up to 5 fixed objects in first frame, "
             "(2) up to 5 fixed objects in last frame, "
-            "(3) differences classified as SHADOW|LIGHTING|MOVING_OBJECT|NEW_SOLID_WASTE|EXISTING_WASTE_SHIFTED."
+            "(3) differences classified as SHADOW|LIGHTING|MOVING_OBJECT|DUMPING_BEHAVIOR."
         ),
     )
 

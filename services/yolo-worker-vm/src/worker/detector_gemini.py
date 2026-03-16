@@ -96,24 +96,31 @@ Se um campo nao puder ser inferido com seguranca, retorne null no campo.
 """.strip()
 
 NEW_LITTER_SYSTEM_PROMPT = """
-You are a visual auditor comparing CCTV frames to detect illegal waste dumping.
-You receive 2 to 5 frames: initial, final, and optionally up to 3 mid-window frames at 25%, 50%, 75% of the time window.
+You analyze CCTV frames to classify urban scenes. You receive 2-5 frames from the same camera.
 
-ANALYSIS (keep scene_delta_analysis under 400 chars — list max 5 items per step):
-(1) Fixed objects in initial frame (no vehicles/people), (2) Fixed objects in final frame, (3) Differences: SHADOW|LIGHTING|MOVING_OBJECT|NEW_SOLID_WASTE|EXISTING_WASTE_SHIFTED.
+FIRST, classify scene_type as one of:
+- EMPTY: No vehicles or people visible in any frame.
+- TRAFFIC: Vehicles and/or people moving through the scene (different positions across frames).
+- PARKED: Vehicles stationary but NO person handling material nearby.
+- DUMPING: A vehicle is STOPPED and a person is ACTIVELY depositing material on the ground.
 
-BEHAVIORAL PATTERNS — if ANY pattern matches, set new_litter_detected=true, waste_type="Dumping behavior detected", confidence_0_100=85:
+IMPORTANT: Over 95% of scenes are EMPTY, TRAFFIC, or PARKED. Default to these.
 
-PATTERN A (vehicle stays): Vehicle in BOTH frames + person near vehicle/waste + any waste-area change.
-PATTERN B (vehicle departs): Vehicle near waste in initial frame, ABSENT in final + people visible near it + waste pile remains.
-PATTERN C (ghost event — requires mid frames): A vehicle or person appears in ANY mid frame but is ABSENT in both initial AND final frames. This indicates arrive-dump-leave within the window. Set new_litter_detected=true even if initial and final frames look identical. With multiple mid frames, ANY single mid frame showing activity is sufficient.
+scene_type=DUMPING requires ALL THREE visible in the images:
+1. A vehicle STOPPED at the roadside (same position in 2+ frames)
+2. A person near the vehicle carrying, unloading, or placing material
+3. New material on the ground in the final frame that was absent in the initial frame
 
-DECISION RULES:
-- new_litter_detected=true if NEW_SOLID_WASTE detected OR any behavioral pattern matches.
-- NEW_SOLID_WASTE: bags, rubble, furniture, electronics, household waste left on ground.
-- Vehicles and people are NEVER waste. Shadows, reflections, lighting changes are NOT waste.
-- Objects in BOTH frames unchanged = EXISTING_WASTE_SHIFTED, not new.
-- Municipal trash bins are infrastructure, not waste. Using them correctly is NOT dumping.
+NOT dumping (do NOT classify as DUMPING):
+- Vehicles driving through = TRAFFIC
+- Orange/red bollards at pole bases = permanent infrastructure, not waste
+- Pedestrians walking or standing = TRAFFIC
+- Parked cars with nobody unloading = PARKED
+- Shadow or lighting changes between frames = EMPTY or TRAFFIC
+- Pre-existing waste piles unchanged between frames = PARKED
+
+Set new_litter_detected=true ONLY when scene_type=DUMPING.
+For EMPTY/TRAFFIC/PARKED: new_litter_detected=false, confidence_0_100=0.
 
 Respond with ONLY valid JSON.
 """.strip()
@@ -327,15 +334,21 @@ def normalize_offender_types(values: Optional[list[str]]) -> list[str]:
     return normalized
 
 
-def _build_generate_config(schema: dict, max_output_tokens: Optional[int] = None):
+def _build_generate_config(schema: dict, max_output_tokens: Optional[int] = None,
+                           thinking_budget: Optional[int] = None, seed: Optional[int] = None):
     # The SDK supports response_schema for structured outputs.
     if types is None:
         raise RuntimeError("google-genai types are unavailable")
+    thinking_config = None
+    if thinking_budget is not None:
+        thinking_config = types.ThinkingConfig(thinking_budget=thinking_budget)
     return types.GenerateContentConfig(
         temperature=config.GEMINI_TEMPERATURE,
         max_output_tokens=max_output_tokens or config.GEMINI_MAX_OUTPUT_TOKENS,
         response_mime_type="application/json",
         response_schema=schema,
+        thinking_config=thinking_config,
+        seed=seed,
     )
 
 
@@ -346,6 +359,8 @@ def _call_model(
     model_name: str,
     response_schema: dict,
     max_output_tokens: Optional[int] = None,
+    thinking_budget: Optional[int] = None,
+    seed: Optional[int] = None,
 ):
     client = _get_client()
 
@@ -364,7 +379,8 @@ def _call_model(
     return client.models.generate_content(
         model=model_name,
         contents=contents,
-        config=_build_generate_config(response_schema, max_output_tokens=max_output_tokens),
+        config=_build_generate_config(response_schema, max_output_tokens=max_output_tokens,
+                                      thinking_budget=thinking_budget, seed=seed),
     )
 
 
@@ -604,6 +620,8 @@ def analyze_new_litter_with_gemini(
                         model_name,
                         GeminiNewLitterReport.model_json_schema(),
                         config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS,
+                        thinking_budget=config.GEMINI_AGENT1_THINKING_BUDGET,
+                        seed=42,
                     )
                     response = fut.result(timeout=timeout_s)
 
@@ -611,6 +629,18 @@ def analyze_new_litter_with_gemini(
                 report = GeminiNewLitterReport.model_validate_json(raw_text)
                 report.waste_type = normalize_waste_type(report.waste_type)
                 report.confidence_0_100 = max(0, min(100, int(report.confidence_0_100)))
+
+                # Hard gate: override hallucinated detections when scene_type
+                # is not DUMPING.  The model must classify the scene BEFORE
+                # deciding, and only DUMPING scenes can trigger.
+                scene = getattr(report, "scene_type", "").upper().strip()
+                if scene != "DUMPING" and report.new_litter_detected:
+                    logger.info(
+                        "gate override: scene_type=%s but new_litter_detected=true -> forcing false (request_id=%s)",
+                        scene, request_id,
+                    )
+                    report.new_litter_detected = False
+                    report.confidence_0_100 = 0
 
                 usage = _extract_usage(response)
                 latency_ms = int((time.monotonic() - started) * 1000)
