@@ -10,6 +10,11 @@ desktop.ini
 # Local assistant state
 .claude/
 
+# GCP credentials (never commit)
+gcp-sa-key.json
+gcp-credentials.json
+application_default_credentials.json
+
 # Python
 __pycache__/
 *.py[cod]

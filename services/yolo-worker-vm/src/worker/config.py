@@ -80,9 +80,9 @@ MOCK_MODE = os.getenv("MOCK_MODE", "false").strip().lower() in ("true", "1", "ye
 # Gemini settings.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
-GEMINI_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "15"))
+GEMINI_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
 GEMINI_MAX_RETRIES = int(os.getenv("GEMINI_MAX_RETRIES", "2"))
-GEMINI_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", "0.1"))
+GEMINI_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", "0.0"))
 GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_SEQUENCE_SIZE = int(os.getenv("GEMINI_SEQUENCE_SIZE", "5"))
 GEMINI_SEQUENCE_MAX_SPAN_SECONDS = int(os.getenv("GEMINI_SEQUENCE_MAX_SPAN_SECONDS", "4"))
@@ -95,14 +95,18 @@ GEMINI_CASCADE_MAX_FRAMES = int(os.getenv("GEMINI_CASCADE_MAX_FRAMES", "12"))
 GEMINI_CASCADE_MIN_FRAMES = int(os.getenv("GEMINI_CASCADE_MIN_FRAMES", "6"))
 GEMINI_AGENT1_MODEL = os.getenv("GEMINI_AGENT1_MODEL", GEMINI_MODEL).strip()
 GEMINI_AGENT1_TIMEOUT_SECONDS = int(os.getenv("GEMINI_AGENT1_TIMEOUT_SECONDS", str(GEMINI_TIMEOUT_SECONDS)))
-GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE", "75"))
+GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE", "85"))
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
+GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
 
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.
 GEMINI_MOSAIC_AGENT1: bool = os.getenv("GEMINI_MOSAIC_AGENT1", "false").strip().lower() in ("true", "1", "yes")
 GEMINI_MOSAIC_AGENT2: str = os.getenv("GEMINI_MOSAIC_AGENT2", "off").strip().lower()
+
+# Visual grounding — require bounding box for Agent 2 infraction confirmation.
+GEMINI_REQUIRE_BBOX = os.getenv("GEMINI_REQUIRE_BBOX", "true").strip().lower() in ("true", "1", "yes")
 
 # Token cost estimation (USD per 1M tokens) — gemini-2.5-flash pricing (non-thinking).
 GEMINI_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_INPUT_TOKEN_PRICE_PER_1M", "0.15"))

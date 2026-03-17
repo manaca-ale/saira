@@ -22,6 +22,13 @@ _NULL_LIKE = {
 class GeminiInfractionReport(BaseModel):
     """Structured response returned by Gemini for one temporal sequence."""
 
+    # Chain-of-Verification: baseline BEFORE decision (forces model to anchor on normal state).
+    baseline_description: str = Field(
+        default="",
+        max_length=400,
+        description="List up to 5 fixed/permanent objects visible in the first frame.",
+    )
+
     infraction_confirmed: bool = Field(
         description="True only when disposal action is visually confirmed in sequence context."
     )
@@ -51,6 +58,17 @@ class GeminiInfractionReport(BaseModel):
     plate_pattern: Optional[str] = Field(default=None, max_length=20)
 
     raw_reason_codes: Optional[list[str]] = Field(default=None, description="Internal machine-readable reason codes.")
+
+    # Visual grounding — bounding boxes force spatial accountability (anti-hallucination).
+    waste_bbox: Optional[list[int]] = Field(
+        default=None,
+        description="Bounding box [y_min, x_min, y_max, x_max] of detected waste, normalized 0-1000.",
+    )
+    offender_bbox: Optional[list[int]] = Field(
+        default=None,
+        description="Bounding box [y_min, x_min, y_max, x_max] of offender/vehicle, normalized 0-1000.",
+    )
+
     event_frame_name: Optional[str] = Field(
         default=None,
         max_length=255,
@@ -101,9 +119,35 @@ class GeminiInfractionReport(BaseModel):
 class GeminiNewLitterReport(BaseModel):
     """Structured response for stage-1 gate: compare first vs last frame of a time window."""
 
-    # Decision fields FIRST — ensures they are written before token budget runs out.
+    # Scene classification FIRST — forces model to categorize before deciding.
+    scene_type: str = Field(
+        description=(
+            "Classify the scene: EMPTY (no vehicles/people), "
+            "TRAFFIC (vehicles/people moving through), "
+            "PARKED (vehicles parked, no material handling), "
+            "DUMPING (vehicle stopped + person depositing material on ground)."
+        ),
+    )
+
+    # Independent boolean conditions — evaluated separately by the model,
+    # combined deterministically by Python (AND gate). This prevents Flash-Lite
+    # from failing compound Boolean logic internally.
+    vehicle_stopped: bool = Field(
+        default=False,
+        description="Is a vehicle stationary (same position) in 2+ frames?",
+    )
+    person_handling_material: bool = Field(
+        default=False,
+        description="Is a person carrying, unloading, or depositing material near a vehicle?",
+    )
+    new_ground_material: bool = Field(
+        default=False,
+        description="Is there new material on the ground in the last frame that was absent in the first?",
+    )
+
+    # Decision fields — only meaningful when scene_type=DUMPING.
     new_litter_detected: bool = Field(
-        description="True only if new solid waste appears or increases between first and last frame."
+        description="True only when active dumping behavior is visible — vehicle stopped AND person depositing material."
     )
     confidence_0_100: int = Field(
         ge=0,
@@ -112,7 +156,7 @@ class GeminiNewLitterReport(BaseModel):
     )
     evidence_summary: str = Field(
         min_length=1,
-        max_length=300,
+        max_length=500,
         description="Short factual summary of visual comparison (1-2 sentences).",
     )
     first_frame_has_litter: bool = False
@@ -126,7 +170,7 @@ class GeminiNewLitterReport(BaseModel):
         description=(
             "Concise reasoning: (1) up to 5 fixed objects in first frame, "
             "(2) up to 5 fixed objects in last frame, "
-            "(3) differences classified as SHADOW|LIGHTING|MOVING_OBJECT|NEW_SOLID_WASTE|EXISTING_WASTE_SHIFTED."
+            "(3) differences classified as SHADOW|LIGHTING|MOVING_OBJECT|DUMPING_BEHAVIOR."
         ),
     )
 

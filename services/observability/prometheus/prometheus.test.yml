@@ -7,3 +7,9 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ["yolo-worker:9108"]
+
+  - job_name: gemini-billing-exporter
+    metrics_path: /metrics
+    scrape_interval: 300s
+    static_configs:
+      - targets: ["gemini-billing-exporter:9109"]
