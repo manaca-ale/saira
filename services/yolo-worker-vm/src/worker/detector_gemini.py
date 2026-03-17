@@ -83,27 +83,38 @@ OFFENDER_TYPE_MAP = {
 SYSTEM_PROMPT = """
 Voce e um auditor visual de descarte irregular de residuos em via publica no Brasil.
 Responda APENAS JSON valido com os campos solicitados.
-Nao inclua introducao, markdown, comentarios ou texto fora do JSON.
-Nao exponha cadeia de raciocinio interna.
-Use evidencia visual e temporal para decidir se houve descarte irregular RECENTE (ocorrido nesta janela temporal, nao apenas pre-existente).
-infraction_confirmed deve ser TRUE somente quando houver evidencia CLARA e VISIVEL de descarte NOVO depositado durante a sequencia.
 
-REGRA CRITICA — NAO ALUCINAR OBJETOS:
-Se a calcada e a via estao LIMPAS nos frames (sem sacos, entulho, pilhas ou detritos visiveis), infraction_confirmed DEVE ser FALSE.
-Confirme APENAS objetos que voce consegue CLARAMENTE identificar nos pixels da imagem.
-NAO assuma, fabrique ou infira a presenca de objetos que nao sao claramente visiveis.
-Sombras, manchas no asfalto, marcacoes viarias e artefatos de compressao NAO sao residuos.
+BASELINE ESPERADO: A cena padrao consiste em via asfaltada, calcadas, veiculos estacionados,
+infraestrutura municipal fixa (postes, lixeiras com tampa, bollards, marcacoes viarias) e
+iluminacao natural variavel. Estes elementos sao NORMAIS e ESPERADOS.
 
-Para confirmar infracao, e necessario evidencia VISUAL de pelo menos UM dos seguintes:
-1. Objetos de residuo CLARAMENTE VISIVEIS no chao (sacos, entulho, moveis, pilhas) que NAO estavam no primeiro frame
-2. Comportamento de descarte ativo: pessoa carregando, jogando ou depositando material no chao
+PROCESSO DE VERIFICACAO (siga na ordem):
+1. INVENTARIO: Em baseline_description, liste ate 5 objetos fixos/permanentes visiveis no primeiro frame.
+2. DELTA TEMPORAL: Identifique o que MUDOU entre o primeiro e o ultimo frame.
+3. CLASSIFICACAO: Cada mudanca e SOMBRA_ILUMINACAO, OBJETO_EM_MOVIMENTO, ou COMPORTAMENTO_DESCARTE.
+4. DECISAO: infraction_confirmed=true quando houver COMPORTAMENTO_DESCARTE confirmado.
 
-Lixeiras municipais (containers, lixeiras de calcada com tampa) sao infraestrutura urbana — NAO sao residuo irregular e nao confirmam infracao. Uso correto de lixeira publica (depositar residuos dentro dela) e comportamento cidadao correto, infraction_confirmed deve ser FALSE.
-Se prior_window_context indica que ja existia residuo nesta localizacao na janela anterior, o objeto suspeito pode ser residuo pre-existente ou infraestrutura. Neste caso, infraction_confirmed=TRUE somente se houver evidencia clara de ACRESCIMO de material (volume visivelmente maior) ou comportamento de descarte ativo.
-Veiculos parando para embarque/desembarque de passageiros NAO e descarte — isso e comportamento normal de transporte urbano.
-waste_type deve ser um dos seguintes valores: Entulho, Lixo domiciliar, Poda, Plastico. NAO use valores genericos como "Residuo solido".
-offender_detected descreve somente a capacidade de identificar o autor/veiculo e NAO invalida a infracao.
-Se um campo nao puder ser inferido com seguranca, retorne null no campo.
+COMPORTAMENTO_DESCARTE e confirmado quando QUALQUER das seguintes evidencias e visivel:
+A) Material novo claramente visivel no chao que surgiu durante a sequencia.
+B) Veiculo PARADO (mesma posicao em 2+ frames) proximo a area de residuos com pessoa
+   ESTACIONARIA entre o veiculo e o chao, carregando ou manuseando material.
+C) Veiculo com cacamba aberta/levantada proximo a pilha de residuos, descarregando.
+
+SINAL-CHAVE: Veiculos e pessoas realizando descarte ficam ESTACIONARIOS entre os frames
+(mesma posicao relativa). Trafego normal mostra veiculos/pessoas em POSICOES DIFERENTES
+entre frames. Use esta diferenca para distinguir descarte de trafego.
+
+Quando infraction_confirmed=true, inclua bounding boxes normalizados 0-1000 [y_min, x_min, y_max, x_max]:
+- waste_bbox: delimitando o residuo depositado (quando visivel como objeto distinto)
+- offender_bbox: delimitando o infrator/veiculo (quando visivel)
+Quando o material depositado se mistura a uma pilha existente, waste_bbox pode ser null
+desde que offender_bbox identifique o agente do descarte.
+
+Uso correto de lixeira publica e comportamento cidadao correto — infraction_confirmed=false.
+Veiculos parando para embarque/desembarque de passageiros e transporte urbano normal.
+waste_type: Entulho, Lixo domiciliar, Poda, ou Plastico.
+offender_detected descreve somente a capacidade de identificar o autor/veiculo.
+Se um campo nao puder ser inferido com seguranca, retorne null.
 """.strip()
 
 NEW_LITTER_SYSTEM_PROMPT = """
@@ -117,15 +128,14 @@ FIRST, classify scene_type as one of:
 
 IMPORTANT: Over 95% of scenes are EMPTY, TRAFFIC, or PARKED. Default to these.
 
-scene_type=DUMPING requires ALL THREE visible in the images:
-1. A vehicle STOPPED at the roadside (same position in 2+ frames)
-2. A person near the vehicle carrying, unloading, or placing material
-3. New material on the ground in the final frame that was absent in the initial frame
+EVALUATE each boolean field INDEPENDENTLY based on visual evidence:
+- vehicle_stopped: Is a vehicle stationary (same position in 2+ frames)?
+- person_handling_material: Is a person carrying, unloading, or depositing material near a vehicle?
+- new_ground_material: Is there new material on the ground in the last frame that was absent in the first?
 
-NOT dumping (do NOT classify as DUMPING):
+COMMON SCENES (these are normal, not DUMPING):
 - Vehicles driving through = TRAFFIC
-- Vehicle stopped briefly for passenger pickup/dropoff (person enters/exits vehicle, no material on ground) = TRAFFIC
-- Orange/red bollards at pole bases = permanent infrastructure, not waste
+- Vehicle stopped briefly for passenger pickup/dropoff (person enters/exits vehicle) = TRAFFIC
 - Pedestrians walking or standing = TRAFFIC
 - Parked cars with nobody unloading = PARKED
 - Shadow or lighting changes between frames = EMPTY or TRAFFIC
@@ -228,7 +238,8 @@ def _new_litter_user_prompt(
         mid_block = f"Mid-window frames (25%/50%/75%): {labels}\n"
 
     json_fields = (
-        "Return JSON: new_litter_detected, confidence_0_100, evidence_summary, "
+        "Return JSON: scene_type, vehicle_stopped, person_handling_material, "
+        "new_ground_material, new_litter_detected, confidence_0_100, evidence_summary, "
         "first_frame_has_litter, last_frame_has_litter, waste_type, raw_reason_codes, "
         "scene_delta_analysis.\n"
     )
@@ -434,6 +445,36 @@ def _extract_text(resp) -> str:
     return "\n".join(chunks)
 
 
+def _validate_bbox(bbox: object, label: str) -> Optional[list[int]]:
+    """Validate a Gemini bounding box [y_min, x_min, y_max, x_max] normalized 0-1000.
+
+    Returns None if invalid (wrong length, out of range, too large, or too small).
+    """
+    if bbox is None:
+        return None
+    try:
+        coords = [int(v) for v in bbox]
+    except (TypeError, ValueError):
+        return None
+    if len(coords) != 4:
+        return None
+    y_min, x_min, y_max, x_max = coords
+    if not all(0 <= v <= 1000 for v in coords):
+        return None
+    if y_max <= y_min or x_max <= x_min:
+        return None
+    area = (y_max - y_min) * (x_max - x_min)
+    total_area = 1000 * 1000
+    ratio = area / total_area
+    if ratio > 0.60:
+        logger.info("bbox_rejected_%s: covers %.1f%% of image (too large)", label, ratio * 100)
+        return None
+    if ratio < 0.01:
+        logger.info("bbox_rejected_%s: covers %.2f%% of image (too small)", label, ratio * 100)
+        return None
+    return coords
+
+
 def _sanitize_report(
     report: GeminiInfractionReport,
     allowed_frame_names: Optional[set[str]] = None,
@@ -461,6 +502,23 @@ def _sanitize_report(
             report.event_frame_name = None
         if report.offender_frame_name and report.offender_frame_name not in allowed_frame_names:
             report.offender_frame_name = None
+
+    # Visual grounding — validate bounding boxes and reject ungrounded claims.
+    report.waste_bbox = _validate_bbox(getattr(report, "waste_bbox", None), "waste")
+    report.offender_bbox = _validate_bbox(getattr(report, "offender_bbox", None), "offender")
+
+    # Visual grounding: require at least ONE valid bbox (waste OR offender).
+    # When waste is deposited on an existing pile, waste_bbox may be null but
+    # offender_bbox (vehicle/person) still provides spatial accountability.
+    has_grounding = report.waste_bbox is not None or report.offender_bbox is not None
+    if config.GEMINI_REQUIRE_BBOX and report.infraction_confirmed and not has_grounding:
+        logger.info(
+            "grounding_rejection: infraction_confirmed=true but no valid bbox "
+            "(waste_bbox=%s, offender_bbox=%s) -> forcing false",
+            report.waste_bbox, report.offender_bbox,
+        )
+        report.infraction_confirmed = False
+        report.confidence_0_100 = 0
 
     return report
 
@@ -653,6 +711,40 @@ def analyze_new_litter_with_gemini(
                     )
                     report.new_litter_detected = False
                     report.confidence_0_100 = 0
+
+                # Deterministic 2-of-3 gate — Python executes the Boolean logic,
+                # not the model. Flash-Lite evaluated each condition independently;
+                # we require at least 2 of 3 to pass (AND-3 was too strict for
+                # dumping on existing piles where new_ground_material is false).
+                bool_count = sum([
+                    bool(getattr(report, "vehicle_stopped", False)),
+                    bool(getattr(report, "person_handling_material", False)),
+                    bool(getattr(report, "new_ground_material", False)),
+                ])
+                if report.new_litter_detected and bool_count < 2:
+                    logger.info(
+                        "deterministic_gate: only %d/3 conditions met "
+                        "(vehicle_stopped=%s, person_handling=%s, new_ground=%s) "
+                        "-> forcing false (request_id=%s)",
+                        bool_count,
+                        getattr(report, "vehicle_stopped", False),
+                        getattr(report, "person_handling_material", False),
+                        getattr(report, "new_ground_material", False),
+                        request_id,
+                    )
+                    report.new_litter_detected = False
+                    report.confidence_0_100 = 0
+
+                # Positive override: model classified DUMPING + 2-of-3 conditions
+                # met but set new_litter_detected=false — trust structured evidence.
+                if not report.new_litter_detected and scene == "DUMPING" and bool_count >= 2:
+                    logger.info(
+                        "positive_override: scene=DUMPING + %d/3 conditions met "
+                        "-> forcing new_litter_detected=true (request_id=%s)",
+                        bool_count, request_id,
+                    )
+                    report.new_litter_detected = True
+                    report.confidence_0_100 = max(report.confidence_0_100, 85)
 
                 usage = _extract_usage(response)
                 latency_ms = int((time.monotonic() - started) * 1000)

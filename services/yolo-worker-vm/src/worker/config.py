@@ -105,6 +105,9 @@ GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "
 GEMINI_MOSAIC_AGENT1: bool = os.getenv("GEMINI_MOSAIC_AGENT1", "false").strip().lower() in ("true", "1", "yes")
 GEMINI_MOSAIC_AGENT2: str = os.getenv("GEMINI_MOSAIC_AGENT2", "off").strip().lower()
 
+# Visual grounding — require bounding box for Agent 2 infraction confirmation.
+GEMINI_REQUIRE_BBOX = os.getenv("GEMINI_REQUIRE_BBOX", "true").strip().lower() in ("true", "1", "yes")
+
 # Token cost estimation (USD per 1M tokens) — gemini-2.5-flash pricing (non-thinking).
 GEMINI_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_INPUT_TOKEN_PRICE_PER_1M", "0.15"))
 GEMINI_OUTPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_OUTPUT_TOKEN_PRICE_PER_1M", "0.60"))

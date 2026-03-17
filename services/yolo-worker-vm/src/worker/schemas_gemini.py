@@ -22,6 +22,13 @@ _NULL_LIKE = {
 class GeminiInfractionReport(BaseModel):
     """Structured response returned by Gemini for one temporal sequence."""
 
+    # Chain-of-Verification: baseline BEFORE decision (forces model to anchor on normal state).
+    baseline_description: str = Field(
+        default="",
+        max_length=400,
+        description="List up to 5 fixed/permanent objects visible in the first frame.",
+    )
+
     infraction_confirmed: bool = Field(
         description="True only when disposal action is visually confirmed in sequence context."
     )
@@ -51,6 +58,17 @@ class GeminiInfractionReport(BaseModel):
     plate_pattern: Optional[str] = Field(default=None, max_length=20)
 
     raw_reason_codes: Optional[list[str]] = Field(default=None, description="Internal machine-readable reason codes.")
+
+    # Visual grounding — bounding boxes force spatial accountability (anti-hallucination).
+    waste_bbox: Optional[list[int]] = Field(
+        default=None,
+        description="Bounding box [y_min, x_min, y_max, x_max] of detected waste, normalized 0-1000.",
+    )
+    offender_bbox: Optional[list[int]] = Field(
+        default=None,
+        description="Bounding box [y_min, x_min, y_max, x_max] of offender/vehicle, normalized 0-1000.",
+    )
+
     event_frame_name: Optional[str] = Field(
         default=None,
         max_length=255,
@@ -110,6 +128,23 @@ class GeminiNewLitterReport(BaseModel):
             "DUMPING (vehicle stopped + person depositing material on ground)."
         ),
     )
+
+    # Independent boolean conditions — evaluated separately by the model,
+    # combined deterministically by Python (AND gate). This prevents Flash-Lite
+    # from failing compound Boolean logic internally.
+    vehicle_stopped: bool = Field(
+        default=False,
+        description="Is a vehicle stationary (same position) in 2+ frames?",
+    )
+    person_handling_material: bool = Field(
+        default=False,
+        description="Is a person carrying, unloading, or depositing material near a vehicle?",
+    )
+    new_ground_material: bool = Field(
+        default=False,
+        description="Is there new material on the ground in the last frame that was absent in the first?",
+    )
+
     # Decision fields — only meaningful when scene_type=DUMPING.
     new_litter_detected: bool = Field(
         description="True only when active dumping behavior is visible — vehicle stopped AND person depositing material."
