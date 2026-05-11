@@ -91,7 +91,7 @@ const BubbleMapLayer: React.FC<{ points: PoiData[]; scaleFactor: number; onMarke
         // Normalize tiny m³ values (e.g., 0.05) so markers stay visible without overgrowing large events.
         const safeVolume = Math.max(volume, 0);
         const normalized = Math.sqrt((safeVolume * 100) + 1);
-        return Math.min(80, Math.max(10, normalized * scaleFactor));
+        return Math.min(50, Math.max(8, normalized * scaleFactor));
     };
 
     return <> {points.map(point => (
@@ -207,7 +207,7 @@ export const MapWidget: React.FC<{ isExpanded: boolean; onToggleExpand: () => vo
   const [highThreshold, setHighThreshold] = useState(0.6);
 
   // Bubble map settings
-  const [scaleFactor, setScaleFactor] = useState(3.0);
+  const [scaleFactor, setScaleFactor] = useState(1.5);
 
   const heatmapPoints = dataPoints.map(p => [p.latitude, p.longitude, p.volume / 100] as L.HeatLatLngTuple);
   const heatmapOptions: L.HeatMapOptions = { radius, blur, minOpacity, max: maxIntensity, gradient: { 0.0: 'blue', [lowThreshold]: 'cyan', [highThreshold]: 'purple', 1.0: 'red' } };
