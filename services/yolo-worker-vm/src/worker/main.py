@@ -32,6 +32,10 @@ from .detector_gemini import (
     normalize_offender_types,
 )
 from .metrics import (
+    observe_car_shadow_comparison,
+    observe_car_shadow_error,
+    observe_car_shadow_events,
+    observe_car_shadow_window,
     observe_gemini_call,
     observe_gemini_error,
     observe_gemini_success,
@@ -41,6 +45,9 @@ from .metrics import (
     start_metrics_server,
 )
 from .models import DetectionRecord, GeminiUsage, OffenderRecord
+
+if config.CAR_SHADOW_ENABLED:
+    from . import detector_car_stopped, detector_car_yolo
 
 if config.AI_MODE in {"yolo", "shadow"}:
     if config.MOCK_MODE:
@@ -925,6 +932,11 @@ def _process_with_gemini_cascade_window(
     )
 
     if not gate_trigger:
+        car_payload = (
+            _run_car_shadow_for_window(window_paths, device_id, camera, gemini_disposal=False)
+            if config.CAR_SHADOW_ENABLED
+            else None
+        )
         return False, {
             "provider": "gemini_cascade",
             "success": True,
@@ -933,6 +945,7 @@ def _process_with_gemini_cascade_window(
             "disposal": False,
             "agent1_result": gate_payload,
             "agent2_result": None,
+            "car_shadow_result": car_payload,
         }
 
     disposal, agent2_payload = _process_with_gemini(
@@ -974,6 +987,11 @@ def _process_with_gemini_cascade_window(
         )
     )
 
+    car_payload = (
+        _run_car_shadow_for_window(window_paths, device_id, camera, gemini_disposal=bool(disposal))
+        if config.CAR_SHADOW_ENABLED
+        else None
+    )
     return bool(disposal), {
         "provider": "gemini_cascade",
         "success": True,
@@ -982,6 +1000,7 @@ def _process_with_gemini_cascade_window(
         "disposal": bool(disposal),
         "agent1_result": gate_payload,
         "agent2_result": agent2_payload,
+        "car_shadow_result": car_payload,
     }
 
 
@@ -1048,6 +1067,210 @@ def _update_shadow_metrics(day_dir: Path, record: dict[str, Any]) -> None:
         metrics["latency_samples_ms"] = metrics["latency_samples_ms"][-5000:]
 
     metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+# ==========================================
+# CAR-STOPPED SHADOW DETECTOR (parallel to Gemini, never persists to DB)
+# ==========================================
+def _car_config() -> "detector_car_stopped.CarConfig":
+    return detector_car_stopped.CarConfig(
+        stationary_pixels=config.CAR_STATIONARY_PIXELS,
+        low_frames=config.CAR_LOW_FRAMES,
+        med_frames=config.CAR_MED_FRAMES,
+        high_frames=config.CAR_HIGH_FRAMES,
+        track_ttl_seconds=config.CAR_TRACK_TTL_SECONDS,
+        max_buffer_frames=config.CAR_MAX_BUFFER_FRAMES,
+    )
+
+
+def _run_car_shadow_for_window(
+    window_paths: list[Path],
+    device_id: str,
+    camera,
+    gemini_disposal: Optional[bool],
+) -> dict[str, Any]:
+    """Run the stopped-vehicle detector on the same window Gemini just judged.
+
+    Side-effects: persists tracker state into STATE_DIR/{device_id}.json under
+    the `car_tracker` key, writes a JSONL audit record, updates Prometheus
+    metrics. Returns a payload dict for inclusion in the cascade result.
+
+    Never raises — any internal error is captured, logged, counted, and
+    returned in the payload so the Gemini path stays unaffected.
+    """
+    cam_label = str(camera.id) if camera is not None else "unknown"
+    t0 = time.time()
+    try:
+        # 1. YOLO inference per frame.
+        detections_per_frame: list[list[dict]] = []
+        frame_timestamps: list[datetime] = []
+        for path in window_paths:
+            try:
+                dets = detector_car_yolo.analyze_image(path, conf=config.CAR_CONF_THRESHOLD)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("car_shadow YOLO error on %s: %s", path.name, exc)
+                dets = []
+            detections_per_frame.append(dets)
+            frame_timestamps.append(parse_timestamp(path.name))
+
+        # 2. Centroid tracker over the window, with cross-window state.
+        state = load_state(device_id)
+        prior_car_state = state.get("car_tracker")
+        new_car_state, events = detector_car_stopped.process_window(
+            detections_per_frame=detections_per_frame,
+            frame_timestamps=frame_timestamps,
+            prior_state=prior_car_state,
+            config=_car_config(),
+        )
+        state["car_tracker"] = new_car_state
+        save_state(device_id, state)
+
+        # 3. Comparison classification + metrics.
+        car_max = detector_car_stopped.max_level(events)
+        comparison_class = (
+            detector_car_stopped.classify_comparison(bool(gemini_disposal), car_max)
+            if gemini_disposal is not None
+            else "no_gemini_decision"
+        )
+        levels = [ev.level for ev in events]
+        observe_car_shadow_window(cam_label, time.time() - t0)
+        observe_car_shadow_events(cam_label, levels)
+        if comparison_class != "no_gemini_decision":
+            observe_car_shadow_comparison(cam_label, comparison_class)
+
+        events_payload = [
+            {
+                "level": ev.level,
+                "frames_stayed": ev.frames_stayed,
+                "occurrence_id": ev.occurrence_id,
+                "track_id": ev.track_id,
+                "last_bbox": ev.last_bbox,
+                "last_confidence": round(ev.last_confidence, 3),
+                "first_seen_ts": ev.first_seen_ts,
+                "last_seen_ts": ev.last_seen_ts,
+            }
+            for ev in events
+        ]
+
+        payload = {
+            "success": True,
+            "comparison_class": comparison_class,
+            "car_max_level": car_max,
+            "events": events_payload,
+            "window_size": len(window_paths),
+            "first_frame": window_paths[0].name if window_paths else None,
+            "last_frame": window_paths[-1].name if window_paths else None,
+            "inference_seconds": round(time.time() - t0, 3),
+            "active_tracks_remaining": len(new_car_state.get("active_tracks", {})),
+        }
+
+        # 4. JSONL audit.
+        audit_record = {
+            "device_id": device_id,
+            "camera_id": cam_label,
+            "window_first_frame": payload["first_frame"],
+            "window_last_frame": payload["last_frame"],
+            "window_size": payload["window_size"],
+            "gemini_disposal": gemini_disposal,
+            "car_max_level": car_max,
+            "comparison_class": comparison_class,
+            "events": events_payload,
+            "inference_seconds": payload["inference_seconds"],
+            "created_at": datetime.now(BRASILIA).isoformat(),
+        }
+        _append_car_shadow_audit(device_id, audit_record)
+
+        logger.info(
+            json.dumps(
+                {
+                    "event": "car_shadow_decision",
+                    "device_id": device_id,
+                    "camera_id": cam_label,
+                    "gemini_disposal": gemini_disposal,
+                    "car_max_level": car_max,
+                    "comparison_class": comparison_class,
+                    "events_count": len(events),
+                    "levels": levels,
+                    "window_size": len(window_paths),
+                },
+                ensure_ascii=False,
+            )
+        )
+        return payload
+
+    except Exception as exc:  # noqa: BLE001
+        observe_car_shadow_error(cam_label)
+        logger.exception("car_shadow failed for device=%s", device_id)
+        return {
+            "success": False,
+            "error": str(exc),
+            "window_size": len(window_paths),
+        }
+
+
+def _append_car_shadow_audit(device_id: str, record: dict[str, Any]) -> None:
+    """Mirror of `_append_shadow_audit` writing to `car_shadow_audit/`."""
+    day = datetime.now(BRASILIA).strftime("%Y-%m-%d")
+    day_dir = Path(config.STATE_DIR) / "car_shadow_audit" / day
+    day_dir.mkdir(parents=True, exist_ok=True)
+
+    jsonl_path = day_dir / f"{device_id}.jsonl"
+    with jsonl_path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    _update_car_shadow_metrics(day_dir, record)
+
+
+def _update_car_shadow_metrics(day_dir: Path, record: dict[str, Any]) -> None:
+    """Aggregated daily metrics for the car-shadow audit (mirrors shadow_audit)."""
+    metrics_path = day_dir / "metrics.json"
+    if metrics_path.exists():
+        try:
+            metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+        except Exception:
+            metrics = {}
+    else:
+        metrics = {}
+
+    metrics.setdefault("windows_total", 0)
+    metrics.setdefault("events_total", 0)
+    metrics.setdefault("events_by_level", {"LOW": 0, "MED": 0, "HIGH": 0})
+    metrics.setdefault("comparison_counts", {
+        "both_positive": 0, "gemini_only": 0,
+        "car_only": 0, "both_negative": 0,
+        "no_gemini_decision": 0,
+    })
+    metrics.setdefault("inference_seconds_samples", [])
+
+    metrics["windows_total"] += 1
+    for ev in record.get("events", []) or []:
+        lvl = ev.get("level")
+        if lvl in metrics["events_by_level"]:
+            metrics["events_by_level"][lvl] += 1
+            metrics["events_total"] += 1
+
+    comp = record.get("comparison_class")
+    if comp in metrics["comparison_counts"]:
+        metrics["comparison_counts"][comp] += 1
+
+    latency = record.get("inference_seconds")
+    if isinstance(latency, (int, float)):
+        metrics["inference_seconds_samples"].append(float(latency))
+
+    samples = sorted(metrics.get("inference_seconds_samples", []))
+    if samples:
+        p95_idx = max(0, int(round(0.95 * len(samples) + 0.4999)) - 1)
+        metrics["p95_inference_seconds"] = round(samples[min(p95_idx, len(samples) - 1)], 3)
+    else:
+        metrics["p95_inference_seconds"] = None
+
+    # Keep the samples list bounded.
+    if len(metrics["inference_seconds_samples"]) > 5000:
+        metrics["inference_seconds_samples"] = metrics["inference_seconds_samples"][-5000:]
+
+    metrics_path.write_text(
+        json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def _log_gemini_metrics_snapshot() -> None:
@@ -1338,6 +1561,14 @@ def main() -> None:
         logger.info("S3_BUCKET_NAME     = %s", config.S3_BUCKET_NAME)
         logger.info("S3_REGION          = %s", config.S3_REGION)
         logger.info("S3_SYNC_HOUR       = %d", config.S3_SYNC_HOUR)
+    logger.info("CAR_SHADOW_ENABLED = %s", config.CAR_SHADOW_ENABLED)
+    if config.CAR_SHADOW_ENABLED:
+        logger.info("CAR_MODEL_PATH     = %s", config.CAR_MODEL_PATH)
+        logger.info("CAR_CONF_THRESHOLD = %.2f", config.CAR_CONF_THRESHOLD)
+        logger.info("CAR_STATIONARY_PIX = %.1f", config.CAR_STATIONARY_PIXELS)
+        logger.info("CAR_FRAMES         = LOW=%d MED=%d HIGH=%d",
+                    config.CAR_LOW_FRAMES, config.CAR_MED_FRAMES, config.CAR_HIGH_FRAMES)
+        logger.info("CAR_TRACK_TTL_SEC  = %d", config.CAR_TRACK_TTL_SECONDS)
     logger.info("=" * 60)
 
     if not config.WORKER_ENABLED:
@@ -1353,6 +1584,16 @@ def main() -> None:
 
     if config.AI_MODE in {"yolo", "shadow"}:
         load_models(config.P1_MODEL_PATH, config.P2_MODEL_PATH)
+
+    if config.CAR_SHADOW_ENABLED:
+        try:
+            detector_car_yolo.load_model(config.CAR_MODEL_PATH)
+        except Exception:
+            logger.exception(
+                "Failed to load car-shadow model at %s — disabling car shadow.",
+                config.CAR_MODEL_PATH,
+            )
+            config.CAR_SHADOW_ENABLED = False
 
     while True:
         try:

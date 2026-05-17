@@ -11,6 +11,7 @@ import { Detections } from "./pages/Detections";
 import { UsersPage } from "./pages/UsersPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { CamerasSettingsPage } from "./pages/CamerasSettingsPage";
+import { CameraSnapshotsPage } from "./pages/CameraSnapshotsPage";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { NotificationToastContainer } from "./components/NotificationToast";
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/detections" element={<Detections />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/cameras" element={<CameraSnapshotsPage />} />
           <Route path="/settings/cameras" element={<CamerasSettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
