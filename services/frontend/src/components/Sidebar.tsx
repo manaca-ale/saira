@@ -7,6 +7,7 @@ import {
   LogOut,
   History,
   Bell,
+  Camera as CameraIcon,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -25,6 +26,7 @@ export const Sidebar: React.FC = () => {
   const menuItems = [
     { icon: LayoutDashboard, path: "/dashboard" },
     { icon: History, path: "/history" }, // NEW: History Page Link
+    { icon: CameraIcon, path: "/cameras" },
     { icon: Cctv, path: "/detections" },
     { icon: Users, path: "/users" },
   ];
