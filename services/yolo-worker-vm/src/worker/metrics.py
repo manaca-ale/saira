@@ -32,52 +32,53 @@ WORKER_LAST_CYCLE_IMAGES = Gauge(
 )
 
 # agent label values: "gate" (Agent-1 cascade gate) or "detail" (Agent-2 / direct Gemini call)
+# camera_id is stringified camera.id (or "unknown" when camera cannot be resolved).
 GEMINI_CALLS_TOTAL = Counter(
     "saira_gemini_calls_total",
     "Total Gemini API calls performed by the worker.",
-    ["agent"],
+    ["agent", "camera_id"],
 )
 
 GEMINI_ERRORS_TOTAL = Counter(
     "saira_gemini_errors_total",
     "Total Gemini call failures.",
-    ["agent"],
+    ["agent", "camera_id"],
 )
 
 GEMINI_TIMEOUT_TOTAL = Counter(
     "saira_gemini_timeout_total",
     "Total Gemini timeout failures.",
-    ["agent"],
+    ["agent", "camera_id"],
 )
 
 GEMINI_PARSE_FAIL_TOTAL = Counter(
     "saira_gemini_parse_fail_total",
     "Total Gemini JSON/schema parse failures.",
-    ["agent"],
+    ["agent", "camera_id"],
 )
 
 GEMINI_INPUT_TOKENS_TOTAL = Counter(
     "saira_gemini_input_tokens_total",
     "Total Gemini input tokens consumed.",
-    ["agent"],
+    ["agent", "camera_id"],
 )
 
 GEMINI_OUTPUT_TOKENS_TOTAL = Counter(
     "saira_gemini_output_tokens_total",
     "Total Gemini output tokens consumed.",
-    ["agent"],
+    ["agent", "camera_id"],
 )
 
 GEMINI_COST_USD_TOTAL = Counter(
     "saira_gemini_estimated_cost_usd_total",
     "Estimated Gemini cumulative cost in USD.",
-    ["agent"],
+    ["agent", "camera_id"],
 )
 
 GEMINI_LATENCY_SECONDS = Histogram(
     "saira_gemini_latency_seconds",
     "Gemini call latency in seconds.",
-    ["agent"],
+    ["agent", "camera_id"],
     buckets=(0.25, 0.5, 1, 1.5, 2, 3, 5, 8, 13, 21, 34),
 )
 
