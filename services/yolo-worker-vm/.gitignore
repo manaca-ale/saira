@@ -1,5 +1,6 @@
 *.pt
 *.pt.tmp
 !models/yolov8_MDM_200_n.pt
+!models/yolov8_Car_tesi_100_n.pt
 experiments/dataset/
 experiments/final_saved_models/
