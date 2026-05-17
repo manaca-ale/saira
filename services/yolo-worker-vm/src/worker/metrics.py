@@ -161,3 +161,59 @@ def observe_gemini_error(*, timeout: bool, parse_fail: bool, agent: str = "detai
 
 def set_gemini_avg_latency_ms(value: float) -> None:
     GEMINI_AVG_LATENCY_MS.set(max(0.0, float(value)))
+
+
+# -----------------------------------------------------------------------------
+# Car-stopped shadow detector — parallel to Gemini, never persists to DB.
+# -----------------------------------------------------------------------------
+
+CAR_SHADOW_WINDOWS_TOTAL = Counter(
+    "saira_car_shadow_windows_total",
+    "Total windows processed by the car-stopped shadow detector.",
+    ["camera_id"],
+)
+
+CAR_SHADOW_EVENTS_TOTAL = Counter(
+    "saira_car_shadow_events_total",
+    "Stopped-vehicle events resolved by level.",
+    ["camera_id", "level"],
+)
+
+CAR_SHADOW_COMPARISON_TOTAL = Counter(
+    "saira_car_shadow_comparison_total",
+    "Window-by-window comparison Gemini vs Car-Stopped.",
+    ["camera_id", "class"],
+)
+
+CAR_SHADOW_INFERENCE_SECONDS = Histogram(
+    "saira_car_shadow_inference_seconds",
+    "YOLO inference latency per window for the car-stopped detector.",
+    ["camera_id"],
+    buckets=(0.1, 0.25, 0.5, 1, 2, 5, 10),
+)
+
+CAR_SHADOW_ERRORS_TOTAL = Counter(
+    "saira_car_shadow_errors_total",
+    "Errors raised inside the car-stopped shadow detector.",
+    ["camera_id"],
+)
+
+
+def observe_car_shadow_window(camera_id: str, inference_seconds: float) -> None:
+    CAR_SHADOW_WINDOWS_TOTAL.labels(camera_id=camera_id).inc()
+    CAR_SHADOW_INFERENCE_SECONDS.labels(camera_id=camera_id).observe(
+        max(0.0, float(inference_seconds))
+    )
+
+
+def observe_car_shadow_events(camera_id: str, levels: list[str]) -> None:
+    for level in levels:
+        CAR_SHADOW_EVENTS_TOTAL.labels(camera_id=camera_id, level=level).inc()
+
+
+def observe_car_shadow_comparison(camera_id: str, comparison_class: str) -> None:
+    CAR_SHADOW_COMPARISON_TOTAL.labels(camera_id=camera_id, **{"class": comparison_class}).inc()
+
+
+def observe_car_shadow_error(camera_id: str) -> None:
+    CAR_SHADOW_ERRORS_TOTAL.labels(camera_id=camera_id).inc()

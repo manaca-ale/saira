@@ -129,3 +129,27 @@ if not MOCK_MODE and (not os.path.exists(P1_MODEL_PATH) or not os.path.exists(P2
         P2_MODEL_PATH,
     )
     MOCK_MODE = True
+
+# -----------------------------------------------------------------------------
+# Car-stopped shadow detector (Gabriel's CarDetectionModule, ported).
+# Runs in parallel with the Gemini cascade for comparison; never persists to
+# the `detections` table. Audit goes to STATE_DIR/car_shadow_audit/.
+# -----------------------------------------------------------------------------
+CAR_SHADOW_ENABLED = os.getenv("CAR_SHADOW_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+CAR_MODEL_PATH = os.getenv("CAR_MODEL_PATH", "/app/models/yolov8_Car_tesi_100_n.pt")
+CAR_CONF_THRESHOLD = float(os.getenv("CAR_CONF_THRESHOLD", "0.35"))
+CAR_STATIONARY_PIXELS = float(os.getenv("CAR_STATIONARY_PIXELS", "50.0"))
+CAR_LOW_FRAMES = int(os.getenv("CAR_LOW_FRAMES", "3"))
+CAR_MED_FRAMES = int(os.getenv("CAR_MED_FRAMES", "6"))
+CAR_HIGH_FRAMES = int(os.getenv("CAR_HIGH_FRAMES", "12"))
+CAR_TRACK_TTL_SECONDS = int(os.getenv("CAR_TRACK_TTL_SECONDS", "300"))
+CAR_MAX_BUFFER_FRAMES = int(os.getenv("CAR_MAX_BUFFER_FRAMES", "12"))
+
+# If the car model is missing, disable the shadow detector instead of crashing
+# the worker on startup. The Gemini cascade keeps working unaffected.
+if CAR_SHADOW_ENABLED and not os.path.exists(CAR_MODEL_PATH):
+    logging.getLogger(__name__).warning(
+        "CAR_SHADOW_ENABLED=true but model not found at %s — disabling car shadow.",
+        CAR_MODEL_PATH,
+    )
+    CAR_SHADOW_ENABLED = False
