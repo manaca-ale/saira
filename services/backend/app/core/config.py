@@ -65,12 +65,10 @@ class Settings(BaseSettings):
     # Offender recurrence
     HIGH_RECURRENCE_THRESHOLD: int = 5
 
-    # Daily Gemini billing report (email)
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 465
-    SMTP_USER: str = ""                   # Gmail address (e.g. contato@manaca.tech)
-    SMTP_PASSWORD: str = ""               # Gmail App Password (16-char, no spaces)
-    SMTP_FROM_NAME: str = "SAIRA Billing"
+    # Daily Gemini billing report (email via Resend)
+    RESEND_API_KEY: str = ""              # re_xxx (https://resend.com/api-keys)
+    EMAIL_FROM: str = "billing@manaca.tech"   # must be on a verified Resend domain
+    EMAIL_FROM_NAME: str = "SAIRA Billing"
     BILLING_REPORT_RECIPIENTS: str = "alecoleto@gmail.com,contato@manaca.tech"
     BILLING_REPORT_ENABLED: bool = True
     BILLING_REPORT_HOUR_BRT: int = 7

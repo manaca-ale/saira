@@ -103,7 +103,7 @@ async def post_test_email(
             recipients=recipients,
             date=target,
             subject=subject,
-            error=None if ok else "SMTP send returned False — see backend logs.",
+            error=None if ok else "Resend send returned False — see backend logs.",
         )
     except Exception as exc:  # defensive — send_email already swallows internally
         logger.exception("test-email failed unexpectedly")

@@ -2,7 +2,7 @@
 
 Runs once per day at BILLING_REPORT_HOUR_BRT:BILLING_REPORT_MINUTE_BRT
 (America/Sao_Paulo). Aggregates yesterday's gemini_call_log, renders HTML,
-sends via SMTP. Errors are logged but never propagate.
+sends via Resend HTTP API. Errors are logged but never propagate.
 """
 from __future__ import annotations
 
@@ -74,7 +74,7 @@ async def run_daily_billing_job() -> None:
             )
         else:
             logger.error(
-                "billing_scheduler: SMTP send failed date=%s rows=%d",
+                "billing_scheduler: Resend send failed date=%s rows=%d",
                 target_date, len(report.rows),
             )
     except Exception:
