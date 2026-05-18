@@ -103,6 +103,18 @@
       - KPI_I4_TARGET=${KPI_I4_TARGET:-80.0}
       - KPI_I5_TARGET=${KPI_I5_TARGET:-100.0}
       - TZ=America/Sao_Paulo
+      # Daily Gemini billing report (email)
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-SAIRA Billing}
+      - BILLING_REPORT_RECIPIENTS=${BILLING_REPORT_RECIPIENTS:-alecoleto@gmail.com,contato@manaca.tech}
+      - BILLING_REPORT_ENABLED=${BILLING_REPORT_ENABLED:-true}
+      - BILLING_REPORT_HOUR_BRT=${BILLING_REPORT_HOUR_BRT:-7}
+      - BILLING_REPORT_MINUTE_BRT=${BILLING_REPORT_MINUTE_BRT:-0}
+      - GEMINI_INPUT_TOKEN_PRICE_PER_1M=${GEMINI_INPUT_TOKEN_PRICE_PER_1M:-0.15}
+      - GEMINI_OUTPUT_TOKEN_PRICE_PER_1M=${GEMINI_OUTPUT_TOKEN_PRICE_PER_1M:-0.60}
     depends_on:
       db:
         condition: service_healthy

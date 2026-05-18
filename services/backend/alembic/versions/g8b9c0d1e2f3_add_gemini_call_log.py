@@ -1,7 +1,7 @@
 """add gemini_call_log table
 
 Revision ID: g8b9c0d1e2f3
-Revises: f7a8b9c0d1e2
+Revises: h9c0d1e2f3a4
 Create Date: 2026-05-17
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "g8b9c0d1e2f3"
-down_revision: Union[str, None] = "f7a8b9c0d1e2"
+down_revision: Union[str, None] = "h9c0d1e2f3a4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

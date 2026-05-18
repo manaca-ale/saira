@@ -131,8 +131,8 @@ def observe_scan_error() -> None:
     WORKER_SCAN_ERRORS_TOTAL.inc()
 
 
-def observe_gemini_call(*, agent: str = "detail") -> None:
-    GEMINI_CALLS_TOTAL.labels(agent=agent).inc()
+def observe_gemini_call(*, agent: str = "detail", camera_id: str = "unknown") -> None:
+    GEMINI_CALLS_TOTAL.labels(agent=agent, camera_id=camera_id).inc()
 
 
 def observe_gemini_success(
@@ -142,22 +142,27 @@ def observe_gemini_success(
     output_tokens: int,
     estimated_cost_usd: float,
     agent: str = "detail",
+    camera_id: str = "unknown",
 ) -> None:
-    GEMINI_LATENCY_SECONDS.labels(agent=agent).observe(max(0.0, float(latency_ms) / 1000.0))
-    GEMINI_INPUT_TOKENS_TOTAL.labels(agent=agent).inc(max(0, int(input_tokens)))
-    GEMINI_OUTPUT_TOKENS_TOTAL.labels(agent=agent).inc(max(0, int(output_tokens)))
-    GEMINI_COST_USD_TOTAL.labels(agent=agent).inc(max(0.0, float(estimated_cost_usd)))
+    GEMINI_LATENCY_SECONDS.labels(agent=agent, camera_id=camera_id).observe(
+        max(0.0, float(latency_ms) / 1000.0)
+    )
+    GEMINI_INPUT_TOKENS_TOTAL.labels(agent=agent, camera_id=camera_id).inc(max(0, int(input_tokens)))
+    GEMINI_OUTPUT_TOKENS_TOTAL.labels(agent=agent, camera_id=camera_id).inc(max(0, int(output_tokens)))
+    GEMINI_COST_USD_TOTAL.labels(agent=agent, camera_id=camera_id).inc(max(0.0, float(estimated_cost_usd)))
     GEMINI_LAST_INPUT_TOKENS.set(max(0, int(input_tokens)))
     GEMINI_LAST_OUTPUT_TOKENS.set(max(0, int(output_tokens)))
     GEMINI_LAST_ESTIMATED_COST_USD.set(max(0.0, float(estimated_cost_usd)))
 
 
-def observe_gemini_error(*, timeout: bool, parse_fail: bool, agent: str = "detail") -> None:
-    GEMINI_ERRORS_TOTAL.labels(agent=agent).inc()
+def observe_gemini_error(
+    *, timeout: bool, parse_fail: bool, agent: str = "detail", camera_id: str = "unknown"
+) -> None:
+    GEMINI_ERRORS_TOTAL.labels(agent=agent, camera_id=camera_id).inc()
     if timeout:
-        GEMINI_TIMEOUT_TOTAL.labels(agent=agent).inc()
+        GEMINI_TIMEOUT_TOTAL.labels(agent=agent, camera_id=camera_id).inc()
     if parse_fail:
-        GEMINI_PARSE_FAIL_TOTAL.labels(agent=agent).inc()
+        GEMINI_PARSE_FAIL_TOTAL.labels(agent=agent, camera_id=camera_id).inc()
 
 
 def set_gemini_avg_latency_ms(value: float) -> None:

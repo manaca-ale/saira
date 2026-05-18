@@ -11,6 +11,9 @@ from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.core.redis import init_redis, close_redis
 from app.api.v1.router import api_router
+from app.services.billing_scheduler import (
+    start_billing_scheduler, stop_billing_scheduler,
+)
 
 logger = logging.getLogger(__name__)
 _BRT = ZoneInfo("America/Sao_Paulo")
@@ -56,6 +59,7 @@ async def _report_snapshot_loop() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_redis()
+    start_billing_scheduler()
     snapshot_task = asyncio.create_task(_report_snapshot_loop())
     try:
         yield
@@ -65,6 +69,7 @@ async def lifespan(app: FastAPI):
             await snapshot_task
         except (asyncio.CancelledError, Exception):
             pass
+        stop_billing_scheduler()
         await close_redis()
 
 

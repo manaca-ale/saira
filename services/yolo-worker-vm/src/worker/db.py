@@ -264,6 +264,71 @@ def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
     return count
 
 
+# ==========================================
+# GEMINI CALL LOG
+# ==========================================
+
+def insert_gemini_call_log(
+    *,
+    camera_id: Optional[int],
+    device_id: Optional[str],
+    agent: str,
+    model: str,
+    request_id: Optional[str],
+    input_tokens: int,
+    output_tokens: int,
+    total_tokens: int,
+    estimated_cost_usd: float,
+    latency_ms: Optional[int],
+    success: bool,
+    error_message: Optional[str] = None,
+) -> None:
+    """Best-effort insert into gemini_call_log. Never raises.
+
+    Records every Gemini API call (gate or detail) with token usage,
+    estimated cost and camera attribution so we can produce daily billing reports.
+    """
+    if _pool is None:
+        return
+    conn = None
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO gemini_call_log (
+                called_at, camera_id, device_id, agent, model, request_id,
+                input_tokens, output_tokens, total_tokens,
+                estimated_cost_usd, latency_ms, success, error_message
+            ) VALUES (
+                NOW(), %s, %s, %s, %s, %s,
+                %s, %s, %s,
+                %s, %s, %s, %s
+            )
+            """,
+            (
+                camera_id, device_id, agent, model, request_id,
+                int(input_tokens or 0), int(output_tokens or 0), int(total_tokens or 0),
+                float(estimated_cost_usd or 0.0),
+                int(latency_ms) if latency_ms is not None else None,
+                bool(success),
+                (error_message[:1000] if error_message else None),
+            ),
+        )
+        conn.commit()
+        cur.close()
+    except Exception:
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        logger.exception("insert_gemini_call_log failed (non-fatal)")
+    finally:
+        if conn is not None:
+            _put_conn(conn)
+
+
 def publish_detection_event(detection: DetectionRecord, camera: CameraInfo) -> None:
     """Publish a new_detection event to Redis so the backend SSE stream delivers
     it to the frontend NotificationToastContainer."""

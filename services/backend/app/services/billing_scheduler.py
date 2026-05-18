@@ -15,6 +15,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
+from app.core.redis import get_redis
 from app.services.billing_service import (
     build_daily_report, render_email_html, render_email_subject, render_email_text,
 )
@@ -26,6 +27,22 @@ BRT = ZoneInfo("America/Sao_Paulo")
 _scheduler: AsyncIOScheduler | None = None
 
 
+async def _acquire_single_send_lock(target_date) -> bool:
+    """Redis SET NX EX lock so only one uvicorn worker sends the email.
+
+    Returns True if THIS process acquired the lock (i.e. should send).
+    The key is date-scoped and expires after 12h so a retry next day works.
+    """
+    try:
+        redis = get_redis()
+        key = f"saira:billing:daily_report_sent:{target_date.isoformat()}"
+        acquired = await redis.set(key, "1", ex=12 * 3600, nx=True)
+        return bool(acquired)
+    except Exception:
+        logger.exception("billing_scheduler: redis lock failed — falling back to send (risk of duplicate)")
+        return True
+
+
 async def run_daily_billing_job() -> None:
     """Compute report for yesterday and email it. Never raises."""
     target_date = (datetime.now(BRT) - timedelta(days=1)).date()
@@ -33,6 +50,12 @@ async def run_daily_billing_job() -> None:
     if not recipients:
         logger.warning(
             "billing_scheduler: no recipients configured (BILLING_REPORT_RECIPIENTS) — skipping"
+        )
+        return
+    if not await _acquire_single_send_lock(target_date):
+        logger.info(
+            "billing_scheduler: another worker already sent report for %s — skipping",
+            target_date,
         )
         return
     try:

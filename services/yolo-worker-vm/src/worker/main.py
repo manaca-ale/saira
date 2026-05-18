@@ -91,12 +91,20 @@ GEMINI_METRICS: dict[str, float] = {
 _last_sync_day = None
 
 
-def _register_gemini_call(*, agent: str = "detail") -> None:
+def _camera_label(camera) -> str:
+    """Stringify camera.id for Prometheus labels. Bounded cardinality (one per camera)."""
+    cid = getattr(camera, "id", None)
+    return str(cid) if cid is not None else "unknown"
+
+
+def _register_gemini_call(*, agent: str = "detail", camera=None) -> None:
     GEMINI_METRICS["gemini_calls_total"] += 1
-    observe_gemini_call(agent=agent)
+    observe_gemini_call(agent=agent, camera_id=_camera_label(camera))
 
 
-def _register_gemini_success(latency_ms: int, usage: GeminiUsage, *, agent: str = "detail") -> None:
+def _register_gemini_success(
+    latency_ms: int, usage: GeminiUsage, *, agent: str = "detail", camera=None
+) -> None:
     GEMINI_METRICS["gemini_latency_ms_total"] += int(latency_ms)
     GEMINI_METRICS["gemini_input_tokens"] += int(usage.input_tokens)
     GEMINI_METRICS["gemini_output_tokens"] += int(usage.output_tokens)
@@ -106,10 +114,11 @@ def _register_gemini_success(latency_ms: int, usage: GeminiUsage, *, agent: str 
         output_tokens=int(usage.output_tokens),
         estimated_cost_usd=float(usage.estimated_cost_usd),
         agent=agent,
+        camera_id=_camera_label(camera),
     )
 
 
-def _register_gemini_error(error_message: str, *, agent: str = "detail") -> None:
+def _register_gemini_error(error_message: str, *, agent: str = "detail", camera=None) -> None:
     msg = str(error_message).lower()
     timeout = "timeout" in msg
     parse_fail = "validation" in msg or "json" in msg
@@ -118,7 +127,42 @@ def _register_gemini_error(error_message: str, *, agent: str = "detail") -> None
         GEMINI_METRICS["gemini_timeout_total"] += 1
     if parse_fail:
         GEMINI_METRICS["gemini_parse_fail_total"] += 1
-    observe_gemini_error(timeout=timeout, parse_fail=parse_fail, agent=agent)
+    observe_gemini_error(
+        timeout=timeout, parse_fail=parse_fail, agent=agent, camera_id=_camera_label(camera)
+    )
+
+
+def _log_gemini_call(
+    *,
+    camera,
+    device_id: Optional[str],
+    agent: str,
+    model: str,
+    request_id: Optional[str],
+    usage: Optional[GeminiUsage],
+    latency_ms: Optional[int],
+    success: bool,
+    error_message: Optional[str] = None,
+) -> None:
+    """Best-effort dispatch of a gemini_call_log row. Never raises."""
+    try:
+        from . import db as _db
+        _db.insert_gemini_call_log(
+            camera_id=getattr(camera, "id", None),
+            device_id=device_id,
+            agent=agent,
+            model=model,
+            request_id=request_id,
+            input_tokens=(usage.input_tokens if usage else 0),
+            output_tokens=(usage.output_tokens if usage else 0),
+            total_tokens=(usage.total_tokens if usage else 0),
+            estimated_cost_usd=(usage.estimated_cost_usd if usage else 0.0),
+            latency_ms=latency_ms,
+            success=success,
+            error_message=error_message,
+        )
+    except Exception:
+        logger.exception("gemini call log dispatch failed (non-fatal)")
 
 
 # ==========================================
@@ -594,7 +638,7 @@ def _process_with_gemini(
 ) -> tuple[Optional[bool], dict[str, Any]]:
     """Run Gemini inference and optionally persist resulting occurrence."""
     request_id = str(uuid4())
-    _register_gemini_call()
+    _register_gemini_call(camera=camera)
 
     camera_context = {
         "camera_name": camera.name,
@@ -615,7 +659,17 @@ def _process_with_gemini(
         report = result.report
         usage: GeminiUsage = result.usage
 
-        _register_gemini_success(result.latency_ms, usage)
+        _register_gemini_success(result.latency_ms, usage, camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="detail",
+            model=result.model,
+            request_id=request_id,
+            usage=usage,
+            latency_ms=result.latency_ms,
+            success=True,
+        )
 
         # Resolve "frame_N" labels (used in mosaic mode) back to real filenames
         if report.event_frame_name and report.event_frame_name.startswith("frame_"):
@@ -754,7 +808,18 @@ def _process_with_gemini(
 
     except Exception as exc:  # noqa: BLE001
         error_message = str(exc)
-        _register_gemini_error(error_message)
+        _register_gemini_error(error_message, camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="detail",
+            model=config.GEMINI_MODEL,
+            request_id=request_id,
+            usage=None,
+            latency_ms=None,
+            success=False,
+            error_message=error_message,
+        )
 
         logger.error(
             json.dumps(
@@ -793,7 +858,7 @@ def _process_with_gemini_cascade_window(
 
     last_frame = window_paths[-1]
     gate_request_id = str(uuid4())
-    _register_gemini_call(agent="gate")
+    _register_gemini_call(agent="gate", camera=camera)
 
     # --- Load prior-window state ---
     state = load_state(device_id)
@@ -861,10 +926,31 @@ def _process_with_gemini_cascade_window(
             use_mosaic=config.GEMINI_MOSAIC_AGENT1,
             mid_frames=mid_frames,
         )
-        _register_gemini_success(gate.latency_ms, gate.usage, agent="gate")
+        _register_gemini_success(gate.latency_ms, gate.usage, agent="gate", camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="gate",
+            model=gate.model,
+            request_id=gate_request_id,
+            usage=gate.usage,
+            latency_ms=gate.latency_ms,
+            success=True,
+        )
     except Exception as exc:  # noqa: BLE001
         message = str(exc)
-        _register_gemini_error(message, agent="gate")
+        _register_gemini_error(message, agent="gate", camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="gate",
+            model=(config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL),
+            request_id=gate_request_id,
+            usage=None,
+            latency_ms=None,
+            success=False,
+            error_message=message,
+        )
         return None, {
             "provider": "gemini_cascade",
             "success": False,

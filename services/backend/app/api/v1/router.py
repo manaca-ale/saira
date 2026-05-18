@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     conecta,
     geocoding,
     reports,
+    billing,
 )
 
 api_router = APIRouter()
@@ -27,3 +28,4 @@ api_router.include_router(test.router, prefix="/test", tags=["test"])
 api_router.include_router(conecta.router, prefix="/integrations/conecta", tags=["conecta"])
 api_router.include_router(geocoding.router, prefix="/geocoding", tags=["geocoding"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+api_router.include_router(billing.router, prefix="/billing", tags=["billing"])
