@@ -91,12 +91,20 @@ GEMINI_METRICS: dict[str, float] = {
 _last_sync_day = None
 
 
-def _register_gemini_call(*, agent: str = "detail") -> None:
+def _camera_label(camera) -> str:
+    """Stringify camera.id for Prometheus labels. Bounded cardinality (one per camera)."""
+    cid = getattr(camera, "id", None)
+    return str(cid) if cid is not None else "unknown"
+
+
+def _register_gemini_call(*, agent: str = "detail", camera=None) -> None:
     GEMINI_METRICS["gemini_calls_total"] += 1
-    observe_gemini_call(agent=agent)
+    observe_gemini_call(agent=agent, camera_id=_camera_label(camera))
 
 
-def _register_gemini_success(latency_ms: int, usage: GeminiUsage, *, agent: str = "detail") -> None:
+def _register_gemini_success(
+    latency_ms: int, usage: GeminiUsage, *, agent: str = "detail", camera=None
+) -> None:
     GEMINI_METRICS["gemini_latency_ms_total"] += int(latency_ms)
     GEMINI_METRICS["gemini_input_tokens"] += int(usage.input_tokens)
     GEMINI_METRICS["gemini_output_tokens"] += int(usage.output_tokens)
@@ -106,10 +114,11 @@ def _register_gemini_success(latency_ms: int, usage: GeminiUsage, *, agent: str 
         output_tokens=int(usage.output_tokens),
         estimated_cost_usd=float(usage.estimated_cost_usd),
         agent=agent,
+        camera_id=_camera_label(camera),
     )
 
 
-def _register_gemini_error(error_message: str, *, agent: str = "detail") -> None:
+def _register_gemini_error(error_message: str, *, agent: str = "detail", camera=None) -> None:
     msg = str(error_message).lower()
     timeout = "timeout" in msg
     parse_fail = "validation" in msg or "json" in msg
@@ -118,7 +127,42 @@ def _register_gemini_error(error_message: str, *, agent: str = "detail") -> None
         GEMINI_METRICS["gemini_timeout_total"] += 1
     if parse_fail:
         GEMINI_METRICS["gemini_parse_fail_total"] += 1
-    observe_gemini_error(timeout=timeout, parse_fail=parse_fail, agent=agent)
+    observe_gemini_error(
+        timeout=timeout, parse_fail=parse_fail, agent=agent, camera_id=_camera_label(camera)
+    )
+
+
+def _log_gemini_call(
+    *,
+    camera,
+    device_id: Optional[str],
+    agent: str,
+    model: str,
+    request_id: Optional[str],
+    usage: Optional[GeminiUsage],
+    latency_ms: Optional[int],
+    success: bool,
+    error_message: Optional[str] = None,
+) -> None:
+    """Best-effort dispatch of a gemini_call_log row. Never raises."""
+    try:
+        from . import db as _db
+        _db.insert_gemini_call_log(
+            camera_id=getattr(camera, "id", None),
+            device_id=device_id,
+            agent=agent,
+            model=model,
+            request_id=request_id,
+            input_tokens=(usage.input_tokens if usage else 0),
+            output_tokens=(usage.output_tokens if usage else 0),
+            total_tokens=(usage.total_tokens if usage else 0),
+            estimated_cost_usd=(usage.estimated_cost_usd if usage else 0.0),
+            latency_ms=latency_ms,
+            success=success,
+            error_message=error_message,
+        )
+    except Exception:
+        logger.exception("gemini call log dispatch failed (non-fatal)")
 
 
 # ==========================================
@@ -463,6 +507,7 @@ def _record_detection(
     offender_rows: list[OffenderRecord],
     annotated_bgr=None,
     evidence_summary: Optional[str] = None,
+    waste_bbox: Optional[list] = None,
 ) -> Optional[str]:
     if annotated_bgr is not None:
         labeled_rel = save_labeled_image(annotated_bgr, device_id, jpg)
@@ -486,6 +531,7 @@ def _record_detection(
         offenders=offenders_summary,
         image_url=image_url,
         confidence_score=confidence_score,
+        waste_bbox=waste_bbox,
     )
 
     if insert_detection(detection):
@@ -592,7 +638,7 @@ def _process_with_gemini(
 ) -> tuple[Optional[bool], dict[str, Any]]:
     """Run Gemini inference and optionally persist resulting occurrence."""
     request_id = str(uuid4())
-    _register_gemini_call()
+    _register_gemini_call(camera=camera)
 
     camera_context = {
         "camera_name": camera.name,
@@ -613,7 +659,17 @@ def _process_with_gemini(
         report = result.report
         usage: GeminiUsage = result.usage
 
-        _register_gemini_success(result.latency_ms, usage)
+        _register_gemini_success(result.latency_ms, usage, camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="detail",
+            model=result.model,
+            request_id=request_id,
+            usage=usage,
+            latency_ms=result.latency_ms,
+            success=True,
+        )
 
         # Resolve "frame_N" labels (used in mosaic mode) back to real filenames
         if report.event_frame_name and report.event_frame_name.startswith("frame_"):
@@ -661,6 +717,8 @@ def _process_with_gemini(
             "confidence_0_100": report.confidence_0_100,
             "evidence_summary": report.evidence_summary,
             "raw_reason_codes": report.raw_reason_codes,
+            "has_waste_bbox": bool(report.waste_bbox),
+            "has_offender_bbox": bool(report.offender_bbox),
             "usage": {
                 "input_tokens": usage.input_tokens,
                 "output_tokens": usage.output_tokens,
@@ -699,6 +757,7 @@ def _process_with_gemini(
                     estimated_volume_m3=volume,
                     confidence_score=confidence,
                     notes=report.evidence_summary,
+                    offender_bbox=report.offender_bbox,
                 )
                 for otype in offender_types
             ]
@@ -715,6 +774,7 @@ def _process_with_gemini(
                 offender_rows=offender_rows,
                 annotated_bgr=None,
                 evidence_summary=report.evidence_summary,
+                waste_bbox=report.waste_bbox,
             )
             if detection_id:
                 payload["detection_id"] = detection_id
@@ -748,7 +808,18 @@ def _process_with_gemini(
 
     except Exception as exc:  # noqa: BLE001
         error_message = str(exc)
-        _register_gemini_error(error_message)
+        _register_gemini_error(error_message, camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="detail",
+            model=config.GEMINI_MODEL,
+            request_id=request_id,
+            usage=None,
+            latency_ms=None,
+            success=False,
+            error_message=error_message,
+        )
 
         logger.error(
             json.dumps(
@@ -787,7 +858,7 @@ def _process_with_gemini_cascade_window(
 
     last_frame = window_paths[-1]
     gate_request_id = str(uuid4())
-    _register_gemini_call(agent="gate")
+    _register_gemini_call(agent="gate", camera=camera)
 
     # --- Load prior-window state ---
     state = load_state(device_id)
@@ -855,10 +926,31 @@ def _process_with_gemini_cascade_window(
             use_mosaic=config.GEMINI_MOSAIC_AGENT1,
             mid_frames=mid_frames,
         )
-        _register_gemini_success(gate.latency_ms, gate.usage, agent="gate")
+        _register_gemini_success(gate.latency_ms, gate.usage, agent="gate", camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="gate",
+            model=gate.model,
+            request_id=gate_request_id,
+            usage=gate.usage,
+            latency_ms=gate.latency_ms,
+            success=True,
+        )
     except Exception as exc:  # noqa: BLE001
         message = str(exc)
-        _register_gemini_error(message, agent="gate")
+        _register_gemini_error(message, agent="gate", camera=camera)
+        _log_gemini_call(
+            camera=camera,
+            device_id=device_id,
+            agent="gate",
+            model=(config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL),
+            request_id=gate_request_id,
+            usage=None,
+            latency_ms=None,
+            success=False,
+            error_message=message,
+        )
         return None, {
             "provider": "gemini_cascade",
             "success": False,
@@ -931,12 +1023,47 @@ def _process_with_gemini_cascade_window(
         )
     )
 
+    def _audit_record(
+        *,
+        agent2_ran: bool,
+        agent2_payload_obj: Optional[dict],
+        disposal_value: Optional[bool],
+    ) -> dict[str, Any]:
+        ap = agent2_payload_obj or {}
+        ap_usage = ap.get("usage") or {}
+        return {
+            "device_id": device_id,
+            "camera_id": getattr(camera, "id", None),
+            "window_first_frame": first_frame.name,
+            "window_last_frame": last_frame.name,
+            "window_size": len(window_paths),
+            "agent1_triggered": bool(gate_trigger),
+            "agent1_new_litter_detected": bool(gate_report.new_litter_detected),
+            "agent1_confidence": int(gate_report.confidence_0_100),
+            "agent1_threshold": int(effective_threshold),
+            "agent1_request_id": gate_request_id,
+            "agent2_ran": bool(agent2_ran),
+            "agent2_success": bool(ap.get("success")) if agent2_ran else False,
+            "agent2_disposal": bool(disposal_value) if disposal_value is not None else None,
+            "agent2_offender_detected": bool(ap.get("offender_types")) if agent2_ran else None,
+            "agent2_has_offender_bbox": bool(ap.get("has_offender_bbox")) if agent2_ran else None,
+            "agent2_has_waste_bbox": bool(ap.get("has_waste_bbox")) if agent2_ran else None,
+            "agent2_request_id": ap.get("request_id") if agent2_ran else None,
+            "detection_id": ap.get("detection_id") if agent2_ran else None,
+            "agent2_cost_usd": float(ap_usage.get("estimated_cost_usd") or 0.0) if agent2_ran else 0.0,
+            "agent1_cost_usd": float((gate_payload.get("usage") or {}).get("estimated_cost_usd") or 0.0),
+            "created_at": datetime.now(BRASILIA).isoformat(),
+        }
+
     if not gate_trigger:
         car_payload = (
             _run_car_shadow_for_window(window_paths, device_id, camera, gemini_disposal=False)
             if config.CAR_SHADOW_ENABLED
             else None
         )
+        _append_cascade_audit(device_id, _audit_record(
+            agent2_ran=False, agent2_payload_obj=None, disposal_value=False,
+        ))
         return False, {
             "provider": "gemini_cascade",
             "success": True,
@@ -959,6 +1086,9 @@ def _process_with_gemini_cascade_window(
 
     success = bool(agent2_payload.get("success"))
     if not success:
+        _append_cascade_audit(device_id, _audit_record(
+            agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=None,
+        ))
         return None, {
             "provider": "gemini_cascade",
             "success": False,
@@ -992,6 +1122,9 @@ def _process_with_gemini_cascade_window(
         if config.CAR_SHADOW_ENABLED
         else None
     )
+    _append_cascade_audit(device_id, _audit_record(
+        agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=bool(disposal),
+    ))
     return bool(disposal), {
         "provider": "gemini_cascade",
         "success": True,
@@ -1014,6 +1147,23 @@ def _append_shadow_audit(device_id: str, record: dict[str, Any]) -> None:
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     _update_shadow_metrics(day_dir, record)
+
+
+def _append_cascade_audit(device_id: str, record: dict[str, Any]) -> None:
+    """Persist Agent-1 + Agent-2 cascade decisions for I4 (assertividade) reporting.
+
+    Writes one JSONL line per processed window, regardless of AI_MODE, so the
+    daily KPI report can compute Agent-1 vs Agent-2 agreement rate from this file.
+    """
+    try:
+        day = datetime.now(BRASILIA).strftime("%Y-%m-%d")
+        day_dir = Path(config.STATE_DIR) / "gemini_cascade_audit" / day
+        day_dir.mkdir(parents=True, exist_ok=True)
+        jsonl_path = day_dir / f"{device_id}.jsonl"
+        with jsonl_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        logger.exception("Failed to append gemini_cascade_audit for device=%s", device_id)
 
 
 def _update_shadow_metrics(day_dir: Path, record: dict[str, Any]) -> None:

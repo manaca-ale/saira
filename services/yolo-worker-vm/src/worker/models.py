@@ -44,6 +44,7 @@ class DetectionRecord:
     status: str = "PENDENTE"
     image_url: Optional[str] = None
     confidence_score: Optional[Decimal] = None
+    waste_bbox: Optional[list] = None
 
 
 @dataclass
@@ -58,6 +59,7 @@ class OffenderRecord:
     estimated_volume_m3: Optional[Decimal] = None
     confidence_score: Optional[Decimal] = None
     notes: Optional[str] = None
+    offender_bbox: Optional[list] = None
     id: UUID = field(default_factory=uuid4)
 
 
