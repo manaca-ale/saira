@@ -105,7 +105,7 @@
       - TZ=America/Sao_Paulo
       # Daily Gemini billing report (email via Resend)
       - RESEND_API_KEY=${RESEND_API_KEY:-}
-      - EMAIL_FROM=${EMAIL_FROM:-billing@manaca.tech}
+      - EMAIL_FROM=${EMAIL_FROM:-saira@pagamentos.manaca.tech}
       - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-SAIRA Billing}
       - BILLING_REPORT_RECIPIENTS=${BILLING_REPORT_RECIPIENTS:-alecoleto@gmail.com,contato@manaca.tech}
       - BILLING_REPORT_ENABLED=${BILLING_REPORT_ENABLED:-true}

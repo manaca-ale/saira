@@ -67,7 +67,7 @@ class Settings(BaseSettings):
 
     # Daily Gemini billing report (email via Resend)
     RESEND_API_KEY: str = ""              # re_xxx (https://resend.com/api-keys)
-    EMAIL_FROM: str = "billing@manaca.tech"   # must be on a verified Resend domain
+    EMAIL_FROM: str = "saira@pagamentos.manaca.tech"   # verified domain on Resend (shared w/ Manacafinance)
     EMAIL_FROM_NAME: str = "SAIRA Billing"
     BILLING_REPORT_RECIPIENTS: str = "alecoleto@gmail.com,contato@manaca.tech"
     BILLING_REPORT_ENABLED: bool = True
