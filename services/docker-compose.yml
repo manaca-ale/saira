@@ -91,7 +91,30 @@
       - WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE=${WHATSAPP_TEST_RATE_LIMIT_PER_MINUTE:-5}
       - ENVIRONMENT=production
       - WORKER_STATE_DIR=/app/yolo_state
+      - REPORT_UPLOADS_DIR=/app/uploads
+      - REPORTS_OUTPUT_DIR=/app/reports
+      - REPORT_DASHBOARD_URL=${REPORT_DASHBOARD_URL:-https://test-saira.manaca.tech}
+      - REPORT_SNAPSHOT_ENABLED=${REPORT_SNAPSHOT_ENABLED:-true}
+      - REPORT_SNAPSHOT_HOUR_BRT=${REPORT_SNAPSHOT_HOUR_BRT:-3}
+      - REPORT_DEFAULT_CAPTURE_INTERVAL_S=${REPORT_DEFAULT_CAPTURE_INTERVAL_S:-30}
+      - KPI_I1_TARGET=${KPI_I1_TARGET:-90.0}
+      - KPI_I2_P95_TARGET_S=${KPI_I2_P95_TARGET_S:-60.0}
+      - KPI_I3_TARGET=${KPI_I3_TARGET:-80.0}
+      - KPI_I4_TARGET=${KPI_I4_TARGET:-80.0}
+      - KPI_I5_TARGET=${KPI_I5_TARGET:-100.0}
       - TZ=America/Sao_Paulo
+      # Daily Gemini billing report (email)
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-SAIRA Billing}
+      - BILLING_REPORT_RECIPIENTS=${BILLING_REPORT_RECIPIENTS:-alecoleto@gmail.com,contato@manaca.tech}
+      - BILLING_REPORT_ENABLED=${BILLING_REPORT_ENABLED:-true}
+      - BILLING_REPORT_HOUR_BRT=${BILLING_REPORT_HOUR_BRT:-7}
+      - BILLING_REPORT_MINUTE_BRT=${BILLING_REPORT_MINUTE_BRT:-0}
+      - GEMINI_INPUT_TOKEN_PRICE_PER_1M=${GEMINI_INPUT_TOKEN_PRICE_PER_1M:-0.15}
+      - GEMINI_OUTPUT_TOKEN_PRICE_PER_1M=${GEMINI_OUTPUT_TOKEN_PRICE_PER_1M:-0.60}
     depends_on:
       db:
         condition: service_healthy
@@ -102,6 +125,7 @@
       - ./backend:/app
       - esp32_uploads:/app/uploads:ro
       - yolo_state:/app/yolo_state:ro
+      - reports_data:/app/reports
     command: ["bash", "/app/start.sh", "--workers", "4"]
 
   # PostgreSQL + PostGIS
@@ -247,3 +271,4 @@ volumes:
   redis_data:
   esp32_uploads:
   yolo_state:
+  reports_data:

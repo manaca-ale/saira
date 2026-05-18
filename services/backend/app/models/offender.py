@@ -4,7 +4,7 @@ from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Text, Numeric,
     ForeignKey, Enum, Index,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from app.core.timezone import now_brazil
@@ -80,6 +80,7 @@ class DetectionOffender(Base):
     confidence_score = Column(Numeric(3, 2), nullable=True)
     created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     notes = Column(Text, nullable=True)
+    offender_bbox = Column(JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), default=now_brazil)
 
     detection = relationship("Detection")

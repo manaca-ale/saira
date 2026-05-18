@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Enum, ForeignKey, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from geoalchemy2 import Geometry
 import uuid
 import enum
@@ -32,6 +32,7 @@ class Detection(Base):
     status = Column(Enum(DetectionStatus), default=DetectionStatus.PENDENTE, index=True)
     image_url = Column(String(512))
     confidence_score = Column(Numeric(3, 2))
+    waste_bbox = Column(JSONB, nullable=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     resolved_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     resolution_justification = Column(Text, nullable=True)
