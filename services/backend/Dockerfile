@@ -2,13 +2,19 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Instalar dependências do sistema para PostGIS
+# Instalar dependências do sistema para PostGIS + WeasyPrint (PDF do relatório diário)
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     libpq-dev \
     gdal-bin \
     libgdal-dev \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libcairo2 \
+    libgdk-pixbuf-2.0-0 \
+    fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements

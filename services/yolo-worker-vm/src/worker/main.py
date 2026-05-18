@@ -463,6 +463,7 @@ def _record_detection(
     offender_rows: list[OffenderRecord],
     annotated_bgr=None,
     evidence_summary: Optional[str] = None,
+    waste_bbox: Optional[list] = None,
 ) -> Optional[str]:
     if annotated_bgr is not None:
         labeled_rel = save_labeled_image(annotated_bgr, device_id, jpg)
@@ -486,6 +487,7 @@ def _record_detection(
         offenders=offenders_summary,
         image_url=image_url,
         confidence_score=confidence_score,
+        waste_bbox=waste_bbox,
     )
 
     if insert_detection(detection):
@@ -661,6 +663,8 @@ def _process_with_gemini(
             "confidence_0_100": report.confidence_0_100,
             "evidence_summary": report.evidence_summary,
             "raw_reason_codes": report.raw_reason_codes,
+            "has_waste_bbox": bool(report.waste_bbox),
+            "has_offender_bbox": bool(report.offender_bbox),
             "usage": {
                 "input_tokens": usage.input_tokens,
                 "output_tokens": usage.output_tokens,
@@ -699,6 +703,7 @@ def _process_with_gemini(
                     estimated_volume_m3=volume,
                     confidence_score=confidence,
                     notes=report.evidence_summary,
+                    offender_bbox=report.offender_bbox,
                 )
                 for otype in offender_types
             ]
@@ -715,6 +720,7 @@ def _process_with_gemini(
                 offender_rows=offender_rows,
                 annotated_bgr=None,
                 evidence_summary=report.evidence_summary,
+                waste_bbox=report.waste_bbox,
             )
             if detection_id:
                 payload["detection_id"] = detection_id
@@ -931,12 +937,47 @@ def _process_with_gemini_cascade_window(
         )
     )
 
+    def _audit_record(
+        *,
+        agent2_ran: bool,
+        agent2_payload_obj: Optional[dict],
+        disposal_value: Optional[bool],
+    ) -> dict[str, Any]:
+        ap = agent2_payload_obj or {}
+        ap_usage = ap.get("usage") or {}
+        return {
+            "device_id": device_id,
+            "camera_id": getattr(camera, "id", None),
+            "window_first_frame": first_frame.name,
+            "window_last_frame": last_frame.name,
+            "window_size": len(window_paths),
+            "agent1_triggered": bool(gate_trigger),
+            "agent1_new_litter_detected": bool(gate_report.new_litter_detected),
+            "agent1_confidence": int(gate_report.confidence_0_100),
+            "agent1_threshold": int(effective_threshold),
+            "agent1_request_id": gate_request_id,
+            "agent2_ran": bool(agent2_ran),
+            "agent2_success": bool(ap.get("success")) if agent2_ran else False,
+            "agent2_disposal": bool(disposal_value) if disposal_value is not None else None,
+            "agent2_offender_detected": bool(ap.get("offender_types")) if agent2_ran else None,
+            "agent2_has_offender_bbox": bool(ap.get("has_offender_bbox")) if agent2_ran else None,
+            "agent2_has_waste_bbox": bool(ap.get("has_waste_bbox")) if agent2_ran else None,
+            "agent2_request_id": ap.get("request_id") if agent2_ran else None,
+            "detection_id": ap.get("detection_id") if agent2_ran else None,
+            "agent2_cost_usd": float(ap_usage.get("estimated_cost_usd") or 0.0) if agent2_ran else 0.0,
+            "agent1_cost_usd": float((gate_payload.get("usage") or {}).get("estimated_cost_usd") or 0.0),
+            "created_at": datetime.now(BRASILIA).isoformat(),
+        }
+
     if not gate_trigger:
         car_payload = (
             _run_car_shadow_for_window(window_paths, device_id, camera, gemini_disposal=False)
             if config.CAR_SHADOW_ENABLED
             else None
         )
+        _append_cascade_audit(device_id, _audit_record(
+            agent2_ran=False, agent2_payload_obj=None, disposal_value=False,
+        ))
         return False, {
             "provider": "gemini_cascade",
             "success": True,
@@ -959,6 +1000,9 @@ def _process_with_gemini_cascade_window(
 
     success = bool(agent2_payload.get("success"))
     if not success:
+        _append_cascade_audit(device_id, _audit_record(
+            agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=None,
+        ))
         return None, {
             "provider": "gemini_cascade",
             "success": False,
@@ -992,6 +1036,9 @@ def _process_with_gemini_cascade_window(
         if config.CAR_SHADOW_ENABLED
         else None
     )
+    _append_cascade_audit(device_id, _audit_record(
+        agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=bool(disposal),
+    ))
     return bool(disposal), {
         "provider": "gemini_cascade",
         "success": True,
@@ -1014,6 +1061,23 @@ def _append_shadow_audit(device_id: str, record: dict[str, Any]) -> None:
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     _update_shadow_metrics(day_dir, record)
+
+
+def _append_cascade_audit(device_id: str, record: dict[str, Any]) -> None:
+    """Persist Agent-1 + Agent-2 cascade decisions for I4 (assertividade) reporting.
+
+    Writes one JSONL line per processed window, regardless of AI_MODE, so the
+    daily KPI report can compute Agent-1 vs Agent-2 agreement rate from this file.
+    """
+    try:
+        day = datetime.now(BRASILIA).strftime("%Y-%m-%d")
+        day_dir = Path(config.STATE_DIR) / "gemini_cascade_audit" / day
+        day_dir.mkdir(parents=True, exist_ok=True)
+        jsonl_path = day_dir / f"{device_id}.jsonl"
+        with jsonl_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        logger.exception("Failed to append gemini_cascade_audit for device=%s", device_id)
 
 
 def _update_shadow_metrics(day_dir: Path, record: dict[str, Any]) -> None:

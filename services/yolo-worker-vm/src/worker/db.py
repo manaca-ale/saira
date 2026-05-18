@@ -132,12 +132,12 @@ def insert_detection(det: DetectionRecord) -> bool:
                 id, camera_id, timestamp, logradouro, bairro, rpa,
                 latitude, longitude, waste_type, material_type,
                 volume_m3, offenders, status, image_url, confidence_score,
-                created_at, updated_at
+                waste_bbox, created_at, updated_at
             ) VALUES (
                 %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s,
                 %s, %s, %s, %s, %s,
-                NOW(), NOW()
+                %s::jsonb, NOW(), NOW()
             )
             """,
             (
@@ -147,6 +147,7 @@ def insert_detection(det: DetectionRecord) -> bool:
                 det.waste_type, det.material_type,
                 det.volume_m3, det.offenders,
                 det.status, det.image_url, det.confidence_score,
+                json.dumps(det.waste_bbox) if det.waste_bbox is not None else None,
             ),
         )
         conn.commit()
@@ -174,8 +175,8 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
                 INSERT INTO detection_offenders (
                     id, detection_id, offender_type,
                     plate, vehicle_color, waste_type, estimated_volume_m3,
-                    source, confidence_score, notes, created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, NOW())
+                    source, confidence_score, notes, offender_bbox, created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, %s::jsonb, NOW())
                 """,
                 (
                     o.id,
@@ -187,6 +188,7 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
                     o.estimated_volume_m3,
                     o.confidence_score,
                     o.notes,
+                    json.dumps(o.offender_bbox) if o.offender_bbox is not None else None,
                 ),
             )
         conn.commit()

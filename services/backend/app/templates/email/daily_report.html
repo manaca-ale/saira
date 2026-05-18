@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAÍRA — Relatório diário {{ report.date_br }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1f2937;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:24px 0;">
+  <tr><td align="center">
+    <table role="presentation" width="640" cellpadding="0" cellspacing="0"
+           style="max-width:640px;background:#ffffff;border-radius:8px;overflow:hidden;
+                  box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+
+      <!-- Header -->
+      <tr><td style="background:#0f766e;padding:22px 26px;color:#ffffff;">
+        <div style="font-size:12px;letter-spacing:1.2px;text-transform:uppercase;opacity:.85;">SAÍRA · Manacá Tecnologias Sociais</div>
+        <div style="font-size:22px;font-weight:700;margin-top:6px;">Relatório diário · {{ report.date_br }}</div>
+      </td></tr>
+
+      <!-- Greeting -->
+      <tr><td style="padding:22px 26px 6px;font-size:15px;line-height:1.5;color:#1f2937;">
+        Olá, equipe da Prefeitura,<br><br>
+        Segue o relatório de monitoramento SAÍRA referente ao dia <strong>{{ report.date_br }}</strong>.
+      </td></tr>
+
+      <!-- Indicators -->
+      <tr><td style="padding:18px 26px 4px;font-size:12px;font-weight:700;
+                    text-transform:uppercase;color:#374151;letter-spacing:.6px;">
+        Indicadores de qualidade do sistema
+      </td></tr>
+      <tr><td style="padding:0 26px 18px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+               style="border-collapse:collapse;font-size:14px;">
+        {% for ind in [report.i1, report.i2, report.i3, report.i4, report.i5] %}
+          {% set color = colors[ind.status.value] %}
+          <tr>
+            <td style="padding:0;border-bottom:1px solid #e5e7eb;width:6px;
+                       background:{{ color }};"></td>
+            <td style="padding:12px 12px;border-bottom:1px solid #e5e7eb;vertical-align:top;">
+              <div style="font-weight:600;color:#111827;">{{ ind.code }} · {{ ind.name }}</div>
+              <div style="color:#6b7280;font-size:12px;margin-top:3px;">
+                Meta: {{ ind.target_text }}
+                {% if ind.rolling_7d_text %} · 7d: {{ ind.rolling_7d_text }}{% endif %}
+                {% if ind.rolling_30d_text %} · 30d: {{ ind.rolling_30d_text }}{% endif %}
+              </div>
+            </td>
+            <td align="right" style="padding:12px 0;border-bottom:1px solid #e5e7eb;
+                                     font-weight:700;color:{{ color }};white-space:nowrap;
+                                     vertical-align:top;">
+              {{ ind.value_text }}
+            </td>
+          </tr>
+        {% endfor %}
+        </table>
+      </td></tr>
+
+      <!-- Activity -->
+      <tr><td style="padding:8px 26px 4px;font-size:12px;font-weight:700;
+                    text-transform:uppercase;color:#374151;letter-spacing:.6px;">
+        Atividade do dia
+      </td></tr>
+      <tr><td style="padding:0 26px 18px;font-size:14px;color:#1f2937;">
+        {% if report.activity.total_detections == 0 %}
+          <p style="margin:8px 0;color:#6b7280;">Sem ocorrências registradas no dia.</p>
+        {% else %}
+          <p style="margin:8px 0;"><strong>{{ report.activity.total_detections }}</strong>
+             {{ 'ocorrência' if report.activity.total_detections == 1 else 'ocorrências' }} detectadas</p>
+          {% if report.activity.by_rpa %}
+          <ul style="padding-left:20px;margin:8px 0;">
+            {% for r in report.activity.by_rpa %}
+            <li>RPA {{ r.rpa or '?' }}
+                {% if r.bairros %}— {{ r.bairros | join(', ') }}{% endif %}:
+                <strong>{{ r.count }}</strong></li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        {% endif %}
+      </td></tr>
+
+      <!-- Hotspots -->
+      {% if report.activity.top_hotspots_30d %}
+      <tr><td style="padding:8px 26px 4px;font-size:12px;font-weight:700;
+                    text-transform:uppercase;color:#374151;letter-spacing:.6px;">
+        Pontos mais recorrentes (30 dias)
+      </td></tr>
+      <tr><td style="padding:0 26px 18px;font-size:14px;color:#1f2937;">
+        <ul style="padding-left:20px;margin:6px 0;">
+          {% for loc in report.activity.top_hotspots_30d %}
+          <li>{{ loc.logradouro }}{% if loc.bairro %}, {{ loc.bairro }}{% endif %}
+              {% if loc.rpa %}(RPA {{ loc.rpa }}){% endif %}
+              — <strong>{{ loc.count }}</strong>
+              {{ 'ocorrência' if loc.count == 1 else 'ocorrências' }}</li>
+          {% endfor %}
+        </ul>
+      </td></tr>
+      {% endif %}
+
+      <!-- Worst camera transparency -->
+      {% if report.activity.worst_camera and report.activity.worst_camera.uptime_pct < 90 %}
+      <tr><td style="padding:0 26px 14px;font-size:13px;color:#6b7280;">
+        Pior câmera no dia: <strong>{{ report.activity.worst_camera.name or report.activity.worst_camera.device_id }}</strong>
+        ({{ report.activity.worst_camera.uptime_pct }}% de uptime).
+      </td></tr>
+      {% endif %}
+
+      <!-- CTA -->
+      <tr><td align="center" style="padding:14px 26px 26px;">
+        <a href="{{ report.dashboard_url }}"
+           style="display:inline-block;padding:12px 22px;background:#0f766e;
+                  color:#ffffff;text-decoration:none;border-radius:6px;
+                  font-weight:600;font-size:14px;">Acessar o painel SAÍRA</a>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:#f9fafb;padding:14px 26px;font-size:12px;color:#6b7280;
+                    border-top:1px solid #e5e7eb;">
+        Equipe Manacá Tecnologias Sociais · contato@manaca.tech<br>
+        Relatório gerado em {{ report.generated_at }}.
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
