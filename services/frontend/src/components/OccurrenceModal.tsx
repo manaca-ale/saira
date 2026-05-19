@@ -941,7 +941,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                 {/* Thumbnails strip */}
                 <div
                   ref={stripRef}
-                  className="flex gap-2 overflow-x-auto px-4 py-3 border-t border-gray-100 bg-white"
+                  className="flex-shrink-0 flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-3 border-t border-gray-100 bg-white"
                 >
                   {analyzedFrames.map((frame, idx) => {
                     const isActive = idx === lightboxIndex;
