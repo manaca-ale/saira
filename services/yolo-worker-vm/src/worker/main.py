@@ -18,6 +18,7 @@ import requests
 
 from . import config
 from .db import (
+    find_recent_detection_for_camera,
     init_connections,
     insert_detection,
     insert_notifications,
@@ -25,6 +26,7 @@ from .db import (
     publish_detection_event,
     resolve_camera,
     update_camera_last_capture,
+    update_detection_on_merge,
 )
 from .detector_gemini import (
     analyze_new_litter_with_gemini,
@@ -268,21 +270,56 @@ def _persist_detection_frame_index(
     if not frames_payload:
         return
 
-    # Ensure one default frame.
-    if not any(frame.get("is_default") for frame in frames_payload):
-        frames_payload[0]["is_default"] = True
+    target_dir = Path(config.STATE_DIR) / "detection_frames"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / f"{detection_id}.json"
+
+    # Merge with previous index if the detection was coalesced (same camera,
+    # within EVENT_WINDOW_MIN). Preserve original selected_frame_name and
+    # evidence_summary unless the caller explicitly provides a new one.
+    existing_frames: list[dict] = []
+    preserved_summary: Optional[str] = evidence_summary
+    preserved_selected: Optional[str] = selected_frame_name
+    preserved_created_at: Optional[str] = None
+    if target.exists():
+        try:
+            prev = json.loads(target.read_text(encoding="utf-8"))
+            existing_frames = list(prev.get("frames") or [])
+            preserved_created_at = prev.get("created_at")
+            if not selected_frame_name:
+                preserved_selected = prev.get("selected_frame_name")
+            if not evidence_summary:
+                preserved_summary = prev.get("evidence_summary")
+        except Exception:
+            logger.warning("detection_frames index unreadable, overwriting (%s)", target.name)
+
+    known_names = {f.get("frame_name") for f in existing_frames}
+    merged = list(existing_frames) + [
+        f for f in frames_payload if f.get("frame_name") not in known_names
+    ]
+    # Chronological order — filenames are BRT timestamps (YYYY-MM-DD_HH-MM-SS).
+    merged.sort(key=lambda f: str(f.get("frame_name") or ""))
+
+    # Ensure exactly one default. Prefer the previously-selected frame if it
+    # still exists in the merged list; otherwise fall back to the first frame.
+    default_name = preserved_selected
+    has_default = False
+    for f in merged:
+        f["is_default"] = bool(default_name and f.get("frame_name") == default_name)
+        has_default = has_default or f["is_default"]
+    if not has_default and merged:
+        merged[0]["is_default"] = True
+        default_name = merged[0].get("frame_name")
 
     index = {
         "detection_id": detection_id,
         "device_id": device_id,
-        "selected_frame_name": selected_frame_name,
-        "evidence_summary": evidence_summary,
-        "frames": frames_payload,
-        "created_at": datetime.now(BRASILIA).isoformat(),
+        "selected_frame_name": default_name,
+        "evidence_summary": preserved_summary,
+        "frames": merged,
+        "created_at": preserved_created_at or datetime.now(BRASILIA).isoformat(),
+        "updated_at": datetime.now(BRASILIA).isoformat(),
     }
-    target_dir = Path(config.STATE_DIR) / "detection_frames"
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / f"{detection_id}.json"
     target.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
@@ -515,6 +552,50 @@ def _record_detection(
         labeled_rel = save_evidence_copy(device_id, jpg)
 
     image_url = build_image_url(labeled_rel)
+
+    # --- Event coalescing -----------------------------------------------------
+    # If the same camera already has a detection inside the coalescing window,
+    # reuse that detection_id (silent merge): upgrade fields when the new
+    # window classifies the event with higher confidence/volume, append
+    # offenders, and skip notifications + SSE event. The frame index is
+    # appended downstream by _persist_detection_frame_index.
+    existing = find_recent_detection_for_camera(camera.id, config.EVENT_WINDOW_MIN)
+    if existing:
+        upgrade_kwargs: dict = {}
+        prev_conf = existing.get("confidence_score")
+        if confidence_score is not None and (prev_conf is None or confidence_score > prev_conf):
+            upgrade_kwargs.update({
+                "confidence_score": confidence_score,
+                "waste_type": waste_type,
+                "material_type": material_type,
+                "image_url": image_url,
+                "waste_bbox": waste_bbox,
+            })
+        prev_vol = existing.get("volume_m3")
+        if volume_m3 is not None and (prev_vol is None or volume_m3 > prev_vol):
+            upgrade_kwargs["volume_m3"] = volume_m3
+        if upgrade_kwargs:
+            update_detection_on_merge(existing["id"], **upgrade_kwargs)
+        if offender_rows:
+            for row in offender_rows:
+                row.detection_id = existing["id"]
+            insert_offenders(offender_rows)
+        logger.info(
+            json.dumps(
+                {
+                    "event": "detection_coalesced",
+                    "detection_id": str(existing["id"]),
+                    "device_id": device_id,
+                    "camera_id": camera.id,
+                    "upgraded_fields": list(upgrade_kwargs.keys()),
+                    "offender_rows_count": len(offender_rows),
+                    "evidence_summary": evidence_summary,
+                },
+                ensure_ascii=False,
+            )
+        )
+        return str(existing["id"])
+    # --------------------------------------------------------------------------
 
     detection = DetectionRecord(
         id=uuid4(),

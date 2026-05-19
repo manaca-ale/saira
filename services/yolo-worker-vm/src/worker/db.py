@@ -162,6 +162,107 @@ def insert_detection(det: DetectionRecord) -> bool:
         _put_conn(conn)
 
 
+def find_recent_detection_for_camera(camera_id: int, since_minutes: int) -> Optional[dict]:
+    """Return the most recent detection for ``camera_id`` within the last
+    ``since_minutes`` minutes, or None if no candidate is in the window.
+
+    Used by the worker to coalesce consecutive windows that belong to the same
+    physical event (a single dumping incident producing multiple Gemini
+    windows). The caller decides whether to merge or create a new detection.
+    """
+    if since_minutes <= 0 or camera_id is None:
+        return None
+    conn = _get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, waste_type, material_type, volume_m3,
+                   confidence_score, image_url, created_at
+              FROM detections
+             WHERE camera_id = %s
+               AND created_at >= NOW() - (%s || ' minutes')::interval
+             ORDER BY created_at DESC
+             LIMIT 1
+            """,
+            (camera_id, str(since_minutes)),
+        )
+        row = cur.fetchone()
+        cur.close()
+        if not row:
+            return None
+        return {
+            "id": row[0],
+            "waste_type": row[1],
+            "material_type": row[2],
+            "volume_m3": row[3],
+            "confidence_score": row[4],
+            "image_url": row[5],
+            "created_at": row[6],
+        }
+    except Exception:
+        logger.exception("Error finding recent detection for camera_id=%s", camera_id)
+        return None
+    finally:
+        _put_conn(conn)
+
+
+def update_detection_on_merge(
+    detection_id,
+    *,
+    waste_type: Optional[str] = None,
+    material_type: Optional[str] = None,
+    volume_m3=None,
+    confidence_score=None,
+    image_url: Optional[str] = None,
+    waste_bbox=None,
+) -> bool:
+    """Update specific fields of an existing detection on coalescing merge.
+
+    Always bumps ``updated_at`` to NOW(). Only columns whose argument is not
+    None are written, so callers can selectively upgrade waste_type/confidence
+    when the new window classifies the event with higher confidence.
+    """
+    sets: list[str] = ["updated_at = NOW()"]
+    params: list = []
+    if waste_type is not None:
+        sets.append("waste_type = %s"); params.append(waste_type)
+    if material_type is not None:
+        sets.append("material_type = %s"); params.append(material_type)
+    if volume_m3 is not None:
+        sets.append("volume_m3 = %s"); params.append(volume_m3)
+    if confidence_score is not None:
+        sets.append("confidence_score = %s"); params.append(confidence_score)
+    if image_url is not None:
+        sets.append("image_url = %s"); params.append(image_url)
+    if waste_bbox is not None:
+        sets.append("waste_bbox = %s::jsonb")
+        params.append(json.dumps(waste_bbox))
+    params.append(detection_id)
+
+    conn = _get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE detections SET {', '.join(sets)} WHERE id = %s",
+            tuple(params),
+        )
+        conn.commit()
+        cur.close()
+        logger.info(
+            "Merged into detection %s (fields=%s)",
+            detection_id,
+            [s.split(" =")[0] for s in sets[1:]],
+        )
+        return True
+    except Exception:
+        conn.rollback()
+        logger.exception("Error updating detection %s on merge", detection_id)
+        return False
+    finally:
+        _put_conn(conn)
+
+
 def insert_offenders(offenders: list[OffenderRecord]) -> None:
     """Insert rows into detection_offenders (one per detected person/vehicle)."""
     if not offenders:

@@ -59,6 +59,12 @@ WORKER_METRICS_PORT = int(os.getenv("WORKER_METRICS_PORT", "9108"))
 #   "marker"      - create .jpg.processed sibling file (legacy)
 PROCESSED_STRATEGY = os.getenv("PROCESSED_STRATEGY", "two_folders")
 
+# Event coalescing window: when a detection is about to be persisted, if the
+# same camera already has a detection within this many minutes, reuse that
+# detection_id (merge frames + upgrade fields) instead of creating a new row.
+# Set to 0 to disable coalescing entirely (every window becomes a new detection).
+EVENT_WINDOW_MIN = int(os.getenv("EVENT_WINDOW_MIN", "10"))
+
 # Redis connection string (used for real-time notifications via SSE).
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
