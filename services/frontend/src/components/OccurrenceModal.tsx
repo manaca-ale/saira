@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, Clock, UserPlus, Trash2 as UnlinkIcon } from "lucide-react";
+import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, Clock, UserPlus, Trash2 as UnlinkIcon, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import JSZip from "jszip";
 import imgLixo from "../assets/lixo_exemplo.png";
 import imgInfrator from "../assets/infrator_exemplo.png";
@@ -218,6 +218,46 @@ async function renderExportCanvas(data: any): Promise<HTMLCanvasElement> {
   return canvas;
 }
 
+// --- Frame timestamp helpers ---
+// Filenames follow the worker convention `YYYY-MM-DD_HH-MM-SS.jpg` in BRT.
+function parseFrameDate(frameName?: string | null): Date | null {
+  if (!frameName) return null;
+  const stem = String(frameName).replace(/\.[^.]+$/, "");
+  const m = stem.match(/(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  const [, y, mo, d, h, mi, s] = m;
+  // Construct an ISO string with BRT offset (-03:00) so toLocaleString
+  // renders consistently regardless of the viewer's timezone.
+  const iso = `${y}-${mo}-${d}T${h}:${mi}:${s}-03:00`;
+  const dt = new Date(iso);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function formatFrameTimestamp(frameName?: string | null): string {
+  const dt = parseFrameDate(frameName);
+  if (!dt) return frameName || "";
+  return dt.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatFrameTimeShort(frameName?: string | null): string {
+  const dt = parseFrameDate(frameName);
+  if (!dt) return "";
+  return dt.toLocaleTimeString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 // --- Component ---
 
 export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
@@ -245,6 +285,10 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const [candidatePhotoSrc, setCandidatePhotoSrc] = useState<string>("");
   const [photoPositionX, setPhotoPositionX] = useState(50);
   const [photoPositionY, setPhotoPositionY] = useState(50);
+  const [lightboxMode, setLightboxMode] = useState<"view" | "select">("select");
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const activeThumbRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isOpen && data?.id) {
@@ -389,12 +433,51 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
     }
   };
 
-  const openFramesModal = () => {
+  const openFramesModal = (mode: "view" | "select" = "select") => {
     setPendingPhotoSrc(photoSrc);
     setCandidatePhotoSrc("");
     setIsConfirmFrameChangeOpen(false);
+    setLightboxMode(mode);
+    const startIdx = analyzedFrames.findIndex((f) => f.image_url === photoSrc);
+    setLightboxIndex(startIdx >= 0 ? startIdx : 0);
     setIsFramesModalOpen(true);
   };
+
+  const currentFrame = analyzedFrames[lightboxIndex];
+  const hasFrames = analyzedFrames.length > 0;
+  const canGoPrev = hasFrames && lightboxIndex > 0;
+  const canGoNext = hasFrames && lightboxIndex < analyzedFrames.length - 1;
+
+  const goToFrame = (idx: number) => {
+    if (!hasFrames) return;
+    const clamped = Math.max(0, Math.min(analyzedFrames.length - 1, idx));
+    setLightboxIndex(clamped);
+    setPendingPhotoSrc(analyzedFrames[clamped].image_url);
+  };
+
+  useEffect(() => {
+    if (!isFramesModalOpen || !hasFrames) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goToFrame(lightboxIndex - 1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goToFrame(lightboxIndex + 1);
+      } else if (e.key === "Escape") {
+        setIsFramesModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isFramesModalOpen, hasFrames, lightboxIndex, analyzedFrames]);
+
+  useEffect(() => {
+    if (!isFramesModalOpen) return;
+    activeThumbRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [lightboxIndex, isFramesModalOpen]);
 
   const handleRequestApplySelectedFrame = () => {
     if (!pendingPhotoSrc || pendingPhotoSrc === photoSrc) {
@@ -480,7 +563,8 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               Informações da ocorrência
             </h2>
             <button
-              onClick={openFramesModal}
+              type="button"
+              onClick={() => openFramesModal("select")}
               className="h-8 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-700 flex items-center gap-1"
             >
               <ImageIcon size={14} />
@@ -498,14 +582,29 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
         {/* Content */}
         <div className="p-6 pt-2 space-y-5 overflow-y-auto flex-1 min-h-0">
           {/* Image */}
-          <div className="relative w-full h-48 bg-gray-200 rounded-xl overflow-hidden group">
+          <button
+            type="button"
+            onClick={() => openFramesModal("view")}
+            disabled={!hasFrames && !photoSrc}
+            aria-label="Ampliar foto e navegar pelos frames"
+            className="relative w-full h-72 md:h-80 bg-gray-200 rounded-xl overflow-hidden group block cursor-zoom-in disabled:cursor-default"
+          >
             <img
               src={photoSrc}
               alt="Evidência"
               className="w-full h-full object-cover"
               style={{ objectPosition: `${photoPositionX}% ${photoPositionY}%` }}
             />
-          </div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
+            <div className="absolute top-2 right-2 bg-black/55 text-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <Maximize2 size={16} />
+            </div>
+            {hasFrames && analyzedFrames.length > 1 && (
+              <div className="absolute bottom-2 left-2 bg-black/55 text-white text-[11px] font-medium rounded-md px-2 py-0.5 pointer-events-none">
+                {analyzedFrames.length} frames
+              </div>
+            )}
+          </button>
 
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-3">
             <div className="flex items-center justify-between">
@@ -758,75 +857,125 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
       />
     )}
     {isFramesModalOpen && (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
-        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h3 className="text-lg font-bold text-[#1a1a1a]">Frames analisados</h3>
+      <div
+        className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4"
+        onClick={(e) => { if (e.target === e.currentTarget) setIsFramesModalOpen(false); }}
+      >
+        <div className="w-full max-w-5xl max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-bold text-[#1a1a1a]">Frames analisados</h3>
+              {hasFrames && (
+                <span className="text-sm text-gray-500 tabular-nums">
+                  {lightboxIndex + 1} / {analyzedFrames.length}
+                </span>
+              )}
+              {currentFrame?.is_default && (
+                <span className="text-[10px] font-bold text-lime-600 bg-lime-50 border border-lime-200 rounded-full px-2 py-0.5">
+                  Padrão da IA
+                </span>
+              )}
+            </div>
             <button
               onClick={() => setIsFramesModalOpen(false)}
               className="text-gray-400 hover:text-gray-600"
+              aria-label="Fechar"
             >
               <X size={22} />
             </button>
           </div>
-          <div className="p-5">
+
+          {/* Body */}
+          <div className="flex-1 min-h-0 flex flex-col">
             {loadingFrames ? (
-              <div className="h-40 flex items-center justify-center text-gray-500 text-sm">
+              <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
                 <Loader2 size={18} className="animate-spin mr-2" />
                 Carregando frames...
               </div>
-            ) : analyzedFrames.length === 0 ? (
-              <div className="h-40 flex items-center justify-center text-gray-500 text-sm">
+            ) : !hasFrames ? (
+              <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
                 Nenhum frame de análise disponível para esta ocorrência.
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-                {analyzedFrames.map((frame) => {
-                  const isSelected = pendingPhotoSrc === frame.image_url;
-                  return (
-                    <button
-                      key={`${frame.frame_name}-${frame.image_url}`}
-                      onClick={() => setPendingPhotoSrc(frame.image_url)}
-                      className={`rounded-xl border-2 overflow-hidden text-left transition-colors ${
-                        isSelected ? "border-[#84cc16]" : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="h-28 bg-gray-100 relative">
-                        <img
-                          src={frame.image_url}
-                          alt={frame.frame_name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const el = e.currentTarget as HTMLImageElement;
-                            if (el.dataset.fallbackTried === "1") {
-                              el.style.display = "none";
-                              const sib = el.nextElementSibling as HTMLElement | null;
-                              if (sib) sib.style.display = "flex";
-                              return;
-                            }
-                            el.dataset.fallbackTried = "1";
-                            el.src = data?.photoUrl || "";
-                          }}
-                        />
-                        <div
-                          className="absolute inset-0 hidden items-center justify-center bg-gray-100 text-[10px] text-gray-400 px-2 text-center"
-                        >
-                          Imagem indisponível
+              <>
+                {/* Main image area */}
+                <div className="relative flex-1 min-h-0 bg-black/95 flex items-center justify-center select-none">
+                  <img
+                    src={currentFrame.image_url}
+                    alt={currentFrame.frame_name}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                  {/* Preload neighbors */}
+                  {analyzedFrames[lightboxIndex - 1] && (
+                    <img src={analyzedFrames[lightboxIndex - 1].image_url} alt="" className="hidden" />
+                  )}
+                  {analyzedFrames[lightboxIndex + 1] && (
+                    <img src={analyzedFrames[lightboxIndex + 1].image_url} alt="" className="hidden" />
+                  )}
+                  {/* Nav buttons */}
+                  <button
+                    type="button"
+                    onClick={() => goToFrame(lightboxIndex - 1)}
+                    disabled={!canGoPrev}
+                    aria-label="Frame anterior"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 hover:bg-black/80 disabled:opacity-30 disabled:hover:bg-black/60 text-white flex items-center justify-center transition-colors"
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToFrame(lightboxIndex + 1)}
+                    disabled={!canGoNext}
+                    aria-label="Próximo frame"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 hover:bg-black/80 disabled:opacity-30 disabled:hover:bg-black/60 text-white flex items-center justify-center transition-colors"
+                  >
+                    <ChevronRight size={28} />
+                  </button>
+                  {/* Timestamp caption */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/65 text-white text-sm font-medium rounded-md px-3 py-1 tabular-nums">
+                    {formatFrameTimestamp(currentFrame.frame_name)}
+                  </div>
+                </div>
+
+                {/* Thumbnails strip */}
+                <div
+                  ref={stripRef}
+                  className="flex gap-2 overflow-x-auto px-4 py-3 border-t border-gray-100 bg-white"
+                >
+                  {analyzedFrames.map((frame, idx) => {
+                    const isActive = idx === lightboxIndex;
+                    return (
+                      <button
+                        key={`${frame.frame_name}-${frame.image_url}`}
+                        ref={isActive ? activeThumbRef : undefined}
+                        type="button"
+                        onClick={() => goToFrame(idx)}
+                        aria-label={`Ir para frame ${idx + 1}`}
+                        className={`flex-shrink-0 w-[88px] rounded-md overflow-hidden border-2 transition-colors ${
+                          isActive
+                            ? "border-[#84cc16] ring-2 ring-lime-200"
+                            : "border-gray-200 hover:border-gray-400"
+                        }`}
+                      >
+                        <div className="h-[56px] bg-gray-100">
+                          <img src={frame.image_url} alt={frame.frame_name} className="w-full h-full object-cover" />
                         </div>
-                      </div>
-                      <div className="px-2 py-2 bg-white">
-                        <div className="text-[11px] text-gray-500 truncate">{frame.frame_name}</div>
-                        {frame.is_default && (
-                          <div className="text-[10px] font-bold text-lime-600 mt-1">Padrão da IA</div>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                        <div className="px-1.5 py-1 bg-white">
+                          <div className="text-[10px] text-gray-500 tabular-nums truncate">
+                            {formatFrameTimeShort(frame.frame_name)}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
-          <div className="flex justify-between gap-2 px-5 py-4 border-t border-gray-100 bg-gray-50">
+
+          {/* Footer */}
+          <div className="flex justify-between gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50">
             <button
               onClick={handleDownloadFramesZip}
               disabled={downloadingZip || analyzedFrames.length === 0}
@@ -836,20 +985,22 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               Baixar ZIP
             </button>
             <div className="flex gap-2">
-            <button
-              onClick={() => setIsFramesModalOpen(false)}
-              className="h-10 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleRequestApplySelectedFrame}
-              disabled={savingFrame || !pendingPhotoSrc}
-              className="h-10 px-4 rounded-lg bg-lime-500 hover:bg-lime-600 disabled:opacity-60 text-sm font-bold text-white flex items-center gap-2"
-            >
-              {savingFrame ? <Loader2 size={14} className="animate-spin" /> : null}
-              Aplicar foto
-            </button>
+              <button
+                onClick={() => setIsFramesModalOpen(false)}
+                className="h-10 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700"
+              >
+                {lightboxMode === "select" ? "Cancelar" : "Fechar"}
+              </button>
+              {lightboxMode === "select" && (
+                <button
+                  onClick={handleRequestApplySelectedFrame}
+                  disabled={savingFrame || !pendingPhotoSrc || pendingPhotoSrc === photoSrc}
+                  className="h-10 px-4 rounded-lg bg-lime-500 hover:bg-lime-600 disabled:opacity-60 text-sm font-bold text-white flex items-center gap-2"
+                >
+                  {savingFrame ? <Loader2 size={14} className="animate-spin" /> : null}
+                  Aplicar foto
+                </button>
+              )}
             </div>
           </div>
         </div>

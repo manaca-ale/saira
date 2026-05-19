@@ -170,6 +170,7 @@ services:
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5005}
       - POLL_INTERVAL=10
       - PROCESSED_STRATEGY=${PROCESSED_STRATEGY:-two_folders}
+      - EVENT_WINDOW_MIN=${EVENT_WINDOW_MIN:-10}
       - WORKER_ENABLED=${WORKER_ENABLED:-true}
       - MOCK_MODE=${MOCK_MODE:-false}
       - AI_MODE=${AI_MODE:-yolo}
