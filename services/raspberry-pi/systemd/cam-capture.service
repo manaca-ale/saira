@@ -1,0 +1,10 @@
+[Unit]
+Description=SAIRA - Captura frame da camera IMX219
+After=network.target
+
+[Service]
+Type=oneshot
+User=alecoleto
+ExecStart=/usr/local/bin/cam-capture.sh
+StandardOutput=journal
+StandardError=journal

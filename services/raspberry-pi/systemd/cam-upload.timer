@@ -1,0 +1,10 @@
+[Unit]
+Description=SAIRA - Timer de upload (a cada 10s)
+
+[Timer]
+OnBootSec=35
+OnUnitActiveSec=10
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
