@@ -791,12 +791,28 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                         isSelected ? "border-[#84cc16]" : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <div className="h-28 bg-gray-100">
+                      <div className="h-28 bg-gray-100 relative">
                         <img
                           src={frame.image_url}
                           alt={frame.frame_name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const el = e.currentTarget as HTMLImageElement;
+                            if (el.dataset.fallbackTried === "1") {
+                              el.style.display = "none";
+                              const sib = el.nextElementSibling as HTMLElement | null;
+                              if (sib) sib.style.display = "flex";
+                              return;
+                            }
+                            el.dataset.fallbackTried = "1";
+                            el.src = data?.photoUrl || "";
+                          }}
                         />
+                        <div
+                          className="absolute inset-0 hidden items-center justify-center bg-gray-100 text-[10px] text-gray-400 px-2 text-center"
+                        >
+                          Imagem indisponível
+                        </div>
                       </div>
                       <div className="px-2 py-2 bg-white">
                         <div className="text-[11px] text-gray-500 truncate">{frame.frame_name}</div>
