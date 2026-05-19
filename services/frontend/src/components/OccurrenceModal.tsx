@@ -861,7 +861,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
         className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4"
         onClick={(e) => { if (e.target === e.currentTarget) setIsFramesModalOpen(false); }}
       >
-        <div className="w-full max-w-5xl max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
+        <div className="w-full max-w-5xl h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
             <div className="flex items-center gap-3">
