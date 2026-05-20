@@ -33,8 +33,8 @@ jobs:
             # Pre-create shared network so yolo-worker can reach esp32-server by hostname.
             # (saira-esp32-test compose creates this network, but starts after saira-test.)
             docker network create saira-esp32-test_saira_test_net 2>/dev/null || true
-            docker compose -p saira-test -f docker-compose.test.yml down
-            docker compose -p saira-test -f docker-compose.test.yml up -d --build --force-recreate
+            docker compose -p saira-test --profile worker -f docker-compose.test.yml down
+            docker compose -p saira-test --profile worker -f docker-compose.test.yml up -d --build --force-recreate
 
             echo "Subindo ESP32 HTTP Receiver (Teste)..."
             cd /home/ubuntu/saira/esp32-server
@@ -92,6 +92,8 @@ jobs:
 
             # Use --build + --force-recreate to ensure new images/build-args are applied.
             # ESP32 server is included in this compose (port 5003) — no standalone needed.
-            docker compose -p saira-prod -f docker-compose.prod.yml up -d --build --force-recreate
+            # --profile worker ensures the yolo-worker service (gated by profile in compose)
+            # is also built and recreated, otherwise it keeps a stale image across deploys.
+            docker compose -p saira-prod --profile worker -f docker-compose.prod.yml up -d --build --force-recreate
 
             echo "Producao rodando (Projeto: saira-prod)"
