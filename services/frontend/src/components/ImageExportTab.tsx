@@ -118,9 +118,21 @@ export const ImageExportTab: React.FC = () => {
     (async () => {
       setCamerasLoading(true);
       try {
-        const data = await getCameras({ limit: 500 });
+        // Backend caps `limit` at 100; paginate to fetch them all.
+        const pageSize = 100;
+        const collected: Camera[] = [];
+        let skip = 0;
+        while (true) {
+          const page = await getCameras({ limit: pageSize, skip });
+          collected.push(...page);
+          if (page.length < pageSize) break;
+          skip += pageSize;
+          if (skip > 2000) break; // safety cap
+        }
         if (!cancelled) {
-          const sorted = [...data].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+          const sorted = collected.sort((a, b) =>
+            a.name.localeCompare(b.name, "pt-BR"),
+          );
           setCameras(sorted);
         }
       } catch (e) {
