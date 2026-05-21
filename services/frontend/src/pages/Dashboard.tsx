@@ -25,6 +25,7 @@ import { LoginNotificationBanner } from "../components/LoginNotificationBanner";
 import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
 import { AnalysisConfirmationModal } from "../components/AnalysisConfirmationModal";
 import { OffenderDashboardTab } from "../components/OffenderDashboardTab";
+import { ImageExportTab } from "../components/ImageExportTab";
 import { toBrazilDateString, BRAZIL_TIME_ZONE } from "../utils/datetime";
 
 type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
@@ -222,7 +223,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
 
 export const Dashboard: React.FC = () => {
   // --- State Management ---
-  const [activeTab, setActiveTab] = useState<"ocorrencias" | "infratores">("ocorrencias");
+  const [activeTab, setActiveTab] = useState<"ocorrencias" | "infratores" | "exportar">("ocorrencias");
   const [detections, setDetections] = useState<PoiData[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
@@ -757,6 +758,16 @@ export const Dashboard: React.FC = () => {
           >
             Dashboard de Infratores
           </button>
+          <button
+            onClick={() => setActiveTab("exportar")}
+            className={`px-6 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+              activeTab === "exportar"
+                ? "bg-[#e9fbc0] text-[#1a1a1a] font-semibold"
+                : "text-gray-500 hover:bg-gray-50 font-medium"
+            }`}
+          >
+            Exportar Imagens
+          </button>
         </div>
 
         {/* --- Live Monitoring Section (ocorrencias only) --- */}
@@ -780,7 +791,8 @@ export const Dashboard: React.FC = () => {
         </div>
         )}
 
-        {/* --- Filter Controls Section --- */}
+        {/* --- Filter Controls Section (hidden for the export tab) --- */}
+        {activeTab !== "exportar" && (
         <div className="relative z-[2000]">
           <div className="flex items-start gap-4 mb-8">
             <div className="flex-1">
@@ -1009,6 +1021,10 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
+
+        {/* --- Image Export Tab Content --- */}
+        {activeTab === "exportar" && <ImageExportTab />}
 
         {/* --- Infratores Tab Content --- */}
         {activeTab === "infratores" && (

@@ -101,6 +101,14 @@ class Settings(BaseSettings):
     REPORT_SNAPSHOT_HOUR_BRT: int = 3
     REPORT_DEFAULT_CAPTURE_INTERVAL_S: int = 30
 
+    # Image export feature (camera images ZIP download)
+    EXPORT_MAX_DAYS: int = 7
+    EXPORT_PRESIGNED_TTL_SECONDS: int = 86400  # 24h
+    EXPORT_S3_PREFIX: str = "exports"
+    EXPORT_CLEANUP_INTERVAL_HOURS: int = 6
+    EXPORT_UPLOADS_DIR: str = "/app/uploads"
+    EXPORT_STALE_RUNNING_MINUTES: int = 30  # re-dispatch jobs stuck longer than this
+
     class Config:
         env_file = ".env"
         case_sensitive = True
