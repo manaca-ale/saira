@@ -14,6 +14,9 @@ from app.api.v1.router import api_router
 from app.services.billing_scheduler import (
     start_billing_scheduler, stop_billing_scheduler,
 )
+from app.services.export_scheduler import (
+    start_export_scheduler, stop_export_scheduler,
+)
 
 logger = logging.getLogger(__name__)
 _BRT = ZoneInfo("America/Sao_Paulo")
@@ -60,6 +63,7 @@ async def _report_snapshot_loop() -> None:
 async def lifespan(app: FastAPI):
     await init_redis()
     start_billing_scheduler()
+    start_export_scheduler()
     snapshot_task = asyncio.create_task(_report_snapshot_loop())
     try:
         yield
@@ -69,6 +73,7 @@ async def lifespan(app: FastAPI):
             await snapshot_task
         except (asyncio.CancelledError, Exception):
             pass
+        stop_export_scheduler()
         stop_billing_scheduler()
         await close_redis()
 
