@@ -168,7 +168,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
       - REDIS_URL=redis://redis:6379/0
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5005}
-      - POLL_INTERVAL=10
+      - POLL_INTERVAL=${POLL_INTERVAL:-10}
       - PROCESSED_STRATEGY=${PROCESSED_STRATEGY:-two_folders}
       - EVENT_WINDOW_MIN=${EVENT_WINDOW_MIN:-10}
       - WORKER_ENABLED=${WORKER_ENABLED:-true}
