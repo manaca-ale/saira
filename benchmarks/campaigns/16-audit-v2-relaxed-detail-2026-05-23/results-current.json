@@ -1,0 +1,1086 @@
+{
+  "summary": {
+    "arm": "current",
+    "n_total": 45,
+    "n_ok": 43,
+    "n_failed": 2,
+    "source_file": "C:\\saira\\benchmarks\\campaigns\\15-detail-audit-2026-05-23\\results-current.json"
+  },
+  "results": [
+    {
+      "event": "57f7f1ed-2d9a-4e82-9585-775c9e366561",
+      "ground_truth": "TP",
+      "fp_cause": "Uma pessoa realizando descarte de múltiplas coisas",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001584,
+        "latency_ms": 12392,
+        "input_tokens": 2237,
+        "output_tokens": 365,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001584
+    },
+    {
+      "event": "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+      "ground_truth": "TP",
+      "fp_cause": "Um homem realizando o descarte de múltiplas coisas",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001591,
+        "latency_ms": 11232,
+        "input_tokens": 2237,
+        "output_tokens": 368,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001591
+    },
+    {
+      "event": "bc0528c2-8034-40a8-bad3-62f93136f44c",
+      "ground_truth": "TP",
+      "fp_cause": "Um homem realizando o descarte do conteúdo de uma sacola branca",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001564,
+        "latency_ms": 11997,
+        "input_tokens": 2237,
+        "output_tokens": 357,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001564
+    },
+    {
+      "event": "a73a3f44-03d0-4dc1-b850-efbac6210f3e",
+      "ground_truth": "TP",
+      "fp_cause": "Caminhonete azul escura realiza o descarte de um grande volume de lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001547,
+        "latency_ms": 13593,
+        "input_tokens": 2233,
+        "output_tokens": 351,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001547
+    },
+    {
+      "event": "cb49921a-c894-4cfd-8802-5c41316e7301",
+      "ground_truth": "TP",
+      "fp_cause": "Pessoas realizando o descarte do conteúdo de um saco marom aparentemente",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001532,
+        "latency_ms": 11473,
+        "input_tokens": 2233,
+        "output_tokens": 345,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001532
+    },
+    {
+      "event": "218673e1-397c-4293-be2b-0d5e2326334f",
+      "ground_truth": "TP",
+      "fp_cause": "Dois homens realizando o descarte de objetos grandes",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001557,
+        "latency_ms": 12569,
+        "input_tokens": 2233,
+        "output_tokens": 355,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001557
+    },
+    {
+      "event": "d00a79bd-4052-4406-986f-01707b7fc713",
+      "ground_truth": "TP",
+      "fp_cause": "Grande quantidade de lixo descartada por um homem utilizando uniforme laranja",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001511,
+        "latency_ms": 17419,
+        "input_tokens": 2237,
+        "output_tokens": 336,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001511
+    },
+    {
+      "event": "12506543-1c64-4604-8c76-a85300a43669",
+      "ground_truth": "TP",
+      "fp_cause": "Os dois homens ainda estavam mexendo no lixo, mas no final aparece um outro homem que realiza um descarte",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.00152,
+        "latency_ms": 9676,
+        "input_tokens": 2233,
+        "output_tokens": 340,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.00152
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_000",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001279,
+        "latency_ms": 7831,
+        "input_tokens": 2237,
+        "output_tokens": 243,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001279
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_003",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001271,
+        "latency_ms": 6820,
+        "input_tokens": 2237,
+        "output_tokens": 240,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001271
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_011",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001226,
+        "latency_ms": 7782,
+        "input_tokens": 2237,
+        "output_tokens": 222,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001226
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_023",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001299,
+        "latency_ms": 10934,
+        "input_tokens": 2237,
+        "output_tokens": 251,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001299
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_051",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001311,
+        "latency_ms": 10939,
+        "input_tokens": 2237,
+        "output_tokens": 256,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001311
+    },
+    {
+      "event": "baseline_cam_mangabeira_night_040",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001554,
+        "latency_ms": 15937,
+        "input_tokens": 2237,
+        "output_tokens": 353,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001554
+    },
+    {
+      "event": "baseline_cam_mangabeira_night_056",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001314,
+        "latency_ms": 8442,
+        "input_tokens": 2237,
+        "output_tokens": 257,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001314
+    },
+    {
+      "event": "baseline_cam_imbiribeira_night_040",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 0,
+        "cost_usd": 0.001532,
+        "latency_ms": 16942,
+        "input_tokens": 2233,
+        "output_tokens": 345,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001532
+    },
+    {
+      "event": "baseline_cam_imbiribeira_night_048",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001342,
+        "latency_ms": 9925,
+        "input_tokens": 2233,
+        "output_tokens": 269,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001342
+    },
+    {
+      "event": "767e7d17-0e22-4d2d-b84c-5b6623b855d4",
+      "ground_truth": "FP",
+      "fp_cause": "Nada ocorrendo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001555,
+        "latency_ms": 15416,
+        "input_tokens": 2233,
+        "output_tokens": 354,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001555
+    },
+    {
+      "event": "765854fa-1770-4974-8fb0-3eee7b71998c",
+      "ground_truth": "FP",
+      "fp_cause": "Caminhão realizando a retirada de lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001615,
+        "latency_ms": 11315,
+        "input_tokens": 2233,
+        "output_tokens": 378,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001615
+    },
+    {
+      "event": "4b6e9df1-81d4-4f5f-9865-191284e9f8c6",
+      "ground_truth": "FP",
+      "fp_cause": "Caminhão realizando a retirada de lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 85,
+        "cost_usd": 0.00134,
+        "latency_ms": 14351,
+        "input_tokens": 2233,
+        "output_tokens": 268,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.00134
+    },
+    {
+      "event": "3f5e4001-455f-4ffd-bd53-f5257c01af10",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas está chovendo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001362,
+        "latency_ms": 11924,
+        "input_tokens": 2233,
+        "output_tokens": 277,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001362
+    },
+    {
+      "event": "8e92e6c3-e5a4-4cce-9df6-331b251e9b4d",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam limpando os restos de poda",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 100,
+        "cost_usd": 0.001274,
+        "latency_ms": 12902,
+        "input_tokens": 2237,
+        "output_tokens": 241,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001274
+    },
+    {
+      "event": "a034010b-8138-4a0c-9b18-d2852dbf9ca3",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoas passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001556,
+        "latency_ms": 18281,
+        "input_tokens": 2237,
+        "output_tokens": 354,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001556
+    },
+    {
+      "event": "7c0cdfaa-6655-47b9-95a0-027bd2755e6b",
+      "ground_truth": "FP",
+      "fp_cause": "Dois homens trocando objetos, parece um descarte mas eles apenas usam o local para realizar uma troca",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001506,
+        "latency_ms": 12227,
+        "input_tokens": 2237,
+        "output_tokens": 334,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001506
+    },
+    {
+      "event": "28fba845-30a2-44f9-9639-400cb87ee60b",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoa passando com um carrinho",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001549,
+        "latency_ms": 11671,
+        "input_tokens": 2237,
+        "output_tokens": 351,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001549
+    },
+    {
+      "event": "b014d1e6-31f7-427c-8448-201747c0afaf",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoas passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001534,
+        "latency_ms": 12411,
+        "input_tokens": 2237,
+        "output_tokens": 345,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001534
+    },
+    {
+      "event": "277a0631-2e5d-4521-a420-7dafe453f9ab",
+      "ground_truth": "FP",
+      "fp_cause": "Carro apenas estacionou",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001496,
+        "latency_ms": 11498,
+        "input_tokens": 2237,
+        "output_tokens": 330,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001496
+    },
+    {
+      "event": "3766dca1-28db-4e31-94f2-6b810c9db47c",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam retirando o Lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001289,
+        "latency_ms": 9191,
+        "input_tokens": 2237,
+        "output_tokens": 247,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001289
+    },
+    {
+      "event": "4b4f11d7-68be-4f16-a013-8a1555669730",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas pessoas e veículos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001545,
+        "latency_ms": 13670,
+        "input_tokens": 2233,
+        "output_tokens": 350,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001545
+    },
+    {
+      "event": "f58d2688-1e94-4263-ad51-62d05a1aba09",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas pessoas e veículos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.00158,
+        "latency_ms": 12929,
+        "input_tokens": 2233,
+        "output_tokens": 364,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.00158
+    },
+    {
+      "event": "d588e2b2-12f6-4a32-99e7-1ec271607c51",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam realizando a poda",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001506,
+        "latency_ms": 14815,
+        "input_tokens": 2237,
+        "output_tokens": 334,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001506
+    },
+    {
+      "event": "e92728ca-7aa0-4b19-a78e-8f43d288e64e",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas motos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001284,
+        "latency_ms": 7817,
+        "input_tokens": 2237,
+        "output_tokens": 245,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001284
+    },
+    {
+      "event": "b18fe72e-1b4f-4f36-a2b8-033f5b209749",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoas passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001606,
+        "latency_ms": 13360,
+        "input_tokens": 2237,
+        "output_tokens": 374,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001606
+    },
+    {
+      "event": "659c0d0d-ee0b-4bc0-a3ef-5fa16cde0fdd",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas pessoas e veículos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 85,
+        "cost_usd": 0.001427,
+        "latency_ms": 11131,
+        "input_tokens": 2233,
+        "output_tokens": 303,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001427
+    },
+    {
+      "event": "b58f9b56-f286-4055-9b82-b53362eba589",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas um homem passando de bicicleta",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001296,
+        "latency_ms": 8989,
+        "input_tokens": 2237,
+        "output_tokens": 250,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001296
+    },
+    {
+      "event": "17ff7912-a48a-43b7-92ff-108f621a42fd",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam realizando a poda",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001471,
+        "latency_ms": 12771,
+        "input_tokens": 2237,
+        "output_tokens": 320,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001471
+    },
+    {
+      "event": "85a764a7-e447-4936-aa56-1b8265046630",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possível descarte ou coleta sendo realizada com uma carroça",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001567,
+        "latency_ms": 12255,
+        "input_tokens": 2233,
+        "output_tokens": 359,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001567
+    },
+    {
+      "event": "62894ccc-4ba0-46eb-837b-f3cec8847e74",
+      "ground_truth": "INDEF",
+      "fp_cause": "Pessoas mexendo, tirando e colocando objetos na carroça",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 85,
+        "cost_usd": 0.001462,
+        "latency_ms": 18874,
+        "input_tokens": 2233,
+        "output_tokens": 317,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001462
+    },
+    {
+      "event": "f2c3394a-c13a-4ff7-981e-950ac1ca5d36",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possivelmente apenas duas pessoas coletando lixo, não parecem estar descartando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001532,
+        "latency_ms": 10738,
+        "input_tokens": 2233,
+        "output_tokens": 345,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001532
+    },
+    {
+      "event": "dc908b80-0391-4213-b18f-631b2d6fde31",
+      "ground_truth": "INDEF",
+      "fp_cause": "Trabalhador da prefeitura jogou um saco de lixo no local",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001314,
+        "latency_ms": 8514,
+        "input_tokens": 2237,
+        "output_tokens": 257,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001314
+    },
+    {
+      "event": "92968ee2-825b-4ecb-8b28-a7fc6ad1aef7",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possível descarte ou coleta sendo realizada com uma carroça",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001535,
+        "latency_ms": 13727,
+        "input_tokens": 2233,
+        "output_tokens": 346,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001535
+    },
+    {
+      "event": "5b5dc924-5197-4159-b2e9-51894d9f199c",
+      "ground_truth": "INDEF",
+      "fp_cause": "Várias pessoas manuseando coisas no lixo e na caçamba de um caminhão",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 98,
+        "cost_usd": 0.00153,
+        "latency_ms": 14225,
+        "input_tokens": 2233,
+        "output_tokens": 344,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.00153
+    },
+    {
+      "event": "5f84e70f-b6f1-4e9c-bef7-6e928c519318",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possivelmente apenas uma pessoa passando com um carrinho de mão",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001529,
+        "latency_ms": 11002,
+        "input_tokens": 2237,
+        "output_tokens": 343,
+        "fp_pattern_match": null,
+        "audit_rationale": null
+      },
+      "total_cost_usd": 0.001529
+    }
+  ]
+}

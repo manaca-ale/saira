@@ -51,3 +51,4 @@ Tentativas de mitigar via gate determinístico:
 
 - **Oficial (ativo)**: [`data/datasets/official/`](../data/datasets/official/) — 2 câmeras (Mangabeira + Imbiribeira), 119 eventos catalogados via spreadsheet "Mapeamento de Ocorrências" (TP/FP/Indefinido/Missed) + baseline 2h sem ocorrência por câmera.
 - **Legado (read-only)**: [`data/datasets/legacy/`](../data/datasets/legacy/) — datasets antigos usados pelas campanhas 02–06. Mantidos para reprodutibilidade histórica. Não usar para novos testes.
+| 16 | 2026-05-23 | audit v2 relaxed Detail | `gemini-2.5-flash-lite` (gate) + `gemini-2.5-flash` (detail) | `current` vs `audit_v2` | data/datasets/official (N=43) | fp-reduction (prompt tuning) | 100.0% → **75.0%** | 50.0% → **37.9%** | $0.0015 → **$0.0018** | **Não migrar para `audit_v2` em produção.** FAIL formal nos critérios (FP rate 37.9% > 30%). | [campaigns/16-audit-v2-relaxed-detail-2026-05-23/](campaigns/16-audit-v2-relaxed-detail-2026-05-23/) |
