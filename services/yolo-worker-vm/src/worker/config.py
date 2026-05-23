@@ -143,6 +143,17 @@ BGSUB_MODELS_DIR = os.getenv("BGSUB_MODELS_DIR", os.path.join(STATE_DIR, "bgsub_
 BGSUB_MOG2_HISTORY = int(os.getenv("BGSUB_MOG2_HISTORY", "80"))
 BGSUB_MOG2_VAR_THRESHOLD = float(os.getenv("BGSUB_MOG2_VAR_THRESHOLD", "40.0"))
 
+# Adaptive baseline — when enabled, the MOG2 background absorbs frames that
+# the Gemini gate confirmed as "no new litter" with high confidence. This
+# tolerates lighting shifts (sun angle, IR mode), pile collection by EMLURB,
+# and slow changes to the scene without manual recalibration.
+# Trade-off: if Gemini misclassifies a TP as negative (rare), the BGSUB will
+# absorb the descarte into baseline and may filter future similar scenes.
+BGSUB_ADAPTIVE_ENABLED = os.getenv("BGSUB_ADAPTIVE_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+BGSUB_ADAPTIVE_LEARNING_RATE = float(os.getenv("BGSUB_ADAPTIVE_LEARNING_RATE", "0.05"))
+BGSUB_ADAPTIVE_MIN_CONFIDENCE = int(os.getenv("BGSUB_ADAPTIVE_MIN_CONFIDENCE", "90"))
+BGSUB_ADAPTIVE_SAVE_EVERY_N = int(os.getenv("BGSUB_ADAPTIVE_SAVE_EVERY_N", "50"))
+
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.

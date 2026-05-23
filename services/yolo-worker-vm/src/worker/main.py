@@ -35,6 +35,7 @@ from .detector_gemini import (
     normalize_offender_types,
 )
 from .metrics import (
+    observe_bgsub_adaptive_update,
     observe_bgsub_evaluation,
     observe_car_shadow_comparison,
     observe_car_shadow_error,
@@ -1109,6 +1110,26 @@ def _process_with_gemini_cascade_window(
         "last_window_waste_type": gate_report.waste_type,
         "last_window_last_frame": str(last_frame),
     })
+
+    # Adaptive baseline — when the gate confirms no new litter with high
+    # confidence, absorb these frames into MOG2 so subsequent identical
+    # scenes get filtered. Gated by BGSUB_ADAPTIVE_ENABLED (default false).
+    if config.BGSUB_PREFILTER_ENABLED and not bool(gate_report.new_litter_detected):
+        adapt_result = bgsub_filter.update_baseline_with_frames(
+            device_id=device_id,
+            frame_paths=window_paths,
+            gate_confidence=int(gate_report.confidence_0_100),
+        )
+        observe_bgsub_adaptive_update(
+            camera_id=_camera_label(camera),
+            reason=adapt_result.reason,
+        )
+    elif config.BGSUB_PREFILTER_ENABLED and bool(gate_report.new_litter_detected):
+        # Skip update when descarte detected — we don't want to absorb TPs.
+        observe_bgsub_adaptive_update(
+            camera_id=_camera_label(camera),
+            reason="skipped_positive",
+        )
 
     gate_trigger = (
         bool(gate_report.new_litter_detected)

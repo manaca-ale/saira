@@ -19,6 +19,7 @@ still respect the global `BGSUB_PREFILTER_ENABLED` flag from config.
 """
 from __future__ import annotations
 
+import collections
 import json
 import logging
 from dataclasses import dataclass
@@ -54,6 +55,10 @@ class _ModelCache:
     def __init__(self) -> None:
         self._mog2: dict[str, cv2.BackgroundSubtractor] = {}
         self._masks: dict[str, np.ndarray] = {}
+        # Rolling buffer of frames per camera (adaptive baseline).
+        # Sized to BGSUB_MOG2_HISTORY so persisting matches calibrate output shape.
+        self._frame_buffer: dict[str, collections.deque] = {}
+        self._updates_since_save: dict[str, int] = {}
 
     def get_mog2(self, device_id: str) -> Optional[cv2.BackgroundSubtractor]:
         """Get (or build) the MOG2 model for this device.
@@ -85,6 +90,13 @@ class _ModelCache:
             for i in range(frames.shape[0]):
                 bg.apply(frames[i])
             self._mog2[device_id] = bg
+            # Seed rolling buffer with the baseline frames so future
+            # persistence keeps the same shape and history.
+            buf = collections.deque(maxlen=int(config.BGSUB_MOG2_HISTORY))
+            for i in range(min(int(config.BGSUB_MOG2_HISTORY), frames.shape[0])):
+                buf.append(frames[i])
+            self._frame_buffer[device_id] = buf
+            self._updates_since_save[device_id] = 0
             logger.info(
                 "bgsub: rebuilt MOG2 for %s from %d baseline frames in %s",
                 device_id, frames.shape[0], path,
@@ -123,9 +135,13 @@ class _ModelCache:
         if device_id is None:
             self._mog2.clear()
             self._masks.clear()
+            self._frame_buffer.clear()
+            self._updates_since_save.clear()
         else:
             self._mog2.pop(device_id, None)
             self._masks.pop(device_id, None)
+            self._frame_buffer.pop(device_id, None)
+            self._updates_since_save.pop(device_id, None)
 
 
 _cache = _ModelCache()
@@ -228,3 +244,115 @@ def evaluate(
     except Exception as exc:  # noqa: BLE001
         logger.warning("bgsub: evaluate failed for %s: %s", device_id, exc, exc_info=True)
         return FilterResult(should_suppress=False, reason="error")
+
+
+# =============================================================================
+# Adaptive baseline — Gemini-supervised MOG2 update.
+# =============================================================================
+@dataclass
+class AdaptiveUpdateResult:
+    """Outcome of an adaptive-baseline update attempt."""
+
+    applied: bool
+    reason: str         # applied | skipped_disabled | skipped_low_confidence
+                        # | skipped_no_model | persisted | error
+    n_frames: int = 0
+
+
+def update_baseline_with_frames(
+    device_id: str,
+    frame_paths: list[Path],
+    gate_confidence: int,
+    pile_zone_polygon: Any = None,  # noqa: ARG001 — accepted for API symmetry
+) -> AdaptiveUpdateResult:
+    """Absorb frames into the MOG2 baseline IF the Gemini gate confirmed the
+    scene as "no new litter" with high confidence.
+
+    Call this AFTER the gate returns. Caller-side check: only invoke when
+    gate_report.new_litter_detected == False.
+
+    Args:
+        device_id: e.g. "esp32_001"; must match the npz/cache key.
+        frame_paths: same frames passed to `evaluate()` for this window.
+        gate_confidence: int 0-100, from the Gemini gate report.
+        pile_zone_polygon: unused (kept for caller convenience).
+
+    Returns AdaptiveUpdateResult; never raises.
+    """
+    if not config.BGSUB_ADAPTIVE_ENABLED:
+        return AdaptiveUpdateResult(applied=False, reason="skipped_disabled")
+    if gate_confidence < int(config.BGSUB_ADAPTIVE_MIN_CONFIDENCE):
+        return AdaptiveUpdateResult(applied=False, reason="skipped_low_confidence")
+
+    bg = _cache.get_mog2(device_id)
+    if bg is None:
+        return AdaptiveUpdateResult(applied=False, reason="skipped_no_model")
+
+    lr = float(config.BGSUB_ADAPTIVE_LEARNING_RATE)
+    buf = _cache._frame_buffer.setdefault(
+        device_id, collections.deque(maxlen=int(config.BGSUB_MOG2_HISTORY)),
+    )
+
+    n_applied = 0
+    try:
+        for fp in frame_paths:
+            img = cv2.imread(str(fp))
+            if img is None:
+                continue
+            bg.apply(img, learningRate=lr)
+            buf.append(img)
+            n_applied += 1
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("bgsub: adaptive update failed for %s: %s", device_id, exc, exc_info=True)
+        return AdaptiveUpdateResult(applied=False, reason="error", n_frames=n_applied)
+
+    if n_applied == 0:
+        return AdaptiveUpdateResult(applied=False, reason="error")
+
+    _cache._updates_since_save[device_id] = (
+        _cache._updates_since_save.get(device_id, 0) + n_applied
+    )
+
+    persisted = False
+    if _cache._updates_since_save[device_id] >= int(config.BGSUB_ADAPTIVE_SAVE_EVERY_N):
+        persisted = _persist_frames_to_npz(device_id, list(buf))
+        if persisted:
+            _cache._updates_since_save[device_id] = 0
+
+    logger.info(
+        "bgsub: adaptive update applied for %s (frames=%d, lr=%.3f, persisted=%s)",
+        device_id, n_applied, lr, persisted,
+    )
+    return AdaptiveUpdateResult(
+        applied=True,
+        reason="persisted" if persisted else "applied",
+        n_frames=n_applied,
+    )
+
+
+def _persist_frames_to_npz(device_id: str, frames_list: list[np.ndarray]) -> bool:
+    """Save the rolling frame buffer as a fresh npz (atomic via .tmp rename).
+
+    On next worker restart, get_mog2() will rebuild from this npz, preserving
+    the adaptation across restarts.
+    """
+    if not frames_list:
+        return False
+    try:
+        models_dir = Path(config.BGSUB_MODELS_DIR)
+        models_dir.mkdir(parents=True, exist_ok=True)
+        final_path = models_dir / f"{device_id}.npz"
+        # np.savez_compressed appends ".npz" if missing — so we use
+        # "<device>.tmp.npz" (ends with .npz, won't get duplicated).
+        tmp_path = models_dir / f"{device_id}.tmp.npz"
+        arr = np.stack(frames_list, axis=0)
+        np.savez_compressed(str(tmp_path), frames=arr)
+        tmp_path.replace(final_path)
+        logger.info(
+            "bgsub: persisted %d frames to %s (adaptive checkpoint)",
+            len(frames_list), final_path,
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("bgsub: persist failed for %s: %s", device_id, exc, exc_info=True)
+        return False

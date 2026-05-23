@@ -202,3 +202,118 @@ def test_invalidate_cache_forces_reload(tmp_path):
 
     assert result_warm.reason in ("filtered", "passed")
     assert result_cold.reason == "skipped_no_model"
+
+
+# -----------------------------------------------------------------------------
+# Adaptive baseline (Gemini-supervised update)
+# -----------------------------------------------------------------------------
+def _setup_adaptive_camera(tmp_path, device_id="esp32_adapt"):
+    """Build a calibrated MOG2 + cache it. Returns (models_dir, polygon, frames)."""
+    bgsub_filter.invalidate_cache()
+    models_dir = tmp_path / "bgsub_models"
+    train_frames = [_write_frame(tmp_path / "train" / f"{i:03d}.jpg", "empty") for i in range(5)]
+    _train_mog2_to_disk(models_dir / f"{device_id}.npz", train_frames)
+    test_frames = [_write_frame(tmp_path / "test" / f"{i:03d}.jpg", "empty") for i in range(3)]
+    polygon = [[[0, 0], [1280, 0], [1280, 720], [0, 720]]]
+    return models_dir, polygon, test_frames
+
+
+def test_adaptive_skipped_when_flag_disabled(tmp_path):
+    models_dir, _, frames = _setup_adaptive_camera(tmp_path)
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", False):
+        # Warm cache first
+        bgsub_filter.evaluate(frames, "esp32_adapt", [[[0, 0], [1280, 0], [1280, 720], [0, 720]]])
+        result = bgsub_filter.update_baseline_with_frames("esp32_adapt", frames, gate_confidence=95)
+    assert result.applied is False
+    assert result.reason == "skipped_disabled"
+
+
+def test_adaptive_skipped_when_confidence_below_threshold(tmp_path):
+    models_dir, polygon, frames = _setup_adaptive_camera(tmp_path)
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_MIN_CONFIDENCE", 90):
+        bgsub_filter.evaluate(frames, "esp32_adapt", polygon)
+        # 80 < 90 → skip
+        result = bgsub_filter.update_baseline_with_frames("esp32_adapt", frames, gate_confidence=80)
+    assert result.applied is False
+    assert result.reason == "skipped_low_confidence"
+
+
+def test_adaptive_skipped_when_no_model(tmp_path):
+    """No npz file → no MOG2 → can't adapt."""
+    bgsub_filter.invalidate_cache()
+    models_dir = tmp_path / "bgsub_models"
+    models_dir.mkdir()
+    frames = [_write_frame(tmp_path / "test" / f"{i:03d}.jpg", "empty") for i in range(2)]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", True):
+        result = bgsub_filter.update_baseline_with_frames("esp32_nomodel", frames, gate_confidence=95)
+    assert result.applied is False
+    assert result.reason == "skipped_no_model"
+
+
+def test_adaptive_applies_when_enabled_and_high_confidence(tmp_path):
+    """High confidence + enabled → MOG2 absorbs frames."""
+    models_dir, polygon, frames = _setup_adaptive_camera(tmp_path)
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_MIN_CONFIDENCE", 90), \
+         patch.object(config, "BGSUB_ADAPTIVE_LEARNING_RATE", 0.05), \
+         patch.object(config, "BGSUB_ADAPTIVE_SAVE_EVERY_N", 9999):  # don't persist in test
+        bgsub_filter.evaluate(frames, "esp32_adapt", polygon)
+        result = bgsub_filter.update_baseline_with_frames("esp32_adapt", frames, gate_confidence=95)
+    assert result.applied is True
+    assert result.reason == "applied"
+    assert result.n_frames == len(frames)
+
+
+def test_adaptive_persists_after_threshold(tmp_path):
+    """Once update count crosses save threshold, npz is rewritten."""
+    models_dir, polygon, frames = _setup_adaptive_camera(tmp_path)
+    npz_path = models_dir / "esp32_adapt.npz"
+    original_mtime = npz_path.stat().st_mtime
+    import time as _time
+    _time.sleep(0.01)
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_MIN_CONFIDENCE", 90), \
+         patch.object(config, "BGSUB_ADAPTIVE_LEARNING_RATE", 0.05), \
+         patch.object(config, "BGSUB_ADAPTIVE_SAVE_EVERY_N", 2):  # trip on first update
+        bgsub_filter.evaluate(frames, "esp32_adapt", polygon)
+        result = bgsub_filter.update_baseline_with_frames("esp32_adapt", frames, gate_confidence=95)
+    assert result.applied is True
+    assert result.reason == "persisted"
+    assert npz_path.exists()
+    assert npz_path.stat().st_mtime > original_mtime
+    # Reload — verify the new npz has the rolling buffer (5 baseline + 3 adapted = 8 frames)
+    arr = np.load(str(npz_path))["frames"]
+    assert arr.shape[0] == 8
+    assert arr.shape[1:] == (720, 1280, 3)
+
+
+def test_adaptive_caller_skip_positive_gate(tmp_path):
+    """Verify the caller-side contract: when gate says new_litter=True, caller
+    must NOT invoke update_baseline_with_frames. This test documents that
+    the BGSUB module itself does NOT have a 'gate_positive' bypass — it only
+    knows about confidence. The contract is enforced in main.py.
+    """
+    # Even with positive gate semantics, if caller invokes us with high
+    # confidence, we still adapt — caller must do the gating.
+    models_dir, polygon, frames = _setup_adaptive_camera(tmp_path)
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_MIN_CONFIDENCE", 90), \
+         patch.object(config, "BGSUB_ADAPTIVE_SAVE_EVERY_N", 9999):
+        bgsub_filter.evaluate(frames, "esp32_adapt", polygon)
+        # If a caller mistakenly invokes with high confidence on a positive
+        # gate, we DO adapt — this is documented behavior.
+        result = bgsub_filter.update_baseline_with_frames("esp32_adapt", frames, gate_confidence=95)
+    assert result.applied is True
