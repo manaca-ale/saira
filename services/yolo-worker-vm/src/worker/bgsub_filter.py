@@ -200,8 +200,11 @@ def evaluate(
                 resized_mask = mask
 
             fg = bg.apply(img, learningRate=0.0)
-            # MOG2 with detectShadows=True marks shadows as 127; keep only hard FG.
-            fg = (fg > 200).astype(np.uint8) * 255
+            # MOG2 with detectShadows=True outputs: 0=bg, ~127=possible shadow,
+            # 255=definite foreground. Dark objects (e.g. black trash bags) get
+            # ambiguous values (80-150) and were being dropped with the previous
+            # hard >200 cutoff. BGSUB_SHADOW_THRESHOLD parameterizes this.
+            fg = (fg > int(config.BGSUB_SHADOW_THRESHOLD)).astype(np.uint8) * 255
             fg = cv2.morphologyEx(fg, cv2.MORPH_OPEN, morph_kernel)
             fg = cv2.morphologyEx(fg, cv2.MORPH_CLOSE, morph_kernel)
             in_zone = cv2.bitwise_and(fg, resized_mask)
