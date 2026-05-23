@@ -4,6 +4,10 @@ from typing import Optional
 from decimal import Decimal
 
 
+# Polygon = list of [x, y] points. pile_zone_polygon = list of polygons.
+PileZonePolygon = list[list[list[int]]]
+
+
 class CameraBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     device_id: Optional[str] = Field(None, max_length=64)
@@ -15,6 +19,8 @@ class CameraBase(BaseModel):
     rtsp_url: Optional[str] = Field(None, max_length=512)
     capture_interval_seconds: int = Field(default=30, ge=1)
     is_active: bool = True
+    pile_zone_polygon: Optional[PileZonePolygon] = None
+    bgsub_calibrated_at: Optional[datetime] = None
 
 
 class CameraCreate(CameraBase):
@@ -32,6 +38,8 @@ class CameraUpdate(BaseModel):
     rtsp_url: Optional[str] = Field(None, max_length=512)
     capture_interval_seconds: Optional[int] = Field(None, ge=1)
     is_active: Optional[bool] = None
+    pile_zone_polygon: Optional[PileZonePolygon] = None
+    bgsub_calibrated_at: Optional[datetime] = None
 
 
 class CameraResponse(CameraBase):

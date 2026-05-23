@@ -1,0 +1,100 @@
+{
+  "campaign_number": 16,
+  "title": "audit v2 relaxed Detail",
+  "date": "2026-05-23",
+  "type": "prompt-ab",
+  "focus": "fp-reduction (prompt tuning)",
+  "models": {
+    "gate": "gemini-2.5-flash-lite",
+    "detail": "gemini-2.5-flash",
+    "thinking_budget": 2048
+  },
+  "status_line": "❌ **FAIL** (audit_v2) — FP rate 37.9% > 30%",
+  "pass": false,
+  "variants": {
+    "audit": {
+      "n": 45,
+      "total_cost_usd": 0.081675,
+      "tp_recall": 12.5,
+      "fp_rate": 10.344827586206897,
+      "tp_gate_recall": 100.0,
+      "fp_gate_rate": 100.0,
+      "cost_per_event": 0.001815,
+      "latency_p50": 13953,
+      "output_tokens_total": 15933,
+      "by_category": {
+        "TP": {
+          "n": 8,
+          "confirmed": 1,
+          "errors": 7
+        },
+        "FP": {
+          "n": 29,
+          "confirmed": 3,
+          "errors": 3
+        },
+        "INDEF": {
+          "n": 8,
+          "confirmed": 1,
+          "errors": 1
+        }
+      }
+    },
+    "audit_v2": {
+      "n": 45,
+      "total_cost_usd": 0.081903,
+      "tp_recall": 75.0,
+      "fp_rate": 37.93103448275862,
+      "tp_gate_recall": 100.0,
+      "fp_gate_rate": 100.0,
+      "cost_per_event": 0.0018200666666666667,
+      "latency_p50": 12014,
+      "output_tokens_total": 16349,
+      "by_category": {
+        "TP": {
+          "n": 8,
+          "confirmed": 6,
+          "errors": 2
+        },
+        "FP": {
+          "n": 29,
+          "confirmed": 11,
+          "errors": 11
+        },
+        "INDEF": {
+          "n": 8,
+          "confirmed": 4,
+          "errors": 4
+        }
+      }
+    },
+    "current": {
+      "n": 43,
+      "total_cost_usd": 0.062794,
+      "tp_recall": 100.0,
+      "fp_rate": 50.0,
+      "tp_gate_recall": 100.0,
+      "fp_gate_rate": 100.0,
+      "cost_per_event": 0.001460325581395349,
+      "latency_p50": 11997,
+      "output_tokens_total": 13583,
+      "by_category": {
+        "TP": {
+          "n": 8,
+          "confirmed": 8,
+          "errors": 0
+        },
+        "FP": {
+          "n": 28,
+          "confirmed": 14,
+          "errors": 14
+        },
+        "INDEF": {
+          "n": 7,
+          "confirmed": 6,
+          "errors": 6
+        }
+      }
+    }
+  }
+}

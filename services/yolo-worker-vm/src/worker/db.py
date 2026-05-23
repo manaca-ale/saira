@@ -79,7 +79,8 @@ def resolve_camera(device_id: str) -> Optional[CameraInfo]:
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT id, name, device_id, logradouro, bairro, rpa, latitude, longitude "
+            "SELECT id, name, device_id, logradouro, bairro, rpa, latitude, longitude, "
+            "pile_zone_polygon, bgsub_calibrated_at "
             "FROM cameras WHERE device_id = %s AND is_active = true LIMIT 1",
             (device_id,),
         )
@@ -91,6 +92,8 @@ def resolve_camera(device_id: str) -> Optional[CameraInfo]:
             id=row[0], name=row[1], device_id=row[2],
             logradouro=row[3], bairro=row[4], rpa=row[5],
             latitude=row[6], longitude=row[7],
+            pile_zone_polygon=row[8],
+            bgsub_calibrated_at=row[9],
         )
     except Exception:
         logger.exception("Error resolving camera for device_id=%s", device_id)
@@ -132,12 +135,14 @@ def insert_detection(det: DetectionRecord) -> bool:
                 id, camera_id, timestamp, logradouro, bairro, rpa,
                 latitude, longitude, waste_type, material_type,
                 volume_m3, offenders, status, image_url, confidence_score,
-                waste_bbox, created_at, updated_at
+                waste_bbox, agent1_request_id, agent2_request_id, agent1_confidence,
+                created_at, updated_at
             ) VALUES (
                 %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s,
                 %s, %s, %s, %s, %s,
-                %s::jsonb, NOW(), NOW()
+                %s::jsonb, %s, %s, %s,
+                NOW(), NOW()
             )
             """,
             (
@@ -148,6 +153,9 @@ def insert_detection(det: DetectionRecord) -> bool:
                 det.volume_m3, det.offenders,
                 det.status, det.image_url, det.confidence_score,
                 json.dumps(det.waste_bbox) if det.waste_bbox is not None else None,
+                det.agent1_request_id,
+                det.agent2_request_id,
+                det.agent1_confidence,
             ),
         )
         conn.commit()

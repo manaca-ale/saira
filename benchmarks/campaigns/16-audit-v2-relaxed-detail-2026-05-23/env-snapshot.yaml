@@ -1,0 +1,19 @@
+# Snapshot do ambiente em 2026-05-23T05:34:07
+# Gerado por snapshot_prompts.py — não editar à mão.
+
+host:
+  platform: "Windows-11-10.0.26200-SP0"
+  python: "3.14.2"
+  python_impl: "CPython"
+
+git:
+  commit: "4ade3ef9fdb122045205a4c76d9fdd7eec1b4c76"
+  branch: "feature/bgsub-prefilter"
+  describe: "4ade3ef-dirty"
+  dirty: true
+
+env_benchmark:  # chaves sensíveis mascaradas
+  GEMINI_AGENT1_MODEL: "gemini-2.5-flash-lite"
+  GEMINI_AGENT1_THINKING_BUDGET: "2048"
+  GEMINI_API_KEY: "AIzaSyBT…sJdE (len=39)"
+  GEMINI_MODEL: "gemini-2.5-flash"

@@ -1,0 +1,57 @@
+# Campanha 11 — Promoção do prompt V2 (com fix carroça)
+campaign_number: 11
+title: "Prompt V2 promotion A/B (current vs v2 with carroça fix)"
+date: 2026-05-22
+type: prompt-ab
+hypothesis: |
+  V2 (com fix carroça) atinge TP recall >= 25% (V1 baseline ~15%) e FP rate <= 43.8%
+  (V1 baseline ~38.8%) no dataset oficial v1 com 5 frames/janela (mid_frames inclusos).
+  Adicionalmente deve acertar os 3 casos golden: d00a79bd (uniforme), 12506543 (pedestre),
+  fb4a2c50 (FP coleta caminhão deve ser rejeitado).
+
+models:
+  gate: "gemini-2.5-flash-lite"
+  detail: "gemini-2.5-flash"
+  thinking_budget: 1024   # sweet spot validado (project_thinking_budget_validated)
+
+arms:
+  - id: A_current
+    description: "Prompt V1 atual em produção (current)"
+    prompt_version: "current"
+    thinking_budget: 1024
+  - id: B_v2_patched
+    description: "Prompt V2 com fix carroça (carroça vira sinal neutro)"
+    prompt_version: "v2"
+    thinking_budget: 1024
+
+filters:
+  camera:
+    - cam_mangabeira
+    - cam_imbiribeira
+  category:
+    - tp
+    - fp
+    - indefinido
+    - missed
+    - baseline
+
+# Critérios de PASS para B promover sobre A. Definidos pelo usuário em 2026-05-22.
+success_criteria:
+  tp_recall_min_pct: 25.0       # V1 baseline na camp 08 foi 15%
+  fp_rate_max_pct: 43.8         # V1 baseline na camp 09 foi 38.8%
+  recall_delta_min_pp: 10.0     # B deve ter >=10pp a mais que A para promoção
+  golden_cases_required:
+    - id: "d00a79bd-4052-4406-986f-01707b7fc713"
+      category: "tp"
+      reason: "TP uniforme — V2 deve detectar (uniforme não é discriminador)"
+      expected: true
+    - id: "12506543-1c64-4604-8c76-a85300a43669"
+      category: "tp"
+      reason: "TP pedestre puro — V2 deve detectar"
+      expected: true
+    - id: "fb4a2c50-8124-4055-9968-f1237817367b"
+      category: "fp"
+      reason: "FP coleta — V2 deve rejeitar (caminhão compactador EMLURB)"
+      expected: false
+
+focus: "TP recall improvement on pedestrian/uniform TPs without major FP regression"

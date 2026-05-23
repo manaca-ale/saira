@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Numeric
+from sqlalchemy.dialects.postgresql import JSONB
 from geoalchemy2 import Geometry
 from app.core.database import Base
 from app.core.timezone import now_brazil
@@ -20,5 +21,9 @@ class Camera(Base):
     capture_interval_seconds = Column(Integer, default=30)
     is_active = Column(Boolean, default=True, index=True)
     last_capture_at = Column(DateTime(timezone=True))
+    # BGSUB pre-filter config (added 2026-05-23 — see docs/bgsub_prefilter.md):
+    # pile_zone_polygon = list of polygons, each a list of [x,y] points (frame 1280x720)
+    pile_zone_polygon = Column(JSONB, nullable=True)
+    bgsub_calibrated_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=now_brazil)
     updated_at = Column(DateTime(timezone=True), default=now_brazil, onupdate=now_brazil)

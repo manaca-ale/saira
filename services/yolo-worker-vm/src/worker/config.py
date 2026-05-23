@@ -105,6 +105,44 @@ GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
 
+# Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
+# V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
+# Default stays on V1 until campanha 11 validates V2 against the official dataset.
+GEMINI_PROMPT_VERSION = os.getenv("GEMINI_PROMPT_VERSION", "current").strip().lower()
+if GEMINI_PROMPT_VERSION not in ("current", "v2", "v3", "audit"):
+    logging.getLogger(__name__).warning(
+        "Invalid GEMINI_PROMPT_VERSION=%s. Falling back to 'current'.", GEMINI_PROMPT_VERSION,
+    )
+    GEMINI_PROMPT_VERSION = "current"
+
+# Separate flag for the Detail agent (Agent-2). Allows running gate with V1
+# (default, validated) while testing the audit prompt only on the detail side.
+# Values: "current" (V1) | "v2" | "v3" | "audit" | "audit_v2"
+# - audit: V1 adversarial reviewer, force-false unless real_dumping (camp 15 FAIL)
+# - audit_v2: relaxed, force-false only for 5 unambiguous FP patterns (camp 16)
+GEMINI_DETAIL_PROMPT_VERSION = os.getenv("GEMINI_DETAIL_PROMPT_VERSION", "").strip().lower()
+if GEMINI_DETAIL_PROMPT_VERSION not in ("", "current", "v2", "v3", "audit", "audit_v2"):
+    logging.getLogger(__name__).warning(
+        "Invalid GEMINI_DETAIL_PROMPT_VERSION=%s. Falling back to GEMINI_PROMPT_VERSION.",
+        GEMINI_DETAIL_PROMPT_VERSION,
+    )
+    GEMINI_DETAIL_PROMPT_VERSION = ""
+# Empty string means "use GEMINI_PROMPT_VERSION" (back-compat).
+
+# -----------------------------------------------------------------------------
+# BGSUB pre-filter (OpenCV background subtraction) — suppresses Gemini gate
+# calls for genuinely-empty windows. See docs/bgsub_prefilter.md.
+# Spike validated: threshold=1000 px → 100% TP keep + 73% baseline supr.
+# -----------------------------------------------------------------------------
+BGSUB_PREFILTER_ENABLED = os.getenv("BGSUB_PREFILTER_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+BGSUB_PERSISTENCE_THRESHOLD = int(os.getenv("BGSUB_PERSISTENCE_THRESHOLD", "1000"))
+BGSUB_MIN_PX_ACTIVE = int(os.getenv("BGSUB_MIN_PX_ACTIVE", "800"))
+BGSUB_MIN_PERSISTENCE_FRAMES = float(os.getenv("BGSUB_MIN_PERSISTENCE_FRAMES", "0.6"))
+BGSUB_MODELS_DIR = os.getenv("BGSUB_MODELS_DIR", os.path.join(STATE_DIR, "bgsub_models"))
+# MOG2 training params (must match script/calibrate_bgsub.py)
+BGSUB_MOG2_HISTORY = int(os.getenv("BGSUB_MOG2_HISTORY", "80"))
+BGSUB_MOG2_VAR_THRESHOLD = float(os.getenv("BGSUB_MOG2_VAR_THRESHOLD", "40.0"))
+
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.
@@ -117,6 +155,19 @@ GEMINI_REQUIRE_BBOX = os.getenv("GEMINI_REQUIRE_BBOX", "true").strip().lower() i
 # Token cost estimation (USD per 1M tokens) — gemini-2.5-flash pricing (non-thinking).
 GEMINI_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_INPUT_TOKEN_PRICE_PER_1M", "0.15"))
 GEMINI_OUTPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_OUTPUT_TOKEN_PRICE_PER_1M", "0.60"))
+
+# Claude Haiku 4.5 via AWS Bedrock — alternative Detail-agent provider (A/B testing).
+HAIKU_AWS_REGION = os.getenv("HAIKU_AWS_REGION", "us-east-1").strip()
+HAIKU_AWS_PROFILE = os.getenv("HAIKU_AWS_PROFILE", "codex-ops").strip()
+HAIKU_MODEL_ID = os.getenv(
+    "HAIKU_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+).strip()
+HAIKU_MAX_OUTPUT_TOKENS = int(os.getenv("HAIKU_MAX_OUTPUT_TOKENS", "4096"))
+HAIKU_TIMEOUT_SECONDS = int(os.getenv("HAIKU_TIMEOUT_SECONDS", "30"))
+HAIKU_MAX_RETRIES = int(os.getenv("HAIKU_MAX_RETRIES", "1"))
+HAIKU_THINKING_BUDGET = int(os.getenv("HAIKU_THINKING_BUDGET", "0"))  # 0 = thinking OFF
+HAIKU_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("HAIKU_INPUT_TOKEN_PRICE_PER_1M", "1.00"))
+HAIKU_OUTPUT_TOKEN_PRICE_PER_1M = float(os.getenv("HAIKU_OUTPUT_TOKEN_PRICE_PER_1M", "5.00"))
 
 # S3 daily migration settings.
 S3_ENABLED = os.getenv("S3_ENABLED", "false").strip().lower() in ("true", "1", "yes")
