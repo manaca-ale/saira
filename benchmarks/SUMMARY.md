@@ -1,0 +1,53 @@
+# SAÍRA — Índice mestre de campanhas de benchmark
+
+Cada linha é uma campanha de teste rodada contra um dataset. Para detalhes (configuração, hipótese, conclusão completa), abrir o `report.md`/`results*.json` do diretório linkado.
+
+Versão CSV (mesma tabela, ordenável no Excel/Sheets): [summary.csv](summary.csv).
+
+| # | Data | Campanha | Modelos | Prompt | Dataset (N) | Foco | TP recall | FP rate | Custo | Decisão | Artefatos |
+|---|------|----------|---------|--------|-------------|------|-----------|---------|-------|---------|-----------|
+| 01 | 2026-05-22 | Prompt V2 A/B | `gemini-2.5-flash-lite` (gate) + `gemini-2.5-flash` (detail) | `current` vs `v2` (discriminadores comportamentais) | `field_audit_2026-05-22` (N=15, 6 TP + 9 FP) | FP reduction com retenção de TP | 33% (ambos) | 44% → **22%** (V2) | $0.0158 → **$0.0146** (V2) | **V2 ok** — FP reduzido 50%, TP mantido | [campaigns/01-prompt-v2-ab-2026-05-22/](campaigns/01-prompt-v2-ab-2026-05-22/) |
+| 02 | ~2026-03 | Cascade Lite/Lite full | `gemini-2.5-flash-lite` (gate+detail) | baseline produção | `field_cctv` (122 windows, BOA_VISTA ch23/26/28) | Validação pipeline produção | — | — | $0.0593 total | 122 janelas → 55 gate trigger → 53 confirmados | [campaigns/02-cascade-lite-lite/](campaigns/02-cascade-lite-lite/) |
+| 03 | ~2026-03 | Gate A/B baseline | `gemini-2.5-flash-lite` (gate only) | threshold 85% | `field_cctv` + `fp_test_server` | Calibração de threshold do gate | — | — | — | Baseline para comparar novas rodadas | [campaigns/03-gate-ab-baseline/](campaigns/03-gate-ab-baseline/) |
+| 04 | ~2026-03 | Agent 2 only | `gemini-2.5-flash` (detail) | baseline | `field_cctv` (eventos BOA_VISTA) | Detail agent sem gate | — | — | per-call no JSON | Métricas por evento (confidence, waste_type, offender) | [campaigns/04-agent2-only/](campaigns/04-agent2-only/) |
+| 05 | ~2026-03 | Multi-model combos | 12 combos (Lite/Lite, Flash/Lite, etc.) | baseline | `field_cctv` (ch26-ch60) | Comparação modelos | — | — | per-combo no JSON | 12 combos × 1 dataset por entry | [campaigns/05-multi-model-combos/](campaigns/05-multi-model-combos/) |
+| 06 | 2026-05-20 | FP × Thinking budget | `gemini-2.5-flash` (detail) | thinking_budget=0 vs 2048 | `cascade_test` (6 windows W1-W6, ch26 2026-05-20) | Custo vs FP rate do thinking | — | reduz com 2048 | thinking=2048 = +50% custo | **Manter 2048** — validado, não reduzir | [campaigns/06-fp-thinking-budget-2026-05-20/](campaigns/06-fp-thinking-budget-2026-05-20/) |
+| 07 | 2026-05-22 | Haiku 4.5 vs Gemini 2.5 Flash | Gemini 2.5 Flash vs Haiku-NT vs Haiku-Th(2048) | claude-optimized prompt na 2ª rodada | `field_audit_2026-05-22` (N=15) | Avaliar Haiku como Detail substituto | Gemini 100% / Haiku-NT 66.7% / Haiku-Th 50% | Gemini 77.8% / Haiku-NT 55.6% / Haiku-Th 33.3% | Haiku **23× mais caro** | **NÃO migrar**; considerar hybrid safety-net | [campaigns/07-haiku-vs-gemini-2026-05-22/](campaigns/07-haiku-vs-gemini-2026-05-22/) |
+| 08 | 2026-05-22 | Cascade two-pass | `gemini-2.5-flash-lite` (gate) | 6 arms: budget=2048 / budget=0 / cascade T=70/80/85/90 | `official v1` (N=174: 114 eventos + 60 baseline) | cost-vs-recall (cascade two-pass) | A: **15%** · B: 25% · C: **40%** | A: 23% · B: 23% · C: 28% | A: $0.36 blended · C: **$0.43 (+20%)** | **Cascade rejeitado** — escalation 75% inviabiliza custo. Achado da camp 08 sobre recall era **artefato de só 2 frames** (refutado em camp 09) | [campaigns/08-cascade-two-pass-2026-05-22/](campaigns/08-cascade-two-pass-2026-05-22/) |
+| 09 | 2026-05-22 | Thinking budget A/B (mid frames) | `gemini-2.5-flash-lite` (gate, 5 frames) | A_prod (budget=2048) vs B_no_think (budget=0) | `official v1` (N=174, mesma camp 08) | testar achado camp 08 com setup fiel a prod | A: **40%** · B: 30% | A: 38.8% · B: 32.8% | A: $0.53 · B: $0.34 (-35%) | **Hipótese refutada** — A_prod ganha em recall (+10pp) com mid_frames. Inversão total vs camp 08 → trade-off recall vs custo | [campaigns/09-thinking-budget-a-b-mid-frames-2026-05-22/](campaigns/09-thinking-budget-a-b-mid-frames-2026-05-22/) |
+| 10 | 2026-05-22 | Thinking budget sweet spot (1024) | `gemini-2.5-flash-lite` (gate, 5 frames) | B_half (budget=1024) + reusa A_prod/B_no_think da camp 09 | `official v1` (N=174, mesma camp 09) | tuning fino do thinking budget | A: 40% · **B_half: 35%** · B0: 30% | A: 38.8% · **B_half: 33.6%** · B0: 32.8% | A: $0.53 · **B_half: $0.43** · B0: $0.34 | ✅ **SWEET SPOT confirmado** — 1024 retém 87% do recall de 2048, economiza 19%, **menos FPs**, latência -51%. Recomenda canary em prod | [campaigns/10-thinking-budget-1024-sweet-spot-2026-05-22/](campaigns/10-thinking-budget-1024-sweet-spot-2026-05-22/) |
+| 11 | 2026-05-22 | Prompt V2 promotion (carroça fix) | `gemini-2.5-flash-lite` (gate, 5 frames, budget=1024) | A=`current` (V1) vs B=`v2` (com fix carroça) | `official v1` (N=174) | `prompt-tuning` — validar promoção V2 | V1: **35%** · V2: 25% | V1: 33.6% · **V2: 16.4%** | $0.22 gate | ❌ **FAIL** — V2 reduz FP -17pp ✅ mas regrediu recall -10pp E perdeu 2/3 golden (d00a79bd uniforme + 12506543 pedestre). V2 confabula `pile_volume_change=increased` em 13 cenas vazias (`person near pile` → "pile grew") | [campaigns/11-prompt-v2-promotion-2026-05-22/](campaigns/11-prompt-v2-promotion-2026-05-22/) |
+| 12 | 2026-05-22 | Prompt V3 posture-first | `gemini-2.5-flash-lite` (gate, 5 frames, budget=1024) | A=`v2` (baseline camp 11) vs B=`v3` (posture-first + LOCAL_CONTEXT) | `official v1` (N=174) | `prompt-tuning` — posture corporal como sinal primário | V2: 25% · **V3: 40%** (+15pp) | V2: 16.4% · **V3: 39.6%** (+23pp) | $0.25 gate | ❌ **FAIL** — V3 recupera 5 TPs (2/3 golden) ✅ mas explode FP +23pp. Modelo confabula `posture=depositing_at_pile` em 40 cenas (poda, "pessoas passando", até "cachorro andando" — inventou pessoa). Posture-first NÃO é robusto sozinho | [campaigns/12-prompt-v3-posture-2026-05-22/](campaigns/12-prompt-v3-posture-2026-05-22/) |
+| 13 | 2026-05-22 | Prompt V3.1 stricter (3-signal gate) | idem (budget=1024) | A=`v2` baseline vs B=V3.1 (gate exige posture+handling+(flow/new_ground), prompt detalha 3 sub-condições obrigatórias para `depositing_at_pile`) | reduced (50 events + 32 baseline = 82 windows × 2 arms) | `prompt-tuning` — controlar confabulação de posture | V2: 40% · **V3.1: 20%** (-20pp) | V2: 12.3% · V3.1: 12.3% (=) | $0.13 | ❌ **FAIL** — FP fix ✅ mas recall -20pp. Modelo seguiu o critério **literalmente**: pessoa "holding a white bag" mas sem bending claro → marcou `standing_near_pile` (mas era TP real). 7 FPs ainda passaram (poda municipal — modelo persiste confabulando) | [campaigns/13-prompt-v3-1-stricter-2026-05-22/](campaigns/13-prompt-v3-1-stricter-2026-05-22/) |
+| 14 | 2026-05-23 | Prompt V3.2 collection-context (≥2 signals) | idem (budget=1024) | A=`v2` baseline vs B=V3.2 (volta gate de 2 sinais, mas suprime se ≥2 collection signals: scene=COLLECTION_OR_MAINTENANCE \| equip \| flow=from_pile \| pile=decreased) | reduced (110 events + 32 baseline = 142 windows × 2 arms) | `prompt-tuning` — meio-termo recall/FP | V2: 31.3% · V3.2: 31.3% (=) | V2: 17.0% · **V3.2: 22.6%** (+5.7pp) | $0.17 | ❌ **FAIL** — **0/3 golden** (pior que V3 original 2/3). Modelo continua confabulando posture mesmo COM instruções sobre cleaning crews + correlação rakes/brooms/uniformes. Confabulação é estrutural do modelo Gemini, não corrigível só por prompt | [campaigns/14-prompt-v3-2-collection-fix-2026-05-23/](campaigns/14-prompt-v3-2-collection-fix-2026-05-23/) |
+
+## Conclusões da série prompt V2→V3.2 (camps 11-14)
+
+**Trade-off fundamental descoberto:** prompts que pedem ao Gemini para classificar postura corporal (V3+) ganham recall em descartes pedestres invisíveis (volumetria 0.01-0.15 m³, abaixo da resolução CCTV) MAS o modelo **confabula sistematicamente** `posture=depositing_at_pile` em qualquer cena com pessoa próxima a pilha pré-existente — incluindo coleta municipal, poda, transeuntes, e até cenas sem pessoas (modelo inventa pessoa em "Apenas um cachorro andando").
+
+Tentativas de mitigar via gate determinístico:
+- 3-sinal gate (V3.1): mata o recall (-20pp), modelo segue o critério literalmente.
+- 2-de-4 collection signals (V3.2): suprime 1 FP a cada 2 TPs sacrificados — gola de bola net-neutral.
+
+**Recomendação atual:** **Manter V1 em produção** (35% recall, 34% FP rate na camp 11). Promover V2 só se a equipe de revisão humana tiver capacidade — V2 reduz FP -17pp mas perde 4 TPs críticos. Não promover V3.x sem mais sinais comportamentais não-confabuláveis (e.g. tracking temporal multi-frame, detecção CV nativa de objetos sendo soltos).
+
+## Como adicionar uma nova campanha
+
+1. Criar pasta `campaigns/NN-titulo-curto/` (próximo número sequencial)
+2. Copiar `_template.md` para `campaigns/NN-.../report.md` e preencher os campos
+3. Salvar os JSONs / logs / frames de saída na mesma pasta
+4. Acrescentar uma linha aqui em `SUMMARY.md` e em `summary.csv` (mesma ordem de colunas)
+5. Linkar o dataset usado em `data/datasets/official/` ou `data/datasets/legacy/`
+
+## Convenções
+
+- **TP recall** = (descartes reais confirmados pelo modelo) / (total descartes reais no dataset). "—" quando o dataset não tem rótulo binário TP/FP claro.
+- **FP rate** = (eventos sem descarte real que o modelo confirmou) / (total eventos não-descarte). "—" idem.
+- **Custo** = USD ou BRL conforme o que o relatório original reporta.
+- **Foco** = um de: `accuracy` | `cost` | `latency` | `fp-reduction` | `precision-recall` | `prompt-tuning` | `model-selection`.
+- **Decisão** = uma frase imperativa ("manter V2", "não migrar", "validado") — não uma narrativa longa.
+
+## Datasets de referência
+
+- **Oficial (ativo)**: [`data/datasets/official/`](../data/datasets/official/) — 2 câmeras (Mangabeira + Imbiribeira), 119 eventos catalogados via spreadsheet "Mapeamento de Ocorrências" (TP/FP/Indefinido/Missed) + baseline 2h sem ocorrência por câmera.
+- **Legado (read-only)**: [`data/datasets/legacy/`](../data/datasets/legacy/) — datasets antigos usados pelas campanhas 02–06. Mantidos para reprodutibilidade histórica. Não usar para novos testes.

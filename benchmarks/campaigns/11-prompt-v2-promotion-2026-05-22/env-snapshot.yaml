@@ -1,0 +1,39 @@
+campaign: 11-prompt-v2-promotion-2026-05-22
+captured_at: 2026-05-22
+
+git:
+  branch: develop
+  head_sha: b86b3547065106eea90ff84e497d8c7a690e5b77
+  dirty: true
+  dirty_note: |
+    Working tree has the V2 promotion patch staged but not yet committed:
+    - services/yolo-worker-vm/src/worker/config.py (GEMINI_PROMPT_VERSION flag)
+    - services/yolo-worker-vm/src/worker/main.py (plumb in 2 sites)
+    - services/yolo-worker-vm/src/worker/_prompts_v2.py (carroça fix, 4 edits)
+    - services/yolo-worker-vm/src/worker/detector_gemini.py (V1 baseline patch)
+    Plus other pre-existing dirty files unrelated to this campaign.
+
+python:
+  version_runtime: "3.14.2"
+  encoding: "utf-8 (forced via -X utf8 / sys.stdout.reconfigure)"
+
+models:
+  gate: gemini-2.5-flash-lite
+  detail: gemini-2.5-flash
+  thinking_budget: 1024  # FIXED in both arms
+
+api:
+  project: gen-lang-client-0841492152
+  key_source: services/.env.benchmark (GEMINI_TEST_API_KEY)
+  rationale: "Never production project; bench costs isolated"
+
+dataset:
+  root: data/datasets/official/
+  version: "v1 (2026-05-22)"
+  events_total: 114
+  baseline_per_series: 15
+  baseline_total: 60
+  windows_total: 174  # 114 events + 60 baseline
+  frames_per_window:
+    minimum: 2
+    typical: 5  # first + 3 mid (25/50/75%) + last

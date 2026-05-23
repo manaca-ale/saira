@@ -1,0 +1,410 @@
+{
+  "arms": {
+    "A_v2_baseline": {
+      "arm": "A_v2_baseline",
+      "spec": {
+        "prompt_version": "v2",
+        "description": "V2 com fix carroça (baseline camp 11)"
+      },
+      "n_windows": 82,
+      "n_ok": 78,
+      "n_err": 4,
+      "categories": {
+        "positives_total": 5,
+        "tp_catalogued": 5,
+        "missed": 0,
+        "negatives_fp": 41,
+        "negatives_baseline": 32,
+        "negatives_total": 73,
+        "indefinidos": 4
+      },
+      "recall": {
+        "tp_hits_total": 2,
+        "tp_recall_pct": 40.0,
+        "tp_only_hits": 2,
+        "tp_only_recall_pct": 40.0,
+        "missed_hits": 0,
+        "missed_recall_pct": 0.0
+      },
+      "fp": {
+        "fp_in_fp_category_hits": 6,
+        "fp_in_fp_category_rate_pct": 14.63,
+        "fp_in_baseline_hits": 3,
+        "fp_in_baseline_rate_pct": 9.38,
+        "fp_total_hits": 9,
+        "fp_total_rate_pct": 12.33
+      },
+      "indefinido": {
+        "trigger_count": 3,
+        "trigger_rate_pct": 75.0
+      },
+      "cost": {
+        "total_usd": 0.05517,
+        "per_call_usd": 0.000707,
+        "detail_spillover_usd": 0.07,
+        "blended_total_usd": 0.1252,
+        "blended_per_window_usd": 0.00153,
+        "n_detail_calls_triggered": 14
+      },
+      "latency_ms": {
+        "p50": 5503,
+        "p95": 18009,
+        "mean": 7949
+      },
+      "by_camera": {
+        "cam_mangabeira": {
+          "tp_hits": 2,
+          "tp_total": 4,
+          "tp_recall_pct": 50.0,
+          "fp_hits": 4,
+          "fp_total": 30,
+          "fp_rate_pct": 13.33
+        },
+        "cam_imbiribeira": {
+          "tp_hits": 0,
+          "tp_total": 1,
+          "tp_recall_pct": 0.0,
+          "fp_hits": 2,
+          "fp_total": 11,
+          "fp_rate_pct": 18.18
+        }
+      },
+      "posture_distribution": {}
+    },
+    "B_v3_1_stricter": {
+      "arm": "B_v3_1_stricter",
+      "spec": {
+        "prompt_version": "v3",
+        "description": "V3.1 (posture stricter + 3-signal gate + neg examples)"
+      },
+      "n_windows": 82,
+      "n_ok": 72,
+      "n_err": 10,
+      "categories": {
+        "positives_total": 5,
+        "tp_catalogued": 5,
+        "missed": 0,
+        "negatives_fp": 41,
+        "negatives_baseline": 32,
+        "negatives_total": 73,
+        "indefinidos": 4
+      },
+      "recall": {
+        "tp_hits_total": 1,
+        "tp_recall_pct": 20.0,
+        "tp_only_hits": 1,
+        "tp_only_recall_pct": 20.0,
+        "missed_hits": 0,
+        "missed_recall_pct": 0.0
+      },
+      "fp": {
+        "fp_in_fp_category_hits": 9,
+        "fp_in_fp_category_rate_pct": 21.95,
+        "fp_in_baseline_hits": 0,
+        "fp_in_baseline_rate_pct": 0.0,
+        "fp_total_hits": 9,
+        "fp_total_rate_pct": 12.33
+      },
+      "indefinido": {
+        "trigger_count": 3,
+        "trigger_rate_pct": 75.0
+      },
+      "cost": {
+        "total_usd": 0.06478,
+        "per_call_usd": 0.0009,
+        "detail_spillover_usd": 0.065,
+        "blended_total_usd": 0.1298,
+        "blended_per_window_usd": 0.00158,
+        "n_detail_calls_triggered": 13
+      },
+      "latency_ms": {
+        "p50": 4758,
+        "p95": 22892,
+        "mean": 8005
+      },
+      "by_camera": {
+        "cam_mangabeira": {
+          "tp_hits": 1,
+          "tp_total": 4,
+          "tp_recall_pct": 25.0,
+          "fp_hits": 6,
+          "fp_total": 30,
+          "fp_rate_pct": 20.0
+        },
+        "cam_imbiribeira": {
+          "tp_hits": 0,
+          "tp_total": 1,
+          "tp_recall_pct": 0.0,
+          "fp_hits": 3,
+          "fp_total": 11,
+          "fp_rate_pct": 27.27
+        }
+      },
+      "posture_distribution": {
+        "collecting_from_pile": 11,
+        "depositing_at_pile": 12,
+        "standing_near_pile": 10,
+        "passing_by": 30,
+        "absent": 9
+      }
+    }
+  },
+  "pass_criteria": {
+    "tp_recall_min_pct": 35.0,
+    "fp_rate_max_pct": 21.42,
+    "recall_delta_min_pp": 0.0
+  },
+  "decision": {
+    "tp_recall_abs": {
+      "value_pct": 20.0,
+      "threshold_pct": 35.0,
+      "rule": "B_v3 TP recall >= 35.0%",
+      "pass": false
+    },
+    "tp_recall_delta": {
+      "value_pp": -20.0,
+      "threshold_pp": 0.0,
+      "rule": "B-A >= 0pp (no regression vs V2)",
+      "pass": false
+    },
+    "fp_rate": {
+      "value_pct": 12.33,
+      "threshold_pct": 21.42,
+      "rule": "B_v3 FP rate <= 21.42%",
+      "pass": true
+    },
+    "golden_cases": {
+      "n_total": 3,
+      "n_passed": 0,
+      "n_found": 1,
+      "rule": "All 3 golden cases match expected",
+      "pass": false,
+      "details": [
+        {
+          "id": "48350bb4-b72c-4bc1-aeaa-89bc00d1595c",
+          "category": "tp",
+          "reason": "TP pano branco (descarte pedestre noturno)",
+          "expected_detected": true,
+          "found": true,
+          "actual_detected": false,
+          "passed": false,
+          "confidence": null,
+          "scene_type": null,
+          "posture": null,
+          "evidence": ""
+        },
+        {
+          "id": "12506543-1c64-4604-8c76-a85300a43669",
+          "category": "tp",
+          "reason": "TP pedestre puro (3 homens)",
+          "expected_detected": true,
+          "found": false,
+          "passed": false,
+          "actual": null
+        },
+        {
+          "id": "d00a79bd-4052-4406-986f-01707b7fc713",
+          "category": "tp",
+          "reason": "TP uniforme laranja",
+          "expected_detected": true,
+          "found": false,
+          "passed": false,
+          "actual": null
+        }
+      ]
+    },
+    "overall_pass": false
+  },
+  "flips": [
+    {
+      "window_id": "07925285-dce1-4f8c-9c4e-3c778173fcb2",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoa passando com um carrinho",
+      "b_posture": null,
+      "b_evidence": ""
+    },
+    {
+      "window_id": "17ff7912-a48a-43b7-92ff-108f621a42fd",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Estavam realizando a poda",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "A person is observed bending down near the pile while carrying an object (frame 2), and then standing up with empty hands (frame 3), indicat"
+    },
+    {
+      "window_id": "1a2c6dc6-4df7-41fe-a7e6-ce3b5e49d798",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoas passando",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "A person is observed bending down near the waste pile in multiple frames (19:23:24, 19:23:35, 19:23:50). In a later frame (19:24:05), the sa"
+    },
+    {
+      "window_id": "570a5967-692c-4d41-ae6f-3503c434763a",
+      "camera": "cam_mangabeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Possivelmente apenas uma pessoa passando com um carrinho de mão indo para uma re",
+      "b_posture": "standing_near_pile",
+      "b_evidence": "A person in a red shirt is observed standing near an informal waste pile across multiple frames. No active dumping, collection, or significa"
+    },
+    {
+      "window_id": "5e3e79cd-5d57-4fd5-8e6c-622139ad8305",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam retirando o Lixo",
+      "b_posture": "collecting_from_pile",
+      "b_evidence": "The scene shows a truck with its bed raised, and several individuals in blue uniforms are actively loading debris from a ground pile into th"
+    },
+    {
+      "window_id": "61c6be4e-a107-4f65-a241-ff97da60f453",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_posture": null,
+      "b_evidence": ""
+    },
+    {
+      "window_id": "66280d13-ac95-4cb7-8841-8b2733cade15",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "A person is observed carrying an object (bag) towards the pile, then bending down at the pile, and subsequently moving away with empty hands"
+    },
+    {
+      "window_id": "767e7d17-0e22-4d2d-b84c-5b6623b855d4",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Nada ocorrendo",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "A person is observed near the pile, appearing to bend down and handle material. The presence of a person interacting with the pile at night,"
+    },
+    {
+      "window_id": "983dc78f-8a5e-4803-a9d1-fb9d7392c6d5",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas passando",
+      "b_posture": "standing_near_pile",
+      "b_evidence": "A person is present near an informal waste pile with a bicycle. No material is being deposited or collected. The pile size appears unchanged"
+    },
+    {
+      "window_id": "a018dd4d-8e20-47bb-a981-726bf82bceda",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "The person in blue/brown is observed bending down at the pile (frame 3) while carrying an object (frame 2) and later seen with empty hands m"
+    },
+    {
+      "window_id": "baseline_cam_imbiribeira_night_045",
+      "camera": "cam_imbiribeira",
+      "category": "baseline",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "",
+      "b_posture": "absent",
+      "b_evidence": "No significant activity observed. A person is visible in the distance on the road in early frames, and another person is seen standing near "
+    },
+    {
+      "window_id": "baseline_cam_mangabeira_day_000",
+      "camera": "cam_mangabeira",
+      "category": "baseline",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "",
+      "b_posture": "passing_by",
+      "b_evidence": "A white truck is parked on the road in the last frames. A person is seen walking along the sidewalk, passing by the informal waste pile. No "
+    },
+    {
+      "window_id": "baseline_cam_mangabeira_day_022",
+      "camera": "cam_mangabeira",
+      "category": "baseline",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "",
+      "b_posture": "absent",
+      "b_evidence": "A white car is parked on the side of the road near an informal trash pile. No people are visible interacting with the pile or the vehicle. T"
+    },
+    {
+      "window_id": "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+      "camera": "cam_mangabeira",
+      "category": "tp",
+      "kind": "loss_pos",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Um homem realizando o descarte de múltiplas coisas",
+      "b_posture": "standing_near_pile",
+      "b_evidence": "A person is visible near the waste pile in the last frame, holding a white bag. A white vehicle is also visible in the background. No clear "
+    },
+    {
+      "window_id": "d588e2b2-12f6-4a32-99e7-1ec271607c51",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Estavam realizando a poda",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "A person is observed bending down and interacting with the trash pile, appearing to deposit material. A small truck is parked nearby. The pi"
+    },
+    {
+      "window_id": "e435c966-f162-4a4d-bfcb-9c1361e0e5c8",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoas passando",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "A person in a yellow shirt is observed bending down and handling material near the informal trash pile in frames 3 and 4. This posture, comb"
+    },
+    {
+      "window_id": "ffdafc45-bcb2-4ba1-911e-bcc77ed1b715",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "gain_indef",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Possivel descarte sendo realizado por um homem",
+      "b_posture": "depositing_at_pile",
+      "b_evidence": "A person is observed near the debris pile, appearing to bend down and handle material. While the exact transition of carrying an object to e"
+    }
+  ],
+  "constants": {
+    "detail_cost_per_call_usd": 0.005
+  }
+}

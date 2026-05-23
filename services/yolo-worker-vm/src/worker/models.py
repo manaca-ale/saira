@@ -23,6 +23,9 @@ class CameraInfo:
     rpa: Optional[str]
     latitude: Optional[Decimal]
     longitude: Optional[Decimal]
+    # BGSUB pre-filter config (added 2026-05-23). Both None when not configured.
+    pile_zone_polygon: Optional[object] = None  # JSONB → list[list[list[int]]]
+    bgsub_calibrated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -45,6 +48,9 @@ class DetectionRecord:
     image_url: Optional[str] = None
     confidence_score: Optional[Decimal] = None
     waste_bbox: Optional[list] = None
+    agent1_request_id: Optional[str] = None
+    agent2_request_id: Optional[str] = None
+    agent1_confidence: Optional[int] = None
 
 
 @dataclass
