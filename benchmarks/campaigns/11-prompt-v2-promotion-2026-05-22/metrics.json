@@ -1,0 +1,879 @@
+{
+  "arms": {
+    "A_current": {
+      "arm": "A_current",
+      "spec": {
+        "prompt_version": "current",
+        "description": "Prompt V1 atual em produção"
+      },
+      "n_windows": 174,
+      "n_ok": 174,
+      "n_err": 0,
+      "categories": {
+        "positives_total": 20,
+        "tp_catalogued": 14,
+        "missed": 6,
+        "negatives_fp": 74,
+        "negatives_baseline": 60,
+        "negatives_total": 134,
+        "indefinidos": 20
+      },
+      "recall": {
+        "tp_hits_total": 7,
+        "tp_recall_pct": 35.0,
+        "tp_only_hits": 7,
+        "tp_only_recall_pct": 50.0,
+        "missed_hits": 0,
+        "missed_recall_pct": 0.0
+      },
+      "fp": {
+        "fp_in_fp_category_hits": 43,
+        "fp_in_fp_category_rate_pct": 58.11,
+        "fp_in_baseline_hits": 2,
+        "fp_in_baseline_rate_pct": 3.33,
+        "fp_total_hits": 45,
+        "fp_total_rate_pct": 33.58
+      },
+      "indefinido": {
+        "trigger_count": 14,
+        "trigger_rate_pct": 70.0
+      },
+      "cost": {
+        "total_usd": 0.09972,
+        "per_call_usd": 0.000573,
+        "detail_spillover_usd": 0.33,
+        "blended_total_usd": 0.4297,
+        "blended_per_window_usd": 0.00247,
+        "n_detail_calls_triggered": 66
+      },
+      "latency_ms": {
+        "p50": 4981,
+        "p95": 6718,
+        "mean": 5190
+      },
+      "tokens_pass1": {
+        "n_frames_mean": 4.98,
+        "input_mean": 1936,
+        "billable_output_mean": 948,
+        "thinking_mean": 730
+      },
+      "by_camera": {
+        "cam_mangabeira": {
+          "tp_hits": 4,
+          "tp_total": 13,
+          "tp_recall_pct": 30.77,
+          "fp_hits": 28,
+          "fp_total": 43,
+          "fp_rate_pct": 65.12
+        },
+        "cam_imbiribeira": {
+          "tp_hits": 3,
+          "tp_total": 7,
+          "tp_recall_pct": 42.86,
+          "fp_hits": 15,
+          "fp_total": 31,
+          "fp_rate_pct": 48.39
+        }
+      }
+    },
+    "B_v2_patched": {
+      "arm": "B_v2_patched",
+      "spec": {
+        "prompt_version": "v2",
+        "description": "Prompt V2 com fix carroça (2026-05-22)"
+      },
+      "n_windows": 174,
+      "n_ok": 173,
+      "n_err": 1,
+      "categories": {
+        "positives_total": 20,
+        "tp_catalogued": 14,
+        "missed": 6,
+        "negatives_fp": 74,
+        "negatives_baseline": 60,
+        "negatives_total": 134,
+        "indefinidos": 20
+      },
+      "recall": {
+        "tp_hits_total": 5,
+        "tp_recall_pct": 25.0,
+        "tp_only_hits": 5,
+        "tp_only_recall_pct": 35.71,
+        "missed_hits": 0,
+        "missed_recall_pct": 0.0
+      },
+      "fp": {
+        "fp_in_fp_category_hits": 17,
+        "fp_in_fp_category_rate_pct": 22.97,
+        "fp_in_baseline_hits": 5,
+        "fp_in_baseline_rate_pct": 8.33,
+        "fp_total_hits": 22,
+        "fp_total_rate_pct": 16.42
+      },
+      "indefinido": {
+        "trigger_count": 6,
+        "trigger_rate_pct": 30.0
+      },
+      "cost": {
+        "total_usd": 0.11934,
+        "per_call_usd": 0.00069,
+        "detail_spillover_usd": 0.165,
+        "blended_total_usd": 0.2843,
+        "blended_per_window_usd": 0.00163,
+        "n_detail_calls_triggered": 33
+      },
+      "latency_ms": {
+        "p50": 4897,
+        "p95": 5953,
+        "mean": 4901
+      },
+      "tokens_pass1": {
+        "n_frames_mean": 4.98,
+        "input_mean": 2807,
+        "billable_output_mean": 1022,
+        "thinking_mean": 734
+      },
+      "by_camera": {
+        "cam_mangabeira": {
+          "tp_hits": 2,
+          "tp_total": 13,
+          "tp_recall_pct": 15.38,
+          "fp_hits": 8,
+          "fp_total": 43,
+          "fp_rate_pct": 18.6
+        },
+        "cam_imbiribeira": {
+          "tp_hits": 3,
+          "tp_total": 7,
+          "tp_recall_pct": 42.86,
+          "fp_hits": 9,
+          "fp_total": 31,
+          "fp_rate_pct": 29.03
+        }
+      }
+    }
+  },
+  "pass_criteria": {
+    "tp_recall_min_pct": 25.0,
+    "fp_rate_max_pct": 43.8,
+    "recall_delta_min_pp": 10.0
+  },
+  "decision": {
+    "tp_recall_abs": {
+      "value_pct": 25.0,
+      "threshold_pct": 25.0,
+      "rule": "B_v2_patched TP recall >= 25.0%",
+      "pass": true
+    },
+    "tp_recall_delta": {
+      "value_pp": -10.0,
+      "threshold_pp": 10.0,
+      "rule": "B - A >= 10pp",
+      "pass": false
+    },
+    "fp_rate": {
+      "value_pct": 16.42,
+      "threshold_pct": 43.8,
+      "rule": "B_v2_patched FP rate <= 43.8%",
+      "pass": true
+    },
+    "golden_cases": {
+      "n_total": 3,
+      "n_passed": 1,
+      "n_found": 3,
+      "rule": "All 3 golden cases match expected",
+      "pass": false,
+      "details": [
+        {
+          "id": "d00a79bd-4052-4406-986f-01707b7fc713",
+          "category": "tp",
+          "reason": "TP uniforme — V2 deve detectar",
+          "expected_detected": true,
+          "found": true,
+          "actual_detected": false,
+          "passed": false,
+          "confidence": 0,
+          "scene_type": "COLLECTION_OR_MAINTENANCE"
+        },
+        {
+          "id": "12506543-1c64-4604-8c76-a85300a43669",
+          "category": "tp",
+          "reason": "TP pedestre puro — V2 deve detectar",
+          "expected_detected": true,
+          "found": true,
+          "actual_detected": false,
+          "passed": false,
+          "confidence": 0,
+          "scene_type": "COLLECTION_OR_MAINTENANCE"
+        },
+        {
+          "id": "fb4a2c50-8124-4055-9968-f1237817367b",
+          "category": "fp",
+          "reason": "FP coleta caminhão — V2 deve rejeitar",
+          "expected_detected": false,
+          "found": true,
+          "actual_detected": false,
+          "passed": true,
+          "confidence": 0,
+          "scene_type": "COLLECTION_OR_MAINTENANCE"
+        }
+      ]
+    },
+    "overall_pass": false
+  },
+  "flips": [
+    {
+      "window_id": "07925285-dce1-4f8c-9c4e-3c778173fcb2",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoa passando com um carrinho",
+      "b_evidence": "A person is actively handling material on the ground next to a growing waste pile. A vehicle is stopped nearby. The material flow is towards"
+    },
+    {
+      "window_id": "10bfef31-9ed7-4f9d-9a0f-b4f986c3cfd2",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "People in green uniforms are actively working around a pile of debris and vegetation. A truck with an open, tilted bed is present. The mater"
+    },
+    {
+      "window_id": "14698616-b7ba-4ab7-99a4-fcc850a72fe1",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "A vehicle is moving through the scene, and people are visible walking. No material is being actively dumped or collected, and no specific mu"
+    },
+    {
+      "window_id": "17ff7912-a48a-43b7-92ff-108f621a42fd",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam realizando a poda",
+      "b_evidence": "A small truck is parked. Multiple individuals are observed interacting with a debris pile on the ground, picking up material and placing it "
+    },
+    {
+      "window_id": "1a2c6dc6-4df7-41fe-a7e6-ce3b5e49d798",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "Vehicles are observed moving through the scene in multiple frames. No clear evidence of material dumping or collection is present. The groun"
+    },
+    {
+      "window_id": "1c823d95-102d-4b1b-9e40-4cf1b039ebea",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoa apenas estacionou e desceu com uma criança",
+      "b_evidence": "A person is seen interacting with an open car door near a pile of debris. The pile appears to grow between the first and last frame, and the"
+    },
+    {
+      "window_id": "1cc35595-4bd8-4254-b409-c037265f56db",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Apenas pessoas e veículos passando",
+      "b_evidence": "The scene shows parked vehicles and people present, but no active material dumping or collection is observed. The waste pile on the ground a"
+    },
+    {
+      "window_id": "2bb892bc-c4d8-4175-b8b1-89007a82d133",
+      "camera": "cam_mangabeira",
+      "category": "tp",
+      "kind": "loss_pos",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas descartando restos de poda",
+      "b_evidence": "People are observed interacting with a waste pile. In the first frame, a person is near the pile. In subsequent frames, individuals appear t"
+    },
+    {
+      "window_id": "3497125c-7695-4123-b17d-4e86ae390cb2",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Dois homens com uma carroça estão mexendo no lixo",
+      "b_evidence": "The scene shows a street at night with a blue car visible in the distance in multiple frames. In the later frames, another vehicle and two i"
+    },
+    {
+      "window_id": "38982b91-c60b-475f-b966-54f6428238c5",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoas passando e pombos andando sobre o lixo",
+      "b_evidence": "A person in an orange vest is observed near a pile of debris. The debris pile appears to have increased in volume between the first and last"
+    },
+    {
+      "window_id": "3c60eccd-a4ee-4ebf-acd0-6e23d7c0890b",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "gain_indef",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Três homens mexendo em uma carroça, no lixo e queimando com fogo um objeto",
+      "b_evidence": "A yellow loader vehicle is present with multiple people around it. The loader appears to be depositing material onto the ground, and the pil"
+    },
+    {
+      "window_id": "3f115960-c3cb-4677-aad1-6fef42be2e59",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas perto da carroça",
+      "b_evidence": "A person is actively handling material near a wooden cart. The pile of waste on the ground appears to be decreasing in volume, and the perso"
+    },
+    {
+      "window_id": "3f5e4001-455f-4ffd-bd53-f5257c01af10",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Apenas está chovendo",
+      "b_evidence": "A person in an orange vest is operating a small loader/cart near a pile of material. The pile appears to be decreasing in volume, and the pe"
+    },
+    {
+      "window_id": "3fb685f6-bcef-4860-93f2-7000672d65cf",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "A person is seen collecting material from the ground and moving it towards a vehicle. The pile of waste on the ground appears to be decreasi"
+    },
+    {
+      "window_id": "454c8308-69a4-469d-8f78-376747f23ac5",
+      "camera": "cam_imbiribeira",
+      "category": "tp",
+      "kind": "gain_pos",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Um homem realizando o descarte de lixo com um carrinho de mão",
+      "b_evidence": "Two individuals in red/orange are observed near a growing pile of debris on the right side of the road. The pile visibly increases in volume"
+    },
+    {
+      "window_id": "48350bb4-b72c-4bc1-aeaa-89bc00d1595c",
+      "camera": "cam_imbiribeira",
+      "category": "tp",
+      "kind": "loss_pos",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Dois homens descartando o conteúdo dentro de um grande saco/pano branco",
+      "b_evidence": "A white truck is parked in the scene. Two individuals are walking in the vicinity. A white sheet is present on the ground but no active mate"
+    },
+    {
+      "window_id": "4b6e9df1-81d4-4f5f-9865-191284e9f8c6",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Caminhão realizando a retirada de lixo",
+      "b_evidence": "The scene shows a truck and two individuals wearing orange vests. The individuals appear to be actively moving material from the ground towa"
+    },
+    {
+      "window_id": "4c5262d9-ce4e-401c-a730-3b1bd5783086",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "A truck is parked and two individuals are actively loading green vegetal material (branches, leaves) from the ground into the truck bed. The"
+    },
+    {
+      "window_id": "4cca7f5d-4f6e-4c0c-98de-abcb2766faa2",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam retirando o Lixo",
+      "b_evidence": "Two individuals in green uniforms are observed interacting with a flatbed truck and debris on the ground. The material on the ground appears"
+    },
+    {
+      "window_id": "4ed80e61-81ef-4c68-b0c4-1d2bb1518f1f",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "A truck is parked on the side of the road. A person is visible near the truck, holding an object, but their action (dumping or collecting) i"
+    },
+    {
+      "window_id": "4f356133-0cee-489d-9875-8bae0014ad32",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "A person in green is actively gathering material from the ground and placing it into a truck loaded with green waste. The truck is stationar"
+    },
+    {
+      "window_id": "50e938ae-90df-417e-acce-a1671b797719",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "A white car is parked near a pile of waste. Two individuals are present and appear to be handling material. The waste pile on the right side"
+    },
+    {
+      "window_id": "51a9ff0e-ae1a-40c2-836e-407b2738ced2",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam retirando o Lixo",
+      "b_evidence": "A truck is stopped, and a person is actively handling material near the truck. The pile of waste on the ground appears to be decreasing in v"
+    },
+    {
+      "window_id": "5b109f46-1672-4876-8ac2-e9aaa0a038bd",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "A truck is parked, and individuals are actively gathering debris and vegetation from the ground and loading it into the truck. The pile on t"
+    },
+    {
+      "window_id": "5e3e79cd-5d57-4fd5-8e6c-622139ad8305",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam retirando o Lixo",
+      "b_evidence": "A large truck is stationary, and several individuals in blue uniforms are actively moving material from a pile on the ground into the truck'"
+    },
+    {
+      "window_id": "6090fa86-c1c5-4fae-9c6b-9baf0757e2db",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "A person is present near a parked car and a pile of debris on the ground. The pile appears to have grown between the first and last frames, "
+    },
+    {
+      "window_id": "61c6be4e-a107-4f65-a241-ff97da60f453",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "A flatbed truck is parked. A person is present and interacts with the ground near a pile of debris and a bicycle. The pile of debris appears"
+    },
+    {
+      "window_id": "62894ccc-4ba0-46eb-837b-f3cec8847e74",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas mexendo, tirando e colocando objetos na carroça",
+      "b_evidence": "A wooden cart is present and stationary. People are observed interacting with the cart and the material. The volume of waste on the ground a"
+    },
+    {
+      "window_id": "655ea4ae-732a-433b-ad30-f08ada944581",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Apenas está chovendo",
+      "b_evidence": "A vehicle and a person are present and stationary in the scene. No active material dumping or collection is observed. The scene does not sho"
+    },
+    {
+      "window_id": "765854fa-1770-4974-8fb0-3eee7b71998c",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Caminhão realizando a retirada de lixo",
+      "b_evidence": "A caminhão compactador (garbage truck) is present and stationary. People are observed near the truck and interacting with the material on th"
+    },
+    {
+      "window_id": "767e7d17-0e22-4d2d-b84c-5b6623b855d4",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Nada ocorrendo",
+      "b_evidence": "A person is present near a growing pile of waste on the ground. The pile volume increased from the first to the last frame, indicating mater"
+    },
+    {
+      "window_id": "7bf988b9-9117-433a-a201-3dd5b77f4a3a",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Caminhão realizando a retirada de lixo",
+      "b_evidence": "A large municipal garbage truck (caminhão compactador) is present and stationary. People are observed near the truck, and the visible waste "
+    },
+    {
+      "window_id": "7c0cdfaa-6655-47b9-95a0-027bd2755e6b",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Dois homens trocando objetos, parece um descarte mas eles apenas usam o local pa",
+      "b_evidence": "Two individuals are observed interacting with a pre-existing waste pile. Across the frames, they appear to be sorting or collecting material"
+    },
+    {
+      "window_id": "7f2c82ab-9e77-4a04-87ae-914c7df87d01",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Coleta do lixo sendo realizada",
+      "b_evidence": "A large green municipal garbage truck (caminhão compactador) is stationary. A person in an orange vest is near the truck's rear hopper, appe"
+    },
+    {
+      "window_id": "89228777-68c6-4ee9-8efd-b99273a63d70",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Parecem apenas pessoas carregando um sofá para longe daquela região",
+      "b_evidence": "Two individuals are interacting with a pile of debris on the ground near a cart or small vehicle. The pile of debris appears to be decreasin"
+    },
+    {
+      "window_id": "8e92e6c3-e5a4-4cce-9df6-331b251e9b4d",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "A person in a green uniform is seen interacting with a debris pile next to a truck. The pile appears to decrease in volume between the first"
+    },
+    {
+      "window_id": "983dc78f-8a5e-4803-a9d1-fb9d7392c6d5",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "The scene shows a pile of trash on the ground. A person is present near the trash and a large dark object, but their activity is not clearly"
+    },
+    {
+      "window_id": "9c631112-b16e-4317-a8e8-c746fb7e424e",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam retirando o Lixo",
+      "b_evidence": "A truck is stopped, and several individuals in blue uniforms are actively collecting debris from the ground and loading it into the truck. T"
+    },
+    {
+      "window_id": "a3dea6cb-cdd9-4350-aaf2-bde2e92fd32f",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam retirando o Lixo",
+      "b_evidence": "A truck is stopped with two individuals. One individual is inside the truck bed, actively moving debris. Another individual is standing on t"
+    },
+    {
+      "window_id": "a5db27cc-af35-4e1d-8b21-f5333b886feb",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "A person in a green uniform is actively collecting vegetation from a pile on the ground and loading it into the bed of a stationary truck. T"
+    },
+    {
+      "window_id": "a73a3f44-03d0-4dc1-b850-efbac6210f3e",
+      "camera": "cam_imbiribeira",
+      "category": "tp",
+      "kind": "loss_pos",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Caminhonete azul escura realiza o descarte de um grande volume de lixo",
+      "b_evidence": "A person is visible in the scene, and vehicles are parked. No clear evidence of material being dumped or collected. The ground material appe"
+    },
+    {
+      "window_id": "b014d1e6-31f7-427c-8448-201747c0afaf",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "A large municipal garbage truck (caminhão compactador) is stopped. A person is seen handling material on the ground near the pile. The pile "
+    },
+    {
+      "window_id": "b131bc54-ca43-4ab9-a724-79f057aa0c9d",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Caminhão realizando a retirada de lixo",
+      "b_evidence": "A white truck is parked in the scene. Two individuals are present near the truck, but they are not actively handling or depositing material."
+    },
+    {
+      "window_id": "b489a0a9-2758-4132-834b-d6e31f305d15",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "The scene shows a truck with a tilted bed and workers in green uniforms. The primary activity observed is the removal of green waste and deb"
+    },
+    {
+      "window_id": "b58f9b56-f286-4055-9b82-b53362eba589",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Apenas um homem passando de bicicleta",
+      "b_evidence": "A person on a wooden cart (carroça) is observed near a pile of waste. The person appears to be handling material, and the overall volume of "
+    },
+    {
+      "window_id": "baseline_cam_imbiribeira_day_000",
+      "camera": "cam_imbiribeira",
+      "category": "baseline",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "",
+      "b_evidence": "A wooden cart is present, and a person walks through the scene. No active dumping or collection is observed. Vehicles in the background are "
+    },
+    {
+      "window_id": "baseline_cam_imbiribeira_day_020",
+      "camera": "cam_imbiribeira",
+      "category": "baseline",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "",
+      "b_evidence": "A wooden cart is present near a growing pile of waste on the ground. The pile appears to increase in volume between the first and last frame"
+    },
+    {
+      "window_id": "baseline_cam_imbiribeira_day_024",
+      "camera": "cam_imbiribeira",
+      "category": "baseline",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "",
+      "b_evidence": "The scene shows an orange cart (carroça) filled with waste, and people are present near it. The pile of waste on the ground to the left of t"
+    },
+    {
+      "window_id": "baseline_cam_imbiribeira_day_028",
+      "camera": "cam_imbiribeira",
+      "category": "baseline",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "",
+      "b_evidence": "The amount of loose debris on the ground appears to have increased between the first and last frames. An orange cart is present, but no pers"
+    },
+    {
+      "window_id": "baseline_cam_imbiribeira_day_040",
+      "camera": "cam_imbiribeira",
+      "category": "baseline",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "",
+      "b_evidence": "Multiple vehicles are parked in the scene. A person is visible walking but not actively handling material. The orange bin is present but no "
+    },
+    {
+      "window_id": "baseline_cam_mangabeira_day_015",
+      "camera": "cam_mangabeira",
+      "category": "baseline",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "",
+      "b_evidence": "The waste pile on the ground appears to have increased in volume between the first and last frames. A vehicle is present and stopped in the "
+    },
+    {
+      "window_id": "baseline_cam_mangabeira_night_012",
+      "camera": "cam_mangabeira",
+      "category": "baseline",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "",
+      "b_evidence": "A person is observed near a waste pile, and the waste pile appears to have increased in volume between the first and last frames, indicating"
+    },
+    {
+      "window_id": "c305f313-ed18-4aee-8399-6a6fc61f3b70",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pode ser que os indivíduos da van branca tenham realizado algum tipo de descarte",
+      "b_evidence": "The scene shows a parked white van. A person is visible moving around the van and then walking away, but there is no clear indication of mat"
+    },
+    {
+      "window_id": "cb49921a-c894-4cfd-8802-5c41316e7301",
+      "camera": "cam_imbiribeira",
+      "category": "tp",
+      "kind": "gain_pos",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoas realizando o descarte do conteúdo de um saco marom aparentemente",
+      "b_evidence": "A white truck is parked near a large pile of waste. Multiple individuals are present and appear to be actively depositing material onto the "
+    },
+    {
+      "window_id": "d00a79bd-4052-4406-986f-01707b7fc713",
+      "camera": "cam_mangabeira",
+      "category": "tp",
+      "kind": "loss_pos",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Grande quantidade de lixo descartada por um homem utilizando uniforme laranja",
+      "b_evidence": "A person in an orange vest is seen pushing a cart towards a pile of waste. The pile of waste appears to decrease in volume from the first to"
+    },
+    {
+      "window_id": "d27584ab-1df5-4a91-a8e9-0aba6fb7466f",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Pessoal que estava mexendo do caminhão e no lixo indo embora",
+      "b_evidence": "The scene shows a road with a vehicle and a person near some orange equipment. The vehicle and person appear stationary. No active material "
+    },
+    {
+      "window_id": "d588e2b2-12f6-4a32-99e7-1ec271607c51",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam realizando a poda",
+      "b_evidence": "A person is seen actively handling material on the ground near a pile of debris. The pile appears to have decreased in volume between the fi"
+    },
+    {
+      "window_id": "dc908b80-0391-4213-b18f-631b2d6fde31",
+      "camera": "cam_mangabeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Trabalhador da prefeitura jogou um saco de lixo no local",
+      "b_evidence": "A black car is parked near a pile of trash. Two individuals are observed interacting with the trash pile. In the final frame, one individual"
+    },
+    {
+      "window_id": "e014c555-4b0a-47ee-8a5a-90adf44e5e5a",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Pessoas passando",
+      "b_evidence": "Two individuals are present near a growing pile of waste. The pile appears to have increased in volume between the first and last frames, su"
+    },
+    {
+      "window_id": "e2d7dc4b-f947-48ab-be3a-caec981e1ee8",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Possível descarte ou coleta sendo realizada com uma carroça",
+      "b_evidence": "A person is pushing a wooden cart (carroça) across the scene. A vehicle is stopped nearby. No material is being deposited or collected from "
+    },
+    {
+      "window_id": "e811d8bc-14d5-43d7-992b-c3d3cae665a6",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam limpando os restos de poda",
+      "b_evidence": "A person in green is observed collecting debris from the ground and loading it into the trailer of a parked truck. The pile of debris on the"
+    },
+    {
+      "window_id": "f58d2688-1e94-4263-ad51-62d05a1aba09",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Apenas pessoas e veículos passando",
+      "b_evidence": "The scene shows vehicles parked on the street and a person walking. There is no clear indication of material being dumped or collected. The "
+    },
+    {
+      "window_id": "fb4a2c50-8124-4055-9968-f1237817367b",
+      "camera": "cam_mangabeira",
+      "category": "fp",
+      "kind": "loss_fp",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Estavam retirando o Lixo",
+      "b_evidence": "A large green municipal garbage truck (caminhão compactador) is stationary. Multiple individuals in blue uniforms are observed working aroun"
+    },
+    {
+      "window_id": "fc335631-bde8-4c7b-94a0-2120ac768ddd",
+      "camera": "cam_imbiribeira",
+      "category": "fp",
+      "kind": "gain_fp",
+      "a_detected": false,
+      "b_detected": true,
+      "justificativa": "Apenas pessoas e veículos passando",
+      "b_evidence": "A dark SUV is parked near a waste pile. Multiple individuals are gathered around the pile, actively handling material. The waste pile appear"
+    },
+    {
+      "window_id": "ffdafc45-bcb2-4ba1-911e-bcc77ed1b715",
+      "camera": "cam_imbiribeira",
+      "category": "indefinido",
+      "kind": "loss_indef",
+      "a_detected": true,
+      "b_detected": false,
+      "justificativa": "Possivel descarte sendo realizado por um homem",
+      "b_evidence": "A wooden cart (carroça) is present and appears to be tipped over or being emptied. People are visible moving around the cart. The material o"
+    }
+  ],
+  "constants": {
+    "detail_cost_per_call_usd": 0.005
+  }
+}

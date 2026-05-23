@@ -1,0 +1,58 @@
+# Campanha 12 — V3 (postura corporal) vs V2 (baseline da camp 11)
+campaign_number: 12
+title: "Prompt V3 posture-first A/B (v2 baseline vs v3 posture)"
+date: 2026-05-22
+type: prompt-ab
+hypothesis: |
+  V3 (postura corporal como sinal primário + LOCAL_CONTEXT por câmera) recupera
+  os 4 TPs que V2 perdeu na camp 11 (d00a79bd uniforme, 48350bb4 pano branco,
+  a73a3f44 caminhonete, 2bb892bc poda) sem regredir as melhorias de V2 em
+  rejeição de coleta municipal. Critério: TP recall V3 >= 35% (V1 baseline da
+  camp 11) E FP rate V3 <= 21.4% (V2 + 5pp tolerância).
+
+models:
+  gate: "gemini-2.5-flash-lite"
+  detail: "gemini-2.5-flash"
+  thinking_budget: 1024
+
+arms:
+  - id: A_v2_baseline
+    description: "Prompt V2 com fix carroça (baseline da camp 11)"
+    prompt_version: "v2"
+    thinking_budget: 1024
+  - id: B_v3_posture
+    description: "Prompt V3 (postura corporal + LOCAL_CONTEXT)"
+    prompt_version: "v3"
+    thinking_budget: 1024
+
+filters:
+  camera:
+    - cam_mangabeira
+    - cam_imbiribeira
+  category:
+    - tp
+    - fp
+    - indefinido
+    - missed
+    - baseline
+
+# Critérios de PASS V3 vs V2 (camp 11 V2 deu 25% recall / 16.42% FP).
+success_criteria:
+  tp_recall_min_pct: 35.0       # Voltar ao nível do V1 (que era 35% na camp 11)
+  fp_rate_max_pct: 21.42        # V2 baseline 16.42 + 5pp tolerância
+  recall_delta_min_pp: 0.0      # V3 só não pode regredir vs V2 (não exige delta positivo)
+  golden_cases_required:
+    - id: "48350bb4-b72c-4bc1-aeaa-89bc00d1595c"
+      category: "tp"
+      reason: "TP pano branco (descarte pedestre noturno, V2 perdeu)"
+      expected: true
+    - id: "12506543-1c64-4604-8c76-a85300a43669"
+      category: "tp"
+      reason: "TP pedestre puro 3 homens (V2 perdeu)"
+      expected: true
+    - id: "d00a79bd-4052-4406-986f-01707b7fc713"
+      category: "tp"
+      reason: "TP uniforme laranja (V2 classificou como coleta — V3 deve ver postura)"
+      expected: true
+
+focus: "Recover the 4 TPs V2 lost via posture signal; keep V2's FP improvements"

@@ -1,0 +1,40 @@
+# Campanha 13 — V3.1 stricter (3-signal gate + negative examples)
+campaign_number: 13
+title: "V3.1 stricter posture (corroboration required)"
+date: 2026-05-22
+type: prompt-ab
+hypothesis: |
+  V3 da camp 12 conseguiu +15pp recall mas regrediu +23pp em FP (modelo confabulava
+  posture=depositing_at_pile em qualquer cena de pessoa perto da pilha). V3.1 endurece:
+  (1) prompt detalha 3 sub-condições obrigatórias para depositing_at_pile (bend + carry +
+  empty/different hands transition), (2) adiciona exemplos negativos explícitos do dataset
+  ("apenas pessoas passando", "estavam retirando o Lixo", etc), (3) apply_v3_gates exige
+  corroboração (flow=to_pile OR new_ground_material) além de posture+handling.
+
+models:
+  gate: "gemini-2.5-flash-lite"
+  detail: "gemini-2.5-flash"
+  thinking_budget: 1024
+
+arms:
+  - id: A_v2_baseline
+    prompt_version: "v2"
+  - id: B_v3_1_stricter
+    prompt_version: "v3"
+
+# Bench reduzido para iteração rápida — 50 events + 8 baseline/série = ~80 windows × 2 arms.
+limit:
+  events_limit: 50
+  baseline_per_series: 8
+
+success_criteria:
+  tp_recall_min_pct: 30.0       # V3 deu 40% em full; em reduzido aceitamos 30%+
+  fp_rate_max_pct: 25.0         # V3 deu 39.55% — V3.1 precisa cair para perto de V2 (16%)
+  recall_delta_min_pp: 0.0
+  golden_cases_required:
+    - id: "48350bb4-b72c-4bc1-aeaa-89bc00d1595c"
+      expected: true
+    - id: "12506543-1c64-4604-8c76-a85300a43669"
+      expected: true
+    - id: "d00a79bd-4052-4406-986f-01707b7fc713"
+      expected: true

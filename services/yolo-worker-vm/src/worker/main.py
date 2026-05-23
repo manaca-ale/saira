@@ -17,6 +17,7 @@ import cv2
 import requests
 
 from . import config
+from . import bgsub_filter
 from .db import (
     find_recent_detection_for_camera,
     init_connections,
@@ -34,6 +35,7 @@ from .detector_gemini import (
     normalize_offender_types,
 )
 from .metrics import (
+    observe_bgsub_evaluation,
     observe_car_shadow_comparison,
     observe_car_shadow_error,
     observe_car_shadow_events,
@@ -132,6 +134,16 @@ def _register_gemini_error(error_message: str, *, agent: str = "detail", camera=
     observe_gemini_error(
         timeout=timeout, parse_fail=parse_fail, agent=agent, camera_id=_camera_label(camera)
     )
+
+
+def _register_bgsub_evaluation(result, *, camera=None) -> None:
+    """Record metric for a bgsub pre-filter evaluation."""
+    try:
+        observe_bgsub_evaluation(camera_id=_camera_label(camera), reason=result.reason)
+    except NameError:
+        # observe_bgsub_evaluation not yet imported — degrade silently.
+        # Will be added when metrics.py is updated.
+        pass
 
 
 def _log_gemini_call(
@@ -545,6 +557,9 @@ def _record_detection(
     annotated_bgr=None,
     evidence_summary: Optional[str] = None,
     waste_bbox: Optional[list] = None,
+    agent1_request_id: Optional[str] = None,
+    agent2_request_id: Optional[str] = None,
+    agent1_confidence: Optional[int] = None,
 ) -> Optional[str]:
     if annotated_bgr is not None:
         labeled_rel = save_labeled_image(annotated_bgr, device_id, jpg)
@@ -613,6 +628,9 @@ def _record_detection(
         image_url=image_url,
         confidence_score=confidence_score,
         waste_bbox=waste_bbox,
+        agent1_request_id=agent1_request_id,
+        agent2_request_id=agent2_request_id,
+        agent1_confidence=agent1_confidence,
     )
 
     if insert_detection(detection):
@@ -716,6 +734,8 @@ def _process_with_gemini(
     sequence_paths: list[Path],
     persist: bool,
     prior_window_context: Optional[str] = None,
+    agent1_request_id: Optional[str] = None,
+    agent1_confidence: Optional[int] = None,
 ) -> tuple[Optional[bool], dict[str, Any]]:
     """Run Gemini inference and optionally persist resulting occurrence."""
     request_id = str(uuid4())
@@ -735,6 +755,7 @@ def _process_with_gemini(
             request_id=request_id,
             mosaic_mode=config.GEMINI_MOSAIC_AGENT2,
             prior_window_context=prior_window_context,
+            prompt_version=config.GEMINI_PROMPT_VERSION,
         )
 
         report = result.report
@@ -856,6 +877,9 @@ def _process_with_gemini(
                 annotated_bgr=None,
                 evidence_summary=report.evidence_summary,
                 waste_bbox=report.waste_bbox,
+                agent1_request_id=agent1_request_id,
+                agent2_request_id=request_id,
+                agent1_confidence=agent1_confidence,
             )
             if detection_id:
                 payload["detection_id"] = detection_id
@@ -997,6 +1021,39 @@ def _process_with_gemini_cascade_window(
     elif n >= 4:
         mid_frames = [window_paths[n // 2]]
 
+    # ------------------------------------------------------------------------
+    # BGSUB pre-filter (added 2026-05-23 — see docs/bgsub_prefilter.md).
+    # Fails open in any error path. Caller-side flag check avoids cost
+    # when the feature is globally disabled.
+    # ------------------------------------------------------------------------
+    if config.BGSUB_PREFILTER_ENABLED:
+        bgsub_result = bgsub_filter.evaluate(
+            frame_paths=window_paths,
+            device_id=device_id,
+            pile_zone_polygon=getattr(camera, "pile_zone_polygon", None),
+        )
+        _register_bgsub_evaluation(bgsub_result, camera=camera)
+        if bgsub_result.should_suppress:
+            logger.info(
+                json.dumps({
+                    "event": "bgsub_suppressed",
+                    "device_id": device_id,
+                    "camera_id": camera.id,
+                    "gate_request_id": gate_request_id,
+                    "persistence": bgsub_result.persistence,
+                    "n_frames_ok": bgsub_result.n_frames_ok,
+                    "n_frames_total": bgsub_result.n_frames_total,
+                    "threshold": config.BGSUB_PERSISTENCE_THRESHOLD,
+                }, ensure_ascii=False)
+            )
+            return False, {
+                "provider": "gemini_cascade",
+                "success": True,
+                "skipped": True,
+                "skip_reason": "bgsub_filtered",
+                "bgsub_persistence": bgsub_result.persistence,
+            }
+
     try:
         gate = analyze_new_litter_with_gemini(
             first_frame=first_frame,
@@ -1006,6 +1063,7 @@ def _process_with_gemini_cascade_window(
             prior_window_context=prior_window_context,
             use_mosaic=config.GEMINI_MOSAIC_AGENT1,
             mid_frames=mid_frames,
+            prompt_version=config.GEMINI_PROMPT_VERSION,
         )
         _register_gemini_success(gate.latency_ms, gate.usage, agent="gate", camera=camera)
         _log_gemini_call(
@@ -1163,6 +1221,8 @@ def _process_with_gemini_cascade_window(
         sequence_paths=window_paths,
         persist=persist,
         prior_window_context=prior_window_context,
+        agent1_request_id=gate_request_id,
+        agent1_confidence=int(gate_report.confidence_0_100),
     )
 
     success = bool(agent2_payload.get("success"))
