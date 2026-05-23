@@ -298,6 +298,62 @@ def test_adaptive_persists_after_threshold(tmp_path):
     assert arr.shape[1:] == (720, 1280, 3)
 
 
+def test_shadow_threshold_parameterized_lower_detects_dark_object(tmp_path):
+    """Validates the 2026-05-23 fix: lower BGSUB_SHADOW_THRESHOLD recovers
+    detection of dark objects (e.g. black trash bags) that MOG2 marks with
+    ambiguous values (80-150) instead of definite-foreground (255).
+
+    Setup: train on bright gray frames, then evaluate a window with dark
+    objects. With threshold=200 (old default) the dark object's MOG2 output
+    may fall below cutoff; with threshold=100 (new default) it passes.
+    """
+    bgsub_filter.invalidate_cache()
+    models_dir = tmp_path / "bgsub_models"
+
+    # Train baseline: bright gray frames (no dark objects)
+    train_frames = []
+    for i in range(8):
+        p = tmp_path / "train" / f"{i:03d}.jpg"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        img = np.full((720, 1280, 3), 180, dtype=np.uint8)  # bright gray
+        cv2.imwrite(str(p), img)
+        train_frames.append(p)
+    _train_mog2_to_disk(models_dir / "esp32_shadow.npz", train_frames)
+
+    # Eval window: same gray bg + dark gray blob in the polygon zone
+    # (gray=80 simulates a dark object that MOG2 may classify as shadow ~127)
+    test_frames = []
+    for i in range(6):
+        p = tmp_path / "eval" / f"{i:03d}.jpg"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        img = np.full((720, 1280, 3), 180, dtype=np.uint8)
+        # Dark patch (value=60) in the pile zone
+        img[400:650, 200:500] = 60
+        cv2.imwrite(str(p), img)
+        test_frames.append(p)
+
+    polygon = [[[150, 350], [550, 350], [550, 700], [150, 700]]]
+
+    # With threshold=100 (new default), the dark patch should be detected
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_SHADOW_THRESHOLD", 100):
+        result_low = bgsub_filter.evaluate(test_frames, "esp32_shadow", polygon)
+
+    bgsub_filter.invalidate_cache()
+
+    # With threshold=200 (old default), the dark patch may be dropped
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_SHADOW_THRESHOLD", 200):
+        result_high = bgsub_filter.evaluate(test_frames, "esp32_shadow", polygon)
+
+    # Lower threshold must detect at least as much as higher threshold
+    assert result_low.persistence >= result_high.persistence, (
+        f"thr=100 ({result_low.persistence}px) should detect >= thr=200 ({result_high.persistence}px)"
+    )
+
+
 def test_adaptive_caller_skip_positive_gate(tmp_path):
     """Verify the caller-side contract: when gate says new_litter=True, caller
     must NOT invoke update_baseline_with_frames. This test documents that
