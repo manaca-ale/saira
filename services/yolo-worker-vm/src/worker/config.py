@@ -142,6 +142,14 @@ BGSUB_MODELS_DIR = os.getenv("BGSUB_MODELS_DIR", os.path.join(STATE_DIR, "bgsub_
 # MOG2 training params (must match script/calibrate_bgsub.py)
 BGSUB_MOG2_HISTORY = int(os.getenv("BGSUB_MOG2_HISTORY", "80"))
 BGSUB_MOG2_VAR_THRESHOLD = float(os.getenv("BGSUB_MOG2_VAR_THRESHOLD", "40.0"))
+# Threshold to convert MOG2 raw output to binary foreground mask.
+# MOG2 outputs: 0=background, ~127=possible shadow, 255=definite foreground.
+# Default 200 was filtering too aggressively — dark objects (black trash bags)
+# get ambiguous MOG2 values (80-150) and were silently dropped, causing TP loss
+# in esp32_002 (validated 2026-05-23 against today's 09:00:54 missed disposal
+# + 7 official-dataset TPs). 100 recovers TPs without inflating FP on real
+# empty windows.
+BGSUB_SHADOW_THRESHOLD = int(os.getenv("BGSUB_SHADOW_THRESHOLD", "100"))
 
 # Adaptive baseline — when enabled, the MOG2 background absorbs frames that
 # the Gemini gate confirmed as "no new litter" with high confidence. This
