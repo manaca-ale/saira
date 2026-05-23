@@ -111,6 +111,15 @@ BGSUB_EVAL_TOTAL = Counter(
     ["camera_id", "reason"],
 )
 
+# Adaptive-baseline update counter — emitted after Gemini gate returns.
+# reason values: applied | persisted | skipped_disabled | skipped_low_confidence
+#                | skipped_no_model | skipped_positive | error
+BGSUB_ADAPTIVE_UPDATES_TOTAL = Counter(
+    "saira_bgsub_adaptive_updates_total",
+    "BGSUB MOG2 adaptive-baseline update outcomes per camera.",
+    ["camera_id", "reason"],
+)
+
 
 def start_metrics_server() -> None:
     global _METRICS_SERVER_STARTED
@@ -237,3 +246,8 @@ def observe_car_shadow_error(camera_id: str) -> None:
 def observe_bgsub_evaluation(*, camera_id: str, reason: str) -> None:
     """Record one BGSUB pre-filter evaluation outcome."""
     BGSUB_EVAL_TOTAL.labels(camera_id=camera_id, reason=reason).inc()
+
+
+def observe_bgsub_adaptive_update(*, camera_id: str, reason: str) -> None:
+    """Record one BGSUB adaptive-baseline update attempt outcome."""
+    BGSUB_ADAPTIVE_UPDATES_TOTAL.labels(camera_id=camera_id, reason=reason).inc()
