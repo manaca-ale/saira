@@ -109,11 +109,25 @@ GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.
 GEMINI_PROMPT_VERSION = os.getenv("GEMINI_PROMPT_VERSION", "current").strip().lower()
-if GEMINI_PROMPT_VERSION not in ("current", "v2", "v3"):
+if GEMINI_PROMPT_VERSION not in ("current", "v2", "v3", "audit"):
     logging.getLogger(__name__).warning(
         "Invalid GEMINI_PROMPT_VERSION=%s. Falling back to 'current'.", GEMINI_PROMPT_VERSION,
     )
     GEMINI_PROMPT_VERSION = "current"
+
+# Separate flag for the Detail agent (Agent-2). Allows running gate with V1
+# (default, validated) while testing the audit prompt only on the detail side.
+# Values: "current" (V1) | "v2" | "v3" | "audit" | "audit_v2"
+# - audit: V1 adversarial reviewer, force-false unless real_dumping (camp 15 FAIL)
+# - audit_v2: relaxed, force-false only for 5 unambiguous FP patterns (camp 16)
+GEMINI_DETAIL_PROMPT_VERSION = os.getenv("GEMINI_DETAIL_PROMPT_VERSION", "").strip().lower()
+if GEMINI_DETAIL_PROMPT_VERSION not in ("", "current", "v2", "v3", "audit", "audit_v2"):
+    logging.getLogger(__name__).warning(
+        "Invalid GEMINI_DETAIL_PROMPT_VERSION=%s. Falling back to GEMINI_PROMPT_VERSION.",
+        GEMINI_DETAIL_PROMPT_VERSION,
+    )
+    GEMINI_DETAIL_PROMPT_VERSION = ""
+# Empty string means "use GEMINI_PROMPT_VERSION" (back-compat).
 
 # -----------------------------------------------------------------------------
 # BGSUB pre-filter (OpenCV background subtraction) — suppresses Gemini gate

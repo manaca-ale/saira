@@ -19,7 +19,7 @@ except Exception:  # pragma: no cover - optional dependency while running YOLO-o
     types = None
 
 from . import config
-from . import _prompts_v2, _prompts_v3
+from . import _prompts_audit, _prompts_v2, _prompts_v3
 from .models import GeminiUsage
 from .mosaic import build_mosaic_2x1, build_mosaic_3x2_pair, build_mosaic_4x3
 from .schemas_gemini import GeminiInfractionReport, GeminiNewLitterReport
@@ -542,19 +542,37 @@ def analyze_with_gemini(
     Args:
         mosaic_mode: "off" sends frames individually; "4x3" composes a single 4×3
             grid image; "3x2split" composes two 3×2 grid images.
-        prompt_version: "current" (default), "v2", or "v3". V2 uses the behavioral
-            anti-collection prompt. V3 uses posture-first signals (person_position_signature)
-            and accepts dumping without visible pile growth. Both inject LOCAL_CONTEXT
-            from camera notes.
+        prompt_version: "current" (default), "v2", "v3", "audit", or "audit_v2".
+            - V2 uses the behavioral anti-collection prompt.
+            - V3 uses posture-first signals.
+            - audit treats Agent-2 as an adversarial reviewer of the gate,
+              requiring `fp_pattern_match` enum to classify the scene and
+              rejecting infraction_confirmed when pattern != real_dumping.
+            - audit_v2 relaxes the V1 audit: drops the 4-question hard rule
+              and force-falses only for 5 unambiguous FP patterns
+              (traffic_passing, municipal_collection, pruning_crew,
+              rain_blur, parking_dropoff). carroceiro_sorting / other /
+              real_dumping are left to the model's judgement.
     """
+    use_audit_v2 = prompt_version == "audit_v2"
+    use_audit = prompt_version == "audit"
     use_v3 = prompt_version == "v3"
     use_v2 = prompt_version == "v2"
-    if use_v3:
+    if use_audit_v2:
+        system_prompt = _prompts_audit.SYSTEM_PROMPT_AUDIT_V2
+        schema_cls = _prompts_audit.GeminiInfractionReportAudit
+    elif use_audit:
+        system_prompt = _prompts_audit.SYSTEM_PROMPT_AUDIT
+        schema_cls = _prompts_audit.GeminiInfractionReportAudit
+    elif use_v3:
         system_prompt = _prompts_v3.SYSTEM_PROMPT_V3
+        schema_cls = GeminiInfractionReport
     elif use_v2:
         system_prompt = _prompts_v2.SYSTEM_PROMPT_V2
+        schema_cls = GeminiInfractionReport
     else:
         system_prompt = SYSTEM_PROMPT
+        schema_cls = GeminiInfractionReport
 
     if not image_paths:
         raise ValueError("image_paths must contain at least one frame")
@@ -584,7 +602,17 @@ def analyze_with_gemini(
         for attempt in range(1, attempts + 1):
             started = time.monotonic()
             try:
-                if use_v3:
+                if use_audit_v2:
+                    user_prompt_text = _prompts_audit.build_audit_v2_user_prompt(
+                        camera_context, frame_names=frame_names,
+                        mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+                elif use_audit:
+                    user_prompt_text = _prompts_audit.build_audit_user_prompt(
+                        camera_context, frame_names=frame_names,
+                        mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+                elif use_v3:
                     user_prompt_text = _prompts_v3.build_v3_user_prompt_detail(
                         camera_context, frame_names=frame_names,
                         mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
@@ -607,13 +635,17 @@ def analyze_with_gemini(
                         system_prompt,
                         user_prompt_text,
                         config.GEMINI_MODEL,
-                        GeminiInfractionReport.model_json_schema(),
+                        schema_cls.model_json_schema(),
                     )
                     response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
 
                 raw_text = _extract_text(response)
-                report = GeminiInfractionReport.model_validate_json(raw_text)
+                report = schema_cls.model_validate_json(raw_text)
                 report = _sanitize_report(report, allowed_frame_names=allowed_frame_names)
+                if use_audit_v2:
+                    report = _prompts_audit.apply_audit_v2_consistency(report, request_id=request_id)
+                elif use_audit:
+                    report = _prompts_audit.apply_audit_consistency(report, request_id=request_id)
 
                 usage = _extract_usage(response)
                 latency_ms = int((time.monotonic() - started) * 1000)
