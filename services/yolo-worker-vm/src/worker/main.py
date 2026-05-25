@@ -140,7 +140,11 @@ def _register_gemini_error(error_message: str, *, agent: str = "detail", camera=
 def _register_bgsub_evaluation(result, *, camera=None) -> None:
     """Record metric for a bgsub pre-filter evaluation."""
     try:
-        observe_bgsub_evaluation(camera_id=_camera_label(camera), reason=result.reason)
+        observe_bgsub_evaluation(
+            camera_id=_camera_label(camera),
+            reason=result.reason,
+            mode=getattr(result, "mode", "single"),
+        )
     except NameError:
         # observe_bgsub_evaluation not yet imported — degrade silently.
         # Will be added when metrics.py is updated.
@@ -1032,6 +1036,7 @@ def _process_with_gemini_cascade_window(
             frame_paths=window_paths,
             device_id=device_id,
             pile_zone_polygon=getattr(camera, "pile_zone_polygon", None),
+            camera=camera,
         )
         _register_bgsub_evaluation(bgsub_result, camera=camera)
         if bgsub_result.should_suppress:
@@ -1119,6 +1124,7 @@ def _process_with_gemini_cascade_window(
             device_id=device_id,
             frame_paths=window_paths,
             gate_confidence=int(gate_report.confidence_0_100),
+            camera=camera,
         )
         observe_bgsub_adaptive_update(
             camera_id=_camera_label(camera),

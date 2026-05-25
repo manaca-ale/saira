@@ -26,6 +26,14 @@ class CameraInfo:
     # BGSUB pre-filter config (added 2026-05-23). Both None when not configured.
     pile_zone_polygon: Optional[object] = None  # JSONB → list[list[list[int]]]
     bgsub_calibrated_at: Optional[datetime] = None
+    # Per-camera BGSUB tuning (added 2026-05-25). All None = fall back to env globals.
+    bgsub_lr_fast: Optional[float] = None
+    bgsub_lr_slow: Optional[float] = None
+    bgsub_mog2_history_fast: Optional[int] = None
+    bgsub_mog2_history_slow: Optional[int] = None
+    bgsub_persistence_threshold: Optional[int] = None
+    bgsub_min_persistence_frames: Optional[float] = None
+    bgsub_min_px_active: Optional[int] = None
 
 
 @dataclass
