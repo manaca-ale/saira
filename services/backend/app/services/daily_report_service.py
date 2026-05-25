@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from datetime import date as date_cls, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -45,8 +44,8 @@ from app.schemas.report import (
 logger = logging.getLogger(__name__)
 
 BRT = ZoneInfo("America/Sao_Paulo")
-FILENAME_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.jpg$")
-ESP32_SERVER_BASE = "http://saira-esp32-server:5000"
+ESP32_SERVER_BASE = "http://esp32-server:5000"
+EVENT_LOG_FILENAME = "server-events.jsonl"
 
 
 # ---------------------------------------------------------------------------
@@ -56,17 +55,6 @@ ESP32_SERVER_BASE = "http://saira-esp32-server:5000"
 def _day_bounds_brt(d: date_cls) -> tuple[datetime, datetime]:
     start = datetime(d.year, d.month, d.day, tzinfo=BRT)
     return start, start + timedelta(days=1)
-
-
-def _parse_upload_filename(name: str) -> Optional[datetime]:
-    m = FILENAME_RE.match(name)
-    if not m:
-        return None
-    y, mo, d, hh, mm, ss = (int(x) for x in m.groups())
-    try:
-        return datetime(y, mo, d, hh, mm, ss, tzinfo=BRT)
-    except ValueError:
-        return None
 
 
 def _format_pct(v: Optional[float], decimals: int = 0) -> str:
@@ -118,36 +106,83 @@ async def _fetch_capture_interval_seconds(camera: Camera) -> int:
 
 # ---------------------------------------------------------------------------
 # I1 — Confiabilidade da vigilância (uptime per camera)
+#
+# Source: server-events.jsonl produced by esp32-server. Authoritative because
+# every successful upload is logged there, and the file survives both the
+# worker's two_folders move and the daily S3 sync (which would otherwise
+# empty the YYYY/MM/DD/ folders the legacy FS-scan relied on).
 # ---------------------------------------------------------------------------
+
+def _read_event_log_uploads(
+    log_path: Path,
+    start_brt: datetime,
+    end_brt: datetime,
+) -> dict[tuple[str, date_cls], list[datetime]]:
+    """Stream server-events.jsonl filtering `event=="upload"` in [start, end).
+
+    Returns timestamps grouped by (device_id, BRT date) so callers can
+    bucket them at whatever cadence each camera reports at.
+    """
+    grouped: dict[tuple[str, date_cls], list[datetime]] = {}
+    if not log_path.is_file():
+        return grouped
+    try:
+        with log_path.open("r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if rec.get("event") != "upload":
+                    continue
+                dev = rec.get("device_id")
+                ts_str = rec.get("timestamp")
+                if not dev or not ts_str:
+                    continue
+                try:
+                    ts = datetime.fromisoformat(ts_str)
+                except ValueError:
+                    continue
+                ts = ts.astimezone(BRT) if ts.tzinfo else ts.replace(tzinfo=BRT)
+                if not (start_brt <= ts < end_brt):
+                    continue
+                grouped.setdefault((dev, ts.date()), []).append(ts)
+    except OSError:
+        logger.debug("event log read failed for %s", log_path, exc_info=True)
+    return grouped
+
+
+def _bucketize(
+    timestamps: list[datetime], day_start: datetime, bucket_s: int
+) -> int:
+    """Count distinct fixed-width time buckets covered by `timestamps`."""
+    if not timestamps or bucket_s <= 0:
+        return 0
+    return len({int((ts - day_start).total_seconds() // bucket_s) for ts in timestamps})
+
 
 async def _compute_i1(db: AsyncSession, day: date_cls) -> tuple[IndicatorResult, list[CameraUptime]]:
     day_start, day_end = _day_bounds_brt(day)
-    uploads_root = Path(settings.REPORT_UPLOADS_DIR)
+    log_path = Path(settings.REPORT_UPLOADS_DIR) / EVENT_LOG_FILENAME
 
     cams_result = await db.execute(
         select(Camera).where(Camera.is_active == True).order_by(Camera.id)  # noqa: E712
     )
     cameras: list[Camera] = list(cams_result.scalars())
 
+    # Single pass covering today + the 30-day rolling window.
+    window_start, _ = _day_bounds_brt(day - timedelta(days=29))
+    uploads = _read_event_log_uploads(log_path, window_start, day_end)
+
     per_camera: list[CameraUptime] = []
     for cam in cameras:
         bucket_s = await _fetch_capture_interval_seconds(cam)
         expected = max(1, 86400 // bucket_s)
-        received = 0
-
-        if cam.device_id:
-            day_dir = uploads_root / cam.device_id / day.strftime("%Y/%m/%d")
-            if day_dir.exists():
-                buckets: set[int] = set()
-                for entry in day_dir.iterdir():
-                    if entry.is_file() and entry.suffix.lower() == ".jpg":
-                        ts = _parse_upload_filename(entry.name)
-                        if ts is None or not (day_start <= ts < day_end):
-                            continue
-                        idx = int((ts - day_start).total_seconds() // bucket_s)
-                        buckets.add(idx)
-                received = len(buckets)
-
+        timestamps = uploads.get((cam.device_id, day), []) if cam.device_id else []
+        received = _bucketize(timestamps, day_start, bucket_s)
         uptime = min(100.0, 100.0 * received / expected)
         per_camera.append(CameraUptime(
             camera_id=cam.id,
@@ -166,8 +201,8 @@ async def _compute_i1(db: AsyncSession, day: date_cls) -> tuple[IndicatorResult,
         i1_value = None
         i1_text = "n/d"
 
-    rolling_7d = await _rolling_uptime(db, day, days=7)
-    rolling_30d = await _rolling_uptime(db, day, days=30)
+    rolling_7d = _rolling_uptime_from_uploads(cameras, uploads, day, days=7)
+    rolling_30d = _rolling_uptime_from_uploads(cameras, uploads, day, days=30)
 
     return IndicatorResult(
         code="I1",
@@ -184,41 +219,32 @@ async def _compute_i1(db: AsyncSession, day: date_cls) -> tuple[IndicatorResult,
     ), per_camera
 
 
-async def _rolling_uptime(db: AsyncSession, day: date_cls, days: int) -> Optional[float]:
-    """Mean daily uptime over the last N days (inclusive of `day`)."""
+def _rolling_uptime_from_uploads(
+    cameras: list[Camera],
+    uploads: dict[tuple[str, date_cls], list[datetime]],
+    day: date_cls,
+    days: int,
+) -> Optional[float]:
+    """Mean daily uptime over the last N days (inclusive of `day`).
+
+    Uses the cached upload index from `_compute_i1` (no extra I/O) and the
+    DB-stored capture interval (no extra HTTP calls).
+    """
+    if not cameras:
+        return None
     values: list[float] = []
     for i in range(days):
         d = day - timedelta(days=i)
-        try:
-            day_start, day_end = _day_bounds_brt(d)
-            cams_result = await db.execute(
-                select(Camera).where(Camera.is_active == True)  # noqa: E712
-            )
-            cameras: list[Camera] = list(cams_result.scalars())
-            if not cameras:
-                continue
-            daily_uptimes: list[float] = []
-            for cam in cameras:
-                bucket_s = cam.capture_interval_seconds or settings.REPORT_DEFAULT_CAPTURE_INTERVAL_S
-                expected = max(1, 86400 // bucket_s)
-                received = 0
-                if cam.device_id:
-                    day_dir = Path(settings.REPORT_UPLOADS_DIR) / cam.device_id / d.strftime("%Y/%m/%d")
-                    if day_dir.exists():
-                        buckets: set[int] = set()
-                        for entry in day_dir.iterdir():
-                            if entry.is_file() and entry.suffix.lower() == ".jpg":
-                                ts = _parse_upload_filename(entry.name)
-                                if ts is None or not (day_start <= ts < day_end):
-                                    continue
-                                idx = int((ts - day_start).total_seconds() // bucket_s)
-                                buckets.add(idx)
-                        received = len(buckets)
-                daily_uptimes.append(min(100.0, 100.0 * received / expected))
-            if daily_uptimes:
-                values.append(sum(daily_uptimes) / len(daily_uptimes))
-        except Exception:
-            logger.debug("rolling uptime calc failed for %s", d, exc_info=True)
+        day_start, _ = _day_bounds_brt(d)
+        daily_uptimes: list[float] = []
+        for cam in cameras:
+            bucket_s = cam.capture_interval_seconds or settings.REPORT_DEFAULT_CAPTURE_INTERVAL_S
+            expected = max(1, 86400 // bucket_s)
+            timestamps = uploads.get((cam.device_id, d), []) if cam.device_id else []
+            received = _bucketize(timestamps, day_start, bucket_s)
+            daily_uptimes.append(min(100.0, 100.0 * received / expected))
+        if daily_uptimes:
+            values.append(sum(daily_uptimes) / len(daily_uptimes))
     return round(sum(values) / len(values), 1) if values else None
 
 
