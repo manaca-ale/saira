@@ -162,6 +162,30 @@ BGSUB_ADAPTIVE_LEARNING_RATE = float(os.getenv("BGSUB_ADAPTIVE_LEARNING_RATE", "
 BGSUB_ADAPTIVE_MIN_CONFIDENCE = int(os.getenv("BGSUB_ADAPTIVE_MIN_CONFIDENCE", "90"))
 BGSUB_ADAPTIVE_SAVE_EVERY_N = int(os.getenv("BGSUB_ADAPTIVE_SAVE_EVERY_N", "50"))
 
+# Dual-rate MOG2 — two background models per camera (fast + slow learning).
+# Combines as `static_fg = slow_mask AND NOT fast_mask`, isolating objects that
+# remain stationary while filtering out moving pedestrians/vehicles. Resolves
+# the case (esp32_001, 25/05) where single-MOG2 produces 0% filter rate in
+# scenes with constant pedestrian traffic. Default off (kill-switch).
+BGSUB_DUAL_RATE_ENABLED = os.getenv("BGSUB_DUAL_RATE_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+BGSUB_LR_FAST = float(os.getenv("BGSUB_LR_FAST", "0.05"))
+BGSUB_LR_SLOW = float(os.getenv("BGSUB_LR_SLOW", "0.001"))
+BGSUB_MOG2_HISTORY_FAST = int(os.getenv("BGSUB_MOG2_HISTORY_FAST", str(BGSUB_MOG2_HISTORY)))
+BGSUB_MOG2_HISTORY_SLOW = int(os.getenv("BGSUB_MOG2_HISTORY_SLOW", "400"))
+# Adapt LRs default to evaluate LRs (kept separate for tuning flexibility).
+BGSUB_LR_FAST_ADAPT = float(os.getenv("BGSUB_LR_FAST_ADAPT", str(BGSUB_LR_FAST)))
+BGSUB_LR_SLOW_ADAPT = float(os.getenv("BGSUB_LR_SLOW_ADAPT", str(BGSUB_LR_SLOW)))
+# Slow-model warm-up: when loading a v1 npz (single-rate) or building from cold,
+# replay buffer N times with LR=LR_FAST to age the slow model quickly. Without
+# this the slow model would need ~1000 frames to converge to the baseline.
+BGSUB_SLOW_WARMUP_PASSES = int(os.getenv("BGSUB_SLOW_WARMUP_PASSES", "5"))
+
+# Crop MOG2 input to polygon bbox — when true, MOG2 only runs on the bbox
+# crop. NOTE: requires baseline to also be calibrated with crops (MOG2 state
+# is bound to input shape). Default off until baseline-recalibration flow
+# is wired. Pure optimization, no behavior change once correctly bootstrapped.
+BGSUB_BBOX_CROP_ENABLED = os.getenv("BGSUB_BBOX_CROP_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.

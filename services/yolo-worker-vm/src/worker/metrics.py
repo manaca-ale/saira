@@ -102,13 +102,14 @@ GEMINI_LAST_ESTIMATED_COST_USD = Gauge(
     "Estimated USD cost for last successful Gemini response.",
 )
 
-# BGSUB pre-filter (OpenCV) — counts each evaluation by reason.
+# BGSUB pre-filter (OpenCV) — counts each evaluation by reason and mode.
 # reason values: "filtered" (suppressed), "passed" (let through), "skipped_no_polygon",
 # "skipped_no_model", "skipped_disabled", "error".
+# mode values: "single" (legacy single MOG2) or "dual" (dual-rate MOG2).
 BGSUB_EVAL_TOTAL = Counter(
     "saira_bgsub_eval_total",
     "Total BGSUB pre-filter evaluations performed before the Gemini gate.",
-    ["camera_id", "reason"],
+    ["camera_id", "reason", "mode"],
 )
 
 # Adaptive-baseline update counter — emitted after Gemini gate returns.
@@ -243,9 +244,12 @@ def observe_car_shadow_error(camera_id: str) -> None:
     CAR_SHADOW_ERRORS_TOTAL.labels(camera_id=camera_id).inc()
 
 
-def observe_bgsub_evaluation(*, camera_id: str, reason: str) -> None:
-    """Record one BGSUB pre-filter evaluation outcome."""
-    BGSUB_EVAL_TOTAL.labels(camera_id=camera_id, reason=reason).inc()
+def observe_bgsub_evaluation(*, camera_id: str, reason: str, mode: str = "single") -> None:
+    """Record one BGSUB pre-filter evaluation outcome.
+
+    mode: "single" or "dual" — which MOG2 configuration was active.
+    """
+    BGSUB_EVAL_TOTAL.labels(camera_id=camera_id, reason=reason, mode=mode).inc()
 
 
 def observe_bgsub_adaptive_update(*, camera_id: str, reason: str) -> None:

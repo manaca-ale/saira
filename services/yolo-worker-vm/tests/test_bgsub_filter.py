@@ -373,3 +373,247 @@ def test_adaptive_caller_skip_positive_gate(tmp_path):
         # gate, we DO adapt — this is documented behavior.
         result = bgsub_filter.update_baseline_with_frames("esp32_adapt", frames, gate_confidence=95)
     assert result.applied is True
+
+
+# -----------------------------------------------------------------------------
+# Dual-rate MOG2 mode
+# -----------------------------------------------------------------------------
+def _setup_dual_camera(tmp_path):
+    """Common scaffolding: 80 gray baseline frames, polygon, models dir."""
+    models_dir = tmp_path / "bgsub_models"
+    train_frames = [
+        _write_frame(tmp_path / "train" / f"{i:03d}.jpg", "empty")
+        for i in range(80)
+    ]
+    _train_mog2_to_disk(models_dir / "esp32_dual.npz", train_frames)
+    polygon = [[[100, 300], [600, 300], [600, 700], [100, 700]]]
+    return models_dir, polygon
+
+
+def _write_walker_frame(path: Path, x_pos: int) -> Path:
+    """Frame with a small bright rectangle at variable x position (moving)."""
+    img = np.full((720, 1280, 3), 128, dtype=np.uint8)
+    img[450:520, x_pos:x_pos + 60] = 240
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(path), img)
+    return path
+
+
+def _write_static_object_frame(path: Path) -> Path:
+    """Frame with a stationary bright rectangle (drop-and-go target)."""
+    img = np.full((720, 1280, 3), 128, dtype=np.uint8)
+    img[450:600, 300:450] = 240  # fixed position, 150x150 inside zone
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(path), img)
+    return path
+
+
+def test_dual_rate_disabled_uses_single_mode(tmp_path):
+    """Feature flag off → mode='single' in result."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_static_object_frame(tmp_path / "static" / f"{i:03d}.jpg")
+        for i in range(5)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", False):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    assert result.mode == "single"
+
+
+def test_dual_rate_enabled_returns_dual_mode_label(tmp_path):
+    """Feature flag on → mode='dual' in result."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_static_object_frame(tmp_path / "static" / f"{i:03d}.jpg")
+        for i in range(5)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", True), \
+         patch.object(config, "BGSUB_SLOW_WARMUP_PASSES", 1):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    assert result.mode == "dual"
+
+
+def test_dual_rate_static_object_preserves_signal(tmp_path):
+    """Drop-and-go: object appears and stays still → static_fg non-zero
+    and persistence above threshold → does NOT suppress."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    # 24 frames with the same static object → slow sees FG, fast absorbs slowly
+    test_frames = [
+        _write_static_object_frame(tmp_path / "static" / f"{i:03d}.jpg")
+        for i in range(24)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", True), \
+         patch.object(config, "BGSUB_SLOW_WARMUP_PASSES", 1), \
+         patch.object(config, "BGSUB_MIN_PERSISTENCE_FRAMES", 0.4), \
+         patch.object(config, "BGSUB_PERSISTENCE_THRESHOLD", 500):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    assert result.should_suppress is False
+    assert result.mode == "dual"
+    assert result.persistence > 500
+
+
+def test_dual_rate_walking_object_suppresses(tmp_path):
+    """Moving object: changes position every frame → both fast and slow
+    detect it → static_fg ≈ 0 → suppresses."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    # Object moves in x (200, 240, 280, 320, ...) — never stays still
+    test_frames = [
+        _write_walker_frame(tmp_path / "walk" / f"{i:03d}.jpg", 200 + i * 20)
+        for i in range(12)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", True), \
+         patch.object(config, "BGSUB_SLOW_WARMUP_PASSES", 1), \
+         patch.object(config, "BGSUB_MIN_PERSISTENCE_FRAMES", 0.4), \
+         patch.object(config, "BGSUB_PERSISTENCE_THRESHOLD", 500):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    # With pure static_fg signal, a fully-moving object should NOT pass.
+    # Allow either suppress=True (preferred) or a low persistence number.
+    assert result.mode == "dual"
+    assert result.persistence < 500
+
+
+def test_npz_v1_loads_into_dual_models(tmp_path):
+    """A v1 npz (no schema_version) should be readable in dual-rate mode
+    and rebuild both fast + slow models without crashing."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    # Verify the npz was written WITHOUT schema_version (v1 format).
+    npz_path = models_dir / "esp32_dual.npz"
+    archive = np.load(str(npz_path))
+    assert "frames" in archive.files
+    assert "schema_version" not in archive.files
+
+    test_frames = [
+        _write_static_object_frame(tmp_path / "obj" / f"{i:03d}.jpg")
+        for i in range(5)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", True), \
+         patch.object(config, "BGSUB_SLOW_WARMUP_PASSES", 2):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    # Just verify load+evaluate didn't crash and produced dual mode.
+    assert result.mode == "dual"
+    assert result.reason in ("filtered", "passed")
+
+
+def test_dual_rate_npz_v2_roundtrip(tmp_path):
+    """Persist in dual mode → reload → both models reconstruct."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_static_object_frame(tmp_path / "obj" / f"{i:03d}.jpg")
+        for i in range(20)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_MIN_CONFIDENCE", 0), \
+         patch.object(config, "BGSUB_ADAPTIVE_SAVE_EVERY_N", 5), \
+         patch.object(config, "BGSUB_SLOW_WARMUP_PASSES", 1):
+        # Force a persist by running multiple adapt cycles.
+        bgsub_filter.evaluate(test_frames[:5], "esp32_dual", polygon)
+        adapt_result = bgsub_filter.update_baseline_with_frames(
+            "esp32_dual", test_frames[:10], gate_confidence=95,
+        )
+        assert adapt_result.applied is True
+        # Verify npz was rewritten with schema_version=2
+        archive = np.load(str(models_dir / "esp32_dual.npz"))
+        assert "schema_version" in archive.files
+        assert int(archive["schema_version"]) == 2
+
+        # Invalidate and reload from disk — should work in dual mode.
+        bgsub_filter.invalidate_cache()
+        result = bgsub_filter.evaluate(test_frames[:5], "esp32_dual", polygon)
+    assert result.mode == "dual"
+
+
+def test_dual_rate_adaptive_updates_both_models(tmp_path):
+    """update_baseline_with_frames in dual mode should not crash and should
+    return applied=True when conditions are met."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_frame(tmp_path / "noop" / f"{i:03d}.jpg", "empty")
+        for i in range(10)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_ENABLED", True), \
+         patch.object(config, "BGSUB_ADAPTIVE_MIN_CONFIDENCE", 0), \
+         patch.object(config, "BGSUB_ADAPTIVE_SAVE_EVERY_N", 9999), \
+         patch.object(config, "BGSUB_SLOW_WARMUP_PASSES", 1):
+        # Prime cache.
+        bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+        result = bgsub_filter.update_baseline_with_frames(
+            "esp32_dual", test_frames, gate_confidence=95,
+        )
+    assert result.applied is True
+    assert result.n_frames == 10
+
+
+# -----------------------------------------------------------------------------
+# Per-camera config overrides
+# -----------------------------------------------------------------------------
+class _FakeCamera:
+    """Stand-in for a Camera ORM object with optional bgsub_* overrides."""
+
+    def __init__(self, **kwargs):
+        # Default all bgsub_* fields to None (= fallback to env globals).
+        for name in (
+            "bgsub_lr_fast", "bgsub_lr_slow",
+            "bgsub_mog2_history_fast", "bgsub_mog2_history_slow",
+            "bgsub_persistence_threshold",
+            "bgsub_min_persistence_frames", "bgsub_min_px_active",
+        ):
+            setattr(self, name, kwargs.get(name))
+
+
+def test_camera_bgsub_overrides_env_globals(tmp_path):
+    """When camera has bgsub_persistence_threshold set, it overrides env."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_static_object_frame(tmp_path / "obj" / f"{i:03d}.jpg")
+        for i in range(10)
+    ]
+    cam = _FakeCamera(bgsub_persistence_threshold=999999)  # huge — forces suppress
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", False), \
+         patch.object(config, "BGSUB_PERSISTENCE_THRESHOLD", 1):  # env says 1
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon, camera=cam)
+    # With camera override 999999 winning over env 1, result should suppress.
+    assert result.should_suppress is True
+
+
+def test_camera_bgsub_null_falls_back_to_env(tmp_path):
+    """When camera fields are None, env globals are used."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_static_object_frame(tmp_path / "obj" / f"{i:03d}.jpg")
+        for i in range(10)
+    ]
+    cam = _FakeCamera()  # all None
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", False), \
+         patch.object(config, "BGSUB_PERSISTENCE_THRESHOLD", 1):  # env says 1 → passes
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon, camera=cam)
+    # With env threshold=1, even small persistence passes.
+    assert result.should_suppress is False

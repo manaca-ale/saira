@@ -80,7 +80,10 @@ def resolve_camera(device_id: str) -> Optional[CameraInfo]:
         cur = conn.cursor()
         cur.execute(
             "SELECT id, name, device_id, logradouro, bairro, rpa, latitude, longitude, "
-            "pile_zone_polygon, bgsub_calibrated_at "
+            "pile_zone_polygon, bgsub_calibrated_at, "
+            "bgsub_lr_fast, bgsub_lr_slow, bgsub_mog2_history_fast, "
+            "bgsub_mog2_history_slow, bgsub_persistence_threshold, "
+            "bgsub_min_persistence_frames, bgsub_min_px_active "
             "FROM cameras WHERE device_id = %s AND is_active = true LIMIT 1",
             (device_id,),
         )
@@ -94,6 +97,13 @@ def resolve_camera(device_id: str) -> Optional[CameraInfo]:
             latitude=row[6], longitude=row[7],
             pile_zone_polygon=row[8],
             bgsub_calibrated_at=row[9],
+            bgsub_lr_fast=row[10],
+            bgsub_lr_slow=row[11],
+            bgsub_mog2_history_fast=row[12],
+            bgsub_mog2_history_slow=row[13],
+            bgsub_persistence_threshold=row[14],
+            bgsub_min_persistence_frames=row[15],
+            bgsub_min_px_active=row[16],
         )
     except Exception:
         logger.exception("Error resolving camera for device_id=%s", device_id)

@@ -21,6 +21,14 @@ class CameraBase(BaseModel):
     is_active: bool = True
     pile_zone_polygon: Optional[PileZonePolygon] = None
     bgsub_calibrated_at: Optional[datetime] = None
+    # Per-camera BGSUB tuning overrides — NULL = fall back to env globals.
+    bgsub_lr_fast: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_lr_slow: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_mog2_history_fast: Optional[int] = Field(None, ge=1, le=10000)
+    bgsub_mog2_history_slow: Optional[int] = Field(None, ge=1, le=10000)
+    bgsub_persistence_threshold: Optional[int] = Field(None, ge=0)
+    bgsub_min_persistence_frames: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_min_px_active: Optional[int] = Field(None, ge=0)
 
 
 class CameraCreate(CameraBase):
@@ -40,6 +48,25 @@ class CameraUpdate(BaseModel):
     is_active: Optional[bool] = None
     pile_zone_polygon: Optional[PileZonePolygon] = None
     bgsub_calibrated_at: Optional[datetime] = None
+    bgsub_lr_fast: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_lr_slow: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_mog2_history_fast: Optional[int] = Field(None, ge=1, le=10000)
+    bgsub_mog2_history_slow: Optional[int] = Field(None, ge=1, le=10000)
+    bgsub_persistence_threshold: Optional[int] = Field(None, ge=0)
+    bgsub_min_persistence_frames: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_min_px_active: Optional[int] = Field(None, ge=0)
+
+
+class CameraBgsubConfigUpdate(BaseModel):
+    """Subset for PATCH /api/v1/cameras/{id}/bgsub_config — BGSUB tuning only."""
+
+    bgsub_lr_fast: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_lr_slow: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_mog2_history_fast: Optional[int] = Field(None, ge=1, le=10000)
+    bgsub_mog2_history_slow: Optional[int] = Field(None, ge=1, le=10000)
+    bgsub_persistence_threshold: Optional[int] = Field(None, ge=0)
+    bgsub_min_persistence_frames: Optional[float] = Field(None, ge=0.0, le=1.0)
+    bgsub_min_px_active: Optional[int] = Field(None, ge=0)
 
 
 class CameraResponse(CameraBase):
