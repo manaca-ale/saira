@@ -9,8 +9,9 @@ from app.core.timezone import now_brazil
 
 class DetectionStatus(str, enum.Enum):
     PENDENTE = "Pendente"
-    EM_ANALISE = "Em analise"
-    RESOLVIDO = "Resolvido"
+    CONFIRMADO = "Confirmado"
+    REJEITADO = "Rejeitado"
+    INDETERMINADO = "Indeterminado"
 
 
 class Detection(Base):
@@ -33,11 +34,8 @@ class Detection(Base):
     image_url = Column(String(512))
     confidence_score = Column(Numeric(3, 2))
     waste_bbox = Column(JSONB, nullable=True)
-    resolved_at = Column(DateTime(timezone=True), nullable=True)
-    resolved_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    resolution_justification = Column(Text, nullable=True)
-    forwarded_to_sector = Column(String(100), nullable=True)
-    analysis_started_at = Column(DateTime(timezone=True), nullable=True)
-    analysis_started_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    classified_at = Column(DateTime(timezone=True), nullable=True)
+    classified_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    validity_comment = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=now_brazil)
     updated_at = Column(DateTime(timezone=True), default=now_brazil, onupdate=now_brazil)

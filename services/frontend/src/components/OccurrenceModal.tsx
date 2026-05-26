@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, Clock, UserPlus, Trash2 as UnlinkIcon, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, XCircle, HelpCircle, UserPlus, Trash2 as UnlinkIcon, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import JSZip from "jszip";
 import imgLixo from "../assets/lixo_exemplo.png";
 import imgInfrator from "../assets/infrator_exemplo.png";
 import { getDetectionOffenders, deleteDetectionOffender } from "../services/offenderService";
 import type { DetectionOffenderLink } from "../services/offenderService";
 import { getDetectionAnalyzedFrames, updateDetectionImage } from "../services/detectionService";
-import type { DetectionAnalyzedFrame } from "../services/detectionService";
+import type { DetectionAnalyzedFrame, ClassifyStatus } from "../services/detectionService";
 import { AddDetectionOffenderModal } from "./AddDetectionOffenderModal";
 import { formatDateTimeBrazil } from "../utils/datetime";
 
@@ -15,8 +15,7 @@ interface OccurrenceModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: any;
-  onResolve?: () => void;
-  onStartAnalysis?: () => void;
+  onClassify?: (status: ClassifyStatus) => void;
   onPhotoUpdated?: (imageUrl: string) => void;
 }
 
@@ -31,9 +30,10 @@ const COLORS = {
   title: "#1a1a1a",
   label: "#9ca3af",
   value: "#374151",
-  statusPendente: "#ef4444",
-  statusAnalise: "#f97316",
-  statusResolvido: "#22c55e",
+  statusPendente: "#f97316",
+  statusConfirmado: "#22c55e",
+  statusRejeitado: "#ef4444",
+  statusIndeterminado: "#eab308",
   statusDefault: "#6b7280",
   divider: "#f3f4f6",
   infoBg: "#f9fafb",
@@ -44,8 +44,9 @@ const COLORS = {
 function getStatusExportColor(status: string): string {
   switch (status) {
     case "Pendente": return COLORS.statusPendente;
-    case "Em análise": return COLORS.statusAnalise;
-    case "Resolvido": return COLORS.statusResolvido;
+    case "Confirmado": return COLORS.statusConfirmado;
+    case "Rejeitado": return COLORS.statusRejeitado;
+    case "Indeterminado": return COLORS.statusIndeterminado;
     default: return COLORS.statusDefault;
   }
 }
@@ -264,8 +265,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   isOpen,
   onClose,
   data,
-  onResolve,
-  onStartAnalysis,
+  onClassify,
   onPhotoUpdated,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -283,8 +283,6 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const [selectedPhotoSrc, setSelectedPhotoSrc] = useState<string>("");
   const [pendingPhotoSrc, setPendingPhotoSrc] = useState<string>("");
   const [candidatePhotoSrc, setCandidatePhotoSrc] = useState<string>("");
-  const [photoPositionX, setPhotoPositionX] = useState(50);
-  const [photoPositionY, setPhotoPositionY] = useState(50);
   const [lightboxMode, setLightboxMode] = useState<"view" | "select">("select");
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const stripRef = useRef<HTMLDivElement>(null);
@@ -344,33 +342,6 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
       .finally(() => setLoadingFrames(false));
   }, [isOpen, data?.id, data?.image_url, data?.hasOffender]);
 
-  useEffect(() => {
-    if (!isOpen || !data?.id) return;
-    const key = `occurrence:crop:${data.id}`;
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) {
-        setPhotoPositionX(50);
-        setPhotoPositionY(50);
-        return;
-      }
-      const parsed = JSON.parse(raw) as { x?: number; y?: number };
-      const x = Number(parsed?.x);
-      const y = Number(parsed?.y);
-      setPhotoPositionX(Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : 50);
-      setPhotoPositionY(Number.isFinite(y) ? Math.min(100, Math.max(0, y)) : 50);
-    } catch {
-      setPhotoPositionX(50);
-      setPhotoPositionY(50);
-    }
-  }, [isOpen, data?.id]);
-
-  useEffect(() => {
-    if (!isOpen || !data?.id) return;
-    const key = `occurrence:crop:${data.id}`;
-    localStorage.setItem(key, JSON.stringify({ x: photoPositionX, y: photoPositionY }));
-  }, [isOpen, data?.id, photoPositionX, photoPositionY]);
-
   const handleUnlink = async (linkId: string) => {
     try {
       await deleteDetectionOffender(linkId);
@@ -423,11 +394,13 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pendente":
-        return "text-red-500";
-      case "Em an\u00E1lise":
         return "text-orange-500";
-      case "Resolvido":
+      case "Confirmado":
         return "text-green-500";
+      case "Rejeitado":
+        return "text-red-500";
+      case "Indeterminado":
+        return "text-yellow-500";
       default:
         return "text-gray-500";
     }
@@ -592,8 +565,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
             <img
               src={photoSrc}
               alt="Evidência"
-              className="w-full h-full object-cover"
-              style={{ objectPosition: `${photoPositionX}% ${photoPositionY}%` }}
+              className="w-full h-full object-cover object-center"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
             <div className="absolute top-2 right-2 bg-black/55 text-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -605,52 +577,6 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               </div>
             )}
           </button>
-
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-600">Ajustar enquadramento da foto</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setPhotoPositionX(50);
-                  setPhotoPositionY(50);
-                }}
-                className="text-[11px] font-medium text-gray-500 hover:text-gray-700"
-              >
-                Centralizar
-              </button>
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
-                <span>Horizontal</span>
-                <span>{Math.round(photoPositionX)}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={photoPositionX}
-                onChange={(event) => setPhotoPositionX(Number(event.target.value))}
-                className="w-full accent-lime-500"
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
-                <span>Vertical</span>
-                <span>{Math.round(photoPositionY)}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={photoPositionY}
-                onChange={(event) => setPhotoPositionY(Number(event.target.value))}
-                className="w-full accent-lime-500"
-              />
-            </div>
-          </div>
 
           {/* Info Grid */}
           <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
@@ -730,6 +656,17 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               </div>
             </div>
 
+            {data?.validityComment && (
+              <div className="col-span-2">
+                <span className="block text-gray-400 text-xs mb-1">
+                  Comentário do avaliador
+                </span>
+                <p className="text-sm text-gray-700 italic bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  {data.validityComment}
+                </p>
+              </div>
+            )}
+
             <div className="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-400 text-xs">Infratores vinculados</span>
@@ -770,9 +707,12 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="flex gap-3 mt-4">
-            {/* Download Button with Dropdown */}
+        </div>
+
+        {/* Footer Actions (sticky no rodapé do modal) */}
+        <div className="flex-shrink-0 flex flex-col gap-3 p-6 pt-3 border-t border-gray-100 bg-white">
+          {/* Linha 1: utilitários (Download + Mapa) */}
+          <div className="flex gap-3">
             <div className="relative">
               <button
                 onClick={() => setIsExportMenuOpen((prev) => !prev)}
@@ -805,7 +745,6 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               )}
             </div>
 
-            {/* Ver localização no mapa */}
             {data?.latitude && data?.longitude && (
               <a
                 href={`https://www.google.com/maps?q=${data.latitude},${data.longitude}`}
@@ -817,29 +756,40 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                 Ver no mapa
               </a>
             )}
-
-            {/* Marcar como resolvido */}
-            {onResolve && data?.status !== "Resolvido" && (
-              <button
-                onClick={onResolve}
-                className="h-12 px-4 flex items-center gap-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors text-sm font-bold"
-              >
-                <CheckCircle size={18} />
-                Marcar como resolvido
-              </button>
-            )}
-
-            {/* Marcar em análise */}
-            {onStartAnalysis && data?.status === "Pendente" && (
-              <button
-                onClick={onStartAnalysis}
-                className="h-12 px-4 flex items-center gap-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors text-sm font-bold"
-              >
-                <Clock size={18} />
-                Marcar em análise
-              </button>
-            )}
           </div>
+
+          {/* Linha 2: classificação da ocorrência */}
+          {onClassify && (
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => onClassify("Confirmado")}
+                disabled={data?.status === "Confirmado"}
+                className="h-12 px-2 flex items-center justify-center gap-1.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                title={data?.status === "Confirmado" ? "Já confirmada" : "Confirmar ocorrência"}
+              >
+                <CheckCircle size={16} />
+                Confirmar
+              </button>
+              <button
+                onClick={() => onClassify("Rejeitado")}
+                disabled={data?.status === "Rejeitado"}
+                className="h-12 px-2 flex items-center justify-center gap-1.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                title={data?.status === "Rejeitado" ? "Já rejeitada" : "Rejeitar como falso positivo"}
+              >
+                <XCircle size={16} />
+                Rejeitar
+              </button>
+              <button
+                onClick={() => onClassify("Indeterminado")}
+                disabled={data?.status === "Indeterminado"}
+                className="h-12 px-2 flex items-center justify-center gap-1.5 bg-yellow-500 text-white rounded-xl hover:bg-yellow-600 transition-colors text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                title={data?.status === "Indeterminado" ? "Já indeterminada" : "Não é possível decidir"}
+              >
+                <HelpCircle size={16} />
+                Indeterminar
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

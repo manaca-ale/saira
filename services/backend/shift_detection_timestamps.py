@@ -58,14 +58,8 @@ async def shift_timestamps() -> None:
 
         await db.execute(
             update(Detection)
-            .where(Detection.resolved_at.isnot(None))
-            .values(resolved_at=Detection.resolved_at + delta)
-        )
-
-        await db.execute(
-            update(Detection)
-            .where(Detection.analysis_started_at.isnot(None))
-            .values(analysis_started_at=Detection.analysis_started_at + delta)
+            .where(Detection.classified_at.isnot(None))
+            .values(classified_at=Detection.classified_at + delta)
         )
 
         await db.commit()

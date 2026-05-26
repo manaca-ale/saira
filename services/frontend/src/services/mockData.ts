@@ -1,5 +1,11 @@
 ﻿export type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
 
+export type DetectionValidityStatus =
+  | "Pendente"
+  | "Confirmado"
+  | "Rejeitado"
+  | "Indeterminado";
+
 export type PoiData = {
   id: string;
   bairro: string;
@@ -9,9 +15,10 @@ export type PoiData = {
   timestamp: string;
   wasteType: WasteType;
   volume: number; // Volume in m³
-  status: "Pendente" | "Em análise" | "Resolvido";
+  status: DetectionValidityStatus;
   photoUrl: string;
   hasOffender: boolean;
+  validityComment?: string;
 };
 
 type SeedLocation = {
@@ -110,12 +117,17 @@ const buildRandomTimestamp = (year: number, monthIndex: number) => {
   return new Date(start.getTime() + offset).toISOString();
 };
 
-const getStatusForDate = (year: number, monthIndex: number) => {
-  if (year === 2025) return "Resolvido" as const;
+const getStatusForDate = (year: number, monthIndex: number): DetectionValidityStatus => {
+  if (year === 2025) return "Confirmado";
   if (year === 2026 && monthIndex === 0) {
-    return randomItem(["Pendente", "Em análise", "Resolvido"] as const);
+    return randomItem([
+      "Pendente",
+      "Confirmado",
+      "Rejeitado",
+      "Indeterminado",
+    ] as const);
   }
-  return "Resolvido" as const;
+  return "Confirmado";
 };
 
 const generateMockData = (): PoiData[] => {

@@ -16,45 +16,61 @@ async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna estatísticas gerais do dashboard"""
+    """Retorna estatísticas gerais do dashboard.
 
-    # Total de ocorrências
-    total_result = await db.execute(select(func.count(Detection.id)))
+    total_occurrences e daily_volume_m3 só consideram detecções CONFIRMADAS
+    (validadas pelo usuário como ocorrência real). Os contadores por status
+    expõem o backlog de revisão (pending/confirmed/rejected/indeterminate).
+    """
+
+    # Total de ocorrências oficiais (só confirmadas)
+    total_result = await db.execute(
+        select(func.count(Detection.id))
+        .where(Detection.status == DetectionStatus.CONFIRMADO)
+    )
     total_occurrences = total_result.scalar_one()
 
-    # Volume diário (hoje)
+    # Volume diário (hoje) — só confirmadas
     today = date.today()
     daily_volume_result = await db.execute(
         select(func.coalesce(func.sum(Detection.volume_m3), 0))
         .where(func.date(Detection.timestamp) == today)
+        .where(Detection.status == DetectionStatus.CONFIRMADO)
     )
     daily_volume_m3 = daily_volume_result.scalar_one()
 
-    # Contar por status
+    # Contadores por status
     pending_result = await db.execute(
         select(func.count(Detection.id))
         .where(Detection.status == DetectionStatus.PENDENTE)
     )
     pending_count = pending_result.scalar_one()
 
-    in_analysis_result = await db.execute(
+    confirmed_result = await db.execute(
         select(func.count(Detection.id))
-        .where(Detection.status == DetectionStatus.EM_ANALISE)
+        .where(Detection.status == DetectionStatus.CONFIRMADO)
     )
-    in_analysis_count = in_analysis_result.scalar_one()
+    confirmed_count = confirmed_result.scalar_one()
 
-    resolved_result = await db.execute(
+    rejected_result = await db.execute(
         select(func.count(Detection.id))
-        .where(Detection.status == DetectionStatus.RESOLVIDO)
+        .where(Detection.status == DetectionStatus.REJEITADO)
     )
-    resolved_count = resolved_result.scalar_one()
+    rejected_count = rejected_result.scalar_one()
+
+    indeterminate_result = await db.execute(
+        select(func.count(Detection.id))
+        .where(Detection.status == DetectionStatus.INDETERMINADO)
+    )
+    indeterminate_count = indeterminate_result.scalar_one()
 
     return DashboardStats(
         total_occurrences=total_occurrences,
         daily_volume_m3=daily_volume_m3,
         pending_count=pending_count,
-        in_analysis_count=in_analysis_count,
-        resolved_count=resolved_count
+        confirmed_count=confirmed_count,
+        rejected_count=rejected_count,
+        indeterminate_count=indeterminate_count,
     )
 
 
@@ -63,12 +79,13 @@ async def get_occurrences_by_month(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna ocorrências agrupadas por mês"""
+    """Retorna ocorrências confirmadas agrupadas por mês"""
     result = await db.execute(
         select(
             func.to_char(Detection.timestamp, 'YYYY-MM').label('month'),
             func.count(Detection.id).label('count')
         )
+        .where(Detection.status == DetectionStatus.CONFIRMADO)
         .group_by(func.to_char(Detection.timestamp, 'YYYY-MM'))
         .order_by(func.to_char(Detection.timestamp, 'YYYY-MM').desc())
         .limit(12)
@@ -83,7 +100,7 @@ async def get_recurrent_locations(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna locais com mais ocorrências (reincidentes)"""
+    """Retorna locais com mais ocorrências confirmadas (reincidentes)"""
     result = await db.execute(
         select(
             Detection.logradouro,
@@ -92,6 +109,7 @@ async def get_recurrent_locations(
             func.count(Detection.id).label('count')
         )
         .where(Detection.logradouro.isnot(None))
+        .where(Detection.status == DetectionStatus.CONFIRMADO)
         .group_by(Detection.logradouro, Detection.bairro, Detection.rpa)
         .having(func.count(Detection.id) > 1)
         .order_by(func.count(Detection.id).desc())
@@ -115,7 +133,7 @@ async def get_volume_by_rpa(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna volumetria agregada por RPA"""
+    """Retorna volumetria agregada por RPA (apenas ocorrências confirmadas)"""
     result = await db.execute(
         select(
             Detection.rpa,
@@ -125,6 +143,7 @@ async def get_volume_by_rpa(
         )
         .where(Detection.rpa.isnot(None))
         .where(Detection.volume_m3.isnot(None))
+        .where(Detection.status == DetectionStatus.CONFIRMADO)
         .group_by(Detection.rpa)
         .order_by(Detection.rpa)
     )

@@ -16,9 +16,10 @@ const mapMode = import.meta.env.VITE_MAP_MODE || 'heatmap';
 
 // --- COLOR MAPPING for BUBBLE MAP ---
 const statusColors: Record<PoiData["status"], string> = {
-  "Pendente": "#ef4444",
-  "Em an\u00E1lise": "#f97316",
-  "Resolvido": "#22c55e",
+  "Pendente": "#f97316",
+  "Confirmado": "#22c55e",
+  "Rejeitado": "#ef4444",
+  "Indeterminado": "#eab308",
 };
 
 // --- ICON FIX ---
@@ -67,7 +68,7 @@ const Slider: React.FC<{ label: string; value: number; min: number; max: number;
 );
 
 const getStatusStyle = (status: PoiData['status']) => {
-    switch (status) { case "Pendente": return "bg-red-100 text-red-600"; case "Em an\u00E1lise": return "bg-orange-100 text-orange-600"; case "Resolvido": return "bg-green-100 text-green-600"; default: return "bg-gray-100 text-gray-600"; }
+    switch (status) { case "Pendente": return "bg-orange-100 text-orange-600"; case "Confirmado": return "bg-green-100 text-green-600"; case "Rejeitado": return "bg-red-100 text-red-600"; case "Indeterminado": return "bg-yellow-100 text-yellow-600"; default: return "bg-gray-100 text-gray-600"; }
 };
 
 
@@ -137,8 +138,9 @@ const Legend: React.FC<{ map: L.Map | null; points: PoiData[] }> = ({ map, point
             } else { // bubble mode
                 const statusEntries: Array<PoiData["status"]> = [
                   "Pendente",
-                  "Em an\u00E1lise",
-                  "Resolvido",
+                  "Confirmado",
+                  "Rejeitado",
+                  "Indeterminado",
                 ];
                 let content = '<h4 class="font-bold text-sm mb-2">Status</h4>';
                 statusEntries.forEach((status) => {
