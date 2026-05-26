@@ -8,8 +8,20 @@ from enum import Enum
 
 class DetectionStatus(str, Enum):
     PENDENTE = "Pendente"
-    EM_ANALISE = "Em analise"
-    RESOLVIDO = "Resolvido"
+    CONFIRMADO = "Confirmado"
+    REJEITADO = "Rejeitado"
+    INDETERMINADO = "Indeterminado"
+
+
+class ClassifyAction(str, Enum):
+    """Statuses a user can assign via POST /detections/{id}/classify.
+
+    PENDENTE é o estado inicial implícito — não é uma ação do usuário.
+    """
+
+    CONFIRMADO = "Confirmado"
+    REJEITADO = "Rejeitado"
+    INDETERMINADO = "Indeterminado"
 
 
 class DetectionBase(BaseModel):
@@ -42,24 +54,21 @@ class DetectionUpdate(BaseModel):
     image_url: Optional[str] = Field(None, max_length=512)
 
 
-class DetectionResolve(BaseModel):
-    resolved_at: datetime
-    forwarded_to_sector: str = Field(..., max_length=100)
-    resolution_justification: str = Field(..., max_length=400)
+class DetectionClassify(BaseModel):
+    """Payload para POST /detections/{id}/classify.
 
+    Permite ao usuário classificar a validade de uma ocorrência detectada.
+    """
 
-class DetectionStartAnalysis(BaseModel):
-    pass
+    status: ClassifyAction
+    validity_comment: Optional[str] = Field(None, max_length=400)
 
 
 class DetectionResponse(DetectionBase):
     id: UUID
-    resolved_at: Optional[datetime] = None
-    resolved_by: Optional[int] = None
-    resolution_justification: Optional[str] = None
-    forwarded_to_sector: Optional[str] = None
-    analysis_started_at: Optional[datetime] = None
-    analysis_started_by: Optional[int] = None
+    classified_at: Optional[datetime] = None
+    classified_by: Optional[int] = None
+    validity_comment: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

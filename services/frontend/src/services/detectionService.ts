@@ -17,7 +17,12 @@ export interface Detection {
   status: string;
   image_url?: string;
   confidence_score?: number;
+  classified_at?: string | null;
+  classified_by?: number | null;
+  validity_comment?: string | null;
 }
+
+export type ClassifyStatus = "Confirmado" | "Rejeitado" | "Indeterminado";
 
 export type PoiData = FrontendPoiData;
 
@@ -98,17 +103,19 @@ function normalizeWasteType(raw?: string): WasteType {
 
 function normalizeStatus(raw?: string): FrontendPoiData['status'] {
   const value = (raw || '').trim().toLowerCase();
-  if (value === 'resolvido') return 'Resolvido';
-  if (value === 'em analise' || value === 'em análise') return 'Em análise';
+  if (value === 'confirmado') return 'Confirmado';
+  if (value === 'rejeitado') return 'Rejeitado';
+  if (value === 'indeterminado') return 'Indeterminado';
   return 'Pendente';
 }
 
 function normalizeStatusFilter(raw?: string): string | undefined {
   const value = (raw || '').trim().toLowerCase();
   if (!value) return undefined;
-  if (value === 'em análise' || value === 'em analise') return 'Em analise';
-  if (value === 'resolvido') return 'Resolvido';
   if (value === 'pendente') return 'Pendente';
+  if (value === 'confirmado') return 'Confirmado';
+  if (value === 'rejeitado') return 'Rejeitado';
+  if (value === 'indeterminado') return 'Indeterminado';
   return raw;
 }
 
@@ -144,6 +151,7 @@ function toFrontendFormat(d: Detection): PoiData {
     status: normalizeStatus(d.status),
     photoUrl: normalizeImageUrl(d.image_url),
     hasOffender: !!d.offenders,
+    validityComment: d.validity_comment ?? undefined,
   };
 }
 
@@ -262,19 +270,16 @@ export async function getDetectionAnalyzedFrames(id: string): Promise<DetectionA
   };
 }
 
-export async function resolveDetection(
+export async function classifyDetection(
   id: string,
-  data: {
-    resolved_at: string;
-    forwarded_to_sector: string;
-    resolution_justification: string;
-  }
+  status: ClassifyStatus,
+  validity_comment?: string,
 ): Promise<Detection> {
-  const response = await api.post(`/detections/${id}/resolve`, data);
-  return response.data;
-}
-
-export async function startAnalysis(id: string): Promise<Detection> {
-  const response = await api.post(`/detections/${id}/start-analysis`);
+  const payload: { status: ClassifyStatus; validity_comment?: string } = { status };
+  const trimmed = validity_comment?.trim();
+  if (trimmed) {
+    payload.validity_comment = trimmed;
+  }
+  const response = await api.post(`/detections/${id}/classify`, payload);
   return response.data;
 }
