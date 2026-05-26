@@ -45,5 +45,10 @@ token.json
 # ESP32 receiver runtime uploads
 esp32-server/uploads/
 
+# Official benchmark dataset (heavy, ~360MB, restored from stash 9a8222fbb 2026-05-26)
+# Usado por benchmarks/campaigns/* via DATASET_ROOT references.
+# Rebuild via benchmarks/scripts/build_official_datasets.py quando disponível.
+data/datasets/
+
 # Windows oddities
 nul
