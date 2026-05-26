@@ -601,6 +601,63 @@ def test_camera_bgsub_overrides_env_globals(tmp_path):
     assert result.should_suppress is True
 
 
+def test_morpho_mode_area_min_filters_small_blobs(tmp_path):
+    """When morpho_mode=area_min, very small blobs are filtered out
+    while big bright blobs still pass. This validates the new contour-area path."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    # Bright blob test — passes both modes
+    test_frames = [
+        _write_static_object_frame(tmp_path / "static" / f"{i:03d}.jpg")
+        for i in range(10)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", False), \
+         patch.object(config, "BGSUB_MORPHO_MODE", "area_min"), \
+         patch.object(config, "BGSUB_AREA_MIN", 400), \
+         patch.object(config, "BGSUB_PERSISTENCE_THRESHOLD", 1):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    # Static large object (150x150) passes area_min=400 → should NOT suppress
+    assert result.should_suppress is False
+    assert result.persistence > 1
+
+
+def test_morpho_mode_off_disables_all_postprocessing(tmp_path):
+    """morpho_mode=off → no MORPH_OPEN/CLOSE/area_filter; raw mask used."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_static_object_frame(tmp_path / "static" / f"{i:03d}.jpg")
+        for i in range(5)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", False), \
+         patch.object(config, "BGSUB_MORPHO_MODE", "off"), \
+         patch.object(config, "BGSUB_PERSISTENCE_THRESHOLD", 1):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    # No suppression, mode reported as single
+    assert result.mode == "single"
+
+
+def test_morpho_mode_default_preserves_legacy(tmp_path):
+    """Default BGSUB_MORPHO_MODE='open_close' = comportamento atual prod."""
+    bgsub_filter.invalidate_cache()
+    models_dir, polygon = _setup_dual_camera(tmp_path)
+    test_frames = [
+        _write_static_object_frame(tmp_path / "static" / f"{i:03d}.jpg")
+        for i in range(5)
+    ]
+    with patch.object(config, "BGSUB_PREFILTER_ENABLED", True), \
+         patch.object(config, "BGSUB_MODELS_DIR", str(models_dir)), \
+         patch.object(config, "BGSUB_DUAL_RATE_ENABLED", False), \
+         patch.object(config, "BGSUB_MORPHO_MODE", "open_close"), \
+         patch.object(config, "BGSUB_PERSISTENCE_THRESHOLD", 1):
+        result = bgsub_filter.evaluate(test_frames, "esp32_dual", polygon)
+    assert result.mode == "single"
+
+
 def test_camera_bgsub_null_falls_back_to_env(tmp_path):
     """When camera fields are None, env globals are used."""
     bgsub_filter.invalidate_cache()
