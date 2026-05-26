@@ -133,7 +133,7 @@ export const HistoryPage: React.FC = () => {
     date: "",
     startTime: "",
     endTime: "",
-    status: [],
+    status: ["Confirmado"],
     logradouro: "",
     bairro: "",
     rpa: [],
@@ -152,7 +152,7 @@ export const HistoryPage: React.FC = () => {
         const all = await getAllDetections({
           start_date: `${range.start}T00:00:00`,
           end_date: `${range.end}T23:59:59`,
-          status: ["Confirmado"],
+          status: filters.status.length > 0 ? filters.status : undefined,
           maxRecords: 1000,
           pageSize: 100,
         });
@@ -169,7 +169,7 @@ export const HistoryPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [filters.status]);
 
   // --- FILTERING LOGIC ---
   const matchesFilters = useCallback(

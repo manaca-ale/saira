@@ -232,7 +232,7 @@ export const Dashboard: React.FC = () => {
       dateEnd,
       startTime: "",
       endTime: "",
-      status: [],
+      status: ["Confirmado"],
       logradouro: "",
       bairro: "",
       rpa: [],
@@ -266,7 +266,7 @@ export const Dashboard: React.FC = () => {
         const data = await getAllDetections({
           start_date: startDate,
           end_date: endDate,
-          status: ["Confirmado"],
+          status: filters.status.length > 0 ? filters.status : undefined,
           maxRecords: 2000,
           pageSize: 100,
         });
@@ -279,7 +279,7 @@ export const Dashboard: React.FC = () => {
     }
     loadDetections();
     return () => { cancelled = true; };
-  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
+  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime, filters.status]);
 
   const toDateInput = (date: Date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(

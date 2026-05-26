@@ -62,7 +62,7 @@ const WASTE_TYPE_OPTIONS: WasteType[] = [
 ];
 
 const STATUS_OPTIONS = ["Pendente", "Confirmado", "Rejeitado", "Indeterminado"] as const;
-const DEFAULT_STATUS_FILTER: readonly string[] = ["Pendente", "Confirmado", "Indeterminado"];
+const DEFAULT_STATUS_FILTER: readonly string[] = ["Confirmado"];
 const RPA_OPTIONS = [
   "RPA 1",
   "RPA 2",
