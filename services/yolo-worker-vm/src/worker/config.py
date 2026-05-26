@@ -151,6 +151,18 @@ BGSUB_MOG2_VAR_THRESHOLD = float(os.getenv("BGSUB_MOG2_VAR_THRESHOLD", "40.0"))
 # empty windows.
 BGSUB_SHADOW_THRESHOLD = int(os.getenv("BGSUB_SHADOW_THRESHOLD", "100"))
 
+# Morphological post-processing mode (added 2026-05-25 smoke test).
+# Modes:
+#   "open_close" (default, preserva comportamento atual): MORPH_OPEN + MORPH_CLOSE
+#       — reduz speckle noise mas pode eliminar objetos pequenos.
+#   "area_min": substitui morpho por filtro de área mínima por contour (BGSUB_AREA_MIN).
+#       Smoke test 25/05 com area_min=400 filtrou +2 FPs (tráfico esp32_001 09:30,
+#       10:00) preservando 3/3 TPs. Recomendação Deep Research (paper Porikli):
+#       morpho mata objetos <5% ROI.
+#   "off": sem pós-processamento (modo experimental, alta noise).
+BGSUB_MORPHO_MODE = os.getenv("BGSUB_MORPHO_MODE", "open_close").strip().lower()
+BGSUB_AREA_MIN = int(os.getenv("BGSUB_AREA_MIN", "400"))
+
 # Adaptive baseline — when enabled, the MOG2 background absorbs frames that
 # the Gemini gate confirmed as "no new litter" with high confidence. This
 # tolerates lighting shifts (sun angle, IR mode), pile collection by EMLURB,
