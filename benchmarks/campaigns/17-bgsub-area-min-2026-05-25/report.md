@@ -102,9 +102,54 @@ ssh saira-prod 'sed -i "s/^BGSUB_MORPHO_MODE=.*/BGSUB_MORPHO_MODE=open_close/" /
 - **Reverter**: filter rate < 60% OU Detail rate cai > 20% vs baseline OU latência p95 evaluate sobe > 50%.
 
 <!-- decision -->
-## Decisão preliminar (T+60min pós-deploy)
+## ❌ DECISÃO FINAL — REVERTIDO (2026-05-26 ~12h BRT)
 
-✅ **MANTER em prod**, monitorar 24-48h adicionais.
+`area_min=400` foi REVERTIDO em prod. Voltou pra `BGSUB_MORPHO_MODE=open_close` (estado anterior).
+
+### Por que reverteu
+
+Em ~16h de operação, sistema **missou 4 TPs em esp32_002** (planilha "Ocorrências Não Capturadas" #8-#11):
+
+| # | Hora BRT | Descrição | Persistência observada |
+|---|---|---|---|
+| 8 | 06:14:31 | Mulher descartando lixo | 0 |
+| 9 | 09:26:37 | Homem capa amarela, entulho | 0 |
+| 10 | 09:59:06 | Homem descartando tábuas | 438 (< 1000 threshold) |
+| 11 | 10:03:30 | Homem carrinho, múltiplos descartes | 645 → 259 (filtrados) |
+
+Sistema só pegou o último segmento do TP #11 (em 10:45:17, evento `e9994695`).
+
+### Causa raiz
+
+`area_min=400` é alto demais pra esp32_002:
+- Zona Mangabeira é pequena (~163k px)
+- Descartes típicos são sacos pequenos vistos de cima (50-150 px²)
+- Filtro de contour ≥ 400 px **elimina blobs novos individualmente** antes de somarem persistência
+
+Comparando com morpho OPEN+CLOSE (legacy): operação morfológica DILATA blobs próximos, permitindo speckles se unirem em massas detectáveis. `area_min` é mais "purista" — descarta cada blob isolado.
+
+### Falha de validação na minha sim
+
+Smoke test 25/05 usou 3 TPs do 24/05 que NÃO representavam o caso típico:
+- 08:09 papelão (objeto **grande**)
+- 08:21 pedestre marginal
+- 08:36 papelão deixado (objeto **grande**)
+
+Os 4 TPs de hoje (sacos pequenos) ficaram FORA do dataset de validação — viés de seleção.
+
+### Próximos passos
+
+1. **Dataset oficial restaurado** (5488 frames, 119 eventos) já está em `data/datasets/official/`
+2. **Nova campanha** deve incluir TPs de saco pequeno (já catalogados na planilha)
+3. **Considerar per-camera area_min** (esp32_001 zona grande pode aceitar 400, esp32_002 zona pequena precisa ≤100 ou desligado)
+4. **Adicionar regressão obrigatória** nos 4 TPs missados antes de re-deployar
+
+## Lições
+
+- Smoke test com N=3 TPs é **insuficiente** mesmo quando 100% recall
+- Variedade de TPs (objetos pequenos + grandes) é mais importante que quantidade
+- Per-camera config seria mais seguro que global pra parâmetros de área
+- ROI: gain de 75%→79% filter rate (4pp) **não justifica** -4 TPs/dia (-100% recall esp32_002)
 
 | Cam | Pre area_min (baseline 1h) | T+30min area_min | T+60min area_min |
 |---|---:|---:|---:|
