@@ -343,8 +343,23 @@ def _apply_and_combine(
         raw = bg.apply(img, learningRate=0.0)
         fg = (raw > shadow_threshold).astype(np.uint8) * 255
 
-    fg = cv2.morphologyEx(fg, cv2.MORPH_OPEN, morph_kernel)
-    fg = cv2.morphologyEx(fg, cv2.MORPH_CLOSE, morph_kernel)
+    morpho_mode = str(config.BGSUB_MORPHO_MODE).lower()
+    if morpho_mode == 'open_close':
+        fg = cv2.morphologyEx(fg, cv2.MORPH_OPEN, morph_kernel)
+        fg = cv2.morphologyEx(fg, cv2.MORPH_CLOSE, morph_kernel)
+    elif morpho_mode == 'area_min':
+        # Contour-area filter: mantém apenas blobs com area >= AREA_MIN.
+        # Substitui MORPH_OPEN (que removia small objects) por filtro de área
+        # bem definido. Validado no smoke test 25/05: filtra +2 FPs vs morpho
+        # padrão (FP trafico esp32_001 09:30, 10:00) sem perder TPs.
+        area_min = int(config.BGSUB_AREA_MIN)
+        contours, _ = cv2.findContours(fg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        out = np.zeros_like(fg)
+        for c in contours:
+            if cv2.contourArea(c) >= area_min:
+                cv2.drawContours(out, [c], -1, 255, thickness=cv2.FILLED)
+        fg = out
+    # morpho_mode == 'off' → sem pós-processamento (modo experimental).
     return fg
 
 
