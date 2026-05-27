@@ -94,6 +94,31 @@ jobs:
             # ESP32 server is included in this compose (port 5003) — no standalone needed.
             # --profile worker ensures the yolo-worker service (gated by profile in compose)
             # is also built and recreated, otherwise it keeps a stale image across deploys.
+            # STEP: Clean ghost containers from previous --force-recreate runs.
+            # Pattern is <12hex>_saira-<svc>-prod (compose renames displaced containers).
+            # See: feedback_saira_prod_redeploy_checklist.md
+            echo "Limpando ghost containers de deploys anteriores..."
+            docker ps -a --format '{{.Names}}' \
+              | grep -E '^[0-9a-f]{12}_saira-(web|backend|gateway|esp32-server|db|redis|yolo-worker)-prod$' \
+              | xargs -r docker rm -f 2>/dev/null || true
+
             docker compose -p saira-prod --profile worker -f docker-compose.prod.yml up -d --build --force-recreate
+
+            # STEP: Restart worker so its asyncpg pool reconnects to the (possibly new) DB.
+            # Without this, worker emits heartbeats but processes zero images.
+            echo "Restartando worker para refrescar conexao DB..."
+            docker restart saira-yolo-worker-prod 2>/dev/null || true
+
+            # STEP: Verify nothing got stuck in Created/Exited state.
+            echo "Verificando estado pos-deploy..."
+            sleep 8
+            BROKEN=$(docker ps -a --format '{{.Names}}\t{{.Status}}' \
+              | grep -E '^saira-(web|backend|gateway|esp32-server|db|redis|yolo-worker)-prod' \
+              | grep -vE 'Up' || true)
+            if [ -n "$BROKEN" ]; then
+              echo "ERROR: containers nao estao Up apos deploy:"
+              echo "$BROKEN"
+              exit 1
+            fi
 
             echo "Producao rodando (Projeto: saira-prod)"
