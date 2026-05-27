@@ -59,7 +59,7 @@ export const CameraSnapshotsPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filterRpa, setFilterRpa] = useState<string>("");
   const [filterBairro, setFilterBairro] = useState<string>("");
-  const [onlyActive, setOnlyActive] = useState(false);
+  const [onlyActive, setOnlyActive] = useState(true);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);

@@ -232,7 +232,7 @@ export const Dashboard: React.FC = () => {
       dateEnd,
       startTime: "",
       endTime: "",
-      status: ["Confirmado"],
+      status: [],
       logradouro: "",
       bairro: "",
       rpa: [],
