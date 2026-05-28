@@ -728,10 +728,14 @@ def analyze_new_litter_with_gemini(
     model_name = config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL
     timeout_s = max(1, config.GEMINI_AGENT1_TIMEOUT_SECONDS)
 
-    use_v3 = prompt_version == "v3"
+    camera_device_id = ""
+    if camera_context:
+        camera_device_id = str(camera_context.get("device_id") or "").strip().lower()
+    use_camera_v3_gate = camera_device_id == "esp32_002"
+    use_v3 = prompt_version == "v3" or use_camera_v3_gate
     use_v2 = prompt_version == "v2"
     if use_v3:
-        system_prompt = _prompts_v3.NEW_LITTER_SYSTEM_PROMPT_V3
+        system_prompt = _prompts_v3.gate_system_prompt_for_camera(camera_context)
         schema_cls = _prompts_v3.GeminiNewLitterReportV3
     elif use_v2:
         system_prompt = _prompts_v2.NEW_LITTER_SYSTEM_PROMPT_V2

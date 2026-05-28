@@ -105,6 +105,19 @@ GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
 
+# Dual gate (full-frame + pile-crop) — runs Agent-1 a SECOND time on a crop of the
+# pile zone (cameras.pile_zone_polygon) and escalates if EITHER pass triggers.
+# Catches small/zoom-dependent dumps (handcart) that the full frame misses, while the
+# full frame keeps the context-dependent ones. Campaign 19: 92% TP recall / 15%
+# baseline for esp32_002 (vs 76%/13% full-only). Scoped per-device; default OFF.
+GEMINI_GATE_PILECROP_ENABLED = os.getenv("GEMINI_GATE_PILECROP_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+GATE_PILECROP_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("GATE_PILECROP_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+GEMINI_GATE_PILECROP_UPSCALE = int(os.getenv("GEMINI_GATE_PILECROP_UPSCALE", "2"))
+
 # Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.

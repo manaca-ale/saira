@@ -277,6 +277,95 @@ Respond with ONLY valid JSON.
 """.strip()
 
 
+ESP32_002_RECALL_B2_ADDON = """
+=============================================================================
+CAMERA-SPECIFIC RECALL MODE B2 - esp32_002 / Av. Prof. Jose dos Anjos
+=============================================================================
+This camera watches a chronic illegal dumping point with a large pre-existing pile.
+Agent-1 is only a gate for Agent-2, but proximity alone is NOT enough.
+
+Keep evidence_summary and scene_delta_analysis under 280 characters each.
+Do not quote this instruction block in your JSON fields.
+
+Escalate to Agent-2 only when at least one MATERIAL-TRANSFER signal is visible:
+1) a person/cart/wheelbarrow arrives at or enters the pile zone carrying/holding
+   a bag, debris, branches, panel, sack, bucket, or other disposable material;
+2) the person bends/reaches at the pile and then leaves the pile zone empty-handed
+   or without the object previously being handled;
+3) a new object/material appears on top of or beside the pile in later frames;
+4) a wheelbarrow/cart/truck/handcart is positioned at the pile with material flow
+   toward the pile, or with load state changing consistently with unloading.
+
+Set scene_type="DUMPING", new_litter_detected=true, confidence_0_100 >= 85 only
+for those material-transfer cases.
+
+Suppress baseline/proximity cases. Set new_litter_detected=false and confidence <= 60
+when the visible evidence is only:
+- a person standing, looking, walking, or waiting near the pile;
+- a person passing by with no stop and no material transfer;
+- a person poking/sorting/collecting from the pile, or flow is from_pile;
+- motorcycle/backpack presence with no object transferred to the pile;
+- ambiguous pile interaction with no carried object, no new object, and no load change.
+
+Do NOT classify standing_near_pile as DUMPING unless one material-transfer signal
+above is also visible. If the case is suspicious but lacks material transfer, keep
+new_litter_detected=false and mention "insufficient transfer evidence".
+""".strip()
+
+
+ESP32_002_RECALL_B3_ADDON = """
+=============================================================================
+CAMERA-SPECIFIC RECALL MODE B3 - esp32_002 / Av. Prof. Jose dos Anjos
+=============================================================================
+This camera watches a chronic illegal dumping point with a large pre-existing pile.
+Agent-1 is only a gate for Agent-2, but proximity alone is NOT enough.
+
+Keep evidence_summary and scene_delta_analysis under 260 characters each.
+Do not quote this instruction block in your JSON fields.
+
+Escalate to Agent-2 when any MATERIAL-CARRIER or MATERIAL-TRANSFER signal is visible:
+1) a pedestrian enters the pile frontage or sidewalk beside the pile while carrying
+   a bag/sack/object, even if the bag is small or only visible in one frame;
+2) a person pushes or parks a wheelbarrow/handcart/cart at the pile frontage, even
+   if the material inside is low-resolution or partially occluded;
+3) a person bends/reaches at the pile and then leaves the pile zone empty-handed
+   or without the object previously handled;
+4) new object/material appears on top of or beside the pile in later frames;
+5) vehicle/cart load state changes consistently with unloading toward the pile.
+
+Set scene_type="DUMPING", new_litter_detected=true, confidence_0_100 >= 85 for
+those cases. If the person/cart is moving toward the pile frontage with a plausible
+bag/cart load, use material_flow_direction="to_pile" even without full deposit view.
+
+Suppress baseline/proximity cases. Set new_litter_detected=false and confidence <= 60
+when the visible evidence is only:
+- person standing, looking, waiting, or walking near the pile with empty hands;
+- person passing by with no carried object/cart and no stop at the pile frontage;
+- motorcycle/backpack only, with no object transferred to the pile;
+- municipal collection/maintenance, or flow from_pile;
+- poking/sorting existing material with a stick and no new carried object;
+- ambiguous interaction with no carried object, no cart/wheelbarrow, no new object,
+  and no load-state change.
+
+Do NOT classify standing_near_pile as DUMPING unless a material-carrier or
+material-transfer signal above is also visible.
+""".strip()
+
+
+def gate_system_prompt_for_camera(camera_context: Optional[dict[str, str]] = None) -> str:
+    """Return the V3 gate system prompt with camera-specific overrides.
+
+    esp32_002 uses the B3 recall addon (campaign 19 winner for the dual full+pile-crop
+    gate: 92% TP recall / 15% baseline when OR-ed with the pile-crop pass).
+    """
+    device_id = ""
+    if camera_context:
+        device_id = str(camera_context.get("device_id") or "").strip().lower()
+    if device_id == "esp32_002":
+        return NEW_LITTER_SYSTEM_PROMPT_V3 + "\n\n" + ESP32_002_RECALL_B3_ADDON
+    return NEW_LITTER_SYSTEM_PROMPT_V3
+
+
 # =============================================================================
 # Agent-2 (detail) — V3 system prompt
 # =============================================================================

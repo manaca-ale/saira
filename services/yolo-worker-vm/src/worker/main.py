@@ -5,6 +5,7 @@ import json
 import logging
 import shutil
 import sys
+import tempfile
 import time
 from datetime import date, datetime
 from decimal import Decimal
@@ -748,6 +749,7 @@ def _process_with_gemini(
 
     camera_context = {
         "camera_name": camera.name,
+        "device_id": device_id,
         "logradouro": camera.logradouro or "",
         "bairro": camera.bairro or "",
         "rpa": camera.rpa or "",
@@ -952,6 +954,46 @@ def _process_with_gemini(
         }
 
 
+def _pile_bbox(polygon) -> Optional[tuple[int, int, int, int]]:
+    """Bounding box (x0, y0, x1, y1) of a pile_zone_polygon ([[[x, y], ...], ...])."""
+    try:
+        pts = [pt for poly in polygon for pt in poly]
+        xs = [int(p[0]) for p in pts]
+        ys = [int(p[1]) for p in pts]
+        if not xs or not ys:
+            return None
+        return min(xs), min(ys), max(xs), max(ys)
+    except Exception:
+        return None
+
+
+def _make_pile_crops(
+    frame_paths: list[Path], bbox: tuple[int, int, int, int], upscale: int, out_dir: Path
+) -> list[Path]:
+    """Crop frames to the pile bbox (+ optional upscale) into out_dir. Returns crop paths."""
+    x0, y0, x1, y1 = bbox
+    crops: list[Path] = []
+    for fp in frame_paths:
+        img = cv2.imread(str(fp))
+        if img is None:
+            continue
+        h, w = img.shape[:2]
+        cx0, cy0 = max(0, min(x0, w - 1)), max(0, min(y0, h - 1))
+        cx1, cy1 = max(cx0 + 1, min(x1, w)), max(cy0 + 1, min(y1, h))
+        crop = img[cy0:cy1, cx0:cx1]
+        if crop.size == 0:
+            continue
+        if upscale and upscale != 1:
+            crop = cv2.resize(
+                crop, (crop.shape[1] * upscale, crop.shape[0] * upscale),
+                interpolation=cv2.INTER_LANCZOS4,
+            )
+        dst = out_dir / fp.name
+        cv2.imwrite(str(dst), crop)
+        crops.append(dst)
+    return crops
+
+
 def _process_with_gemini_cascade_window(
     window_paths: list[Path],
     device_id: str,
@@ -1001,6 +1043,7 @@ def _process_with_gemini_cascade_window(
 
     camera_context = {
         "camera_name": camera.name,
+        "device_id": device_id,
         "logradouro": camera.logradouro or "",
         "bairro": camera.bairro or "",
         "rpa": camera.rpa or "",
@@ -1141,8 +1184,76 @@ def _process_with_gemini_cascade_window(
         bool(gate_report.new_litter_detected)
         and int(gate_report.confidence_0_100) >= effective_threshold
     )
+
+    # --- Dual gate: second Agent-1 pass on a crop of the pile zone ------------
+    # Catches small/zoom-dependent dumps (e.g. handcart) the full frame misses.
+    # Lazy OR: only run when the full-frame pass did NOT already trigger, and only
+    # for configured cameras (esp32_002). Crop failure fails open (keeps full result).
+    crop_gate_trigger = False
+    crop_gate_info: Optional[dict[str, Any]] = None
+    pile_poly = getattr(camera, "pile_zone_polygon", None)
+    if (
+        config.GEMINI_GATE_PILECROP_ENABLED
+        and not gate_trigger
+        and device_id in config.GATE_PILECROP_DEVICES
+        and pile_poly
+    ):
+        bbox = _pile_bbox(pile_poly)
+        if bbox:
+            crop_request_id = f"{gate_request_id}-crop"
+            tmp_dir = Path(tempfile.mkdtemp(prefix="pilecrop_"))
+            try:
+                up = config.GEMINI_GATE_PILECROP_UPSCALE
+                crop_first = _make_pile_crops([first_frame], bbox, up, tmp_dir)
+                crop_last = _make_pile_crops([last_frame], bbox, up, tmp_dir)
+                crop_mids = _make_pile_crops(mid_frames, bbox, up, tmp_dir) if mid_frames else []
+                if crop_first and crop_last:
+                    _register_gemini_call(agent="gate", camera=camera)
+                    crop_gate = analyze_new_litter_with_gemini(
+                        first_frame=crop_first[0],
+                        last_frame=crop_last[0],
+                        camera_context=camera_context,
+                        request_id=crop_request_id,
+                        prior_window_context=prior_window_context,
+                        use_mosaic=config.GEMINI_MOSAIC_AGENT1,
+                        mid_frames=crop_mids or None,
+                        prompt_version=config.GEMINI_PROMPT_VERSION,
+                    )
+                    _register_gemini_success(crop_gate.latency_ms, crop_gate.usage, agent="gate", camera=camera)
+                    _log_gemini_call(
+                        camera=camera, device_id=device_id, agent="gate", model=crop_gate.model,
+                        request_id=crop_request_id, usage=crop_gate.usage,
+                        latency_ms=crop_gate.latency_ms, success=True,
+                    )
+                    cr = crop_gate.report
+                    crop_gate_trigger = (
+                        bool(cr.new_litter_detected)
+                        and int(cr.confidence_0_100) >= effective_threshold
+                    )
+                    crop_gate_info = {
+                        "request_id": crop_request_id,
+                        "new_litter_detected": bool(cr.new_litter_detected),
+                        "confidence_0_100": int(cr.confidence_0_100),
+                        "scene_type": getattr(cr, "scene_type", "") or "",
+                        "triggered": crop_gate_trigger,
+                    }
+            except Exception as exc:  # noqa: BLE001
+                _register_gemini_error(str(exc), agent="gate", camera=camera)
+                _log_gemini_call(
+                    camera=camera, device_id=device_id, agent="gate",
+                    model=(config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL),
+                    request_id=f"{gate_request_id}-crop", usage=None, latency_ms=None,
+                    success=False, error_message=str(exc),
+                )
+                logger.warning("pile-crop gate failed device=%s: %s", device_id, exc)
+            finally:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    gate_trigger = gate_trigger or crop_gate_trigger
+
     gate_payload = {
         "success": True,
+        "pilecrop_gate": crop_gate_info,
         "stage": "agent1_new_litter",
         "request_id": gate_request_id,
         "model": gate.model,
