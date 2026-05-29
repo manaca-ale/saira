@@ -1,13 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, XCircle, HelpCircle, UserPlus, Trash2 as UnlinkIcon, ChevronLeft, ChevronRight, Maximize2, Scan } from "lucide-react";
+import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, XCircle, HelpCircle, UserPlus, Trash2 as UnlinkIcon, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import JSZip from "jszip";
 import imgLixo from "../assets/lixo_exemplo.png";
 import imgInfrator from "../assets/infrator_exemplo.png";
 import { getDetectionOffenders, deleteDetectionOffender } from "../services/offenderService";
 import type { DetectionOffenderLink } from "../services/offenderService";
-import { BBoxOverlay } from "./BBoxOverlay";
-import type { BBox, BBoxCoords } from "./BBoxOverlay";
 import { getDetectionAnalyzedFrames, updateDetectionImage } from "../services/detectionService";
 import type { DetectionAnalyzedFrame, ClassifyStatus } from "../services/detectionService";
 import { AddDetectionOffenderModal } from "./AddDetectionOffenderModal";
@@ -287,9 +285,6 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const [candidatePhotoSrc, setCandidatePhotoSrc] = useState<string>("");
   const [lightboxMode, setLightboxMode] = useState<"view" | "select">("select");
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [showBoxes, setShowBoxes] = useState(true);
-  const [thumbNatural, setThumbNatural] = useState<{ w: number; h: number } | null>(null);
-  const [lightboxNatural, setLightboxNatural] = useState<{ w: number; h: number } | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const activeThumbRef = useRef<HTMLButtonElement>(null);
 
@@ -361,25 +356,6 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const formattedDate = formatDateTimeBrazil(data?.timestamp);
   const photoSrc = selectedPhotoSrc || data?.image_url || (data?.hasOffender ? imgInfrator : imgLixo);
   const volumeValue = data?.volume ?? data?.volume_m3;
-
-  // Bounding boxes (Gemini, normalized 0-1000). Only valid for the event/default
-  // frame the model analyzed — hidden when the user picks a different frame.
-  const COLOR_WASTE = "#ccff33";
-  const COLOR_OFFENDER = "#fb923c";
-  const overlayBoxes: BBox[] = [];
-  if (Array.isArray(data?.waste_bbox) && data.waste_bbox.length === 4) {
-    overlayBoxes.push({ coords: data.waste_bbox as BBoxCoords, color: COLOR_WASTE, label: "Resíduo" });
-  }
-  for (const link of offenderLinks) {
-    if (Array.isArray(link.offender_bbox) && link.offender_bbox.length === 4) {
-      const label = link.plate ? `${link.offender_type} ${link.plate}` : link.offender_type;
-      overlayBoxes.push({ coords: link.offender_bbox as BBoxCoords, color: COLOR_OFFENDER, label });
-    }
-  }
-  const hasBoxes = overlayBoxes.length > 0;
-  const defaultFrameUrl = analyzedFrames.find((f) => f.is_default)?.image_url;
-  const isDefaultPhoto = !defaultFrameUrl || photoSrc === defaultFrameUrl;
-  const showThumbBoxes = showBoxes && hasBoxes && isDefaultPhoto && !!thumbNatural;
 
   const handleExportPng = async () => {
     setIsExportMenuOpen(false);
@@ -567,21 +543,6 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               <ImageIcon size={14} />
               Escolher foto
             </button>
-            {hasBoxes && (
-              <button
-                type="button"
-                onClick={() => setShowBoxes((v) => !v)}
-                title={showBoxes ? "Ocultar caixas de detecção" : "Mostrar caixas de detecção"}
-                className={`h-8 px-3 rounded-lg border text-xs font-bold flex items-center gap-1 transition-colors ${
-                  showBoxes
-                    ? "border-lime-300 bg-lime-50 text-lime-700"
-                    : "border-gray-200 hover:bg-gray-50 text-gray-700"
-                }`}
-              >
-                <Scan size={14} />
-                Caixas
-              </button>
-            )}
           </div>
           <button
             onClick={onClose}
@@ -605,21 +566,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
               src={photoSrc}
               alt="Evidência"
               className="w-full h-full object-cover object-center"
-              onLoad={(e) =>
-                setThumbNatural({
-                  w: e.currentTarget.naturalWidth,
-                  h: e.currentTarget.naturalHeight,
-                })
-              }
             />
-            {showThumbBoxes && thumbNatural && (
-              <BBoxOverlay
-                boxes={overlayBoxes}
-                naturalW={thumbNatural.w}
-                naturalH={thumbNatural.h}
-                fit="cover"
-              />
-            )}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
             <div className="absolute top-2 right-2 bg-black/55 text-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               <Maximize2 size={16} />
@@ -908,36 +855,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                     src={currentFrame.image_url}
                     alt={currentFrame.frame_name}
                     className="max-h-full max-w-full object-contain"
-                    onLoad={(e) =>
-                      setLightboxNatural({
-                        w: e.currentTarget.naturalWidth,
-                        h: e.currentTarget.naturalHeight,
-                      })
-                    }
                   />
-                  {showBoxes && hasBoxes && currentFrame?.is_default && lightboxNatural && (
-                    <BBoxOverlay
-                      boxes={overlayBoxes}
-                      naturalW={lightboxNatural.w}
-                      naturalH={lightboxNatural.h}
-                      fit="contain"
-                    />
-                  )}
-                  {hasBoxes && currentFrame?.is_default && (
-                    <button
-                      type="button"
-                      onClick={() => setShowBoxes((v) => !v)}
-                      title={showBoxes ? "Ocultar caixas de detecção" : "Mostrar caixas de detecção"}
-                      className={`absolute top-3 left-3 h-10 px-3 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors ${
-                        showBoxes
-                          ? "bg-lime-400/90 text-black"
-                          : "bg-black/60 hover:bg-black/80 text-white"
-                      }`}
-                    >
-                      <Scan size={18} />
-                      Caixas
-                    </button>
-                  )}
                   {/* Preload neighbors */}
                   {analyzedFrames[lightboxIndex - 1] && (
                     <img src={analyzedFrames[lightboxIndex - 1].image_url} alt="" className="hidden" />

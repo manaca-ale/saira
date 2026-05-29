@@ -66,7 +66,6 @@ class DetectionClassify(BaseModel):
 
 class DetectionResponse(DetectionBase):
     id: UUID
-    waste_bbox: Optional[List[int]] = None
     classified_at: Optional[datetime] = None
     classified_by: Optional[int] = None
     validity_comment: Optional[str] = None
