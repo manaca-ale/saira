@@ -20,6 +20,7 @@ export interface Detection {
   classified_at?: string | null;
   classified_by?: number | null;
   validity_comment?: string | null;
+  waste_bbox?: number[] | null;
 }
 
 export type ClassifyStatus = "Confirmado" | "Rejeitado" | "Indeterminado";
@@ -152,6 +153,7 @@ function toFrontendFormat(d: Detection): PoiData {
     photoUrl: normalizeImageUrl(d.image_url),
     hasOffender: !!d.offenders,
     validityComment: d.validity_comment ?? undefined,
+    wasteBbox: d.waste_bbox ?? undefined,
   };
 }
 

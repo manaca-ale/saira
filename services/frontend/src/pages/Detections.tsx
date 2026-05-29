@@ -448,6 +448,7 @@ export const Detections: React.FC = () => {
         hasOffender: selectedItem.hasOffender,
         image_url: selectedItem.photoUrl || undefined,
         validityComment: selectedItem.validityComment,
+        waste_bbox: selectedItem.wasteBbox,
       }
     : null;
 

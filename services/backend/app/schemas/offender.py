@@ -75,6 +75,7 @@ class DetectionOffenderResponse(BaseModel):
     estimated_volume_m3: Optional[Decimal] = None
     source: OffenderSource
     confidence_score: Optional[Decimal] = None
+    offender_bbox: Optional[List[int]] = None
     created_by: Optional[int] = None
     notes: Optional[str] = None
     created_at: datetime

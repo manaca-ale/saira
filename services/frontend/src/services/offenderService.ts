@@ -29,6 +29,7 @@ export interface DetectionOffenderLink {
   estimated_volume_m3: number | null;
   source: "ai" | "manual";
   confidence_score: number | null;
+  offender_bbox?: number[] | null; // [y_min, x_min, y_max, x_max] normalized 0-1000
   created_by: number | null;
   notes: string | null;
   created_at: string;

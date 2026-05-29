@@ -19,6 +19,7 @@ export type PoiData = {
   photoUrl: string;
   hasOffender: boolean;
   validityComment?: string;
+  wasteBbox?: number[]; // [y_min, x_min, y_max, x_max] normalized 0-1000
 };
 
 type SeedLocation = {

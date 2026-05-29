@@ -652,6 +652,7 @@ export const Dashboard: React.FC = () => {
         hasOffender: selectedOccurrence.hasOffender,
         image_url: selectedOccurrence.photoUrl || undefined,
         validityComment: selectedOccurrence.validityComment,
+        waste_bbox: selectedOccurrence.wasteBbox,
       }
     : null;
 
