@@ -118,6 +118,21 @@ GATE_PILECROP_DEVICES = {
 }
 GEMINI_GATE_PILECROP_UPSCALE = int(os.getenv("GEMINI_GATE_PILECROP_UPSCALE", "2"))
 
+# Detail-side pile-crop augmentation (Agent-2). Adds N hi-res crops of the pile
+# zone alongside the standard 48 global frames, plus a per-camera prompt
+# (MANGABEIRA_E_WITH_PILECROPS). Campaign 24 (2026-05-30) result for esp32_002:
+# recall 91.7% (matches V1 baseline), specificity 35% (1.6× the 21% of V1),
+# accuracy 67.5% (vs 53.8% V1). +30% input tokens (~$0.015/event vs $0.010).
+# Scoped per-device via DETAIL_PILECROP_DEVICES; default OFF.
+GEMINI_DETAIL_PILECROP_ENABLED = os.getenv("GEMINI_DETAIL_PILECROP_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+DETAIL_PILECROP_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("DETAIL_PILECROP_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+GEMINI_DETAIL_PILECROP_UPSCALE = int(os.getenv("GEMINI_DETAIL_PILECROP_UPSCALE", "2"))
+GEMINI_DETAIL_PILECROP_N_FRAMES = int(os.getenv("GEMINI_DETAIL_PILECROP_N_FRAMES", "12"))
+
 # Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.

@@ -755,6 +755,65 @@ def _process_with_gemini(
         "rpa": camera.rpa or "",
     }
 
+    # ------------------------------------------------------------------------
+    # Detail-side pile-crop augmentation (campaign 24 winner for esp32_002).
+    # When enabled + device + polygon present, compute N hi-res crops of the
+    # pile zone and pass them alongside the global sequence. Selects the
+    # MANGABEIRA_E_WITH_PILECROPS per-camera prompt. Fails open on any error.
+    # ------------------------------------------------------------------------
+    pile_crops_paths: list[Path] = []
+    pilecrop_tmp_dir: Optional[Path] = None
+    use_pilecrops_prompt = False
+    if (
+        config.GEMINI_DETAIL_PILECROP_ENABLED
+        and device_id in config.DETAIL_PILECROP_DEVICES
+        and len(sequence_paths) >= 2
+    ):
+        pile_poly = getattr(camera, "pile_zone_polygon", None)
+        bbox = _pile_bbox(pile_poly) if pile_poly else None
+        if bbox:
+            n_target = min(
+                max(1, config.GEMINI_DETAIL_PILECROP_N_FRAMES),
+                len(sequence_paths),
+            )
+            if n_target > 1:
+                idxs = [
+                    int(round(i * (len(sequence_paths) - 1) / (n_target - 1)))
+                    for i in range(n_target)
+                ]
+            else:
+                idxs = [0]
+            crop_inputs = [sequence_paths[k] for k in idxs]
+            try:
+                pilecrop_tmp_dir = Path(tempfile.mkdtemp(prefix="detail_pilecrop_"))
+                pile_crops_paths = _make_pile_crops(
+                    crop_inputs,
+                    bbox,
+                    config.GEMINI_DETAIL_PILECROP_UPSCALE,
+                    pilecrop_tmp_dir,
+                )
+                if pile_crops_paths:
+                    use_pilecrops_prompt = True
+                    logger.info(
+                        "detail_pilecrops device=%s n_crops=%d bbox=%s request_id=%s",
+                        device_id, len(pile_crops_paths), bbox, request_id,
+                    )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "detail_pilecrops failed device=%s err=%s — falling back to standard detail",
+                    device_id, exc,
+                )
+                pile_crops_paths = []
+                use_pilecrops_prompt = False
+
+    selected_prompt_version = (
+        "mangabeira_with_pilecrops" if use_pilecrops_prompt else config.GEMINI_PROMPT_VERSION
+    )
+
+    def _cleanup_pilecrops() -> None:
+        if pilecrop_tmp_dir is not None:
+            shutil.rmtree(pilecrop_tmp_dir, ignore_errors=True)
+
     try:
         result = analyze_with_gemini(
             image_paths=sequence_paths,
@@ -762,7 +821,8 @@ def _process_with_gemini(
             request_id=request_id,
             mosaic_mode=config.GEMINI_MOSAIC_AGENT2,
             prior_window_context=prior_window_context,
-            prompt_version=config.GEMINI_PROMPT_VERSION,
+            prompt_version=selected_prompt_version,
+            pile_crops=pile_crops_paths if use_pilecrops_prompt else None,
         )
 
         report = result.report
@@ -916,9 +976,11 @@ def _process_with_gemini(
                     )
                 )
 
+        _cleanup_pilecrops()
         return disposal, payload
 
     except Exception as exc:  # noqa: BLE001
+        _cleanup_pilecrops()
         error_message = str(exc)
         _register_gemini_error(error_message, camera=camera)
         _log_gemini_call(
