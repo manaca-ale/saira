@@ -529,6 +529,49 @@ def _sanitize_report(
     return report
 
 
+def _build_mangabeira_pilecrops_user_prompt(
+    camera_context: Optional[dict[str, str]] = None,
+    *,
+    frame_names: Optional[list[str]] = None,
+    crop_count: int = 0,
+    prior_window_context: Optional[str] = None,
+) -> str:
+    """User prompt for the MANGABEIRA+pile-crops detail call.
+
+    Tells the model the input has TWO sequences: N global frames followed by
+    M hi-res pile-zone crops (upscale 2x). The system prompt
+    (DETAIL_PROMPT_MANGABEIRA_E_WITH_PILECROPS) handles the decision logic;
+    this just labels the input.
+    """
+    context_lines = []
+    if camera_context:
+        for key, value in camera_context.items():
+            if value:
+                context_lines.append(f"- {key}: {value}")
+    context_block = "\n".join(context_lines) if context_lines else "- sem contexto adicional"
+
+    prior_block = ""
+    if prior_window_context:
+        prior_block = f"\nPrior window context:\n{prior_window_context}\n"
+
+    n_global = len(frame_names or [])
+    frame_block = ", ".join(frame_names) if frame_names else "desconhecido"
+    return (
+        "Analise a sequencia temporal de imagens e retorne JSON estruturado conforme schema.\n"
+        f"\nESTRUTURA DO INPUT (em ordem):\n"
+        f"- SEQUENCIA 1: {n_global} FRAMES GLOBAIS da camera (ordem cronologica, "
+        f"primeiro=earliest, ultimo=latest).\n"
+        f"- SEQUENCIA 2: {crop_count} CROPS ALTA-RES (upscale 2x) da pile-zone, "
+        f"amostrados uniformemente da MESMA janela temporal.\n"
+        "Use ambas sequencias conforme o system prompt. event_frame_name e "
+        "offender_frame_name devem ser escolhidos dentre os nomes da SEQUENCIA 1.\n"
+        f"Nomes de frame permitidos (SEQUENCIA 1): {frame_block}\n"
+        f"{prior_block}"
+        "Contexto da camera:\n"
+        f"{context_block}"
+    )
+
+
 def analyze_with_gemini(
     image_paths: list[Path],
     camera_context: Optional[dict[str, str]] = None,
@@ -536,13 +579,15 @@ def analyze_with_gemini(
     mosaic_mode: str = "off",
     prior_window_context: Optional[str] = None,
     prompt_version: str = "current",
+    pile_crops: Optional[list[Path]] = None,
 ) -> GeminiInferenceResult:
     """Run Gemini inference with retry/timeout and strict schema validation.
 
     Args:
         mosaic_mode: "off" sends frames individually; "4x3" composes a single 4×3
             grid image; "3x2split" composes two 3×2 grid images.
-        prompt_version: "current" (default), "v2", "v3", "audit", or "audit_v2".
+        prompt_version: "current" (default), "v2", "v3", "audit", "audit_v2", or
+            "mangabeira_with_pilecrops".
             - V2 uses the behavioral anti-collection prompt.
             - V3 uses posture-first signals.
             - audit treats Agent-2 as an adversarial reviewer of the gate,
@@ -553,12 +598,26 @@ def analyze_with_gemini(
               (traffic_passing, municipal_collection, pruning_crew,
               rain_blur, parking_dropoff). carroceiro_sorting / other /
               real_dumping are left to the model's judgement.
+            - mangabeira_with_pilecrops: per-camera (esp32_002 only),
+              negative-first prompt with pile-zone hi-res crops augmentation.
+              Requires `pile_crops` argument with N upscaled crop paths.
+              Campaign 24 winner for recall on cam_11 (91.7% single-call).
+        pile_crops: Optional list of hi-res pile-zone crop paths to send
+            alongside `image_paths` when prompt_version="mangabeira_with_pilecrops".
+            Ignored for other prompt versions (kept for backward compat).
     """
+    use_mangabeira_crops = prompt_version == "mangabeira_with_pilecrops"
     use_audit_v2 = prompt_version == "audit_v2"
     use_audit = prompt_version == "audit"
     use_v3 = prompt_version == "v3"
     use_v2 = prompt_version == "v2"
-    if use_audit_v2:
+    if use_mangabeira_crops:
+        # Per-camera detail prompt selected by device_id; crops mandatory.
+        system_prompt = _prompts_v3.detail_system_prompt_for_camera(
+            camera_context, has_pilecrops=True,
+        )
+        schema_cls = GeminiInfractionReport
+    elif use_audit_v2:
         system_prompt = _prompts_audit.SYSTEM_PROMPT_AUDIT_V2
         schema_cls = _prompts_audit.GeminiInfractionReportAudit
     elif use_audit:
@@ -595,6 +654,11 @@ def analyze_with_gemini(
         send_paths = image_paths
         allowed_frame_names = set(frame_names)
 
+    # MANGABEIRA + pile-crops: append hi-res crops AFTER globals. The prompt
+    # text explains the structure (sequencia 1 = globais, sequencia 2 = crops).
+    if use_mangabeira_crops and pile_crops:
+        send_paths = list(send_paths) + list(pile_crops)
+
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
     last_error: Optional[Exception] = None
 
@@ -611,6 +675,13 @@ def analyze_with_gemini(
                     user_prompt_text = _prompts_audit.build_audit_user_prompt(
                         camera_context, frame_names=frame_names,
                         mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+                elif use_mangabeira_crops:
+                    user_prompt_text = _build_mangabeira_pilecrops_user_prompt(
+                        camera_context,
+                        frame_names=frame_names,
+                        crop_count=len(pile_crops) if pile_crops else 0,
+                        prior_window_context=prior_window_context,
                     )
                 elif use_v3:
                     user_prompt_text = _prompts_v3.build_v3_user_prompt_detail(
