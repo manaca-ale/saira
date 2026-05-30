@@ -1,0 +1,56 @@
+campaign: 22
+title: detail MANGABEIRA prompt angles (Flash)
+type: a-b-prompt
+date: 2026-05-30
+hypothesis: |
+  Camp 21 mostrou DETAIL_PROMPT_V3_MANGABEIRA com Flash atinge 75% recall e
+  33% specificity em cam_11. Análise dos 14 erros (4 FN_NEW + 7 FP_PERSIST +
+  3 FP_NEW) aponta para confabulação + aplicação inconsistente de
+  anti-padrões. Ângulos C (checklist obrigatório) e E (negative-first) atacam
+  estes dois mecanismos sem mudar de modelo.
+
+models:
+  gate: gemini-2.5-flash-lite (unchanged)
+  detail: gemini-2.5-flash (unchanged — testando só PROMPT)
+
+production_parity:
+  n_frames: 48
+  mosaic: off
+  detail_prompt_today: V1 (current) for all cameras
+
+dataset:
+  source: production DB snapshot 2026-05-30 07:00 BRT
+  cohort: cam_11 only (esp32_002 Mangabeira)
+  n_events: 35
+  class_balance:
+    CON: 14
+    REJ: 21
+
+arms:
+  baseline_v1:
+    label: Flash 2.5 + V1 prod (re-use camp 21 cache)
+    cache: /tmp/flash_baseline_v1_cache.json
+  mangabeira_original:
+    label: Flash 2.5 + MANGABEIRA atual (re-use camp 21 cache)
+    cache: /tmp/flash_per_camera_cache.json
+  angle_c_checklist:
+    label: Flash 2.5 + MANGABEIRA_C checklist obrigatório
+    prompt: prompts/mangabeira-c-checklist.md
+    cache: /tmp/flash_mangabeira_C_cache.json
+  angle_e_negative_first:
+    label: Flash 2.5 + MANGABEIRA_E negative-first
+    prompt: prompts/mangabeira-e-negative-first.md
+    cache: /tmp/flash_mangabeira_E_cache.json
+
+provider: vertex_ai
+vertex:
+  service_account: saira-bench-vertex@gen-lang-client-0841492152
+  key: /tmp/saira-bench-vertex.json
+  location: global
+
+success_criteria:
+  acc_min: 65   # vs baseline V1 53.8% e MANGABEIRA-orig 51.9%
+  recall_min: 85  # recuperar TPs sem virar V1
+  fp_rate_max: 60  # melhorar specificity 33% -> >40%
+
+cost_budget_usd: 1.50

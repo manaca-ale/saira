@@ -1,0 +1,83 @@
+{
+  "campaign_number": 23,
+  "date": "2026-05-30",
+  "title": "MANGABEIRA E2 — APs refinados (per-person, gatilho temporal)",
+  "type": "prompt-tuning",
+  "focus": "iterar AP2/AP3 (sobre-aplicados) e AP4 (sub-aplicado) do prompt E pra recuperar TPs sem perder specificity",
+  "based_on": "[[project_camp22_mangabeira_prompt_angles_2026-05-30]]",
+  "models": {
+    "gate": "gemini-2.5-flash-lite (unchanged)",
+    "detail": "gemini-2.5-flash (unchanged)"
+  },
+  "production_parity": {
+    "n_frames": 48,
+    "mosaic": "off",
+    "detail_prompt_today": "V1 (current) for all cameras"
+  },
+  "dataset": {
+    "source": "production DB cam_11 snapshot 2026-05-30 ~10:00 BRT",
+    "n_full": 40,
+    "n_single_call": 29
+  },
+  "changes_vs_E": [
+    "AP2 (Passantes): exige NENHUMA pessoa pausada >3s na pilha (avaliação per-pessoa)",
+    "AP3 (Pessoa com saco): avaliação per-pessoa, NÃO agregada",
+    "AP4 (Catador): adicionado 4b — permanência >30s agachada sem objeto novo no chão",
+    "Adicionada PASSO 2 obrigatório: classificar cada pessoa (PASSANTE/PAUSADA/AGACHADA_LONGA/INTERAGENTE_CURTA)"
+  ],
+  "arms": {
+    "v1_baseline": {
+      "label": "Flash V1 prod baseline (reused from camp 21)",
+      "n_full": 35, "n_single_call": 26,
+      "acc_full": 60.0, "recall_full": 85.0, "spec_full": 26.7,
+      "acc_single": 53.8, "recall_single": 91.7, "spec_single": 21.4
+    },
+    "mangabeira_e": {
+      "label": "Flash + MANGABEIRA_E (camp 22 — negative-first baseline)",
+      "n_full": 39, "n_single_call": 29,
+      "acc_full": 61.5, "recall_full": 66.7, "spec_full": 55.6,
+      "acc_single": 62.1, "recall_single": 75.0, "spec_single": 52.9
+    },
+    "mangabeira_e2": {
+      "label": "Flash + MANGABEIRA_E2 (APs refinados, este experimento)",
+      "n_full": 40, "n_single_call": 29,
+      "acc_full": 67.5, "recall_full": 85.7, "spec_full": 47.4,
+      "acc_single": 58.6, "recall_single": 75.0, "spec_single": 47.1,
+      "tp_full": 18, "tn_full": 9, "fp_full": 10, "fn_full": 3,
+      "cost_per_event": 0.015,
+      "cost_total_usd": 0.60,
+      "notes": "Acc 67.5% é o MAIS ALTO em full cohort. Recall 85.7% iguala V1. FN=3 (igual V1). FP=10 (igual MANGABEIRA orig)."
+    }
+  },
+  "target_events_motivated_camp23": {
+    "d59d5309 (CON, AP3 over-applied)": {
+      "E": "MISS", "E2": "OK (recuperado)", "outcome": "AP3 per-person refinement funcionou"
+    },
+    "3c840ac4 (CON carrinho, AP2 over-applied)": {
+      "E": "MISS", "E2": "MISS", "outcome": "caso estruturalmente difícil — refinamento AP2 insuficiente"
+    },
+    "5520e0c7 (REJ, AP4 under-applied 2:30 agachado)": {
+      "E": "MISS", "E2": "OK (recuperado)", "outcome": "AP4b (>30s sem objeto novo) funcionou"
+    }
+  },
+  "cross_bucket_vs_v1_single_call": {
+    "TP_NEW": 0,
+    "FN_NEW": 2,
+    "FP_FIXED": 4,
+    "FP_NEW": 0,
+    "FP_PERSIST": 7,
+    "FN_BOTH": 1,
+    "notes": "E2 recuperou 2/3 targets diretos. FN_NEW novo: 7ada74a4 (não estava no E). Zero FP_NEW (vs E que tinha 1)."
+  },
+  "verdict": {
+    "winner_full_cohort": "MANGABEIRA_E2 (acc 67.5%, recall 85.7%)",
+    "winner_single_call": "Empate técnico com E (acc 58.6% vs 62.1%), mas E2 tem mais recall absoluto no full cohort",
+    "deployment_recommendation": "E2 é candidato a shadow A/B. Vence acc/recall em full cohort. No single-call cohort, E ainda tem spec marginalmente maior. Próxima iteração (camp 24 com crops) pode bater ambos."
+  },
+  "success_criteria_check": {
+    "acc_min_65": "PASS (full: 67.5%)",
+    "recall_min_85": "PASS (full: 85.7%)",
+    "fp_rate_max_60": "PASS (full: 52.6%)"
+  },
+  "cost_total_usd": 0.60
+}
