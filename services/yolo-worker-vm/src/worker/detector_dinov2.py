@@ -82,6 +82,9 @@ class _DinoCache:
         self._model: Any = None
         self._model_failed = False
         self._clf: dict[str, Optional[_Classifier]] = {}
+        # mtime do .npz no momento do load — permite hot-reload após retreino
+        # (o weekly retrain reescreve o artefato; recarregamos sem restart).
+        self._clf_mtime: dict[str, float] = {}
 
     def get_model(self) -> Any:
         """Carrega DINOv2 ViT-S/14 uma vez. None se falhar (fail-open)."""
@@ -107,30 +110,37 @@ class _DinoCache:
             return None
 
     def get_classifier(self, device_id: str) -> Optional[_Classifier]:
-        if device_id in self._clf:
-            return self._clf[device_id]
         path = Path(config.DINOV2_MODELS_DIR) / f"dinov2_clf_{device_id}.npz"
+        # Hot-reload: se o artefato mudou no disco (retreino), recarrega.
+        cur_mtime = path.stat().st_mtime if path.exists() else None
+        if device_id in self._clf and self._clf_mtime.get(device_id) == cur_mtime:
+            return self._clf[device_id]
         if not path.exists():
             logger.info("dinov2: no classifier artifact for %s at %s", device_id, path)
             self._clf[device_id] = None
+            self._clf_mtime[device_id] = None
             return None
         try:
             npz = np.load(str(path), allow_pickle=True)
             clf = _Classifier(npz)
             self._clf[device_id] = clf
+            self._clf_mtime[device_id] = cur_mtime
             logger.info("dinov2: classifier loaded for %s (thr=%.2f, bbox=%s)",
                         device_id, clf.threshold, clf.bbox)
             return clf
         except Exception as exc:  # noqa: BLE001
             logger.warning("dinov2: failed to load classifier %s: %s", path, exc)
             self._clf[device_id] = None
+            self._clf_mtime[device_id] = cur_mtime
             return None
 
     def invalidate(self, device_id: Optional[str] = None) -> None:
         if device_id is None:
             self._clf.clear()
+            self._clf_mtime.clear()
         else:
             self._clf.pop(device_id, None)
+            self._clf_mtime.pop(device_id, None)
 
 
 _cache = _DinoCache()
