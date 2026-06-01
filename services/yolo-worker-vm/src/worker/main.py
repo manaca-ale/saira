@@ -19,6 +19,7 @@ import requests
 
 from . import config
 from . import bgsub_filter
+from . import detector_dinov2
 from .db import (
     find_recent_detection_for_camera,
     init_connections,
@@ -857,6 +858,53 @@ def _process_with_gemini(
                 pass
 
         disposal = bool(report.infraction_confirmed)
+
+        # --------------------------------------------------------------------
+        # DINOv2 post-detail FP filter (rejection-only, orthogonal to BGSUB).
+        # Só roda quando o Agent-2 confirmou (disposal=True). Em shadow apenas
+        # loga o que rejeitaria; em enforce reverte disposal=False (o guard de
+        # persistência em `if disposal and persist...` cai sozinho). Fail-open.
+        # --------------------------------------------------------------------
+        dino_result: Optional[detector_dinov2.DinoFilterResult] = None
+        if config.DINOV2_FILTER_MODE != "off" and disposal and device_id in config.DINOV2_FILTER_DEVICES:
+            pile_poly = getattr(camera, "pile_zone_polygon", None)
+            dino_result = detector_dinov2.evaluate(sequence_paths, device_id, pile_poly, camera)
+            if dino_result.should_reject:
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "dinov2_shadow_would_reject"
+                            if config.DINOV2_FILTER_MODE == "shadow"
+                            else "dinov2_enforce_reject",
+                            "request_id": request_id,
+                            "device_id": device_id,
+                            "p_con": round(dino_result.p_con, 4),
+                            "threshold": dino_result.threshold,
+                            "reason": dino_result.reason,
+                            "n_frames_used": dino_result.n_frames_used,
+                            "latency_ms": round(dino_result.latency_ms, 1),
+                            "gemini_disposal": True,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+                if config.DINOV2_FILTER_MODE == "enforce":
+                    disposal = False
+            else:
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "dinov2_pass",
+                            "request_id": request_id,
+                            "device_id": device_id,
+                            "p_con": round(dino_result.p_con, 4),
+                            "reason": dino_result.reason,
+                            "mode": config.DINOV2_FILTER_MODE,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+
         offender_types = normalize_offender_types(report.offender_types)
         if report.offender_detected and not offender_types:
             offender_types = ["Outro"]
@@ -888,6 +936,11 @@ def _process_with_gemini(
             "raw_reason_codes": report.raw_reason_codes,
             "has_waste_bbox": bool(report.waste_bbox),
             "has_offender_bbox": bool(report.offender_bbox),
+            "dino_p_con": (round(dino_result.p_con, 4)
+                           if dino_result is not None and dino_result.p_con >= 0 else None),
+            "dino_would_reject": (bool(dino_result.should_reject)
+                                  if dino_result is not None else None),
+            "dino_mode": config.DINOV2_FILTER_MODE,
             "usage": {
                 "input_tokens": usage.input_tokens,
                 "output_tokens": usage.output_tokens,
