@@ -226,6 +226,36 @@ BGSUB_SLOW_WARMUP_PASSES = int(os.getenv("BGSUB_SLOW_WARMUP_PASSES", "5"))
 # is wired. Pure optimization, no behavior change once correctly bootstrapped.
 BGSUB_BBOX_CROP_ENABLED = os.getenv("BGSUB_BBOX_CROP_ENABLED", "false").strip().lower() in ("true", "1", "yes")
 
+# -----------------------------------------------------------------------------
+# DINOv2 post-detail FP filter (rejection-only) — re-julga um CON do Agent-2 e
+# pode revertê-lo a REJ. Ortogonal ao BGSUB (que é supressão pré-Agent-1).
+# Validado offline em cam_10 Imbiribeira (Camp 26/27): pile-zone separável por
+# embedding (RepeatedSKF 95,6%, AUC 0,945). ⚠️ Camp 27 expôs DRIFT temporal →
+# nasce em SHADOW + exige retreino periódico. Ver detector_dinov2.py.
+#
+# Modos:
+#   "off"     — inerte (default).
+#   "shadow"  — computa p_con e LOGA o que rejeitaria; NÃO altera a decisão.
+#   "enforce" — p_con<threshold ⇒ disposal=False (evento não vira ocorrência).
+# -----------------------------------------------------------------------------
+DINOV2_FILTER_MODE = os.getenv("DINOV2_FILTER_MODE", "off").strip().lower()
+if DINOV2_FILTER_MODE not in ("off", "shadow", "enforce"):
+    DINOV2_FILTER_MODE = "off"
+DINOV2_FILTER_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("DINOV2_FILTER_DEVICES", "esp32_001").split(",")
+    if d.strip()
+}
+DINOV2_MODELS_DIR = os.getenv("DINOV2_MODELS_DIR", os.path.join(STATE_DIR, "dinov2_models"))
+DINOV2_VARIANT = os.getenv("DINOV2_VARIANT", "dinov2_vits14").strip()
+DINOV2_INPUT_SIZE = int(os.getenv("DINOV2_INPUT_SIZE", "224"))
+DINOV2_N_FRAMES = int(os.getenv("DINOV2_N_FRAMES", "3"))
+# Threshold operacional. Vazio ⇒ usa o threshold gravado no artefato (.npz).
+# Camp 27: platô t≈0,4–0,5 domina o t=0,2 da Camp 26 (mesmo 1 TP de custo, +spec).
+_dino_thr = os.getenv("DINOV2_THRESHOLD", "").strip()
+DINOV2_THRESHOLD = float(_dino_thr) if _dino_thr else None
+DINOV2_TORCH_THREADS = int(os.getenv("DINOV2_TORCH_THREADS", "2"))
+
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.

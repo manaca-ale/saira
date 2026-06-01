@@ -229,6 +229,14 @@ services:
       - BGSUB_ADAPTIVE_LEARNING_RATE=${BGSUB_ADAPTIVE_LEARNING_RATE:-0.05}
       - BGSUB_ADAPTIVE_MIN_CONFIDENCE=${BGSUB_ADAPTIVE_MIN_CONFIDENCE:-90}
       - BGSUB_ADAPTIVE_SAVE_EVERY_N=${BGSUB_ADAPTIVE_SAVE_EVERY_N:-50}
+      # DINOv2 post-detail FP filter (off|shadow|enforce); rejection-only, per-device
+      - DINOV2_FILTER_MODE=${DINOV2_FILTER_MODE:-off}
+      - DINOV2_FILTER_DEVICES=${DINOV2_FILTER_DEVICES:-esp32_001}
+      - DINOV2_VARIANT=${DINOV2_VARIANT:-dinov2_vits14}
+      - DINOV2_THRESHOLD=${DINOV2_THRESHOLD:-}
+      - DINOV2_N_FRAMES=${DINOV2_N_FRAMES:-3}
+      - DINOV2_INPUT_SIZE=${DINOV2_INPUT_SIZE:-224}
+      - DINOV2_TORCH_THREADS=${DINOV2_TORCH_THREADS:-2}
       # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
       - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
       # Car-stopped shadow detector (parallel to Gemini, audit only)
