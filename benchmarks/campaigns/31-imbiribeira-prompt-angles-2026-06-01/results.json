@@ -1,0 +1,682 @@
+{
+  "summary": [
+    {
+      "arm": "E2_tight",
+      "tp_recall": "5/7",
+      "fn": "0/1",
+      "fp_triggered": "9/31",
+      "recall": 0.625,
+      "specificity": 0.71,
+      "score_recall_x3": 0.6462,
+      "errors": 0,
+      "cost_usd": 0.05752
+    }
+  ],
+  "results": {
+    "E2_tight": [
+      {
+        "id": "48350bb4",
+        "label": "TP",
+        "meta": {
+          "datetime": "2026-05-19T18:39:29-03:00",
+          "just": "Dois homens descartando o conteúdo dentro de um grande "
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying a white object on the left, moves to the center, places it on the ground, and walks away empty-handed. A vehicle is stopped in the background.",
+          "cost": 0.0014674
+        }
+      },
+      {
+        "id": "454c8308",
+        "label": "TP",
+        "meta": {
+          "datetime": "2026-05-20T08:56:20-03:00",
+          "just": "Um homem realizando o descarte de lixo com um carrinho "
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Two individuals are observed in the scene. One person in red walks towards a parked white car and enters it. Another person remains in the distance. The vacant lot shows scattered debris, but no new m",
+          "cost": 0.001473
+        }
+      },
+      {
+        "id": "a73a3f44",
+        "label": "TP",
+        "meta": {
+          "datetime": "2026-05-20T14:16:15-03:00",
+          "just": "Caminhonete azul escura realiza o descarte de um grande"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A dark car stops on the vacant lot. A person is seen near the open trunk in one frame and walking away from the car in the next. Something appears to have been placed on the ground near the car. This ",
+          "cost": 0.0014986
+        }
+      },
+      {
+        "id": "06414b5a",
+        "label": "TP",
+        "meta": {
+          "datetime": "2026-05-20T14:27:35-03:00",
+          "just": "Carro escuro (preto) realizando descarte de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object approaches debris area, deposits object (hands become empty), and walks away empty-handed. A car is parked nearby.",
+          "cost": 0.0014626
+        }
+      },
+      {
+        "id": "cb49921a",
+        "label": "TP",
+        "meta": {
+          "datetime": "2026-05-20T15:45:45-03:00",
+          "just": "Pessoas realizando o descarte do conteúdo de um saco ma"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A white pickup truck is parked in the lot. Several people are visible moving around the area, some on bicycles. No clear evidence of material being deposited on the ground from the truck or by pedestr",
+          "cost": 0.0014714
+        }
+      },
+      {
+        "id": "218673e1",
+        "label": "TP",
+        "meta": {
+          "datetime": "2026-05-20T19:40:09-03:00",
+          "just": "Dois homens realizando o descarte de objetos grandes"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Multiple individuals and a cart are present in a known dumping area. One person is near debris, and others are around the cart. The scene suggests material is being deposited on the ground.",
+          "cost": 0.001489
+        }
+      },
+      {
+        "id": "12506543",
+        "label": "TP",
+        "meta": {
+          "datetime": "2026-05-22T02:52:34-03:00",
+          "just": "Os dois homens ainda estavam mexendo no lixo, mas no fi"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A person is seen operating a handcart loaded with debris and pushing it into the vacant lot, indicating dumping. A car is also stopped nearby.",
+          "cost": 0.001477
+        }
+      },
+      {
+        "id": "a77d8ad9",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T11:36:10-03:00",
+          "just": "Estavam realizando limpeza na área"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Multiple individuals in blue uniforms are observed working in the vacant lot, some bending down near debris and a green tarp, suggesting a cleanup operation.",
+          "cost": 0.0014854
+        }
+      },
+      {
+        "id": "fc894561",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T16:47:14-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A white truck is stationary and a person is seen unloading material from its bed onto the ground. This constitutes vehicle dumping.",
+          "cost": 0.001475
+        }
+      },
+      {
+        "id": "b131bc54",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T16:48:20-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A white truck is parked in the vacant lot. Two individuals are observed near the truck. One individual walks away from the truck. No clear material deposition or removal is observed. The ground is cov",
+          "cost": 0.0014926
+        }
+      },
+      {
+        "id": "4909dc2d",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T16:49:20-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A white truck is parked in the vacant lot. A person is seen near the truck bed for several frames, then walks away. No material is clearly deposited onto the ground from the truck or person.",
+          "cost": 0.0014706
+        }
+      },
+      {
+        "id": "8fd7e18e",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T16:51:09-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 60,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A white truck is parked. A person on a bicycle passes through. Another person is near the truck and then walks away. A third person walks on the far right. No clear dumping or collection activity obse",
+          "cost": 0.0014758
+        }
+      },
+      {
+        "id": "765854fa",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T16:51:54-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A truck is stationary. A person in red walks across the lot. Another person in yellow is near the truck but not actively depositing material. No clear dumping activity observed.",
+          "cost": 0.001479
+        }
+      },
+      {
+        "id": "50e938ae",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T17:51:04-03:00",
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A white car stops in the vacant lot. A person is seen bending down near the car, suggesting material is being deposited on the ground. The lot is a known dumping site.",
+          "cost": 0.0014818
+        }
+      },
+      {
+        "id": "1a2c6dc6",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T19:24:19-03:00",
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Two individuals walk past on the road. A red car is parked. No material is observed being deposited or removed from the ground. The lot is covered in existing debris.",
+          "cost": 0.0014658
+        }
+      },
+      {
+        "id": "32c2f287",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T21:19:54-03:00",
+          "just": "Veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 40,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A red car is parked. A person is seen walking across the vacant lot, appearing to carry an object. The person moves away from the camera and out of frame. No clear deposit or collection activity is ob",
+          "cost": 0.0014878
+        }
+      },
+      {
+        "id": "767e7d17",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-19T23:48:19-03:00",
+          "just": "Nada ocorrendo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Distant figures and a white truck are visible in an open lot. No clear evidence of material being deposited on the ground.",
+          "cost": 0.0014638
+        }
+      },
+      {
+        "id": "07925285",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T00:29:19-03:00",
+          "just": "Pessoa passando com um carrinho"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed squatting/bending in lower left area in multiple frames, then walking away from the spot in the final frame. This posture transition strongly indicates material deposition on the vacan",
+          "cost": 0.0014982
+        }
+      },
+      {
+        "id": "f58d2688",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T12:32:55-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 10,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person in red bends down in the vacant lot, then walks away. A car stops on the road. The lot is already covered in debris.",
+          "cost": 0.0014606
+        }
+      },
+      {
+        "id": "1dd7f6e8",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T14:41:10-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Person on bicycle passes. Two cars parked. Person walks near debris, then returns to car. No material deposited.",
+          "cost": 0.0014694
+        }
+      },
+      {
+        "id": "13dc1453",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T15:31:00-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person on a bicycle passes through the scene. A white car stops and then drives away. No material is deposited or collected.",
+          "cost": 0.0014614
+        }
+      },
+      {
+        "id": "fc335631",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T16:44:29-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 95,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying bag bends down near stopped car and deposits material. Person walks away empty-handed. Debris appears to increase.",
+          "cost": 0.001477
+        }
+      },
+      {
+        "id": "4b4f11d7",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T17:36:09-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A dark car stops and a person near it appears to deposit material on the ground. The car remains stationary for multiple frames, and new debris is visible on the ground near the car in the final frame",
+          "cost": 0.001489
+        }
+      },
+      {
+        "id": "2a619172",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T20:14:24-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 85,
+          "scene": "DUMPING",
+          "flow": "ambiguous",
+          "ev": "Multiple individuals gathered near scattered debris in a known dumping area. Difficult to discern precise actions due to distance and lighting, but posture suggests interaction with ground material. V",
+          "cost": 0.001489
+        }
+      },
+      {
+        "id": "8afac80c",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T20:31:09-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A truck is stationary in the lot. People are observed near the truck and then walking away. No clear evidence of material being deposited onto the ground from the vehicle or by individuals.",
+          "cost": 0.0014706
+        }
+      },
+      {
+        "id": "4b6e9df1",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T20:41:54-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Large garbage truck stationary with open rear. Two individuals present near the truck. Appears to be a waste collection operation.",
+          "cost": 0.0014826
+        }
+      },
+      {
+        "id": "7bf988b9",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T20:55:14-03:00",
+          "just": "Caminhão realizando a retirada de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 30,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A white truck and a car are stationary in the vacant lot. A person walks past on the left. No clear dumping or collection activity observed.",
+          "cost": 0.0014722
+        }
+      },
+      {
+        "id": "b114b248",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-20T22:51:09-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person walks across the vacant lot while a car remains parked. No dumping activity observed.",
+          "cost": 0.001455
+        }
+      },
+      {
+        "id": "3276c38a",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-21T01:37:24-03:00",
+          "just": "Apenas um cachorro andando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A person in a blue shirt is standing near a cart. The cart is stationary. No material is visibly being deposited on the ground. The ground already contains scattered debris. No municipal equipment is ",
+          "cost": 0.0014678
+        }
+      },
+      {
+        "id": "8c092e51",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-21T02:03:14-03:00",
+          "just": "Apenas pessoas passando e mexendo em uma carroça"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person with cart of debris, appears to deposit material onto the ground. Vehicle parked nearby.",
+          "cost": 0.0014802
+        }
+      },
+      {
+        "id": "daf7807b",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-21T07:30:00-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Multiple individuals and vehicles are observed moving through the vacant lot. No evidence of material being deposited or removed from the ground is present.",
+          "cost": 0.0014646
+        }
+      },
+      {
+        "id": "659c0d0d",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-21T20:03:04-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A person is standing in a vacant lot at night. A blue car is parked. A motorcycle passed by. No clear dumping or collection activity observed.",
+          "cost": 0.001465
+        }
+      },
+      {
+        "id": "1cc35595",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-21T22:05:54-03:00",
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A white pickup truck is parked. Two individuals are present near the truck, moving slightly. No clear evidence of material being deposited on the ground or removed from the scene.",
+          "cost": 0.0014714
+        }
+      },
+      {
+        "id": "7f2c82ab",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-21T23:32:44-03:00",
+          "just": "Coleta do lixo sendo realizada"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "A large green municipal garbage truck is stationary in the vacant lot. A person in an orange vest interacts with the truck's rear hopper, suggesting collection activity.",
+          "cost": 0.0014922
+        }
+      },
+      {
+        "id": "3f5e4001",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-22T01:54:34-03:00",
+          "just": "Apenas está chovendo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A pickup truck is stationary with its rear open. A person is actively unloading material from the truck onto the ground. This indicates vehicle-assisted dumping.",
+          "cost": 0.0014762
+        }
+      },
+      {
+        "id": "655ea4ae",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-22T01:58:34-03:00",
+          "just": "Apenas está chovendo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Vehicle (pickup/van) stationary with raised bed, person in orange vest nearby. Likely unloading material onto the ground. Rain present.",
+          "cost": 0.0014658
+        }
+      },
+      {
+        "id": "d52cc8db",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-22T02:28:34-03:00",
+          "just": "Apenas uma pessoa mexendo na carroça"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A vehicle is stationary in the vacant lot. A person is observed near the vehicle and then walks away. No clear evidence of material being deposited or removed from the ground. The lot contains pre-exi",
+          "cost": 0.0014694
+        }
+      },
+      {
+        "id": "3e5cf0c6",
+        "label": "FP",
+        "meta": {
+          "datetime": "2026-05-22T11:10:24-03:00",
+          "just": "Pessoal realizando a limpeza do local"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 30,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person walks across a vacant lot with scattered debris. A backhoe is operating in the background. No clear evidence of illegal dumping is observed.",
+          "cost": 0.0014626
+        }
+      },
+      {
+        "id": "fn18_0517",
+        "label": "FN",
+        "meta": {
+          "datetime": "2026-06-01T05:17",
+          "just": "prod MISSED (dois homens)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Two individuals are observed walking through the vacant lot. Parked cars are present. The lot contains scattered debris. No dumping or collection activity is detected.",
+          "cost": 0.0014646
+        }
+      }
+    ]
+  }
+}

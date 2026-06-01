@@ -352,17 +352,58 @@ material-transfer signal above is also visible.
 """.strip()
 
 
+# Imbiribeira (esp32_001) open-lot gate addon — campaign 31 winner (E_modality).
+# esp32_001 watches an OPEN VACANT LOT (no single pile, scattered debris, central pole,
+# small/distant subjects); the dominant FP is garbage COLLECTION/REMOVAL misread as
+# dumping. E_modality keeps V1 recall (6/7) while ~tripling specificity (0.58 vs 0.19),
+# suppressing the collection-truck false alarms. See
+# benchmarks/campaigns/31-imbiribeira-prompt-angles-2026-06-01/.
+ESP32_001_IMBIRIBEIRA_E_ADDON = """
+=============================================================================
+CAMERA-SPECIFIC MODE - esp32_001 / Imbiribeira (OPEN VACANT LOT)
+=============================================================================
+This camera overlooks an OPEN VACANT LOT (terreno baldio) that is a chronic illegal
+dumping ground. Scene facts you MUST assume:
+- A vertical utility/light POLE crosses the center of the frame. IGNORE the pole.
+- There is NO single pile. Scattered debris already covers much of the lot; the ENTIRE
+  lot surface (ground, edges, near the shacks on the right) is a valid dumping target.
+  "pile_volume_change" is unreliable here (debris is everywhere) — do NOT rely on it.
+- Subjects often appear SMALL and DISTANT in the wide lot. A small figure is STILL a
+  person; do NOT dismiss small/distant figures as "just traffic".
+- The lot is ALSO used for parking and as a through-path, and municipal/informal teams
+  sometimes REMOVE garbage with a truck. These are NOT dumping.
+Agent-1 is only a cheap gate for Agent-2. Keep evidence_summary and scene_delta_analysis
+under 260 chars each. Do not quote this block in your JSON fields.
+
+DECISION RULE — CLASSIFY THE DUMP MODALITY:
+Check, in order, whether ANY of these dumping modalities is visible. If yes -> ESCALATE
+(scene_type="DUMPING", new_litter_detected=true, confidence_0_100 >= 85):
+(a) VEHICLE: a car/pickup/truck STOPS in the lot and a load is unloaded / a bulky item is
+    left on the ground (tailgate/trunk/bed activity ending with material on the ground);
+(b) ON-FOOT BAG: a person (even small/distant) brings a bag/sack and leaves it on the lot;
+(c) HANDCART: a handcart/wheelbarrow is pushed into the lot and its load is dumped;
+(d) GROUP: two or more people handle and deposit objects on the lot together.
+If NONE of (a)-(d) is visible -> new_litter_detected=false.
+HARD SUPPRESS (confidence <= 50): COLLECTION/REMOVAL (truck/team loading garbage off the
+ground, sweeping, hauling away), parked-only vehicles, and pass-through with empty hands.
+""".strip()
+
+
 def gate_system_prompt_for_camera(camera_context: Optional[dict[str, str]] = None) -> str:
     """Return the V3 gate system prompt with camera-specific overrides.
 
     esp32_002 uses the B3 recall addon (campaign 19 winner for the dual full+pile-crop
     gate: 92% TP recall / 15% baseline when OR-ed with the pile-crop pass).
+    esp32_001 (Imbiribeira, open lot) uses the E_modality addon (campaign 31 winner:
+    recall 6/7 == V1, specificity 0.58 vs 0.19, kills the collection-truck FP).
     """
     device_id = ""
     if camera_context:
         device_id = str(camera_context.get("device_id") or "").strip().lower()
     if device_id == "esp32_002":
         return NEW_LITTER_SYSTEM_PROMPT_V3 + "\n\n" + ESP32_002_RECALL_B3_ADDON
+    if device_id == "esp32_001":
+        return NEW_LITTER_SYSTEM_PROMPT_V3 + "\n\n" + ESP32_001_IMBIRIBEIRA_E_ADDON
     return NEW_LITTER_SYSTEM_PROMPT_V3
 
 

@@ -1,0 +1,2118 @@
+{
+  "summary": {
+    "camera": "esp32_005 / Arruda / cam_14",
+    "gate_mode": "v1",
+    "gate": "V1 (current prod, vehicle-centric)",
+    "model": "gemini-2.5-flash-lite",
+    "thinking_budget": 2048,
+    "window_size": 37,
+    "trigger_min_confidence": 85,
+    "day": {
+      "period": "day",
+      "windows": 40,
+      "ok": 40,
+      "triggered_fp": 7,
+      "fp_rate": 0.175,
+      "triggered_ids": [
+        "day_08-00-00",
+        "day_09-41-45",
+        "day_10-00-15",
+        "day_11-38-55",
+        "day_13-00-06",
+        "day_13-36-26",
+        "day_13-46-19"
+      ]
+    },
+    "night": {
+      "period": "night",
+      "windows": 40,
+      "ok": 40,
+      "triggered_fp": 0,
+      "fp_rate": 0.0,
+      "triggered_ids": []
+    },
+    "total_cost_usd": 0.083026
+  },
+  "results": [
+    {
+      "window_id": "day_08-00-00",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-00-00.jpg",
+        "last": "2026-06-01_08-03-00.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": true,
+        "confidence_0_100": 90,
+        "triggered": true,
+        "scene_type": "DUMPING",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A white vehicle remained stationary for over 3 minutes near a known dumping area. A person was observed near the dumping spot during this time, suggesting material deposition.",
+        "scene_delta_analysis": "(1) road, wall, trees, debris_pile, white_car (2) road, wall, trees, debris_pile, white_car (3) DUMPING_BEHAVIOR",
+        "input_tokens": 2125,
+        "total_tokens": 4202,
+        "latency_ms": 10152,
+        "wall_ms": 10152,
+        "cost_usd": 0.0010433,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_08-06-10",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-06-10.jpg",
+        "last": "2026-06-01_08-09-10.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 80,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A vehicle stopped briefly on the road, and a person was observed near the pre-existing debris pile. Other vehicles and pedestrians were moving through the scene.",
+        "scene_delta_analysis": "MOVING_OBJECT (cars, people), PRE_EXISTING_LITTER (debris pile unchanged), SHADOW (shadows moving across road)",
+        "input_tokens": 2125,
+        "total_tokens": 4259,
+        "latency_ms": 9892,
+        "wall_ms": 9892,
+        "cost_usd": 0.0010661,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_08-15-24",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-15-24.jpg",
+        "last": "2026-06-01_08-18-25.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows ongoing traffic with vehicles and pedestrians. A white car is parked on the side of the road near a pre-existing debris pile. No active material deposition is detected.",
+        "scene_delta_analysis": "(1) Fixed objects: Road, walls, trees, poles, existing waste pile. (2) Fixed objects: Road, walls, trees, poles, existing waste pile. (3) Differences: MOVING_OBJECT (pedestrians, vehicles), SHADOW (changing light).",
+        "input_tokens": 2125,
+        "total_tokens": 4290,
+        "latency_ms": 8050,
+        "wall_ms": 8050,
+        "cost_usd": 0.0010785,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_08-24-40",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-24-40.jpg",
+        "last": "2026-06-01_08-27-40.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene displays continuous traffic flow and pedestrian movement. A pre-existing pile of debris is present on the right side of the road, but no active dumping behavior is observed in the frames.",
+        "scene_delta_analysis": "Fixed objects: road, wall, trees, debris pile. Moving objects: vehicles, pedestrians. Differences: MOVING_OBJECT, SHADOW.",
+        "input_tokens": 2125,
+        "total_tokens": 4047,
+        "latency_ms": 8119,
+        "wall_ms": 8119,
+        "cost_usd": 0.0009813,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_08-33-55",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-33-55.jpg",
+        "last": "2026-06-01_08-36-55.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows continuous traffic flow of vehicles and pedestrians. A pre-existing pile of debris is visible on the right side of the road, but no active dumping behavior is observed in the provided frames.",
+        "scene_delta_analysis": "Fixed objects: road, wall, trees, debris pile, power lines. Differences: MOVING_OBJECT, SHADOW.",
+        "input_tokens": 2125,
+        "total_tokens": 4372,
+        "latency_ms": 7969,
+        "wall_ms": 7969,
+        "cost_usd": 0.0011113,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_08-43-10",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-43-10.jpg",
+        "last": "2026-06-01_08-46-10.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows ongoing traffic on the road. A pre-existing pile of debris is visible on the right side, but no new material is being deposited by any individuals or vehicles.",
+        "scene_delta_analysis": "Fixed objects: road, wall, debris pile, parked cars. Moving objects: vehicles, person on motorcycle. No dumping behavior observed.",
+        "input_tokens": 2125,
+        "total_tokens": 4181,
+        "latency_ms": 8818,
+        "wall_ms": 8818,
+        "cost_usd": 0.0010349,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_08-49-20",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-49-20.jpg",
+        "last": "2026-06-01_08-52-20.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows traffic on a road with a pre-existing debris pile on the right. No active dumping or new material deposition was observed.",
+        "scene_delta_analysis": "Fixed objects include road, walls, trees, and a debris pile. Moving objects include vehicles. Differences are primarily due to moving vehicles and changing shadows. No dumping behavior was detected.",
+        "input_tokens": 2125,
+        "total_tokens": 4343,
+        "latency_ms": 9224,
+        "wall_ms": 9224,
+        "cost_usd": 0.0010997,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_08-58-35",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_08-58-35.jpg",
+        "last": "2026-06-01_09-01-35.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows vehicles and pedestrians moving through the street. A pre-existing pile of litter is visible on the right side, but no active dumping behavior is observed.",
+        "scene_delta_analysis": "Fixed objects in first frame: Road, wall, trees, existing litter pile, utility pole. Fixed objects in last frame: Road, wall, trees, existing litter pile, utility pole. Differences: MOVING_OBJECT (vehicles, pedestrians).",
+        "input_tokens": 2125,
+        "total_tokens": 3985,
+        "latency_ms": 7062,
+        "wall_ms": 7062,
+        "cost_usd": 0.0009565,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_09-07-50",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_09-07-50.jpg",
+        "last": "2026-06-01_09-10-50.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows vehicles and a cyclist moving along the road. A pre-existing pile of debris is present on the right, but no active dumping is observed between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects: road, walls, trees, utility poles, debris pile. Differences: MOVING_OBJECT (truck, cyclist).",
+        "input_tokens": 2125,
+        "total_tokens": 4193,
+        "latency_ms": 8662,
+        "wall_ms": 8662,
+        "cost_usd": 0.0010397,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_09-17-05",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_09-17-05.jpg",
+        "last": "2026-06-01_09-20-05.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene displays ongoing traffic with vehicles and pedestrians. A yellow loader is stationary near a pre-existing debris pile on the right side of the road. No active material deposition was observed.",
+        "scene_delta_analysis": "Fixed objects: road, buildings, trees, power lines, white truck, green truck, yellow loader, debris pile, wall. Differences: moving vehicles, pedestrians, changing shadows.",
+        "input_tokens": 2125,
+        "total_tokens": 3989,
+        "latency_ms": 6728,
+        "wall_ms": 6728,
+        "cost_usd": 0.0009581,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_09-26-20",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_09-26-20.jpg",
+        "last": "2026-06-01_09-29-20.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 70,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A green truck is stationary on the left side of the road, and other vehicles and pedestrians are moving through the scene. A person is observed near the existing debris pile on the right, but is not actively depositing new material.",
+        "scene_delta_analysis": "Fixed objects: Green truck, debris pile, poles, buildings. Differences: Person near debris pile, car moving through, shadow changes.",
+        "input_tokens": 2125,
+        "total_tokens": 4217,
+        "latency_ms": 9797,
+        "wall_ms": 9797,
+        "cost_usd": 0.0010493,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_09-35-35",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_09-35-35.jpg",
+        "last": "2026-06-01_09-38-35.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows vehicles and pedestrians moving along the road. A pre-existing pile of debris is visible on the right side, but no active material deposition was observed in the frames.",
+        "scene_delta_analysis": "Fixed objects: Wall, poles, trees, debris pile, truck. Moving objects: Motorcycle, bicycle, cars. Differences: MOVING_OBJECT, SHADOW.",
+        "input_tokens": 2125,
+        "total_tokens": 3956,
+        "latency_ms": 7750,
+        "wall_ms": 7750,
+        "cost_usd": 0.0009449,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_09-41-45",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_09-41-45.jpg",
+        "last": "2026-06-01_09-44-45.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": true,
+        "confidence_0_100": 95,
+        "triggered": true,
+        "scene_type": "DUMPING",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A stationary yellow loader is positioned near a debris pile, and a person in blue is seen interacting with the loader's bucket and the ground, indicating material deposition.",
+        "scene_delta_analysis": "Fixed objects: Yellow loader, white truck, debris pile. Differences: Person in blue moving near loader and debris pile, suggesting dumping behavior.",
+        "input_tokens": 2125,
+        "total_tokens": 3944,
+        "latency_ms": 6734,
+        "wall_ms": 6734,
+        "cost_usd": 0.0009401,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_09-51-00",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_09-51-00.jpg",
+        "last": "2026-06-01_09-54-00.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 80,
+        "triggered": false,
+        "scene_type": "PARKED",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A truck is parked on the left side of the road, and a yellow bulldozer is stationary near a pre-existing pile of debris on the right. A person is present near the bulldozer but is not actively depositing material. No new material is observed being added to the ground.",
+        "scene_delta_analysis": "FIXED_OBJECTS_FIRST_FRAME: truck, bulldozer, person, debris_pile. FIXED_OBJECTS_LAST_FRAME: truck, bulldozer, person, debris_pile. DIFFERENCES: SHADOW, MOVING_OBJECT (bulldozer movement within frames, but stationary between first/last).",
+        "input_tokens": 2125,
+        "total_tokens": 4180,
+        "latency_ms": 7440,
+        "wall_ms": 7440,
+        "cost_usd": 0.0010345,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_10-00-15",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_10-00-15.jpg",
+        "last": "2026-06-01_10-03-15.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": true,
+        "confidence_0_100": 95,
+        "triggered": true,
+        "scene_type": "DUMPING",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A yellow loader vehicle is stopped and appears to be actively depositing material into a truck. Multiple people are present and involved in the operation.",
+        "scene_delta_analysis": "Fixed objects: White truck, yellow loader, concrete wall, trees, utility poles. Differences: Yellow loader moved into position, people appeared and interacted with loader and truck, material was moved from ground into truck.",
+        "input_tokens": 2125,
+        "total_tokens": 3902,
+        "latency_ms": 6763,
+        "wall_ms": 6763,
+        "cost_usd": 0.0009233,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_10-09-30",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_10-09-30.jpg",
+        "last": "2026-06-01_10-12-30.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows traffic with a person on a bicycle in the initial frame and a pedestrian in the final frame. A pre-existing pile of debris is visible, but no active dumping behavior is detected.",
+        "scene_delta_analysis": "Fixed objects: wall, pole, pre-existing litter pile, trees. Differences: MOVING_OBJECT (person on bicycle, pedestrian).",
+        "input_tokens": 2125,
+        "total_tokens": 3940,
+        "latency_ms": 8427,
+        "wall_ms": 8427,
+        "cost_usd": 0.0009385,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_10-18-45",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_10-18-45.jpg",
+        "last": "2026-06-01_10-21-45.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows vehicles and a person moving along the road. No active dumping is observed, and the pre-existing debris pile remains unchanged.",
+        "scene_delta_analysis": "Fixed objects: wall, pole, trees, building, white structure. Moving objects: motorcycle, car, pedestrian. Shadows present.",
+        "input_tokens": 2125,
+        "total_tokens": 4202,
+        "latency_ms": 9101,
+        "wall_ms": 9101,
+        "cost_usd": 0.0010433,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_10-28-00",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_10-28-00.jpg",
+        "last": "2026-06-01_10-31-00.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a road with moving vehicles and pedestrians. A pre-existing pile of debris is visible along the right wall, but no active dumping behavior is observed in the provided frames.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, trees, poles. Moving objects: vehicles, pedestrians, bicycles. Differences: minor changes in vehicle/pedestrian positions, shadows, no dumping behavior detected.",
+        "input_tokens": 2125,
+        "total_tokens": 4074,
+        "latency_ms": 7844,
+        "wall_ms": 7844,
+        "cost_usd": 0.0009921,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_10-34-10",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_10-34-10.jpg",
+        "last": "2026-06-01_10-37-10.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows traffic with vehicles and pedestrians moving. A pre-existing debris pile is visible on the right, but no active dumping behavior is detected.",
+        "scene_delta_analysis": "Fixed objects: wall, pole, trees, building. Moving objects: cars, motorcycles, pedestrians. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4171,
+        "latency_ms": 7666,
+        "wall_ms": 7666,
+        "cost_usd": 0.0010309,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_10-43-25",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_10-43-25.jpg",
+        "last": "2026-06-01_10-46-25.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a road with moving vehicles and pedestrians. A pre-existing pile of debris is visible on the right side, but no active dumping or new material deposition is observed in the frames.",
+        "scene_delta_analysis": "Fixed objects include road, wall, trees, lamp post, and a debris pile. Last frame shows moving vehicles and pedestrians. No dumping behavior or new material detected.",
+        "input_tokens": 2125,
+        "total_tokens": 4400,
+        "latency_ms": 8361,
+        "wall_ms": 8361,
+        "cost_usd": 0.0011225,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_10-52-40",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_10-52-40.jpg",
+        "last": "2026-06-01_10-55-40.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "Vehicles are observed moving through the scene. A person is present near a pre-existing pile of green material on the side of the road.",
+        "scene_delta_analysis": "Fixed objects: Wall, trees, poles, pre-existing material pile. Differences: Person near material pile, vehicles moving on road.",
+        "input_tokens": 2125,
+        "total_tokens": 3926,
+        "latency_ms": 6969,
+        "wall_ms": 6969,
+        "cost_usd": 0.0009329,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_11-01-55",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_11-01-55.jpg",
+        "last": "2026-06-01_11-04-55.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A white car and a pedestrian moved through the scene. The pre-existing debris pile on the right side of the road remained unchanged between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects: Wall, debris pile, trees, poles. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4360,
+        "latency_ms": 10011,
+        "wall_ms": 10011,
+        "cost_usd": 0.0011065,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_11-11-10",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_11-11-10.jpg",
+        "last": "2026-06-01_11-14-10.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The initial frame shows pedestrians and a parked red truck. The final frame shows the red truck still parked, with other vehicles and pedestrians moving on the road. No new material was deposited on the ground.",
+        "scene_delta_analysis": "Fixed objects: road, wall, trees, debris pile. Moving objects: pedestrians, cars. Vehicle: red truck stationary. No dumping behavior observed.",
+        "input_tokens": 2125,
+        "total_tokens": 4388,
+        "latency_ms": 9754,
+        "wall_ms": 9754,
+        "cost_usd": 0.0011177,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_11-17-20",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_11-17-20.jpg",
+        "last": "2026-06-01_11-20-20.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows traffic with vehicles and pedestrians moving along the road. A pre-existing pile of debris is visible on the right side, but no active dumping is observed.",
+        "scene_delta_analysis": "Fixed objects: road, wall, trees, debris pile. Moving objects: vehicles, pedestrians.",
+        "input_tokens": 2125,
+        "total_tokens": 4228,
+        "latency_ms": 7161,
+        "wall_ms": 7161,
+        "cost_usd": 0.0010537,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_11-38-55",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_11-38-55.jpg",
+        "last": "2026-06-01_11-41-55.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": true,
+        "confidence_0_100": 90,
+        "triggered": true,
+        "scene_type": "DUMPING",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A person is observed near a debris pile, and new material appears to have been added to the pile between the first and last frames. The person is actively handling material.",
+        "scene_delta_analysis": "Fixed objects: Wall, debris pile, utility pole, trees. Moving objects: Person, vehicles (van, trucks, car). Differences: Person present near debris pile, new material added to debris pile.",
+        "input_tokens": 2125,
+        "total_tokens": 4071,
+        "latency_ms": 8436,
+        "wall_ms": 8436,
+        "cost_usd": 0.0009909,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_11-48-10",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_11-48-10.jpg",
+        "last": "2026-06-01_11-51-10.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows ongoing traffic with vehicles and pedestrians. A truck is stationary in the road, but no person is observed actively depositing material. A pre-existing waste pile is visible on the side.",
+        "scene_delta_analysis": "Fixed objects in first frame: Road, wall, trees, traffic light, stopped truck, waste pile. Fixed objects in last frame: Road, wall, trees, traffic light, stopped truck, waste pile, white truck. Differences: MOVING_OBJECT, SHADOW.",
+        "input_tokens": 2125,
+        "total_tokens": 4425,
+        "latency_ms": 7918,
+        "wall_ms": 7918,
+        "cost_usd": 0.0011325,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_11-57-25",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_11-57-25.jpg",
+        "last": "2026-06-01_12-00-25.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 70,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A white van is observed stopped in the initial and final frames. A person is seen near a pre-existing pile of material on the right side of the road in an intermediate frame, appearing to interact with it. Other vehicles are seen moving through the scene.",
+        "scene_delta_analysis": "Fixed objects: road, wall, trees, buildings, poles, pre-existing waste pile. Differences: white van stopped in first and last frames, moving in between; person near waste pile in an intermediate frame; motorcycle and cars moving.",
+        "input_tokens": 2125,
+        "total_tokens": 4090,
+        "latency_ms": 11106,
+        "wall_ms": 11106,
+        "cost_usd": 0.0009985,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_12-06-40",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_12-06-40.jpg",
+        "last": "2026-06-01_12-09-40.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A truck is stopped on the side of the road with a person nearby, while other vehicles are moving through the scene. A pre-existing debris pile is visible but no new material is being deposited.",
+        "scene_delta_analysis": "Fixed objects: truck, wall, debris pile, trees, buildings. Differences: moving vehicles (car, motorcycle), person near truck (potentially operating equipment, not dumping). No new ground material detected.",
+        "input_tokens": 2125,
+        "total_tokens": 4010,
+        "latency_ms": 11093,
+        "wall_ms": 11093,
+        "cost_usd": 0.0009665,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_12-15-55",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_12-15-55.jpg",
+        "last": "2026-06-01_12-18-55.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows ongoing traffic with vehicles and pedestrians. A pre-existing pile of debris is visible on the right side of the road. No active dumping behavior or new material deposition is observed.",
+        "scene_delta_analysis": "MOVING_OBJECT",
+        "input_tokens": 2125,
+        "total_tokens": 4314,
+        "latency_ms": 11100,
+        "wall_ms": 11100,
+        "cost_usd": 0.0010881,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_12-22-05",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_12-22-05.jpg",
+        "last": "2026-06-01_12-25-05.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "In the initial frame, a black car is stopped near a person and white debris. In the final frame, the car is gone, and a person is walking. Moving vehicles and pedestrians are present throughout.",
+        "scene_delta_analysis": "Fixed objects: Wall, debris pile, trees. Moving objects: Cars, person, bicycle. No dumping behavior observed.",
+        "input_tokens": 2125,
+        "total_tokens": 3945,
+        "latency_ms": 6435,
+        "wall_ms": 6435,
+        "cost_usd": 0.0009405,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_12-31-20",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_12-31-20.jpg",
+        "last": "2026-06-01_12-34-20.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic, including cars and a person on a motorcycle. A pile of pre-existing debris is visible on the right side of the road. No active dumping behavior was observed.",
+        "scene_delta_analysis": "Fixed objects in first frame: road, wall, trees, debris pile, poles, traffic signs. Fixed objects in last frame: road, wall, trees, debris pile, poles, traffic signs. Differences: MOVING_OBJECT (cars, motorcycle), SHADOW.",
+        "input_tokens": 2125,
+        "total_tokens": 3802,
+        "latency_ms": 11093,
+        "wall_ms": 11093,
+        "cost_usd": 0.0008833,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_12-40-35",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_12-40-35.jpg",
+        "last": "2026-06-01_12-43-35.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows vehicles and pedestrians moving along a road. A pre-existing pile of debris is visible on the side of the road. No active dumping behavior was observed.",
+        "scene_delta_analysis": "Fixed objects: Wall (left), Wall (right), Pole, Trees, Debris pile. Differences: MOVING_OBJECT (vehicles, pedestrians).",
+        "input_tokens": 2125,
+        "total_tokens": 3857,
+        "latency_ms": 11117,
+        "wall_ms": 11117,
+        "cost_usd": 0.0009053,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_12-50-25",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_12-50-25.jpg",
+        "last": "2026-06-01_12-53-38.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows ongoing traffic with vehicles and pedestrians moving. A white van is observed stationary in the latter frames. A pre-existing debris pile is visible but shows no signs of recent material deposition.",
+        "scene_delta_analysis": "Fixed objects: Road, Wall (left), Wall (right), Trees, Debris pile. Differences: MOVING_OBJECT, VEHICLE_STOP, SHADOW.",
+        "input_tokens": 2125,
+        "total_tokens": 4400,
+        "latency_ms": 8089,
+        "wall_ms": 8089,
+        "cost_usd": 0.0011225,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_13-00-06",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_13-00-06.jpg",
+        "last": "2026-06-01_13-03-18.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": true,
+        "confidence_0_100": 95,
+        "triggered": true,
+        "scene_type": "DUMPING",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A white truck is parked near a debris pile. In the final frame, a person is observed depositing material onto the pile next to the parked truck.",
+        "scene_delta_analysis": "Fixed objects: wall, debris pile, parked truck, utility pole, trees. Differences: DUMPING_BEHAVIOR.",
+        "input_tokens": 2125,
+        "total_tokens": 4410,
+        "latency_ms": 9204,
+        "wall_ms": 9204,
+        "cost_usd": 0.0011265,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_13-10-04",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_13-10-04.jpg",
+        "last": "2026-06-01_13-13-23.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows vehicles moving on the road. A white van is parked, and a pre-existing pile of debris is visible on the right. No active dumping behavior was observed.",
+        "scene_delta_analysis": "Fixed objects in first frame: white van, debris pile, wall, trees, poles. Fixed objects in last frame: white van, debris pile, wall, trees, poles. Differences: MOVING_OBJECT (scooter, car), SHADOW.",
+        "input_tokens": 2125,
+        "total_tokens": 3809,
+        "latency_ms": 6885,
+        "wall_ms": 6885,
+        "cost_usd": 0.0008861,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_13-16-50",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_13-16-50.jpg",
+        "last": "2026-06-01_13-19-57.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The initial frame shows a parked van and a pre-existing debris pile. The final frame shows vehicles moving through the scene, with no evidence of new material being deposited or persons handling waste.",
+        "scene_delta_analysis": "Fixed objects: white van, debris pile, wall, trees, buildings. Moving objects: silver car, white pickup truck observed in the last frame. No dumping behavior detected.",
+        "input_tokens": 2125,
+        "total_tokens": 4277,
+        "latency_ms": 10479,
+        "wall_ms": 10479,
+        "cost_usd": 0.0010733,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_13-26-38",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_13-26-38.jpg",
+        "last": "2026-06-01_13-29-51.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows traffic with vehicles and pedestrians moving. A van is temporarily stopped, and a motorcycle passes by. A pre-existing debris pile is visible, but no active dumping is occurring.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, fence, pole. Moving objects: van, people, motorcycle.",
+        "input_tokens": 2125,
+        "total_tokens": 4368,
+        "latency_ms": 8716,
+        "wall_ms": 8716,
+        "cost_usd": 0.0011097,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_13-36-26",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_13-36-26.jpg",
+        "last": "2026-06-01_13-39-33.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": true,
+        "confidence_0_100": 95,
+        "triggered": true,
+        "scene_type": "DUMPING",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A white vehicle stopped near a known dumping spot, with a person present, and apparent addition to the existing debris pile.",
+        "scene_delta_analysis": "Vehicle stopped near debris pile. Person present. Debris pile appears to have increased.",
+        "input_tokens": 2125,
+        "total_tokens": 3687,
+        "latency_ms": 7766,
+        "wall_ms": 7766,
+        "cost_usd": 0.0008373,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_13-46-19",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_13-46-19.jpg",
+        "last": "2026-06-01_13-49-44.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": true,
+        "confidence_0_100": 95,
+        "triggered": true,
+        "scene_type": "DUMPING",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "In the final frame, a person on a tricycle is actively depositing material onto an existing pile on the roadside, indicating dumping behavior.",
+        "scene_delta_analysis": "Fixed objects: wall, fence, pole, debris pile. Differences: DUMPING_BEHAVIOR (person on tricycle depositing material).",
+        "input_tokens": 2125,
+        "total_tokens": 4377,
+        "latency_ms": 10278,
+        "wall_ms": 10278,
+        "cost_usd": 0.0011133,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "day_13-56-36",
+      "period": "day",
+      "metadata": {
+        "first": "2026-06-01_13-56-36.jpg",
+        "last": "2026-06-01_13-59-52.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "Vehicles and pedestrians are observed moving through the scene. A pre-existing debris pile is present on the right, but no active material deposition is detected.",
+        "scene_delta_analysis": "Fixed objects: road, wall, trees, poles, buildings, debris pile. Moving objects: people, vehicles. Differences: pedestrian movement, vehicle stop at crosswalk.",
+        "input_tokens": 2125,
+        "total_tokens": 4382,
+        "latency_ms": 8247,
+        "wall_ms": 8247,
+        "cost_usd": 0.0011153,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-00-03",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-00-03.jpg",
+        "last": "2026-06-01_02-03-03.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A motorcycle is observed moving in the initial frame. The final frame shows parked vehicles and a consistent pre-existing debris pile, with no active dumping observed.",
+        "scene_delta_analysis": "Fixed objects: wall, street, lamp post, parked cars, debris pile. Differences: MOVING_OBJECT (motorcycle).",
+        "input_tokens": 2125,
+        "total_tokens": 4387,
+        "latency_ms": 8627,
+        "wall_ms": 8627,
+        "cost_usd": 0.0011173,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-03-08",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-03-08.jpg",
+        "last": "2026-06-01_02-06-08.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic. A pre-existing pile of debris is visible on the right side, but no active dumping is observed in the provided frames.",
+        "scene_delta_analysis": "(1) Road, wall, trees, parked cars, streetlights, building. (2) Road, wall, trees, parked cars, streetlights, building. (3) MOVING_OBJECT, SHADOW, LIGHTING.",
+        "input_tokens": 2125,
+        "total_tokens": 4413,
+        "latency_ms": 9107,
+        "wall_ms": 9107,
+        "cost_usd": 0.0011277,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-06-13",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-06-13.jpg",
+        "last": "2026-06-01_02-09-13.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with a pre-existing pile of debris on the right. No active dumping or new material deposition is observed between the initial and final frames. Traffic appears to be present.",
+        "scene_delta_analysis": "Fixed objects: litter pile, parked cars. No significant changes observed. MOVING_OBJECT (traffic).",
+        "input_tokens": 2125,
+        "total_tokens": 4152,
+        "latency_ms": 7460,
+        "wall_ms": 7460,
+        "cost_usd": 0.0010233,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-12-23",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-12-23.jpg",
+        "last": "2026-06-01_02-15-23.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic and a pre-existing pile of waste. No active dumping or new material deposition was observed between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects in first frame: Wall, street, lamp post, trees, parked cars, existing waste pile. Fixed objects in last frame: Wall, street, lamp post, trees, parked cars, existing waste pile. Differences classified as MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4403,
+        "latency_ms": 8172,
+        "wall_ms": 8172,
+        "cost_usd": 0.0011237,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-15-28",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-15-28.jpg",
+        "last": "2026-06-01_02-18-28.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic at night. A pre-existing pile of debris is visible along the right side wall. No new material is being deposited, and no person is observed handling material.",
+        "scene_delta_analysis": "Fixed objects in first frame: Street, wall, debris pile, parked cars, streetlights. Fixed objects in last frame: Street, wall, debris pile, parked cars, streetlights. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4407,
+        "latency_ms": 8542,
+        "wall_ms": 8542,
+        "cost_usd": 0.0011253,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-21-38",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-21-38.jpg",
+        "last": "2026-06-01_02-24-38.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with moving vehicles. A pre-existing pile of debris is visible on the right side, but no active dumping is observed.",
+        "scene_delta_analysis": "Fixed objects: road, wall, debris pile, trees, streetlights. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 3963,
+        "latency_ms": 6920,
+        "wall_ms": 6920,
+        "cost_usd": 0.0009477,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-24-43",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-24-43.jpg",
+        "last": "2026-06-01_02-27-43.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic. A pre-existing pile of debris is visible along the right side wall. No active dumping or addition of new material to the ground was observed between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects: road, wall, debris pile, parked cars. Differences: moving vehicles on road, debris pile unchanged.",
+        "input_tokens": 2125,
+        "total_tokens": 4057,
+        "latency_ms": 8354,
+        "wall_ms": 8354,
+        "cost_usd": 0.0009853,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-30-53",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-30-53.jpg",
+        "last": "2026-06-01_02-33-53.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with moving vehicles and parked cars. A pre-existing pile of debris is visible on the right side. No active dumping or new material deposition was observed.",
+        "scene_delta_analysis": "Fixed objects: street, wall, debris pile, parked cars, trees. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4370,
+        "latency_ms": 7827,
+        "wall_ms": 7827,
+        "cost_usd": 0.0011105,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-33-59",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-33-59.jpg",
+        "last": "2026-06-01_02-36-58.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene displays ongoing traffic with vehicles moving along the street. A pre-existing debris pile is visible on the right side, but no new material was deposited or any active dumping behavior observed between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects: Wall, debris pile, street, poles, trees, buildings, parked cars. Differences: Moving vehicles on the road. Classified as MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4201,
+        "latency_ms": 8025,
+        "wall_ms": 8025,
+        "cost_usd": 0.0010429,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-40-08",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-40-08.jpg",
+        "last": "2026-06-01_02-43-08.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 70,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows ongoing traffic on a road at night. A pre-existing pile of debris is visible against a wall on the right. A blue object appears on the ground near the debris pile between the first and last frames, suggesting new material, but no person is observed actively depositing it.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, road, parked cars. Differences: A blue object appears on the ground near the debris pile, classified as NEW_GROUND_MATERIAL. Traffic (moving objects) is present.",
+        "input_tokens": 2125,
+        "total_tokens": 4019,
+        "latency_ms": 8545,
+        "wall_ms": 8545,
+        "cost_usd": 0.0009701,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-43-13",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-43-13.jpg",
+        "last": "2026-06-01_02-46-13.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with traffic. A pre-existing pile of debris is visible on the right side. No active dumping behavior or new material deposition was observed in the frames.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, road, streetlight. Differences: MOVING_OBJECT, SHADOW, LIGHTING.",
+        "input_tokens": 2125,
+        "total_tokens": 4088,
+        "latency_ms": 9801,
+        "wall_ms": 9801,
+        "cost_usd": 0.0009977,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-46-19",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-46-19.jpg",
+        "last": "2026-06-01_02-49-18.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with moving vehicles and pedestrians. A pre-existing pile of debris is visible on the right side. No active dumping behavior is observed.",
+        "scene_delta_analysis": "MOVING_OBJECT",
+        "input_tokens": 2125,
+        "total_tokens": 4350,
+        "latency_ms": 10174,
+        "wall_ms": 10174,
+        "cost_usd": 0.0011025,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-52-29",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-52-29.jpg",
+        "last": "2026-06-01_02-55-28.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The street shows ongoing traffic and parked vehicles at night. A pre-existing debris pile is visible, but no new material was deposited or any person actively dumping was observed.",
+        "scene_delta_analysis": "MOVING_OBJECT",
+        "input_tokens": 2125,
+        "total_tokens": 4358,
+        "latency_ms": 9056,
+        "wall_ms": 9056,
+        "cost_usd": 0.0011057,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_02-55-33",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_02-55-33.jpg",
+        "last": "2026-06-01_02-58-34.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a road with a pre-existing debris pile. Vehicles and a person are observed moving through the area. No clear evidence of active material deposition or new ground material was detected.",
+        "scene_delta_analysis": "Fixed objects: road, debris pile, wall, street light. Differences: moving vehicles and a person. No dumping behavior observed.",
+        "input_tokens": 2125,
+        "total_tokens": 4385,
+        "latency_ms": 9597,
+        "wall_ms": 9597,
+        "cost_usd": 0.0011165,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-01-43",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-01-43.jpg",
+        "last": "2026-06-01_03-04-43.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic. A pre-existing pile of debris is visible on the right side. No active dumping or material handling by people is observed.",
+        "scene_delta_analysis": "debris pile, wall, street lamp, parked cars; MOVING_OBJECT",
+        "input_tokens": 2125,
+        "total_tokens": 4362,
+        "latency_ms": 8800,
+        "wall_ms": 8800,
+        "cost_usd": 0.0011073,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-04-48",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-04-48.jpg",
+        "last": "2026-06-01_03-07-48.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with traffic at night. A pre-existing pile of debris is visible on the right side, but no active dumping activity is observed in the provided frames.",
+        "scene_delta_analysis": "Fixed objects: street, wall, existing waste pile, poles, trees, buildings. Differences: MOVING_OBJECT (traffic). No DUMPING_BEHAVIOR.",
+        "input_tokens": 2125,
+        "total_tokens": 4381,
+        "latency_ms": 9166,
+        "wall_ms": 9166,
+        "cost_usd": 0.0011149,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-10-58",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-10-58.jpg",
+        "last": "2026-06-01_03-13-58.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic and parked vehicles. A persistent pile of debris is present on the right side. No new material was deposited, and no active dumping behavior was observed.",
+        "scene_delta_analysis": "Fixed objects in first frame: road, parked cars, debris pile. Fixed objects in last frame: road, parked cars, debris pile. Differences: MOVING_OBJECT (vehicles on road), SHADOW/LIGHTING.",
+        "input_tokens": 2125,
+        "total_tokens": 4275,
+        "latency_ms": 8545,
+        "wall_ms": 8545,
+        "cost_usd": 0.0010725,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-14-03",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-14-03.jpg",
+        "last": "2026-06-01_03-17-03.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with a pre-existing debris pile. Vehicles are observed moving through the scene, but no active dumping behavior by a person or vehicle is detected. The debris pile remains unchanged.",
+        "scene_delta_analysis": "Fixed objects in first frame: road, wall, debris pile, streetlights, parked cars, buildings. Fixed objects in last frame: road, wall, debris pile, streetlights, parked cars, buildings. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 3868,
+        "latency_ms": 7817,
+        "wall_ms": 7817,
+        "cost_usd": 0.0009097,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-20-13",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-20-13.jpg",
+        "last": "2026-06-01_03-23-13.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a road with moving vehicles and pedestrians. A pre-existing pile of debris is visible along the right wall. No active dumping behavior was observed.",
+        "scene_delta_analysis": "Fixed objects: road, wall, trees, streetlight, debris pile. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4144,
+        "latency_ms": 9124,
+        "wall_ms": 9124,
+        "cost_usd": 0.0010201,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-23-18",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-23-18.jpg",
+        "last": "2026-06-01_03-26-18.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The initial and final frames show a street with parked vehicles and a pre-existing debris pile. A person is observed standing in the road in a mid-window frame, but no active dumping is detected.",
+        "scene_delta_analysis": "(1) Road, wall, parked cars, debris pile, street light. (2) Road, wall, parked cars, debris pile, street light. (3) MOVING_OBJECT",
+        "input_tokens": 2125,
+        "total_tokens": 4027,
+        "latency_ms": 8153,
+        "wall_ms": 8153,
+        "cost_usd": 0.0009733,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-29-28",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-29-28.jpg",
+        "last": "2026-06-01_03-32-28.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with ongoing traffic. A pre-existing pile of debris is visible along the right-side wall. No active dumping or new material deposition was observed.",
+        "scene_delta_analysis": "",
+        "input_tokens": 2125,
+        "total_tokens": 4346,
+        "latency_ms": 10273,
+        "wall_ms": 10273,
+        "cost_usd": 0.0011009,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-32-33",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-32-33.jpg",
+        "last": "2026-06-01_03-35-33.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with ongoing traffic and a pre-existing pile of debris. No active dumping behavior was observed during the analyzed time window.",
+        "scene_delta_analysis": "Fixed objects: Road, Wall, Debris Pile, Trees, Buildings, Streetlights, Parked Cars. Differences: MOVING_OBJECT, LIGHTING.",
+        "input_tokens": 2125,
+        "total_tokens": 4299,
+        "latency_ms": 9946,
+        "wall_ms": 9947,
+        "cost_usd": 0.0010821,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-35-38",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-35-38.jpg",
+        "last": "2026-06-01_03-38-38.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows ongoing traffic on the road. A pre-existing pile of debris is visible on the right side, but no active dumping behavior or new material deposition is observed in the frames.",
+        "scene_delta_analysis": "Fixed objects: road, wall, debris pile, streetlights. Differences: moving vehicles on road. No dumping behavior detected.",
+        "input_tokens": 2125,
+        "total_tokens": 4075,
+        "latency_ms": 8185,
+        "wall_ms": 8186,
+        "cost_usd": 0.0009925,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-41-49",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-41-49.jpg",
+        "last": "2026-06-01_03-44-48.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with a pre-existing debris pile on the side. While vehicles are present and moving, there is no active dumping behavior observed.",
+        "scene_delta_analysis": "Fixed objects: Road, Wall, Debris pile, Streetlight, Building. Differences: MOVING_OBJECT, LIGHTING.",
+        "input_tokens": 2125,
+        "total_tokens": 4385,
+        "latency_ms": 8815,
+        "wall_ms": 8815,
+        "cost_usd": 0.0011165,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-44-53",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-44-53.jpg",
+        "last": "2026-06-01_03-47-53.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with a pre-existing debris pile on the right side. Vehicles are present, some parked, and traffic is visible. No active dumping behavior or new material deposition was observed between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, street lamp, parked cars. Differences: MOVING_OBJECT (vehicles).",
+        "input_tokens": 2125,
+        "total_tokens": 4025,
+        "latency_ms": 9926,
+        "wall_ms": 9926,
+        "cost_usd": 0.0009725,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-51-03",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-51-03.jpg",
+        "last": "2026-06-01_03-54-03.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The initial and final frames show a street at night with a pre-existing pile of debris on the right side. No new material has been deposited, and no individuals are observed actively dumping waste.",
+        "scene_delta_analysis": "Street, debris pile, wall, parked cars. Street, debris pile, wall, parked cars. MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4374,
+        "latency_ms": 10673,
+        "wall_ms": 10673,
+        "cost_usd": 0.0011121,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_03-54-08",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_03-54-08.jpg",
+        "last": "2026-06-01_03-57-08.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic and a pre-existing pile of debris on the right side. No active dumping behavior is observed.",
+        "scene_delta_analysis": "Fixed objects: road, wall, debris pile, parked cars, trees. Differences: traffic movement. Classified as MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4064,
+        "latency_ms": 7367,
+        "wall_ms": 7367,
+        "cost_usd": 0.0009881,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-00-18",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-00-18.jpg",
+        "last": "2026-06-01_04-03-18.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with a pre-existing pile of debris on the right. No new material was deposited, and no active dumping behavior was observed between the initial and final frames. Traffic appears to be moving through the scene.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, parked cars, street, utility poles. Differences: SHADOW|LIGHTING|MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 3909,
+        "latency_ms": 8801,
+        "wall_ms": 8801,
+        "cost_usd": 0.0009261,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-03-23",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-03-23.jpg",
+        "last": "2026-06-01_04-06-23.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a road with ongoing traffic and parked vehicles. A pre-existing pile of debris is visible on the right side. No active dumping or new material deposition was observed between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects in first frame: road, wall, debris pile, parked cars. Fixed objects in last frame: road, wall, debris pile, parked cars. Differences: MOVING_OBJECT (traffic).",
+        "input_tokens": 2125,
+        "total_tokens": 4022,
+        "latency_ms": 7452,
+        "wall_ms": 7452,
+        "cost_usd": 0.0009713,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-09-33",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-09-33.jpg",
+        "last": "2026-06-01_04-12-33.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with a pre-existing debris pile. A pedestrian is observed walking, indicating traffic. No active dumping is occurring.",
+        "scene_delta_analysis": "Fixed objects: Wall, debris pile, street, parked cars, utility poles. Differences: MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 4364,
+        "latency_ms": 9090,
+        "wall_ms": 9090,
+        "cost_usd": 0.0011081,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-12-38",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-12-38.jpg",
+        "last": "2026-06-01_04-15-38.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "A person is observed walking through the street at night. A pre-existing pile of debris is visible on the roadside, but no active dumping behavior is detected.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, street, light pole, trees, building. Differences: MOVING_OBJECT (person).",
+        "input_tokens": 2125,
+        "total_tokens": 4260,
+        "latency_ms": 9564,
+        "wall_ms": 9564,
+        "cost_usd": 0.0010665,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-15-44",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-15-44.jpg",
+        "last": "2026-06-01_04-18-43.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a road with intermittent traffic at night. A pre-existing pile of debris is visible on the right side, but no active dumping is observed.",
+        "scene_delta_analysis": "Fixed objects: Road, walls, debris pile, parked cars. Differences: Moving vehicles and pedestrians on the road.",
+        "input_tokens": 2125,
+        "total_tokens": 4377,
+        "latency_ms": 9453,
+        "wall_ms": 9454,
+        "cost_usd": 0.0011133,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-21-53",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-21-53.jpg",
+        "last": "2026-06-01_04-24-53.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with moving vehicles and parked cars. A pre-existing pile of debris is visible on the right side. No active dumping behavior was observed during this time window.",
+        "scene_delta_analysis": "(1) Road, wall, debris pile, parked cars, trees, streetlights. (2) Road, wall, debris pile, parked cars, trees, streetlights. (3) MOVING_OBJECT.",
+        "input_tokens": 2125,
+        "total_tokens": 3984,
+        "latency_ms": 7469,
+        "wall_ms": 7469,
+        "cost_usd": 0.0009561,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-24-58",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-24-58.jpg",
+        "last": "2026-06-01_04-27-58.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic at night. A pre-existing pile of debris is visible on the right side, but no active dumping or new material deposition is observed in the frames.",
+        "scene_delta_analysis": "Fixed objects: wall, trees, buildings, street. Moving objects: vehicles, pedestrians. Differences: traffic flow. No new material deposited. Pre-existing litter pile is static.",
+        "input_tokens": 2125,
+        "total_tokens": 4387,
+        "latency_ms": 10907,
+        "wall_ms": 10907,
+        "cost_usd": 0.0011173,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-31-08",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-31-08.jpg",
+        "last": "2026-06-01_04-34-09.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic. A pre-existing pile of debris is visible on the right side, but no active dumping or new material deposition was observed during the analyzed time window.",
+        "scene_delta_analysis": "Fixed objects: street, wall, debris pile, lamp post. Differences: moving vehicles, moving pedestrians.",
+        "input_tokens": 2125,
+        "total_tokens": 4247,
+        "latency_ms": 7385,
+        "wall_ms": 7385,
+        "cost_usd": 0.0010613,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-34-13",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-34-13.jpg",
+        "last": "2026-06-01_04-37-13.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene depicts a road with ongoing traffic, including a person on a bicycle. A pre-existing pile of debris is visible on the right side, but no new material is being deposited during the observed period.",
+        "scene_delta_analysis": "Fixed objects: road, wall, debris pile, parked cars, streetlights. Differences: MOVING_OBJECT (person on bicycle).",
+        "input_tokens": 2125,
+        "total_tokens": 4125,
+        "latency_ms": 7483,
+        "wall_ms": 7483,
+        "cost_usd": 0.0010125,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-40-23",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-40-23.jpg",
+        "last": "2026-06-01_04-43-24.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with ongoing traffic. A pre-existing pile of debris is visible on the right, but no active dumping or new material deposition is observed between the initial and final frames.",
+        "scene_delta_analysis": "Fixed objects: debris pile, wall, street, light pole. Differences: MOVING_OBJECT, LIGHTING.",
+        "input_tokens": 2125,
+        "total_tokens": 4371,
+        "latency_ms": 7961,
+        "wall_ms": 7962,
+        "cost_usd": 0.0011109,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-43-29",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-43-29.jpg",
+        "last": "2026-06-01_04-46-29.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street with ongoing traffic and parked vehicles. A pre-existing debris pile is visible on the right side, but no active dumping or new material deposition is observed.",
+        "scene_delta_analysis": "FIXED_OBJECT (wall, debris pile, parked cars), MOVING_OBJECT (traffic)",
+        "input_tokens": 2125,
+        "total_tokens": 4243,
+        "latency_ms": 7747,
+        "wall_ms": 7747,
+        "cost_usd": 0.0010597,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-49-38",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-49-38.jpg",
+        "last": "2026-06-01_04-52-39.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with a pre-existing pile of debris on the right. General traffic is observed, but no active dumping behavior or new material deposition is visible in the provided frames.",
+        "scene_delta_analysis": "Fixed objects: wall, debris pile, street, poles, trees, buildings, parked cars. Differences: TRAFFIC (moving vehicles/people).",
+        "input_tokens": 2125,
+        "total_tokens": 4212,
+        "latency_ms": 9807,
+        "wall_ms": 9807,
+        "cost_usd": 0.0010473,
+        "model": "gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "window_id": "night_04-52-44",
+      "period": "night",
+      "metadata": {
+        "first": "2026-06-01_04-52-44.jpg",
+        "last": "2026-06-01_04-55-44.jpg",
+        "window_size": 37
+      },
+      "gate": {
+        "ok": true,
+        "new_litter_detected": false,
+        "confidence_0_100": 0,
+        "triggered": false,
+        "scene_type": "TRAFFIC",
+        "person_position_signature": null,
+        "material_flow_direction": null,
+        "evidence_summary": "The scene shows a street at night with ongoing traffic. A pre-existing pile of debris is visible on the right side of the road. No active dumping behavior or new material deposition was observed.",
+        "scene_delta_analysis": "(1) Fixed objects: Road, wall, debris pile, trees, buildings, streetlights, parked cars. (2) Fixed objects: Road, wall, debris pile, trees, buildings, streetlights, parked cars. (3) Differences: MOVING_OBJECT (traffic).",
+        "input_tokens": 2125,
+        "total_tokens": 4413,
+        "latency_ms": 10201,
+        "wall_ms": 10201,
+        "cost_usd": 0.0011277,
+        "model": "gemini-2.5-flash-lite"
+      }
+    }
+  ]
+}
