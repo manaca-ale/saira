@@ -1,0 +1,26 @@
+type: prompt-ab
+title: Detail prompt cam_10 Imbiribeira — V1 vs V1_IMBIRIBEIRA (reduzir FP)
+date: 2026-06-01
+hypothesis: >
+  DETAIL_PROMPT_V1_IMBIRIBEIRA (V1 atual + discriminador de direção EMLURB/coleta +
+  proteção de recall veicular) reduz FP em cam_10 sem perder recall vs V1 baseline (prod).
+model: gemini-2.5-flash
+temperature: 0.0
+n_frames: 48
+arms:
+  - V1                # SYS_V1_PROD (prod atual, + bloco de schema do bench)
+  - V1_IMBIRIBEIRA    # SYS_V1_PROD com bloco de direção inserido antes do schema (diff controlado)
+filters:
+  camera: cam_imbiribeira
+  device_id: esp32_001
+  cohort: db-labeled            # detections.status IN (CONFIRMADO, REJEITADO), camera_id=10
+  n_events: 32                  # 10 CON / 22 REJ (mesmo cohort do backtest DINOv2 Camp 27)
+success_criteria:
+  tp_recall_min_vs_baseline: ">= V1"   # não regredir recall (lição Camp 21)
+  fp_rate: "< V1"                       # reduzir FP
+runner: scripts/run_ab_cam10.py
+api_project: gen-lang-client-0841492152   # chave de TESTE, nunca produção
+notes: >
+  Roda no worker saira-yolo-worker-prod (frames locais + DB). Paridade prod: Flash 2.5,
+  temp 0, N_FRAMES=48. Braço A == prod V1 hoje; B == A + bloco. Cohort = 32 DB-rotulados
+  (consistente com Camp 27/DINOv2). Recall fino (10 TP) — interpretar com cautela.

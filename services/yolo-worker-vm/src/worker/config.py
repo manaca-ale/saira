@@ -255,6 +255,14 @@ DINOV2_N_FRAMES = int(os.getenv("DINOV2_N_FRAMES", "3"))
 _dino_thr = os.getenv("DINOV2_THRESHOLD", "").strip()
 DINOV2_THRESHOLD = float(_dino_thr) if _dino_thr else None
 DINOV2_TORCH_THREADS = int(os.getenv("DINOV2_TORCH_THREADS", "2"))
+# Retreino semanal (worker.retrain_dinov2). Refita o classifier nos rótulos atuais
+# e promove só se passar o gate (AUC>=min E n não encolheu). Default = devices do filtro.
+DINOV2_RETRAIN_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("DINOV2_RETRAIN_DEVICES", ",".join(sorted(DINOV2_FILTER_DEVICES))).split(",")
+    if d.strip()
+}
+DINOV2_RETRAIN_MIN_AUC = float(os.getenv("DINOV2_RETRAIN_MIN_AUC", "0.85"))
 
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
