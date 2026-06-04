@@ -201,6 +201,17 @@ BGSUB_ADAPTIVE_ENABLED = os.getenv("BGSUB_ADAPTIVE_ENABLED", "false").strip().lo
 BGSUB_ADAPTIVE_LEARNING_RATE = float(os.getenv("BGSUB_ADAPTIVE_LEARNING_RATE", "0.05"))
 BGSUB_ADAPTIVE_MIN_CONFIDENCE = int(os.getenv("BGSUB_ADAPTIVE_MIN_CONFIDENCE", "90"))
 BGSUB_ADAPTIVE_SAVE_EVERY_N = int(os.getenv("BGSUB_ADAPTIVE_SAVE_EVERY_N", "50"))
+# Per-camera opt-out of the adaptive baseline. Cameras listed here keep the
+# static (calibrated) baseline and never absorb gate-confirmed-empty windows,
+# avoiding adaptive drift on chronic/busy points (e.g. esp32_005 Arruda, where
+# the drift pinned persistence to 0.0 and suppressed real disposals — see camp
+# 33). Such cameras rely on a frozen fresh baseline + periodic recalibration
+# instead. Default empty → global BGSUB_ADAPTIVE_ENABLED behaviour unchanged.
+BGSUB_ADAPTIVE_DISABLE_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("BGSUB_ADAPTIVE_DISABLE_DEVICES", "").split(",")
+    if d.strip()
+}
 
 # Dual-rate MOG2 — two background models per camera (fast + slow learning).
 # Combines as `static_fg = slow_mask AND NOT fast_mask`, isolating objects that
