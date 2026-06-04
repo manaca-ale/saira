@@ -1277,7 +1277,13 @@ def _process_with_gemini_cascade_window(
     # Adaptive baseline — when the gate confirms no new litter with high
     # confidence, absorb these frames into MOG2 so subsequent identical
     # scenes get filtered. Gated by BGSUB_ADAPTIVE_ENABLED (default false).
-    if config.BGSUB_PREFILTER_ENABLED and not bool(gate_report.new_litter_detected):
+    # Cameras in BGSUB_ADAPTIVE_DISABLE_DEVICES opt out (frozen baseline +
+    # periodic recalibration) to avoid drift — see config + camp 33.
+    adaptive_on = (
+        config.BGSUB_PREFILTER_ENABLED
+        and device_id not in config.BGSUB_ADAPTIVE_DISABLE_DEVICES
+    )
+    if adaptive_on and not bool(gate_report.new_litter_detected):
         adapt_result = bgsub_filter.update_baseline_with_frames(
             device_id=device_id,
             frame_paths=window_paths,
@@ -1288,7 +1294,7 @@ def _process_with_gemini_cascade_window(
             camera_id=_camera_label(camera),
             reason=adapt_result.reason,
         )
-    elif config.BGSUB_PREFILTER_ENABLED and bool(gate_report.new_litter_detected):
+    elif adaptive_on and bool(gate_report.new_litter_detected):
         # Skip update when descarte detected — we don't want to absorb TPs.
         observe_bgsub_adaptive_update(
             camera_id=_camera_label(camera),
