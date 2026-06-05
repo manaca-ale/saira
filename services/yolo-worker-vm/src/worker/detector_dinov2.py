@@ -24,8 +24,10 @@ torch ausente ou crop inválido NUNCA descarta um descarte real.
 """
 from __future__ import annotations
 
+import json
 import logging
 import time
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -35,6 +37,12 @@ import numpy as np
 from . import config
 
 logger = logging.getLogger(__name__)
+
+# Persistent shadow-decision ledger. Lives in the models volume so it survives
+# container recreate (worker stdout does NOT — see Camp 35). One JSON line per
+# scored evaluation; later joined to detections via request_id to score the
+# shadow against operator labels.
+SHADOW_LEDGER_NAME = "shadow_decisions.jsonl"
 
 # ImageNet normalization (igual ao treino).
 _MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
@@ -148,6 +156,44 @@ _cache = _DinoCache()
 
 def invalidate_cache(device_id: Optional[str] = None) -> None:
     _cache.invalidate(device_id)
+
+
+def record_shadow_decision(
+    *,
+    request_id: str,
+    device_id: str,
+    result: "DinoFilterResult",
+    gemini_disposal: bool,
+    mode: Optional[str] = None,
+    models_dir: Optional[str] = None,
+) -> None:
+    """Append one shadow/enforce decision to the persistent ledger (fail-safe).
+
+    Only records decisions the filter actually scored (reason in rejected/passed);
+    skips skipped_*/error rows (no signal). Never raises — a ledger write must
+    not break the pipeline.
+    """
+    if result.reason not in ("rejected", "passed"):
+        return
+    try:
+        d = models_dir or config.DINOV2_MODELS_DIR
+        Path(d).mkdir(parents=True, exist_ok=True)
+        rec = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+            "device_id": device_id,
+            "mode": mode if mode is not None else config.DINOV2_FILTER_MODE,
+            "p_con": round(float(result.p_con), 4),
+            "threshold": float(result.threshold),
+            "should_reject": bool(result.should_reject),
+            "reason": result.reason,
+            "n_frames_used": int(result.n_frames_used),
+            "gemini_disposal": bool(gemini_disposal),
+        }
+        with open(Path(d) / SHADOW_LEDGER_NAME, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("dinov2: failed to record shadow decision: %s", exc)
 
 
 def _bbox_from_polygon(polygon: Any) -> Optional[tuple[int, int, int, int]]:

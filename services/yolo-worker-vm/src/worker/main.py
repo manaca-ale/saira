@@ -869,6 +869,14 @@ def _process_with_gemini(
         if config.DINOV2_FILTER_MODE != "off" and disposal and device_id in config.DINOV2_FILTER_DEVICES:
             pile_poly = getattr(camera, "pile_zone_polygon", None)
             dino_result = detector_dinov2.evaluate(sequence_paths, device_id, pile_poly, camera)
+            # Persist every scored decision so the shadow track record survives
+            # container recreate (worker stdout does not) — see Camp 35.
+            detector_dinov2.record_shadow_decision(
+                request_id=request_id,
+                device_id=device_id,
+                result=dino_result,
+                gemini_disposal=True,
+            )
             if dino_result.should_reject:
                 logger.info(
                     json.dumps(
