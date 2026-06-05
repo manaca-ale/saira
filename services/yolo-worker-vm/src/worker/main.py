@@ -1574,6 +1574,212 @@ def _append_cascade_audit(device_id: str, record: dict[str, Any]) -> None:
         logger.exception("Failed to append gemini_cascade_audit for device=%s", device_id)
 
 
+# ==========================================
+# SLIDING-WINDOW SHADOW A/B (Camp 36) — logs only, never mutates prod state
+# ==========================================
+def _shadow_state_path(device_id: str) -> Path:
+    return Path(config.STATE_DIR) / "sliding_shadow_state" / f"{device_id}.json"
+
+
+def _load_shadow_state(device_id: str) -> dict[str, Any]:
+    try:
+        p = _shadow_state_path(device_id)
+        if p.exists():
+            return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        logger.warning("sliding_shadow: failed to load state device=%s", device_id)
+    return {}
+
+
+def _save_shadow_state(device_id: str, state: dict[str, Any]) -> None:
+    try:
+        p = _shadow_state_path(device_id)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        tmp = p.with_suffix(".tmp")
+        tmp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(p)
+    except Exception:
+        logger.warning("sliding_shadow: failed to save state device=%s", device_id)
+
+
+def _append_sliding_shadow_audit(device_id: str, record: dict[str, Any]) -> None:
+    try:
+        day = datetime.now(BRASILIA).strftime("%Y-%m-%d")
+        day_dir = Path(config.STATE_DIR) / "sliding_shadow_audit" / day
+        day_dir.mkdir(parents=True, exist_ok=True)
+        with (day_dir / f"{device_id}.jsonl").open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        logger.exception("sliding_shadow: failed to append audit device=%s", device_id)
+
+
+def _gather_recent_frames(device_dir: Path, since_epoch: float) -> list[Path]:
+    """All frames (unprocessed + already-moved to sem_ocorrencia/ocorrencias) with
+    timestamp >= since_epoch. Lets the shadow see history regardless of two_folders moves."""
+    out: list[tuple[float, Path]] = []
+    for jpg in device_dir.rglob("*.jpg"):
+        if "labeled" in jpg.parts:
+            continue
+        try:
+            ts = parse_timestamp(jpg.name).timestamp()
+        except Exception:
+            continue
+        if ts >= since_epoch:
+            out.append((ts, jpg))
+    out.sort(key=lambda x: x[0])
+    return [p for _, p in out]
+
+
+def _shadow_camera_context(camera, device_id: str, last_frame_name: str) -> dict[str, str]:
+    try:
+        hhmm = parse_timestamp(last_frame_name).strftime("%H:%M")
+    except Exception:
+        hhmm = ""
+    return {
+        "camera_name": camera.name, "device_id": device_id,
+        "logradouro": camera.logradouro or "", "bairro": camera.bairro or "",
+        "rpa": camera.rpa or "", "horario_local": hhmm,
+    }
+
+
+def _shadow_prior_ctx(prior_had: bool, prior_waste: Optional[str]) -> Optional[str]:
+    if not prior_had:
+        return None
+    wl = f" (type: {prior_waste})" if prior_waste else ""
+    return (f"- The previous 2-minute window ALREADY had waste at this location{wl}. "
+            "Confirm NEW_SOLID_WASTE only if a NEW object appeared or the volume visibly increased.")
+
+
+def _shadow_detail(window: list[Path], device_id: str, camera, prior_had: bool,
+                   prior_waste: Optional[str]) -> tuple[bool, float]:
+    """Faithful detail (Agent-2) for the shadow: same pile-crop logic as prod, no DB write."""
+    cam_ctx = _shadow_camera_context(camera, device_id, window[-1].name)
+    prior_ctx = _shadow_prior_ctx(prior_had, prior_waste)
+    pile_crops = None
+    prompt_v = config.GEMINI_PROMPT_VERSION
+    tmp_dir: Optional[Path] = None
+    if (config.GEMINI_DETAIL_PILECROP_ENABLED and device_id in config.DETAIL_PILECROP_DEVICES
+            and len(window) >= 2):
+        poly = getattr(camera, "pile_zone_polygon", None)
+        bbox = _pile_bbox(poly) if poly else None
+        if bbox:
+            n_target = min(max(1, config.GEMINI_DETAIL_PILECROP_N_FRAMES), len(window))
+            idxs = ([int(round(i * (len(window) - 1) / (n_target - 1))) for i in range(n_target)]
+                    if n_target > 1 else [0])
+            tmp_dir = Path(tempfile.mkdtemp(prefix="shadow_pilecrop_"))
+            crops = _make_pile_crops([window[k] for k in idxs], bbox,
+                                     config.GEMINI_DETAIL_PILECROP_UPSCALE, tmp_dir)
+            if crops:
+                pile_crops = crops
+                prompt_v = "mangabeira_with_pilecrops"
+    try:
+        res = analyze_with_gemini(
+            image_paths=window, camera_context=cam_ctx, mosaic_mode=config.GEMINI_MOSAIC_AGENT2,
+            prior_window_context=prior_ctx, prompt_version=prompt_v, pile_crops=pile_crops)
+        return bool(res.report.infraction_confirmed), float(res.usage.estimated_cost_usd or 0.0)
+    finally:
+        if tmp_dir is not None:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def _run_sliding_shadow(device_dir: Path, device_id: str, camera) -> None:
+    """Evaluate overlapping sliding windows in SHADOW (log-only). Runs AFTER the live
+    fixed pipeline so it never delays prod; uses its own state + audit. BGSUB-gated cost."""
+    if not config.GEMINI_SLIDING_SHADOW_ENABLED or device_id not in config.SLIDING_SHADOW_DEVICES:
+        return
+    try:
+        win_s = config.GEMINI_SLIDING_WINDOW_SECONDS
+        stride = max(1, config.GEMINI_SLIDING_STRIDE_SECONDS)
+        min_f = config.GEMINI_SLIDING_MIN_FRAMES
+        max_f = config.GEMINI_SLIDING_MAX_FRAMES
+        st = _load_shadow_state(device_id)
+        last_eval = float(st.get("last_eval_epoch") or 0.0)
+
+        frames = _gather_recent_frames(device_dir, since_epoch=last_eval - win_s)
+        if len(frames) < min_f:
+            return
+        epochs = {p: parse_timestamp(p.name).timestamp() for p in frames}
+        ordered = sorted(frames, key=lambda p: epochs[p])
+        latest = epochs[ordered[-1]]
+        earliest = epochs[ordered[0]]
+
+        # stride grid anchored on the epoch axis (deterministic); evaluate T in (last_eval, latest]
+        k = (int(last_eval // stride) + 1) if last_eval else int((earliest + win_s) // stride)
+        T = k * stride
+        prior_had = bool(st.get("prior_had_litter", False))
+        prior_waste = st.get("prior_waste")
+        last_confirm = st.get("last_confirm_epoch")
+        evaluated_to = last_eval
+        n_eval = 0
+        MAX_PER_POLL = 16  # safety cap against backlog blowups
+
+        while T <= latest and n_eval < MAX_PER_POLL:
+            window = [p for p in ordered if (T - win_s) < epochs[p] <= T]
+            if len(window) > max_f:
+                window = window[-max_f:]
+            if len(window) >= max(2, min_f):
+                rec: dict[str, Any] = {
+                    "stride_epoch": round(T, 1),
+                    "stride_iso": datetime.fromtimestamp(T, BRASILIA).isoformat(),
+                    "window_first": window[0].name, "window_last": window[-1].name,
+                    "window_size": len(window),
+                    "created_at": datetime.now(BRASILIA).isoformat(),
+                }
+                bg = bgsub_filter.evaluate(window, device_id,
+                                           getattr(camera, "pile_zone_polygon", None), camera)
+                rec["bgsub_suppressed"] = bool(bg.should_suppress)
+                rec["bgsub_persistence"] = float(getattr(bg, "persistence", 0.0))
+                if bg.should_suppress:
+                    rec.update({"gate_ran": False, "would_confirm": False})
+                    _append_sliding_shadow_audit(device_id, rec)
+                else:
+                    n = len(window)
+                    mids = ([window[n // 4], window[n // 2], window[3 * n // 4]] if n >= 5
+                            else [window[n // 2]] if n >= 4 else None)
+                    gate = analyze_new_litter_with_gemini(
+                        first_frame=window[0], last_frame=window[-1],
+                        camera_context=_shadow_camera_context(camera, device_id, window[-1].name),
+                        prior_window_context=_shadow_prior_ctx(prior_had, prior_waste),
+                        use_mosaic=config.GEMINI_MOSAIC_AGENT1, mid_frames=mids,
+                        prompt_version=config.GEMINI_PROMPT_VERSION)
+                    gr = gate.report
+                    prior_had = bool(getattr(gr, "last_frame_has_litter", False))
+                    prior_waste = getattr(gr, "waste_type", None)
+                    trigger = (bool(gr.new_litter_detected)
+                               and int(gr.confidence_0_100) >= config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE)
+                    rec.update({
+                        "gate_ran": True, "gate_new_litter": bool(gr.new_litter_detected),
+                        "gate_conf": int(gr.confidence_0_100), "gate_triggered": trigger,
+                        "gate_waste_type": prior_waste,
+                        "gate_cost_usd": float(gate.usage.estimated_cost_usd or 0.0),
+                    })
+                    if trigger:
+                        disposal, dcost = _shadow_detail(window, device_id, camera, prior_had, prior_waste)
+                        is_new = disposal and (last_confirm is None
+                                               or (T - float(last_confirm)) > config.GEMINI_SLIDING_COALESCE_SECONDS)
+                        if disposal:
+                            last_confirm = T
+                        rec.update({"detail_ran": True, "detail_cost_usd": dcost,
+                                    "would_confirm": bool(disposal),
+                                    "is_coalesced_new_fp": bool(is_new)})
+                    else:
+                        rec.update({"detail_ran": False, "would_confirm": False})
+                    _append_sliding_shadow_audit(device_id, rec)
+                n_eval += 1
+            evaluated_to = T
+            T += stride
+
+        st.update({"last_eval_epoch": evaluated_to, "prior_had_litter": prior_had,
+                   "prior_waste": prior_waste, "last_confirm_epoch": last_confirm})
+        _save_shadow_state(device_id, st)
+        if n_eval:
+            logger.info(json.dumps({"event": "sliding_shadow_poll", "device_id": device_id,
+                                    "windows_evaluated": n_eval, "up_to": evaluated_to},
+                                   ensure_ascii=False))
+    except Exception:
+        logger.exception("sliding_shadow failed device=%s", device_id)
+
+
 def _update_shadow_metrics(day_dir: Path, record: dict[str, Any]) -> None:
     metrics_path = day_dir / "metrics.json"
     if metrics_path.exists():
@@ -1944,6 +2150,9 @@ def scan_and_process() -> int:
                     )
             if device_processed > 0:
                 update_camera_last_capture(camera.id)
+            # Sliding-window shadow A/B (Camp 36) — log-only, runs after the live
+            # pipeline so it never delays prod; no-op unless flag+device enabled.
+            _run_sliding_shadow(device_dir, device_id, camera)
             continue
 
         for idx, jpg in enumerate(images):

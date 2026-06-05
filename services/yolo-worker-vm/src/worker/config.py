@@ -133,6 +133,30 @@ DETAIL_PILECROP_DEVICES = {
 GEMINI_DETAIL_PILECROP_UPSCALE = int(os.getenv("GEMINI_DETAIL_PILECROP_UPSCALE", "2"))
 GEMINI_DETAIL_PILECROP_N_FRAMES = int(os.getenv("GEMINI_DETAIL_PILECROP_N_FRAMES", "12"))
 
+# -----------------------------------------------------------------------------
+# Sliding-window SHADOW A/B (Camp 36, 2026-06-05). Runs an overlapping sliding
+# window (window_s, stride) alongside the live fixed-window pipeline and ONLY
+# LOGS what it would do — never creates detections/notifications nor mutates the
+# prod cascade state / BGSUB baseline. Goal: measure FP/latency of the sliding
+# strategy WITH the real BGSUB pre-filter, on live data, to compare vs the fixed
+# pipeline. BGSUB suppresses empty windows BEFORE the gate, so the extra Gemini
+# cost is proportional to scene activity (near-zero on idle cameras).
+# Offline sim (camp 36) picked slide_120/stride60 as the best latency↔FP Pareto.
+# Decisions persisted to STATE_DIR/sliding_shadow_audit/{date}/{device}.jsonl
+# (survives container recreate — same pattern as DINOv2 shadow). Default OFF.
+GEMINI_SLIDING_SHADOW_ENABLED = os.getenv("GEMINI_SLIDING_SHADOW_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+SLIDING_SHADOW_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("SLIDING_SHADOW_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+GEMINI_SLIDING_WINDOW_SECONDS = int(os.getenv("GEMINI_SLIDING_WINDOW_SECONDS", "120"))
+GEMINI_SLIDING_STRIDE_SECONDS = int(os.getenv("GEMINI_SLIDING_STRIDE_SECONDS", "60"))
+GEMINI_SLIDING_MIN_FRAMES = int(os.getenv("GEMINI_SLIDING_MIN_FRAMES", "12"))
+GEMINI_SLIDING_MAX_FRAMES = int(os.getenv("GEMINI_SLIDING_MAX_FRAMES", "24"))
+# Coalescing window for operator-facing FP counting (mirrors EVENT_WINDOW_MIN).
+GEMINI_SLIDING_COALESCE_SECONDS = int(os.getenv("GEMINI_SLIDING_COALESCE_SECONDS", "600"))
+
 # Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.
