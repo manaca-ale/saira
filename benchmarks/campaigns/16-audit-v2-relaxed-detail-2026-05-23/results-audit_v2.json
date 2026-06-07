@@ -1,0 +1,1136 @@
+{
+  "summary": {
+    "arm": "audit_v2",
+    "n_total": 45,
+    "n_ok": 45,
+    "n_failed": 0,
+    "source_file": "C:\\saira\\benchmarks\\campaigns\\16-audit-v2-relaxed-detail-2026-05-23\\raw-audit_v2.json"
+  },
+  "results": [
+    {
+      "event": "57f7f1ed-2d9a-4e82-9585-775c9e366561",
+      "ground_truth": "TP",
+      "fp_cause": "Uma pessoa realizando descarte de múltiplas coisas",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001855,
+        "latency_ms": 17731,
+        "input_tokens": 3041,
+        "output_tokens": 377,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa se inclina e deposita objetos brancos na pilha de lixo existente, confirmando a ação de descarte irregular."
+      },
+      "total_cost_usd": 0.001855
+    },
+    {
+      "event": "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+      "ground_truth": "TP",
+      "fp_cause": "Um homem realizando o descarte de múltiplas coisas",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001832,
+        "latency_ms": 10086,
+        "input_tokens": 3041,
+        "output_tokens": 368,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa se inclina sobre a pilha de lixo existente e deposita um saco branco, confirmando a ação de descarte irregular."
+      },
+      "total_cost_usd": 0.001832
+    },
+    {
+      "event": "bc0528c2-8034-40a8-bad3-62f93136f44c",
+      "ground_truth": "TP",
+      "fp_cause": "Um homem realizando o descarte do conteúdo de uma sacola branca",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001957,
+        "latency_ms": 14010,
+        "input_tokens": 3041,
+        "output_tokens": 418,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "Múltiplas pessoas foram observadas agachadas junto à pilha de resíduos, com sacos visíveis e postura de depósito/interação, confirmando um descarte real."
+      },
+      "total_cost_usd": 0.001957
+    },
+    {
+      "event": "a73a3f44-03d0-4dc1-b850-efbac6210f3e",
+      "ground_truth": "TP",
+      "fp_cause": "Caminhonete azul escura realiza o descarte de um grande volume de lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 85,
+        "cost_usd": 0.001816,
+        "latency_ms": 21973,
+        "input_tokens": 3037,
+        "output_tokens": 362,
+        "fp_pattern_match": "carroceiro_sorting",
+        "audit_rationale": "A presenca de uma carroca manual e pessoas interagindo com a pilha de residuos existente indica atividade de triagem por catadores. Nao ha evidencia clara de descarte de novo material."
+      },
+      "total_cost_usd": 0.001816
+    },
+    {
+      "event": "cb49921a-c894-4cfd-8802-5c41316e7301",
+      "ground_truth": "TP",
+      "fp_cause": "Pessoas realizando o descarte do conteúdo de um saco marom aparentemente",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 70,
+        "cost_usd": 0.001971,
+        "latency_ms": 18465,
+        "input_tokens": 3037,
+        "output_tokens": 424,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "O caminhão de carroceria aberta parado junto à pilha e a postura de uma pessoa inclinada sobre os resíduos indicam uma ação de descarte ou manuseio irregular, não sendo uma coleta municipal ou tráfego comum."
+      },
+      "total_cost_usd": 0.001971
+    },
+    {
+      "event": "218673e1-397c-4293-be2b-0d5e2326334f",
+      "ground_truth": "TP",
+      "fp_cause": "Dois homens realizando o descarte de objetos grandes",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001901,
+        "latency_ms": 14480,
+        "input_tokens": 3037,
+        "output_tokens": 396,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "Pessoas são observadas em postura de depósito e interação com uma pilha de lixo existente, com o surgimento de uma nova caixa de papelão na cena, confirmando descarte irregular."
+      },
+      "total_cost_usd": 0.001901
+    },
+    {
+      "event": "d00a79bd-4052-4406-986f-01707b7fc713",
+      "ground_truth": "TP",
+      "fp_cause": "Grande quantidade de lixo descartada por um homem utilizando uniforme laranja",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.00189,
+        "latency_ms": 10822,
+        "input_tokens": 3041,
+        "output_tokens": 391,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa em uniforme laranja depositou sacos de lixo de um carrinho de mão na pilha existente, o que é visível na sequência de frames."
+      },
+      "total_cost_usd": 0.00189
+    },
+    {
+      "event": "12506543-1c64-4604-8c76-a85300a43669",
+      "ground_truth": "TP",
+      "fp_cause": "Os dois homens ainda estavam mexendo no lixo, mas no final aparece um outro homem que realiza um descarte",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001811,
+        "latency_ms": 16220,
+        "input_tokens": 3037,
+        "output_tokens": 360,
+        "fp_pattern_match": "carroceiro_sorting",
+        "audit_rationale": "A cena mostra uma pessoa com uma carroça de madeira, indicando atividade de catador. Não há postura clara de depósito de resíduos no chão, mas sim de organização ou carregamento na carroça."
+      },
+      "total_cost_usd": 0.001811
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_000",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001677,
+        "latency_ms": 9575,
+        "input_tokens": 3041,
+        "output_tokens": 306,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A cena mostra pedestres e um veículo em trânsito, sem parar ou interagir com a pilha de resíduos. Não há indícios de descarte, configurando um falso positivo de tráfego passando."
+      },
+      "total_cost_usd": 0.001677
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_003",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.00172,
+        "latency_ms": 9814,
+        "input_tokens": 3041,
+        "output_tokens": 323,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A pessoa visível na sequência está apenas passando pela calçada com uma sacola, sem parar ou interagir com a pilha de resíduos existente. Não há evidência de descarte irregular."
+      },
+      "total_cost_usd": 0.00172
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_011",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001672,
+        "latency_ms": 7384,
+        "input_tokens": 3041,
+        "output_tokens": 304,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A pessoa visível na sequência apenas caminha pela calçada, sem parar ou interagir com a pilha de lixo existente. Veículos também apenas transitam pela via."
+      },
+      "total_cost_usd": 0.001672
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_023",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001677,
+        "latency_ms": 9342,
+        "input_tokens": 3041,
+        "output_tokens": 306,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A pessoa na bicicleta passa pela pilha de lixo sem parar ou depositar qualquer material. Veículos também transitam pela via sem interação com o resíduo."
+      },
+      "total_cost_usd": 0.001677
+    },
+    {
+      "event": "baseline_cam_mangabeira_day_051",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 75,
+        "cost_usd": 0.001912,
+        "latency_ms": 18847,
+        "input_tokens": 3041,
+        "output_tokens": 400,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa em camisa verde se inclina sobre a pilha de resíduos, que inclui poda fresca, indicando uma ação de descarte ou manipulação irregular no local. A postura é consistente com descarte pedestre."
+      },
+      "total_cost_usd": 0.001912
+    },
+    {
+      "event": "baseline_cam_mangabeira_night_040",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001897,
+        "latency_ms": 11884,
+        "input_tokens": 3041,
+        "output_tokens": 394,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "Uma pessoa foi observada em postura de descarte, inclinada sobre a pilha de lixo com uma bolsa, confirmando um descarte irregular de pequeno volume."
+      },
+      "total_cost_usd": 0.001897
+    },
+    {
+      "event": "baseline_cam_mangabeira_night_056",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 75,
+        "cost_usd": 0.001665,
+        "latency_ms": 10109,
+        "input_tokens": 3041,
+        "output_tokens": 301,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "Pessoas e veículos apenas transitam pela cena, sem qualquer interação de descarte com a pilha de resíduos já existente. Não há postura de depósito ou material sendo adicionado."
+      },
+      "total_cost_usd": 0.001665
+    },
+    {
+      "event": "baseline_cam_imbiribeira_night_040",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001826,
+        "latency_ms": 19143,
+        "input_tokens": 3037,
+        "output_tokens": 366,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A pessoa aparece na cena, para brevemente perto da pilha de lixo e do carrinho, mas não realiza nenhuma ação de descarte ou coleta, apenas segue seu caminho. Não há evidência de infração."
+      },
+      "total_cost_usd": 0.001826
+    },
+    {
+      "event": "baseline_cam_imbiribeira_night_048",
+      "ground_truth": "FP",
+      "fp_cause": null,
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001704,
+        "latency_ms": 10107,
+        "input_tokens": 3037,
+        "output_tokens": 317,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A pessoa visível na cena está apenas passando pela área, sem parar ou interagir com os resíduos existentes. Não há indícios de descarte irregular."
+      },
+      "total_cost_usd": 0.001704
+    },
+    {
+      "event": "767e7d17-0e22-4d2d-b84c-5b6623b855d4",
+      "ground_truth": "FP",
+      "fp_cause": "Nada ocorrendo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 75,
+        "cost_usd": 0.001924,
+        "latency_ms": 15026,
+        "input_tokens": 3037,
+        "output_tokens": 405,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa permanece agachada/inclinada junto à pilha de resíduos por vários frames, indicando ação de depósito ou manipulação que contribui para o descarte irregular. Não há evidência de coleta municipal ou carroça."
+      },
+      "total_cost_usd": 0.001924
+    },
+    {
+      "event": "765854fa-1770-4974-8fb0-3eee7b71998c",
+      "ground_truth": "FP",
+      "fp_cause": "Caminhão realizando a retirada de lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001766,
+        "latency_ms": 8802,
+        "input_tokens": 3037,
+        "output_tokens": 342,
+        "fp_pattern_match": "municipal_collection",
+        "audit_rationale": "A cena mostra um caminhão com caçamba e pessoas ativamente recolhendo resíduos do chão e carregando-os no veículo, indicando uma operação de coleta ou limpeza, não um descarte irregular."
+      },
+      "total_cost_usd": 0.001766
+    },
+    {
+      "event": "07925285-dce1-4f8c-9c4e-3c778173fcb2",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoa passando com um carrinho",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001871,
+        "latency_ms": 11659,
+        "input_tokens": 3037,
+        "output_tokens": 384,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa foi flagrada em postura de depósito (agachada) ao lado da pilha de resíduos, com um objeto/saco visível, confirmando descarte irregular."
+      },
+      "total_cost_usd": 0.001871
+    },
+    {
+      "event": "4b6e9df1-81d4-4f5f-9865-191284e9f8c6",
+      "ground_truth": "FP",
+      "fp_cause": "Caminhão realizando a retirada de lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001759,
+        "latency_ms": 10841,
+        "input_tokens": 3037,
+        "output_tokens": 339,
+        "fp_pattern_match": "municipal_collection",
+        "audit_rationale": "A cena mostra um caminhão de coleta municipal e trabalhadores removendo resíduos de uma pilha, que diminui ao longo da sequência. Isso indica uma ação de coleta, não de descarte irregular."
+      },
+      "total_cost_usd": 0.001759
+    },
+    {
+      "event": "3f5e4001-455f-4ffd-bd53-f5257c01af10",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas está chovendo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001689,
+        "latency_ms": 9066,
+        "input_tokens": 3037,
+        "output_tokens": 311,
+        "fp_pattern_match": "rain_blur",
+        "audit_rationale": "A cena está fortemente obscurecida por chuva e desfoque, impedindo a identificação de qualquer ação de descarte. A visibilidade é insuficiente para confirmar uma infração."
+      },
+      "total_cost_usd": 0.001689
+    },
+    {
+      "event": "8e92e6c3-e5a4-4cce-9df6-331b251e9b4d",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam limpando os restos de poda",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001937,
+        "latency_ms": 14869,
+        "input_tokens": 3041,
+        "output_tokens": 410,
+        "fp_pattern_match": "pruning_crew",
+        "audit_rationale": "A cena mostra um caminhão utilitário com restos de poda e uma pessoa uniformizada, indicando atividade de equipe de poda ou coleta municipal. Não há evidência de descarte de material no chão."
+      },
+      "total_cost_usd": 0.001937
+    },
+    {
+      "event": "a034010b-8138-4a0c-9b18-d2852dbf9ca3",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoas passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001932,
+        "latency_ms": 15191,
+        "input_tokens": 3041,
+        "output_tokens": 408,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "Uma pessoa se aproxima da pilha de resíduos com um objeto, para, se inclina e deposita o item na pilha, confirmando descarte irregular."
+      },
+      "total_cost_usd": 0.001932
+    },
+    {
+      "event": "7c0cdfaa-6655-47b9-95a0-027bd2755e6b",
+      "ground_truth": "FP",
+      "fp_cause": "Dois homens trocando objetos, parece um descarte mas eles apenas usam o local para realizar uma troca",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001887,
+        "latency_ms": 14335,
+        "input_tokens": 3041,
+        "output_tokens": 390,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "Pessoas se inclinam e interagem com a pilha de lixo, uma delas depositando uma caixa de papelão, configurando descarte irregular."
+      },
+      "total_cost_usd": 0.001887
+    },
+    {
+      "event": "28fba845-30a2-44f9-9639-400cb87ee60b",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoa passando com um carrinho",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 90,
+        "cost_usd": 0.00167,
+        "latency_ms": 12014,
+        "input_tokens": 3041,
+        "output_tokens": 303,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "As pessoas visíveis na sequência estão apenas passando pela calçada, sem interagir com a pilha de lixo existente ou realizar qualquer ação de descarte."
+      },
+      "total_cost_usd": 0.00167
+    },
+    {
+      "event": "b014d1e6-31f7-427c-8448-201747c0afaf",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoas passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.0019,
+        "latency_ms": 10932,
+        "input_tokens": 3041,
+        "output_tokens": 395,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa foi flagrada agachando-se e depositando um saco azul na pilha de lixo existente, confirmando a ação de descarte irregular."
+      },
+      "total_cost_usd": 0.0019
+    },
+    {
+      "event": "277a0631-2e5d-4521-a420-7dafe453f9ab",
+      "ground_truth": "FP",
+      "fp_cause": "Carro apenas estacionou",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001885,
+        "latency_ms": 14541,
+        "input_tokens": 3041,
+        "output_tokens": 389,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa na última imagem está em postura de depósito/interação com a pilha de resíduos, indicando descarte ou organização de material. A ação é sutil, mas a postura é clara."
+      },
+      "total_cost_usd": 0.001885
+    },
+    {
+      "event": "3766dca1-28db-4e31-94f2-6b810c9db47c",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam retirando o Lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.00165,
+        "latency_ms": 8625,
+        "input_tokens": 3041,
+        "output_tokens": 295,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "Pessoas foram observadas apenas passando pela área do descarte, sem qualquer postura de depósito ou interação com os resíduos. Não há indícios de descarte irregular."
+      },
+      "total_cost_usd": 0.00165
+    },
+    {
+      "event": "4b4f11d7-68be-4f16-a013-8a1555669730",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas pessoas e veículos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001761,
+        "latency_ms": 9355,
+        "input_tokens": 3037,
+        "output_tokens": 340,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "Pessoas e veículos são vistos apenas passando pela área da pilha de resíduos, sem qualquer indicação de descarte ou interação com o lixo. A infração não foi confirmada pois se trata de um falso positivo de tráfego."
+      },
+      "total_cost_usd": 0.001761
+    },
+    {
+      "event": "f58d2688-1e94-4263-ad51-62d05a1aba09",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas pessoas e veículos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 75,
+        "cost_usd": 0.001999,
+        "latency_ms": 13797,
+        "input_tokens": 3037,
+        "output_tokens": 435,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A postura da pessoa inclinada/agachada junto à pilha de entulho no frame 13:01:30 é um forte indicativo de descarte real, mesmo sem a visualização clara de um objeto sendo depositado. Pequenos descartes pedestres são sutis e a postura é o principal sinal."
+      },
+      "total_cost_usd": 0.001999
+    },
+    {
+      "event": "d588e2b2-12f6-4a32-99e7-1ec271607c51",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam realizando a poda",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 80,
+        "cost_usd": 0.001832,
+        "latency_ms": 11169,
+        "input_tokens": 3041,
+        "output_tokens": 368,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa se inclina sobre a pilha de lixo em postura de descarte, indicando um depósito real de resíduos."
+      },
+      "total_cost_usd": 0.001832
+    },
+    {
+      "event": "e92728ca-7aa0-4b19-a78e-8f43d288e64e",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas motos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001657,
+        "latency_ms": 9148,
+        "input_tokens": 3041,
+        "output_tokens": 298,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "As imagens mostram motocicletas e um pedestre apenas passando pela via, sem qualquer interação ou descarte de material na pilha de resíduos existente. Portanto, não há infração confirmada."
+      },
+      "total_cost_usd": 0.001657
+    },
+    {
+      "event": "b18fe72e-1b4f-4f36-a2b8-033f5b209749",
+      "ground_truth": "FP",
+      "fp_cause": "Pessoas passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001817,
+        "latency_ms": 13434,
+        "input_tokens": 3041,
+        "output_tokens": 362,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A sequência mostra dois indivíduos depositando um painel branco grande na pilha de resíduos existente, configurando descarte irregular."
+      },
+      "total_cost_usd": 0.001817
+    },
+    {
+      "event": "659c0d0d-ee0b-4bc0-a3ef-5fa16cde0fdd",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas pessoas e veículos passando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 100,
+        "cost_usd": 0.001744,
+        "latency_ms": 10387,
+        "input_tokens": 3037,
+        "output_tokens": 333,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A cena mostra veículos e pedestres apenas passando pela via, sem qualquer interação de descarte com o lixo já existente. Não há postura de depósito ou material sendo descarregado."
+      },
+      "total_cost_usd": 0.001744
+    },
+    {
+      "event": "b58f9b56-f286-4055-9b82-b53362eba589",
+      "ground_truth": "FP",
+      "fp_cause": "Apenas um homem passando de bicicleta",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 20,
+        "cost_usd": 0.001645,
+        "latency_ms": 10955,
+        "input_tokens": 3041,
+        "output_tokens": 293,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A pessoa com o carrinho está apenas passando pela pilha de resíduos, sem realizar qualquer ação de depósito ou coleta. Não há evidência de descarte irregular."
+      },
+      "total_cost_usd": 0.001645
+    },
+    {
+      "event": "17ff7912-a48a-43b7-92ff-108f621a42fd",
+      "ground_truth": "FP",
+      "fp_cause": "Estavam realizando a poda",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 70,
+        "cost_usd": 0.001875,
+        "latency_ms": 18738,
+        "input_tokens": 3041,
+        "output_tokens": 385,
+        "fp_pattern_match": "pruning_crew",
+        "audit_rationale": "A cena mostra uma equipe com um pequeno caminhão e uma pessoa em uniforme verde, interagindo com uma pilha de restos de poda e lixo. A ação parece ser de organização ou coleta, não de descarte."
+      },
+      "total_cost_usd": 0.001875
+    },
+    {
+      "event": "85a764a7-e447-4936-aa56-1b8265046630",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possível descarte ou coleta sendo realizada com uma carroça",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001949,
+        "latency_ms": 15897,
+        "input_tokens": 3037,
+        "output_tokens": 415,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa e o veículo ficaram parados junto à pilha de resíduos por tempo prolongado, e a pessoa se afastou em seguida, sugerindo ação de descarte. A postura e o contexto indicam descarte real, mesmo que sutil."
+      },
+      "total_cost_usd": 0.001949
+    },
+    {
+      "event": "62894ccc-4ba0-46eb-837b-f3cec8847e74",
+      "ground_truth": "INDEF",
+      "fp_cause": "Pessoas mexendo, tirando e colocando objetos na carroça",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 75,
+        "cost_usd": 0.001854,
+        "latency_ms": 12548,
+        "input_tokens": 3037,
+        "output_tokens": 377,
+        "fp_pattern_match": "carroceiro_sorting",
+        "audit_rationale": "A cena mostra uma pessoa ao lado de uma carroça de madeira e uma pilha de resíduos. Não há postura clara de depósito de material, indicando uma atividade de triagem ou coleta, não um descarte irregular."
+      },
+      "total_cost_usd": 0.001854
+    },
+    {
+      "event": "f2c3394a-c13a-4ff7-981e-950ac1ca5d36",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possivelmente apenas duas pessoas coletando lixo, não parecem estar descartando",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001789,
+        "latency_ms": 13286,
+        "input_tokens": 3037,
+        "output_tokens": 351,
+        "fp_pattern_match": "carroceiro_sorting",
+        "audit_rationale": "A cena mostra duas pessoas interagindo com uma pilha de resíduos e um carrinho, indicando atividade de coleta ou triagem. Não há postura clara de depósito de novos materiais no chão."
+      },
+      "total_cost_usd": 0.001789
+    },
+    {
+      "event": "dc908b80-0391-4213-b18f-631b2d6fde31",
+      "ground_truth": "INDEF",
+      "fp_cause": "Trabalhador da prefeitura jogou um saco de lixo no local",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.00195,
+        "latency_ms": 13175,
+        "input_tokens": 3041,
+        "output_tokens": 415,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "A pessoa em postura de depósito junto à pilha de lixo existente indica um descarte real, mesmo que de pequeno volume, conforme as diretrizes de auditoria."
+      },
+      "total_cost_usd": 0.00195
+    },
+    {
+      "event": "3497125c-7695-4123-b17d-4e86ae390cb2",
+      "ground_truth": "INDEF",
+      "fp_cause": "Dois homens com uma carroça estão mexendo no lixo",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001871,
+        "latency_ms": 12797,
+        "input_tokens": 3037,
+        "output_tokens": 384,
+        "fp_pattern_match": "carroceiro_sorting",
+        "audit_rationale": "A cena mostra duas pessoas com uma carroça de madeira interagindo com uma pilha de resíduos. A postura de uma pessoa sugere triagem ou coleta, sem evidência visual de descarte de novo material."
+      },
+      "total_cost_usd": 0.001871
+    },
+    {
+      "event": "92968ee2-825b-4ecb-8b28-a7fc6ad1aef7",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possível descarte ou coleta sendo realizada com uma carroça",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": false,
+        "confidence_0_100": 95,
+        "cost_usd": 0.001696,
+        "latency_ms": 7217,
+        "input_tokens": 3037,
+        "output_tokens": 314,
+        "fp_pattern_match": "traffic_passing",
+        "audit_rationale": "A pessoa apenas transita pela cena, sem postura de descarte ou interação com a pilha de lixo. A infração não foi confirmada conforme a regra V2 para 'traffic_passing'."
+      },
+      "total_cost_usd": 0.001696
+    },
+    {
+      "event": "5b5dc924-5197-4159-b2e9-51894d9f199c",
+      "ground_truth": "INDEF",
+      "fp_cause": "Várias pessoas manuseando coisas no lixo e na caçamba de um caminhão",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001894,
+        "latency_ms": 11700,
+        "input_tokens": 3037,
+        "output_tokens": 393,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "O caminhão basculante está parado com a caçamba inclinada, indicando descarte de material. Duas pessoas auxiliam na ação, confirmando o descarte irregular."
+      },
+      "total_cost_usd": 0.001894
+    },
+    {
+      "event": "5f84e70f-b6f1-4e9c-bef7-6e928c519318",
+      "ground_truth": "INDEF",
+      "fp_cause": "Possivelmente apenas uma pessoa passando com um carrinho de mão",
+      "triggered": true,
+      "gate": {
+        "new_litter_detected": true,
+        "confidence_0_100": null,
+        "cost_usd": 0.0,
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0
+      },
+      "detail": {
+        "infraction_confirmed": true,
+        "confidence_0_100": 90,
+        "cost_usd": 0.001917,
+        "latency_ms": 12527,
+        "input_tokens": 3041,
+        "output_tokens": 402,
+        "fp_pattern_match": "real_dumping",
+        "audit_rationale": "O caminhão basculante parou e depositou uma pilha de terra/entulho na calçada, confirmando a ação de descarte irregular."
+      },
+      "total_cost_usd": 0.001917
+    }
+  ]
+}

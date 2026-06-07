@@ -80,12 +80,16 @@ def _migrate_occurrences(s3, bucket: str, region: str, target_date_str: str) -> 
     conn = _get_conn()
     try:
         cur = conn.cursor()
+        # ``timestamp`` is TIMESTAMPTZ; psycopg sessions default to Etc/UTC
+        # regardless of the container TZ env, so a plain ``::date`` comparison
+        # would drop detections between 21:00 and 23:59 BRT (which are already
+        # the next day in UTC). Convert explicitly to America/Sao_Paulo first.
         cur.execute(
             "SELECT d.id, d.image_url, c.device_id "
             "FROM detections d "
             "JOIN cameras c ON d.camera_id = c.id "
             "WHERE d.image_url LIKE '%%/uploads/%%' "
-            "  AND d.timestamp::date = %s",
+            "  AND (d.timestamp AT TIME ZONE 'America/Sao_Paulo')::date = %s",
             (target_date_str,),
         )
         rows = cur.fetchall()
@@ -175,11 +179,13 @@ def _update_detection_frames(
         return False
 
     frames = data.get("frames", [])
+    kept_frames = []
     changed = False
 
     for frame in frames:
         url = frame.get("image_url", "")
         if "/uploads/" not in url:
+            kept_frames.append(frame)
             continue  # already migrated or external
 
         rel_path = url.split("/uploads/", 1)[1]
@@ -190,11 +196,26 @@ def _update_detection_frames(
         if local_path.exists():
             _upload_file(s3, local_path, bucket, s3_key)
             local_path.unlink(missing_ok=True)
-
-        frame["image_url"] = _s3_public_url(bucket, region, s3_key)
-        changed = True
+            frame["image_url"] = _s3_public_url(bucket, region, s3_key)
+            kept_frames.append(frame)
+            changed = True
+        elif _s3_key_exists(s3, bucket, s3_key):
+            # Local file gone but already in S3 (e.g. partial prior run)
+            frame["image_url"] = _s3_public_url(bucket, region, s3_key)
+            kept_frames.append(frame)
+            changed = True
+        else:
+            # File irrecoverably lost (deleted by cleanup before migration).
+            # Drop the frame from the index so the UI doesn't render a broken
+            # thumbnail. The detection's main image (in labeled/) is unaffected.
+            logger.warning(
+                "Dropping orphaned frame for detection %s: %s (no local file, no S3 object)",
+                detection_id, filename,
+            )
+            changed = True
 
     if changed:
+        data["frames"] = kept_frames
         json_path.write_text(
             json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8",
         )
@@ -206,11 +227,47 @@ def _update_detection_frames(
 # Phase 1b: Clean up ocorrencias/ originals for the target date
 # ------------------------------------------------------------------
 
-def _cleanup_ocorrencias_originals(target_date_str: str) -> int:
-    """Remove local ocorrencias/ originals for the target date (already on GDrive or not needed)."""
+def _collect_referenced_ocorrencias(state_dir: Path, date_parts: str) -> set[str]:
+    """Return absolute paths of ocorrencias/{date}/*.jpg files still referenced
+    by any detection_frames/*.json whose image_url is local (i.e. the detection
+    has NOT been migrated to S3 yet). Used by cleanup to avoid deleting frames
+    of orphan detections that would later turn into 404 thumbnails."""
+    frames_dir = state_dir / "detection_frames"
+    if not frames_dir.exists():
+        return set()
+
+    referenced: set[str] = set()
     upload_dir = Path(config.UPLOAD_DIR)
+    suffix = f"/ocorrencias/{date_parts}/"
+
+    for json_path in frames_dir.glob("*.json"):
+        try:
+            data = json.loads(json_path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for frame in data.get("frames", []):
+            url = frame.get("image_url", "")
+            if "/uploads/" not in url or suffix not in url:
+                continue
+            rel_path = url.split("/uploads/", 1)[1]
+            referenced.add(str((upload_dir / rel_path).resolve()))
+    return referenced
+
+
+def _cleanup_ocorrencias_originals(target_date_str: str) -> int:
+    """Remove local ocorrencias/ originals for the target date, **skipping** files
+    still referenced by detection_frames JSONs of detections that haven't been
+    migrated yet (avoid orphaning their thumbnails)."""
+    upload_dir = Path(config.UPLOAD_DIR)
+    state_dir = Path(config.STATE_DIR)
     date_parts = target_date_str.replace("-", "/")
     removed = 0
+
+    keep = _collect_referenced_ocorrencias(state_dir, date_parts)
+    if keep:
+        logger.info(
+            "Cleanup will preserve %d files referenced by non-migrated detections", len(keep),
+        )
 
     for device_dir in sorted(upload_dir.iterdir()):
         if not device_dir.is_dir():
@@ -219,6 +276,8 @@ def _cleanup_ocorrencias_originals(target_date_str: str) -> int:
         if not occ_day_dir.exists():
             continue
         for jpg in occ_day_dir.glob("*.jpg"):
+            if str(jpg.resolve()) in keep:
+                continue
             jpg.unlink(missing_ok=True)
             removed += 1
         _remove_empty_parents(occ_day_dir, device_dir / "ocorrencias")

@@ -1,0 +1,50 @@
+campaign: 23
+title: MANGABEIRA E2 — APs refinados (per-person, gatilho temporal)
+type: prompt-tuning
+date: 2026-05-30
+hypothesis: |
+  Camp 22 mostrou MANGABEIRA_E perde 2 TPs (FN_NEW: d59d5309, 3c840ac4) e
+  introduz 1 FP (5520e0c7) por APs sobre-aplicados (AP2/AP3) ou
+  sub-aplicados (AP4). Refinar AP2/AP3 pra avaliação per-pessoa, adicionar
+  AP4b (>30s agachada sem objeto novo) e PASSO 2 obrigatório de classificação
+  por-pessoa deveria recuperar esses 3 erros sem regressões.
+
+models:
+  gate: gemini-2.5-flash-lite (unchanged)
+  detail: gemini-2.5-flash (unchanged — testando só prompt)
+
+production_parity:
+  n_frames: 48
+  mosaic: off
+  detail_prompt_today: V1 (current) for all cameras
+
+dataset:
+  source: production DB cam_11 snapshot 2026-05-30 ~10:00 BRT
+  n_events: 40
+  cohort_single_call: 29
+
+arms:
+  baseline_v1:
+    label: Flash V1 prod (reused from camp 21)
+    cache: /tmp/flash_baseline_v1_cache.json
+  mangabeira_e:
+    label: Flash + MANGABEIRA_E (camp 22 winner)
+    cache: /tmp/flash_mangabeira_E_cache.json
+  mangabeira_e2:
+    label: Flash + MANGABEIRA_E2 (APs refinados)
+    prompt: prompts/mangabeira-e2-refined-aps.md
+    cache: /tmp/flash_mangabeira_E2_cache.json
+
+provider: vertex_ai
+
+success_criteria:
+  recall_min: 80     # vs E 67%
+  acc_min: 65        # vs E 61.5%
+  fp_rate_max: 60    # manter qualidade
+
+cost_budget_usd: 1.50
+
+target_events:
+  d59d5309-60c5-4ce9-8a64-2c68342c07c5: "FN_NEW E: CON real, AP3 over-applied (passantes agregado)"
+  3c840ac4-b0f7-4fec-b696-dd7e68725b49: "FN_NEW E: CON real carrinho, AP2 over-applied"
+  5520e0c7-918b-4619-9820-c2c230edef1c: "FP_NEW E: REJ agachado 2:30, AP4 under-applied"

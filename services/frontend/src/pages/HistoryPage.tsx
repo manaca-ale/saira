@@ -58,7 +58,7 @@ const WASTE_TYPE_OPTIONS: WasteType[] = [
   "Poda",
   "Plástico",
 ];
-const STATUS_OPTIONS = ["Pendente", "Resolvido", "Em análise"];
+const STATUS_OPTIONS = ["Pendente", "Confirmado", "Rejeitado", "Indeterminado"];
 const RPA_OPTIONS = ["RPA 1", "RPA 2", "RPA 3", "RPA 4", "RPA 5", "RPA 6"];
 const OFFENDER_OPTIONS = ["Identificado", "Não Identificado"];
 
@@ -133,7 +133,7 @@ export const HistoryPage: React.FC = () => {
     date: "",
     startTime: "",
     endTime: "",
-    status: [],
+    status: ["Confirmado"],
     logradouro: "",
     bairro: "",
     rpa: [],
@@ -152,6 +152,7 @@ export const HistoryPage: React.FC = () => {
         const all = await getAllDetections({
           start_date: `${range.start}T00:00:00`,
           end_date: `${range.end}T23:59:59`,
+          status: filters.status.length > 0 ? filters.status : undefined,
           maxRecords: 1000,
           pageSize: 100,
         });
@@ -168,7 +169,7 @@ export const HistoryPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [filters.status]);
 
   // --- FILTERING LOGIC ---
   const matchesFilters = useCallback(
@@ -264,7 +265,7 @@ export const HistoryPage: React.FC = () => {
       const key = d.toISOString().split("T")[0];
       if (!dataMap.has(key)) dataMap.set(key, { open: 0, closed: 0 });
 
-      if (item.status === "Resolvido") {
+      if (item.status === "Confirmado") {
         dataMap.get(key)!.closed++;
       } else {
         dataMap.get(key)!.open++;
@@ -429,9 +430,9 @@ export const HistoryPage: React.FC = () => {
 
   const totalOccurrences = filteredData.length;
   const totalOffenders = filteredData.filter((i) => i.hasOffender).length;
-  const totalOpen = filteredData.filter((i) => i.status !== "Resolvido").length;
+  const totalOpen = filteredData.filter((i) => i.status !== "Confirmado").length;
   const totalClosed = filteredData.filter(
-    (i) => i.status === "Resolvido",
+    (i) => i.status === "Confirmado",
   ).length;
 
   const handleDownloadCSV = () => {

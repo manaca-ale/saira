@@ -59,6 +59,12 @@ WORKER_METRICS_PORT = int(os.getenv("WORKER_METRICS_PORT", "9108"))
 #   "marker"      - create .jpg.processed sibling file (legacy)
 PROCESSED_STRATEGY = os.getenv("PROCESSED_STRATEGY", "two_folders")
 
+# Event coalescing window: when a detection is about to be persisted, if the
+# same camera already has a detection within this many minutes, reuse that
+# detection_id (merge frames + upgrade fields) instead of creating a new row.
+# Set to 0 to disable coalescing entirely (every window becomes a new detection).
+EVENT_WINDOW_MIN = int(os.getenv("EVENT_WINDOW_MIN", "10"))
+
 # Redis connection string (used for real-time notifications via SSE).
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
@@ -99,6 +105,200 @@ GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
 
+# Dual gate (full-frame + pile-crop) — runs Agent-1 a SECOND time on a crop of the
+# pile zone (cameras.pile_zone_polygon) and escalates if EITHER pass triggers.
+# Catches small/zoom-dependent dumps (handcart) that the full frame misses, while the
+# full frame keeps the context-dependent ones. Campaign 19: 92% TP recall / 15%
+# baseline for esp32_002 (vs 76%/13% full-only). Scoped per-device; default OFF.
+GEMINI_GATE_PILECROP_ENABLED = os.getenv("GEMINI_GATE_PILECROP_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+GATE_PILECROP_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("GATE_PILECROP_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+GEMINI_GATE_PILECROP_UPSCALE = int(os.getenv("GEMINI_GATE_PILECROP_UPSCALE", "2"))
+
+# Detail-side pile-crop augmentation (Agent-2). Adds N hi-res crops of the pile
+# zone alongside the standard 48 global frames, plus a per-camera prompt
+# (MANGABEIRA_E_WITH_PILECROPS). Campaign 24 (2026-05-30) result for esp32_002:
+# recall 91.7% (matches V1 baseline), specificity 35% (1.6× the 21% of V1),
+# accuracy 67.5% (vs 53.8% V1). +30% input tokens (~$0.015/event vs $0.010).
+# Scoped per-device via DETAIL_PILECROP_DEVICES; default OFF.
+GEMINI_DETAIL_PILECROP_ENABLED = os.getenv("GEMINI_DETAIL_PILECROP_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+DETAIL_PILECROP_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("DETAIL_PILECROP_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+GEMINI_DETAIL_PILECROP_UPSCALE = int(os.getenv("GEMINI_DETAIL_PILECROP_UPSCALE", "2"))
+GEMINI_DETAIL_PILECROP_N_FRAMES = int(os.getenv("GEMINI_DETAIL_PILECROP_N_FRAMES", "12"))
+
+# -----------------------------------------------------------------------------
+# Sliding-window SHADOW A/B (Camp 36, 2026-06-05). Runs an overlapping sliding
+# window (window_s, stride) alongside the live fixed-window pipeline and ONLY
+# LOGS what it would do — never creates detections/notifications nor mutates the
+# prod cascade state / BGSUB baseline. Goal: measure FP/latency of the sliding
+# strategy WITH the real BGSUB pre-filter, on live data, to compare vs the fixed
+# pipeline. BGSUB suppresses empty windows BEFORE the gate, so the extra Gemini
+# cost is proportional to scene activity (near-zero on idle cameras).
+# Offline sim (camp 36) picked slide_120/stride60 as the best latency↔FP Pareto.
+# Decisions persisted to STATE_DIR/sliding_shadow_audit/{date}/{device}.jsonl
+# (survives container recreate — same pattern as DINOv2 shadow). Default OFF.
+GEMINI_SLIDING_SHADOW_ENABLED = os.getenv("GEMINI_SLIDING_SHADOW_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+SLIDING_SHADOW_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("SLIDING_SHADOW_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+GEMINI_SLIDING_WINDOW_SECONDS = int(os.getenv("GEMINI_SLIDING_WINDOW_SECONDS", "120"))
+GEMINI_SLIDING_STRIDE_SECONDS = int(os.getenv("GEMINI_SLIDING_STRIDE_SECONDS", "60"))
+GEMINI_SLIDING_MIN_FRAMES = int(os.getenv("GEMINI_SLIDING_MIN_FRAMES", "12"))
+GEMINI_SLIDING_MAX_FRAMES = int(os.getenv("GEMINI_SLIDING_MAX_FRAMES", "24"))
+# Coalescing window for operator-facing FP counting (mirrors EVENT_WINDOW_MIN).
+GEMINI_SLIDING_COALESCE_SECONDS = int(os.getenv("GEMINI_SLIDING_COALESCE_SECONDS", "600"))
+
+# Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
+# V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
+# Default stays on V1 until campanha 11 validates V2 against the official dataset.
+GEMINI_PROMPT_VERSION = os.getenv("GEMINI_PROMPT_VERSION", "current").strip().lower()
+if GEMINI_PROMPT_VERSION not in ("current", "v2", "v3", "audit"):
+    logging.getLogger(__name__).warning(
+        "Invalid GEMINI_PROMPT_VERSION=%s. Falling back to 'current'.", GEMINI_PROMPT_VERSION,
+    )
+    GEMINI_PROMPT_VERSION = "current"
+
+# Separate flag for the Detail agent (Agent-2). Allows running gate with V1
+# (default, validated) while testing the audit prompt only on the detail side.
+# Values: "current" (V1) | "v2" | "v3" | "audit" | "audit_v2"
+# - audit: V1 adversarial reviewer, force-false unless real_dumping (camp 15 FAIL)
+# - audit_v2: relaxed, force-false only for 5 unambiguous FP patterns (camp 16)
+GEMINI_DETAIL_PROMPT_VERSION = os.getenv("GEMINI_DETAIL_PROMPT_VERSION", "").strip().lower()
+if GEMINI_DETAIL_PROMPT_VERSION not in ("", "current", "v2", "v3", "audit", "audit_v2"):
+    logging.getLogger(__name__).warning(
+        "Invalid GEMINI_DETAIL_PROMPT_VERSION=%s. Falling back to GEMINI_PROMPT_VERSION.",
+        GEMINI_DETAIL_PROMPT_VERSION,
+    )
+    GEMINI_DETAIL_PROMPT_VERSION = ""
+# Empty string means "use GEMINI_PROMPT_VERSION" (back-compat).
+
+# -----------------------------------------------------------------------------
+# BGSUB pre-filter (OpenCV background subtraction) — suppresses Gemini gate
+# calls for genuinely-empty windows. See docs/bgsub_prefilter.md.
+# Spike validated: threshold=1000 px → 100% TP keep + 73% baseline supr.
+# -----------------------------------------------------------------------------
+BGSUB_PREFILTER_ENABLED = os.getenv("BGSUB_PREFILTER_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+BGSUB_PERSISTENCE_THRESHOLD = int(os.getenv("BGSUB_PERSISTENCE_THRESHOLD", "1000"))
+BGSUB_MIN_PX_ACTIVE = int(os.getenv("BGSUB_MIN_PX_ACTIVE", "800"))
+BGSUB_MIN_PERSISTENCE_FRAMES = float(os.getenv("BGSUB_MIN_PERSISTENCE_FRAMES", "0.6"))
+BGSUB_MODELS_DIR = os.getenv("BGSUB_MODELS_DIR", os.path.join(STATE_DIR, "bgsub_models"))
+# MOG2 training params (must match script/calibrate_bgsub.py)
+BGSUB_MOG2_HISTORY = int(os.getenv("BGSUB_MOG2_HISTORY", "80"))
+BGSUB_MOG2_VAR_THRESHOLD = float(os.getenv("BGSUB_MOG2_VAR_THRESHOLD", "40.0"))
+# Threshold to convert MOG2 raw output to binary foreground mask.
+# MOG2 outputs: 0=background, ~127=possible shadow, 255=definite foreground.
+# Default 200 was filtering too aggressively — dark objects (black trash bags)
+# get ambiguous MOG2 values (80-150) and were silently dropped, causing TP loss
+# in esp32_002 (validated 2026-05-23 against today's 09:00:54 missed disposal
+# + 7 official-dataset TPs). 100 recovers TPs without inflating FP on real
+# empty windows.
+BGSUB_SHADOW_THRESHOLD = int(os.getenv("BGSUB_SHADOW_THRESHOLD", "100"))
+
+# Morphological post-processing mode (added 2026-05-25 smoke test).
+# Modes:
+#   "open_close" (default, preserva comportamento atual): MORPH_OPEN + MORPH_CLOSE
+#       — reduz speckle noise mas pode eliminar objetos pequenos.
+#   "area_min": substitui morpho por filtro de área mínima por contour (BGSUB_AREA_MIN).
+#       Smoke test 25/05 com area_min=400 filtrou +2 FPs (tráfico esp32_001 09:30,
+#       10:00) preservando 3/3 TPs. Recomendação Deep Research (paper Porikli):
+#       morpho mata objetos <5% ROI.
+#   "off": sem pós-processamento (modo experimental, alta noise).
+BGSUB_MORPHO_MODE = os.getenv("BGSUB_MORPHO_MODE", "open_close").strip().lower()
+BGSUB_AREA_MIN = int(os.getenv("BGSUB_AREA_MIN", "400"))
+
+# Adaptive baseline — when enabled, the MOG2 background absorbs frames that
+# the Gemini gate confirmed as "no new litter" with high confidence. This
+# tolerates lighting shifts (sun angle, IR mode), pile collection by EMLURB,
+# and slow changes to the scene without manual recalibration.
+# Trade-off: if Gemini misclassifies a TP as negative (rare), the BGSUB will
+# absorb the descarte into baseline and may filter future similar scenes.
+BGSUB_ADAPTIVE_ENABLED = os.getenv("BGSUB_ADAPTIVE_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+BGSUB_ADAPTIVE_LEARNING_RATE = float(os.getenv("BGSUB_ADAPTIVE_LEARNING_RATE", "0.05"))
+BGSUB_ADAPTIVE_MIN_CONFIDENCE = int(os.getenv("BGSUB_ADAPTIVE_MIN_CONFIDENCE", "90"))
+BGSUB_ADAPTIVE_SAVE_EVERY_N = int(os.getenv("BGSUB_ADAPTIVE_SAVE_EVERY_N", "50"))
+# Per-camera opt-out of the adaptive baseline. Cameras listed here keep the
+# static (calibrated) baseline and never absorb gate-confirmed-empty windows,
+# avoiding adaptive drift on chronic/busy points (e.g. esp32_005 Arruda, where
+# the drift pinned persistence to 0.0 and suppressed real disposals — see camp
+# 33). Such cameras rely on a frozen fresh baseline + periodic recalibration
+# instead. Default empty → global BGSUB_ADAPTIVE_ENABLED behaviour unchanged.
+BGSUB_ADAPTIVE_DISABLE_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("BGSUB_ADAPTIVE_DISABLE_DEVICES", "").split(",")
+    if d.strip()
+}
+
+# Dual-rate MOG2 — two background models per camera (fast + slow learning).
+# Combines as `static_fg = slow_mask AND NOT fast_mask`, isolating objects that
+# remain stationary while filtering out moving pedestrians/vehicles. Resolves
+# the case (esp32_001, 25/05) where single-MOG2 produces 0% filter rate in
+# scenes with constant pedestrian traffic. Default off (kill-switch).
+BGSUB_DUAL_RATE_ENABLED = os.getenv("BGSUB_DUAL_RATE_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+BGSUB_LR_FAST = float(os.getenv("BGSUB_LR_FAST", "0.05"))
+BGSUB_LR_SLOW = float(os.getenv("BGSUB_LR_SLOW", "0.001"))
+BGSUB_MOG2_HISTORY_FAST = int(os.getenv("BGSUB_MOG2_HISTORY_FAST", str(BGSUB_MOG2_HISTORY)))
+BGSUB_MOG2_HISTORY_SLOW = int(os.getenv("BGSUB_MOG2_HISTORY_SLOW", "400"))
+# Adapt LRs default to evaluate LRs (kept separate for tuning flexibility).
+BGSUB_LR_FAST_ADAPT = float(os.getenv("BGSUB_LR_FAST_ADAPT", str(BGSUB_LR_FAST)))
+BGSUB_LR_SLOW_ADAPT = float(os.getenv("BGSUB_LR_SLOW_ADAPT", str(BGSUB_LR_SLOW)))
+# Slow-model warm-up: when loading a v1 npz (single-rate) or building from cold,
+# replay buffer N times with LR=LR_FAST to age the slow model quickly. Without
+# this the slow model would need ~1000 frames to converge to the baseline.
+BGSUB_SLOW_WARMUP_PASSES = int(os.getenv("BGSUB_SLOW_WARMUP_PASSES", "5"))
+
+# Crop MOG2 input to polygon bbox — when true, MOG2 only runs on the bbox
+# crop. NOTE: requires baseline to also be calibrated with crops (MOG2 state
+# is bound to input shape). Default off until baseline-recalibration flow
+# is wired. Pure optimization, no behavior change once correctly bootstrapped.
+BGSUB_BBOX_CROP_ENABLED = os.getenv("BGSUB_BBOX_CROP_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+
+# -----------------------------------------------------------------------------
+# DINOv2 post-detail FP filter (rejection-only) — re-julga um CON do Agent-2 e
+# pode revertê-lo a REJ. Ortogonal ao BGSUB (que é supressão pré-Agent-1).
+# Validado offline em cam_10 Imbiribeira (Camp 26/27): pile-zone separável por
+# embedding (RepeatedSKF 95,6%, AUC 0,945). ⚠️ Camp 27 expôs DRIFT temporal →
+# nasce em SHADOW + exige retreino periódico. Ver detector_dinov2.py.
+#
+# Modos:
+#   "off"     — inerte (default).
+#   "shadow"  — computa p_con e LOGA o que rejeitaria; NÃO altera a decisão.
+#   "enforce" — p_con<threshold ⇒ disposal=False (evento não vira ocorrência).
+# -----------------------------------------------------------------------------
+DINOV2_FILTER_MODE = os.getenv("DINOV2_FILTER_MODE", "off").strip().lower()
+if DINOV2_FILTER_MODE not in ("off", "shadow", "enforce"):
+    DINOV2_FILTER_MODE = "off"
+DINOV2_FILTER_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("DINOV2_FILTER_DEVICES", "esp32_001").split(",")
+    if d.strip()
+}
+DINOV2_MODELS_DIR = os.getenv("DINOV2_MODELS_DIR", os.path.join(STATE_DIR, "dinov2_models"))
+DINOV2_VARIANT = os.getenv("DINOV2_VARIANT", "dinov2_vits14").strip()
+DINOV2_INPUT_SIZE = int(os.getenv("DINOV2_INPUT_SIZE", "224"))
+DINOV2_N_FRAMES = int(os.getenv("DINOV2_N_FRAMES", "3"))
+# Threshold operacional. Vazio ⇒ usa o threshold gravado no artefato (.npz).
+# Camp 27: platô t≈0,4–0,5 domina o t=0,2 da Camp 26 (mesmo 1 TP de custo, +spec).
+_dino_thr = os.getenv("DINOV2_THRESHOLD", "").strip()
+DINOV2_THRESHOLD = float(_dino_thr) if _dino_thr else None
+DINOV2_TORCH_THREADS = int(os.getenv("DINOV2_TORCH_THREADS", "2"))
+# Retreino semanal (worker.retrain_dinov2). Refita o classifier nos rótulos atuais
+# e promove só se passar o gate (AUC>=min E n não encolheu). Default = devices do filtro.
+DINOV2_RETRAIN_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("DINOV2_RETRAIN_DEVICES", ",".join(sorted(DINOV2_FILTER_DEVICES))).split(",")
+    if d.strip()
+}
+DINOV2_RETRAIN_MIN_AUC = float(os.getenv("DINOV2_RETRAIN_MIN_AUC", "0.85"))
+
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.
@@ -111,6 +311,19 @@ GEMINI_REQUIRE_BBOX = os.getenv("GEMINI_REQUIRE_BBOX", "true").strip().lower() i
 # Token cost estimation (USD per 1M tokens) — gemini-2.5-flash pricing (non-thinking).
 GEMINI_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_INPUT_TOKEN_PRICE_PER_1M", "0.15"))
 GEMINI_OUTPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_OUTPUT_TOKEN_PRICE_PER_1M", "0.60"))
+
+# Claude Haiku 4.5 via AWS Bedrock — alternative Detail-agent provider (A/B testing).
+HAIKU_AWS_REGION = os.getenv("HAIKU_AWS_REGION", "us-east-1").strip()
+HAIKU_AWS_PROFILE = os.getenv("HAIKU_AWS_PROFILE", "codex-ops").strip()
+HAIKU_MODEL_ID = os.getenv(
+    "HAIKU_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+).strip()
+HAIKU_MAX_OUTPUT_TOKENS = int(os.getenv("HAIKU_MAX_OUTPUT_TOKENS", "4096"))
+HAIKU_TIMEOUT_SECONDS = int(os.getenv("HAIKU_TIMEOUT_SECONDS", "30"))
+HAIKU_MAX_RETRIES = int(os.getenv("HAIKU_MAX_RETRIES", "1"))
+HAIKU_THINKING_BUDGET = int(os.getenv("HAIKU_THINKING_BUDGET", "0"))  # 0 = thinking OFF
+HAIKU_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("HAIKU_INPUT_TOKEN_PRICE_PER_1M", "1.00"))
+HAIKU_OUTPUT_TOKEN_PRICE_PER_1M = float(os.getenv("HAIKU_OUTPUT_TOKEN_PRICE_PER_1M", "5.00"))
 
 # S3 daily migration settings.
 S3_ENABLED = os.getenv("S3_ENABLED", "false").strip().lower() in ("true", "1", "yes")
@@ -129,3 +342,27 @@ if not MOCK_MODE and (not os.path.exists(P1_MODEL_PATH) or not os.path.exists(P2
         P2_MODEL_PATH,
     )
     MOCK_MODE = True
+
+# -----------------------------------------------------------------------------
+# Car-stopped shadow detector (Gabriel's CarDetectionModule, ported).
+# Runs in parallel with the Gemini cascade for comparison; never persists to
+# the `detections` table. Audit goes to STATE_DIR/car_shadow_audit/.
+# -----------------------------------------------------------------------------
+CAR_SHADOW_ENABLED = os.getenv("CAR_SHADOW_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+CAR_MODEL_PATH = os.getenv("CAR_MODEL_PATH", "/app/models/yolov8_Car_tesi_100_n.pt")
+CAR_CONF_THRESHOLD = float(os.getenv("CAR_CONF_THRESHOLD", "0.35"))
+CAR_STATIONARY_PIXELS = float(os.getenv("CAR_STATIONARY_PIXELS", "50.0"))
+CAR_LOW_FRAMES = int(os.getenv("CAR_LOW_FRAMES", "3"))
+CAR_MED_FRAMES = int(os.getenv("CAR_MED_FRAMES", "6"))
+CAR_HIGH_FRAMES = int(os.getenv("CAR_HIGH_FRAMES", "12"))
+CAR_TRACK_TTL_SECONDS = int(os.getenv("CAR_TRACK_TTL_SECONDS", "300"))
+CAR_MAX_BUFFER_FRAMES = int(os.getenv("CAR_MAX_BUFFER_FRAMES", "12"))
+
+# If the car model is missing, disable the shadow detector instead of crashing
+# the worker on startup. The Gemini cascade keeps working unaffected.
+if CAR_SHADOW_ENABLED and not os.path.exists(CAR_MODEL_PATH):
+    logging.getLogger(__name__).warning(
+        "CAR_SHADOW_ENABLED=true but model not found at %s — disabling car shadow.",
+        CAR_MODEL_PATH,
+    )
+    CAR_SHADOW_ENABLED = False

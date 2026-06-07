@@ -1,13 +1,12 @@
 ﻿import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
+  classifyDetection,
   getAllDetections,
   getDetectionById,
-  resolveDetection,
   searchDetections,
-  startAnalysis,
 } from "../services/detectionService";
-import type { PoiData } from "../services/detectionService";
+import type { ClassifyStatus, PoiData } from "../services/detectionService";
 import { Sidebar } from "../components/Sidebar";
 import { formatDateTimeBrazil } from "../utils/datetime";
 
@@ -20,14 +19,14 @@ import {
   ChevronRight,
   ChevronLeft,
   CheckCircle,
-  Clock,
+  XCircle,
+  HelpCircle,
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
 } from "lucide-react";
 import { OccurrenceModal } from "../components/OccurrenceModal";
-import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
-import { AnalysisConfirmationModal } from "../components/AnalysisConfirmationModal";
+import { ClassifyConfirmationModal } from "../components/ClassifyConfirmationModal";
 import { Tooltip } from "../components/Tooltip";
 
 import {
@@ -62,7 +61,8 @@ const WASTE_TYPE_OPTIONS: WasteType[] = [
   "Plástico",
 ];
 
-const STATUS_OPTIONS = ["Pendente", "Resolvido", "Em análise"] as const;
+const STATUS_OPTIONS = ["Pendente", "Confirmado", "Rejeitado", "Indeterminado"] as const;
+const DEFAULT_STATUS_FILTER: readonly string[] = [];
 const RPA_OPTIONS = [
   "RPA 1",
   "RPA 2",
@@ -102,10 +102,12 @@ export const Detections: React.FC = () => {
   const [detections, setDetections] = useState<Detection[]>([]);
   const [selectedItem, setSelectedItem] = useState<Detection | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [resolveTarget, setResolveTarget] = useState<Detection | null>(null);
-  const [analysisTarget, setAnalysisTarget] = useState<Detection | null>(null);
-  const [isResolving, setIsResolving] = useState(false);
-  const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
+  const [classifyTarget, setClassifyTarget] = useState<{
+    detection: Detection;
+    action: ClassifyStatus;
+  } | null>(null);
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [classifyError, setClassifyError] = useState<string | null>(null);
   const [showAllFilters, setShowAllFilters] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -114,7 +116,7 @@ export const Detections: React.FC = () => {
     date: "",
     startTime: "",
     endTime: "",
-    status: [],
+    status: [...DEFAULT_STATUS_FILTER],
     logradouro: "",
     bairro: "",
     rpa: [],
@@ -291,48 +293,36 @@ export const Detections: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleResolve = async (data: {
-    resolved_at: string;
-    forwarded_to_sector: string;
-    resolution_justification: string;
-  }) => {
-    if (!resolveTarget) return;
-    setIsResolving(true);
+  const handleClassify = async (validityComment?: string) => {
+    if (!classifyTarget) return;
+    setIsClassifying(true);
+    setClassifyError(null);
     try {
-      await resolveDetection(resolveTarget.id, data);
-      setResolveTarget(null);
+      await classifyDetection(
+        classifyTarget.detection.id,
+        classifyTarget.action,
+        validityComment,
+      );
+      setClassifyTarget(null);
       await loadDetectionsPage();
     } catch (e) {
-      console.error("Erro ao resolver:", e);
+      console.error("Erro ao classificar:", e);
+      setClassifyError("Falha ao salvar a classificação. Tente novamente.");
     } finally {
-      setIsResolving(false);
+      setIsClassifying(false);
     }
   };
 
-  const handleStartAnalysis = async () => {
-    if (!analysisTarget) return;
-    setIsStartingAnalysis(true);
-    try {
-      await startAnalysis(analysisTarget.id);
-      setAnalysisTarget(null);
-      await loadDetectionsPage();
-    } catch (e) {
-      console.error("Erro ao iniciar analise:", e);
-    } finally {
-      setIsStartingAnalysis(false);
-    }
-  };
-
-  const handleResolveFromModal = () => {
+  const openClassifyFromModal = (action: ClassifyStatus) => {
     if (!selectedItem) return;
     setIsModalOpen(false);
-    setResolveTarget(selectedItem);
+    setClassifyError(null);
+    setClassifyTarget({ detection: selectedItem, action });
   };
 
-  const handleStartAnalysisFromModal = () => {
-    if (!selectedItem) return;
-    setIsModalOpen(false);
-    setAnalysisTarget(selectedItem);
+  const openClassifyFromRow = (detection: Detection, action: ClassifyStatus) => {
+    setClassifyError(null);
+    setClassifyTarget({ detection, action });
   };
 
   const handleOccurrencePhotoUpdated = (imageUrl: string) => {
@@ -400,11 +390,13 @@ export const Detections: React.FC = () => {
   const getStatusStyle = (status: string) => {
     switch (status) {
       case "Pendente":
-        return "bg-red-100 text-red-500";
-      case "Em análise":
         return "bg-orange-100 text-orange-500";
-      case "Resolvido":
+      case "Confirmado":
         return "bg-green-100 text-green-500";
+      case "Rejeitado":
+        return "bg-red-100 text-red-500";
+      case "Indeterminado":
+        return "bg-yellow-100 text-yellow-600";
       default:
         return "bg-gray-100 text-gray-500";
     }
@@ -455,6 +447,7 @@ export const Detections: React.FC = () => {
         longitude: selectedItem.longitude,
         hasOffender: selectedItem.hasOffender,
         image_url: selectedItem.photoUrl || undefined,
+        validityComment: selectedItem.validityComment,
       }
     : null;
 
@@ -753,23 +746,33 @@ export const Detections: React.FC = () => {
                               <Eye size={16} />
                             </button>
                           </Tooltip>
-                          {row.status === "Pendente" && (
-                            <Tooltip text="Marcar em análise" className="w-fit" spacing="mb-2">
+                          {row.status !== "Confirmado" && (
+                            <Tooltip text="Confirmar ocorrência" className="w-fit" spacing="mb-2">
                               <button
-                                onClick={() => setAnalysisTarget(row)}
-                                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:border-orange-500 transition-all bg-white"
-                              >
-                                <Clock size={16} />
-                              </button>
-                            </Tooltip>
-                          )}
-                          {(row.status === "Pendente" || row.status === "Em análise") && (
-                            <Tooltip text="Marcar como resolvido" className="w-fit" spacing="mb-2">
-                              <button
-                                onClick={() => setResolveTarget(row)}
+                                onClick={() => openClassifyFromRow(row, "Confirmado")}
                                 className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-500 hover:border-green-500 transition-all bg-white"
                               >
                                 <CheckCircle size={16} />
+                              </button>
+                            </Tooltip>
+                          )}
+                          {row.status !== "Rejeitado" && (
+                            <Tooltip text="Rejeitar (falso positivo)" className="w-fit" spacing="mb-2">
+                              <button
+                                onClick={() => openClassifyFromRow(row, "Rejeitado")}
+                                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-all bg-white"
+                              >
+                                <XCircle size={16} />
+                              </button>
+                            </Tooltip>
+                          )}
+                          {row.status !== "Indeterminado" && (
+                            <Tooltip text="Marcar como indeterminado" className="w-fit" spacing="mb-2">
+                              <button
+                                onClick={() => openClassifyFromRow(row, "Indeterminado")}
+                                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-all bg-white"
+                              >
+                                <HelpCircle size={16} />
                               </button>
                             </Tooltip>
                           )}
@@ -876,25 +879,21 @@ export const Detections: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           data={modalData}
-          onResolve={handleResolveFromModal}
-          onStartAnalysis={handleStartAnalysisFromModal}
+          onClassify={openClassifyFromModal}
           onPhotoUpdated={handleOccurrencePhotoUpdated}
         />
       )}
-      {resolveTarget && (
-        <ResolveConfirmationModal
-          isOpen={!!resolveTarget}
-          onClose={() => setResolveTarget(null)}
-          onConfirm={handleResolve}
-          isLoading={isResolving}
-        />
-      )}
-      {analysisTarget && (
-        <AnalysisConfirmationModal
-          isOpen={!!analysisTarget}
-          onClose={() => setAnalysisTarget(null)}
-          onConfirm={handleStartAnalysis}
-          isLoading={isStartingAnalysis}
+      {classifyTarget && (
+        <ClassifyConfirmationModal
+          isOpen={!!classifyTarget}
+          action={classifyTarget.action}
+          onClose={() => {
+            setClassifyTarget(null);
+            setClassifyError(null);
+          }}
+          onConfirm={handleClassify}
+          isLoading={isClassifying}
+          errorMessage={classifyError}
         />
       )}
     </div>

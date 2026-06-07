@@ -161,16 +161,17 @@ def _random_month_timestamp(year: int, month_index: int) -> datetime:
 
 def _status_for_date(year: int, month_index: int) -> DetectionStatus:
     if year == 2025:
-        return DetectionStatus.RESOLVIDO
+        return DetectionStatus.CONFIRMADO
     if year == 2026 and month_index == 0:
         return random.choice(
             [
                 DetectionStatus.PENDENTE,
-                DetectionStatus.EM_ANALISE,
-                DetectionStatus.RESOLVIDO,
+                DetectionStatus.CONFIRMADO,
+                DetectionStatus.REJEITADO,
+                DetectionStatus.INDETERMINADO,
             ]
         )
-    return DetectionStatus.RESOLVIDO
+    return DetectionStatus.CONFIRMADO
 
 
 def _compute_rpa(bairro: str, logradouro: str) -> str:

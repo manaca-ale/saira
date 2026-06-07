@@ -1,0 +1,101 @@
+{
+  "campaign_number": 24,
+  "date": "2026-05-30",
+  "title": "MANGABEIRA E + pile-zone hi-res crops (Flash 2.5)",
+  "type": "input-augmentation",
+  "focus": "implementação da rec #5 (CropVLM) do Deep Research VLM pipeline 2026-05-30; adiciona crops alta-res da pile_zone como input adicional",
+  "based_on": [
+    "[[project_camp22_mangabeira_prompt_angles_2026-05-30]] (E é melhor prompt single-input)",
+    "Deep Research: pesquisas/vlm_pipeline_architecture_2026-05-30.md (rec #5 CropVLM)"
+  ],
+  "models": {
+    "gate": "gemini-2.5-flash-lite (unchanged)",
+    "detail": "gemini-2.5-flash (unchanged)"
+  },
+  "input": {
+    "global_frames": 48,
+    "crop_frames": 12,
+    "crop_upscale": 2,
+    "pile_bbox_esp32_002": [480, 60, 920, 340],
+    "pile_zone_dimensions_px": "440x280 (upscaled to 880x560)"
+  },
+  "production_parity": {
+    "n_frames": 48,
+    "mosaic": "off",
+    "pile_crops_in_detail": "NEW (não está em prod)"
+  },
+  "dataset": {
+    "source": "production DB cam_11 snapshot 2026-05-30 ~10:00 BRT",
+    "n_full": 40,
+    "n_single_call": 29
+  },
+  "arms": {
+    "v1_baseline": {
+      "label": "Flash V1 prod baseline (reused from camp 21)",
+      "n_full": 35, "n_single_call": 26,
+      "acc_full": 60.0, "recall_full": 85.0, "spec_full": 26.7,
+      "acc_single": 53.8, "recall_single": 91.7, "spec_single": 21.4
+    },
+    "mangabeira_e": {
+      "label": "Flash + MANGABEIRA_E (camp 22 — single-input baseline)",
+      "n_full": 39, "n_single_call": 29,
+      "acc_full": 61.5, "recall_full": 66.7, "spec_full": 55.6,
+      "acc_single": 62.1, "recall_single": 75.0, "spec_single": 52.9
+    },
+    "mangabeira_e2": {
+      "label": "Flash + MANGABEIRA_E2 (camp 23 — APs refinados)",
+      "n_full": 40, "n_single_call": 29,
+      "acc_full": 67.5, "recall_full": 85.7, "spec_full": 47.4,
+      "acc_single": 58.6, "recall_single": 75.0, "spec_single": 47.1
+    },
+    "e_with_crops": {
+      "label": "Flash + MANGABEIRA_E + 12 pile-zone hi-res crops (este experimento)",
+      "n_full": 40, "n_single_call": 29,
+      "acc_full": 67.5, "recall_full": 90.5, "spec_full": 42.1,
+      "acc_single": 58.6, "recall_single": 91.7, "spec_single": 35.3,
+      "tp_full": 19, "tn_full": 8, "fp_full": 11, "fn_full": 2,
+      "cost_per_event": 0.015,
+      "cost_total_usd": 0.59,
+      "notes": "RECALL MÁXIMO de todos os arms (90.5% full / 91.7% single-call). Acc 67.5% empata E2. Só 2 FN em 21 CONs (1 FN no single-call cohort, igual V1). Crops permitem AP4b funcionar mesmo em casos visualmente difíceis."
+    }
+  },
+  "target_events_motivated_camp23": {
+    "d59d5309 (CON, AP3 over-applied)": {
+      "E": "MISS", "E2": "OK", "E+CROPS": "OK"
+    },
+    "3c840ac4 (CON carrinho, AP2 over-applied)": {
+      "E": "MISS", "E2": "MISS", "E+CROPS": "MISS",
+      "note": "estruturalmente difícil — nem refinamento de prompt nem crops resolveram"
+    },
+    "5520e0c7 (REJ, AP4 under-applied)": {
+      "E": "MISS", "E2": "OK", "E+CROPS": "OK"
+    }
+  },
+  "cross_bucket_vs_v1_single_call": {
+    "E+CROPS": {
+      "TP_NEW": 1, "FN_NEW": 1, "FP_FIXED": 3, "FP_NEW": 1, "FP_PERSIST": 8, "FN_BOTH": 0,
+      "highlights": [
+        "🎯 TP_NEW=1 (be6b5e67) — recuperou caso difícil que era FN_BOTH no V1+E+E2 (caso noturno guarda-chuva)",
+        "FN_BOTH=0 — único arm que pegou TODOS os casos onde algum modelo acertou",
+        "FN_NEW=1 (3c840ac4) — único FN restante",
+        "FP_FIXED=3 — filtrou b41e38bc + 95bdec5a + 580ab301",
+        "FP_NEW=1 (2bb86418) — confabulou objeto azul depositado"
+      ]
+    }
+  },
+  "verdict": {
+    "winner_full_cohort": "E+CROPS tem RECALL MÁXIMO (90.5%) com mesma acc do E2 (67.5%). Trade-off: 1 FP a mais que E2.",
+    "winner_single_call": "E+CROPS empata V1 em recall (91.7%) com spec 1.6× maior (35% vs 21%).",
+    "for_saira_recall_weighted_3x": "E+CROPS é o melhor — recall máximo + spec consideravelmente acima do V1 baseline",
+    "deployment_complexity": "Crops em Agent-2 é NOVO em prod. Precisa: (a) implementar _make_pile_crops no flow do Agent-2 (similar ao gate), (b) novo prompt MANGABEIRA_E_WITH_PILECROPS, (c) flag pra rollout, (d) custo $0.015/event (+50% vs V1)",
+    "deployment_recommendation": "Shadow A/B em test-saira por 1-2 semanas. Capturar veredictos paralelos V1 vs E+CROPS no DB pra confronto."
+  },
+  "success_criteria_check": {
+    "recall_min_80": "PASS (full: 90.5%, single-call: 91.7%)",
+    "spec_min_50": "FAIL (full: 42%, single-call: 35%)",
+    "acc_min_65": "PASS (full: 67.5%)",
+    "cost_per_event_max_0.020": "PASS ($0.0146)"
+  },
+  "cost_total_usd": 0.59,
+  "extra_tokens_pct_vs_e": 30
+}

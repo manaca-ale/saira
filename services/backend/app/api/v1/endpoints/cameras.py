@@ -11,6 +11,7 @@ from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.camera import Camera
 from app.schemas.camera import (
+    CameraBgsubConfigUpdate,
     CameraCreate,
     CameraLatestImageResponse,
     CameraResponse,
@@ -230,6 +231,36 @@ async def update_camera(
     await db.commit()
     await db.refresh(camera)
 
+    return camera
+
+
+@router.patch("/{camera_id}/bgsub_config", response_model=CameraResponse)
+async def update_camera_bgsub_config(
+    camera_id: int,
+    payload: CameraBgsubConfigUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Atualiza só os campos BGSUB de tuning (lr_fast/slow, threshold, etc).
+
+    Todos NULL = câmera cai pros env globais (BGSUB_LR_FAST etc).
+    Endpoint dedicado pra simplicar uso (admin via curl/CLI) e isolar
+    auditabilidade da config do filtro.
+    """
+    result = await db.execute(select(Camera).where(Camera.id == camera_id))
+    camera = result.scalar_one_or_none()
+    if not camera:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Camera not found",
+        )
+
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(camera, key, value)
+
+    await db.commit()
+    await db.refresh(camera)
     return camera
 
 

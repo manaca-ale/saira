@@ -1,0 +1,109 @@
+{
+  "campaign_number": 22,
+  "date": "2026-05-30",
+  "title": "MANGABEIRA prompt angles (Flash 2.5) — C checklist + E negative-first",
+  "type": "a-b-prompt",
+  "focus": "calibrar prompt MANGABEIRA mantendo Flash 2.5 (sem trocar modelo) atacando confabulação e aplicação inconsistente de anti-padrões",
+  "models": {
+    "gate": "gemini-2.5-flash-lite (unchanged)",
+    "detail": "gemini-2.5-flash (unchanged)"
+  },
+  "production_parity": {
+    "n_frames": 48,
+    "mosaic": "off",
+    "detail_prompt_today": "V1 (current) for all cameras"
+  },
+  "dataset": {
+    "source": "production DB + cascade_audit (cam_11 only, snapshot 2026-05-30 ~10:00 BRT)",
+    "total_cam11_events": 40,
+    "cohort": {
+      "single_call": 29,
+      "coalesced": 5,
+      "no_audit": 6
+    }
+  },
+  "arms": {
+    "v1_baseline": {
+      "label": "Flash 2.5 + V1 (prod baseline, reused from camp 21)",
+      "n_single_call": 26,
+      "acc": 53.8,
+      "recall": 91.7,
+      "specificity": 21.4,
+      "tp": 11, "tn": 3, "fp": 11, "fn": 1,
+      "cost_per_event": 0.01
+    },
+    "mangabeira_orig": {
+      "label": "Flash 2.5 + MANGABEIRA V3 (camp 21 baseline)",
+      "n_single_call": 27,
+      "acc": 51.9,
+      "recall": 75.0,
+      "specificity": 33.3,
+      "tp": 9, "tn": 5, "fp": 10, "fn": 3,
+      "cost_per_event": 0.01
+    },
+    "angle_c_checklist": {
+      "label": "Flash 2.5 + MANGABEIRA_C — checklist Q1-Q5 obrigatório por pessoa",
+      "n_single_call": 29,
+      "acc": 44.8,
+      "recall": 83.3,
+      "specificity": 17.6,
+      "tp": 10, "tn": 3, "fp": 14, "fn": 2,
+      "cost_per_event": 0.013,
+      "notes": "Modelo preenche 5/5 com facilidade em casos ambíguos — confabulação migra do prompt livre pra preenchimento do checklist. Specificity REGRIDE vs MANGABEIRA orig."
+    },
+    "angle_e_negative_first": {
+      "label": "Flash 2.5 + MANGABEIRA_E — negative-first (default CON, prove REJ via anti-padrões)",
+      "n_single_call": 29,
+      "acc": 62.1,
+      "recall": 75.0,
+      "specificity": 52.9,
+      "tp": 9, "tn": 9, "fp": 8, "fn": 3,
+      "cost_per_event": 0.011,
+      "notes": "WINNER de acc (+8.3pp vs V1 baseline) e specificity (+31.5pp). Recall iguala MANGABEIRA orig. AP2 (passantes) e AP3 (pessoa-com-saco-sem-depositar) são acionados consistentemente quando aplicam. Casos ambíguos (pessoa-para-com-sacola) viram CON por design — recall não cresce mas FPs caem."
+    }
+  },
+  "cross_bucket_vs_v1_single_call": {
+    "MANGABEIRA_E": {
+      "TP_NEW": 0,
+      "FN_NEW": 2,
+      "FP_FIXED": 5,
+      "FP_NEW": 1,
+      "FP_PERSIST": 6,
+      "FN_BOTH": 1,
+      "net_change_vs_v1": "+5 FPs filtrados, -2 TPs perdidos, -1 FP novo. Net win: -4 FPs e -2 TPs = -2 net detections, mas qualidade sobe (52.9% spec vs 21.4%)"
+    },
+    "MANGABEIRA_C": {
+      "TP_NEW": 0,
+      "FN_NEW": 1,
+      "FP_FIXED": 3,
+      "FP_NEW": 3,
+      "FP_PERSIST": 8,
+      "FN_BOTH": 1,
+      "net_change_vs_v1": "Net loss: +3 FPs novos > -3 FPs filtrados (cancelam), -1 TP perdido. Sem ganho líquido."
+    }
+  },
+  "verdict": {
+    "winner": "MANGABEIRA_E (negative-first)",
+    "deployment_recommendation": "Shadow A/B no test-saira por 1-2 semanas antes de prod. Vence em accuracy e specificity, mas perde 2 TPs reais vs V1 baseline. Trade-off operacional: -22% workload do operador vs +2 missed/dia (~60/mês) — usuário priorizou recall em ocasiões anteriores.",
+    "next_iteration": [
+      "Refinar AP2 (passantes) e AP3 (pessoa-com-saco) para EVITAR rejeição de casos com pedestre que para junto à pilha — recuperar FN_NEW d59d5309 e 3c840ac4",
+      "Considerar pipeline em 2 estágios: V1 como recall-first → MANGABEIRA_E como specificity-filter (escalation)",
+      "Combinar com DINOv2 + LogReg em cam_11 — mas validado em camp 20 que cam_11 não é separável por embedding estático"
+    ]
+  },
+  "success_criteria_check": {
+    "acc_min_65": "FAIL (E: 62.1%) — perto mas não atinge",
+    "recall_min_85": "FAIL (E: 75% — perde 2 TPs reais vs V1 baseline 91.7%)",
+    "fp_rate_max_60": "PASS (E: FP rate 47.1%)"
+  },
+  "coalesced_caveat": {
+    "n": 5,
+    "issue": "5/40 events cam_11 são coalesced (2+ Agent-2 calls em prod, bench mistura tudo em 1 call)",
+    "impact": "Em prod, eventos coalesced ganham 2+ chances de detecção. Bench underestima recall coalesced."
+  },
+  "cost_total_usd": {
+    "angle_c": 0.51,
+    "angle_e": 0.41,
+    "total": 0.92
+  }
+}

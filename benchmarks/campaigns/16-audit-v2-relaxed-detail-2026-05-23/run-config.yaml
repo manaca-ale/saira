@@ -1,0 +1,31 @@
+# Campanha 16 — gerada por scaffold_campaign.py em 2026-05-23
+campaign_number: 16
+title: "audit v2 relaxed Detail"
+date: 2026-05-23
+type: prompt-ab
+hypothesis: "Relaxar forcing do AUDIT (camp 15 FAIL) recupera TPs sem reverter ganho contra FPs"
+
+models:
+  gate: "gemini-2.5-flash-lite"
+  detail: "gemini-2.5-flash"
+  thinking_budget: 2048
+
+runner: "benchmarks/scripts/benchmark_prompt_v2_ab.py"
+focus: "fp-reduction (prompt tuning)"
+
+filters:
+  reuses_camp: "12-prompt-v3-posture"
+  subset: "gate_hits_44_windows"
+  category:
+    - tp
+    - fp
+    - baseline
+    - indefinido
+
+success_criteria:
+  tp_recall_min: 75
+  fp_rate_max: 30
+  cost_max_usd: 0.15
+
+# Preenchido em runtime pelo compute_metrics.py após Fase 3.
+# results_seen: []

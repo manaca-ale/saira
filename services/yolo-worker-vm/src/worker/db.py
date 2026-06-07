@@ -79,7 +79,11 @@ def resolve_camera(device_id: str) -> Optional[CameraInfo]:
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT id, name, device_id, logradouro, bairro, rpa, latitude, longitude "
+            "SELECT id, name, device_id, logradouro, bairro, rpa, latitude, longitude, "
+            "pile_zone_polygon, bgsub_calibrated_at, "
+            "bgsub_lr_fast, bgsub_lr_slow, bgsub_mog2_history_fast, "
+            "bgsub_mog2_history_slow, bgsub_persistence_threshold, "
+            "bgsub_min_persistence_frames, bgsub_min_px_active "
             "FROM cameras WHERE device_id = %s AND is_active = true LIMIT 1",
             (device_id,),
         )
@@ -91,6 +95,15 @@ def resolve_camera(device_id: str) -> Optional[CameraInfo]:
             id=row[0], name=row[1], device_id=row[2],
             logradouro=row[3], bairro=row[4], rpa=row[5],
             latitude=row[6], longitude=row[7],
+            pile_zone_polygon=row[8],
+            bgsub_calibrated_at=row[9],
+            bgsub_lr_fast=row[10],
+            bgsub_lr_slow=row[11],
+            bgsub_mog2_history_fast=row[12],
+            bgsub_mog2_history_slow=row[13],
+            bgsub_persistence_threshold=row[14],
+            bgsub_min_persistence_frames=row[15],
+            bgsub_min_px_active=row[16],
         )
     except Exception:
         logger.exception("Error resolving camera for device_id=%s", device_id)
@@ -132,11 +145,13 @@ def insert_detection(det: DetectionRecord) -> bool:
                 id, camera_id, timestamp, logradouro, bairro, rpa,
                 latitude, longitude, waste_type, material_type,
                 volume_m3, offenders, status, image_url, confidence_score,
+                waste_bbox, agent1_request_id, agent2_request_id, agent1_confidence,
                 created_at, updated_at
             ) VALUES (
                 %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s,
                 %s, %s, %s, %s, %s,
+                %s::jsonb, %s, %s, %s,
                 NOW(), NOW()
             )
             """,
@@ -147,6 +162,10 @@ def insert_detection(det: DetectionRecord) -> bool:
                 det.waste_type, det.material_type,
                 det.volume_m3, det.offenders,
                 det.status, det.image_url, det.confidence_score,
+                json.dumps(det.waste_bbox) if det.waste_bbox is not None else None,
+                det.agent1_request_id,
+                det.agent2_request_id,
+                det.agent1_confidence,
             ),
         )
         conn.commit()
@@ -156,6 +175,107 @@ def insert_detection(det: DetectionRecord) -> bool:
     except Exception:
         conn.rollback()
         logger.exception("Error inserting detection")
+        return False
+    finally:
+        _put_conn(conn)
+
+
+def find_recent_detection_for_camera(camera_id: int, since_minutes: int) -> Optional[dict]:
+    """Return the most recent detection for ``camera_id`` within the last
+    ``since_minutes`` minutes, or None if no candidate is in the window.
+
+    Used by the worker to coalesce consecutive windows that belong to the same
+    physical event (a single dumping incident producing multiple Gemini
+    windows). The caller decides whether to merge or create a new detection.
+    """
+    if since_minutes <= 0 or camera_id is None:
+        return None
+    conn = _get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, waste_type, material_type, volume_m3,
+                   confidence_score, image_url, created_at
+              FROM detections
+             WHERE camera_id = %s
+               AND created_at >= NOW() - (%s || ' minutes')::interval
+             ORDER BY created_at DESC
+             LIMIT 1
+            """,
+            (camera_id, str(since_minutes)),
+        )
+        row = cur.fetchone()
+        cur.close()
+        if not row:
+            return None
+        return {
+            "id": row[0],
+            "waste_type": row[1],
+            "material_type": row[2],
+            "volume_m3": row[3],
+            "confidence_score": row[4],
+            "image_url": row[5],
+            "created_at": row[6],
+        }
+    except Exception:
+        logger.exception("Error finding recent detection for camera_id=%s", camera_id)
+        return None
+    finally:
+        _put_conn(conn)
+
+
+def update_detection_on_merge(
+    detection_id,
+    *,
+    waste_type: Optional[str] = None,
+    material_type: Optional[str] = None,
+    volume_m3=None,
+    confidence_score=None,
+    image_url: Optional[str] = None,
+    waste_bbox=None,
+) -> bool:
+    """Update specific fields of an existing detection on coalescing merge.
+
+    Always bumps ``updated_at`` to NOW(). Only columns whose argument is not
+    None are written, so callers can selectively upgrade waste_type/confidence
+    when the new window classifies the event with higher confidence.
+    """
+    sets: list[str] = ["updated_at = NOW()"]
+    params: list = []
+    if waste_type is not None:
+        sets.append("waste_type = %s"); params.append(waste_type)
+    if material_type is not None:
+        sets.append("material_type = %s"); params.append(material_type)
+    if volume_m3 is not None:
+        sets.append("volume_m3 = %s"); params.append(volume_m3)
+    if confidence_score is not None:
+        sets.append("confidence_score = %s"); params.append(confidence_score)
+    if image_url is not None:
+        sets.append("image_url = %s"); params.append(image_url)
+    if waste_bbox is not None:
+        sets.append("waste_bbox = %s::jsonb")
+        params.append(json.dumps(waste_bbox))
+    params.append(detection_id)
+
+    conn = _get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE detections SET {', '.join(sets)} WHERE id = %s",
+            tuple(params),
+        )
+        conn.commit()
+        cur.close()
+        logger.info(
+            "Merged into detection %s (fields=%s)",
+            detection_id,
+            [s.split(" =")[0] for s in sets[1:]],
+        )
+        return True
+    except Exception:
+        conn.rollback()
+        logger.exception("Error updating detection %s on merge", detection_id)
         return False
     finally:
         _put_conn(conn)
@@ -174,8 +294,8 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
                 INSERT INTO detection_offenders (
                     id, detection_id, offender_type,
                     plate, vehicle_color, waste_type, estimated_volume_m3,
-                    source, confidence_score, notes, created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, NOW())
+                    source, confidence_score, notes, offender_bbox, created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, %s::jsonb, NOW())
                 """,
                 (
                     o.id,
@@ -187,6 +307,7 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
                     o.estimated_volume_m3,
                     o.confidence_score,
                     o.notes,
+                    json.dumps(o.offender_bbox) if o.offender_bbox is not None else None,
                 ),
             )
         conn.commit()
@@ -260,6 +381,71 @@ def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
     finally:
         _put_conn(conn)
     return count
+
+
+# ==========================================
+# GEMINI CALL LOG
+# ==========================================
+
+def insert_gemini_call_log(
+    *,
+    camera_id: Optional[int],
+    device_id: Optional[str],
+    agent: str,
+    model: str,
+    request_id: Optional[str],
+    input_tokens: int,
+    output_tokens: int,
+    total_tokens: int,
+    estimated_cost_usd: float,
+    latency_ms: Optional[int],
+    success: bool,
+    error_message: Optional[str] = None,
+) -> None:
+    """Best-effort insert into gemini_call_log. Never raises.
+
+    Records every Gemini API call (gate or detail) with token usage,
+    estimated cost and camera attribution so we can produce daily billing reports.
+    """
+    if _pool is None:
+        return
+    conn = None
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO gemini_call_log (
+                called_at, camera_id, device_id, agent, model, request_id,
+                input_tokens, output_tokens, total_tokens,
+                estimated_cost_usd, latency_ms, success, error_message
+            ) VALUES (
+                NOW(), %s, %s, %s, %s, %s,
+                %s, %s, %s,
+                %s, %s, %s, %s
+            )
+            """,
+            (
+                camera_id, device_id, agent, model, request_id,
+                int(input_tokens or 0), int(output_tokens or 0), int(total_tokens or 0),
+                float(estimated_cost_usd or 0.0),
+                int(latency_ms) if latency_ms is not None else None,
+                bool(success),
+                (error_message[:1000] if error_message else None),
+            ),
+        )
+        conn.commit()
+        cur.close()
+    except Exception:
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        logger.exception("insert_gemini_call_log failed (non-fatal)")
+    finally:
+        if conn is not None:
+            _put_conn(conn)
 
 
 def publish_detection_event(detection: DetectionRecord, camera: CameraInfo) -> None:

@@ -8,3 +8,6 @@ google-genai>=0.7.0
 pydantic>=2.8.0
 prometheus-client>=0.21.0
 boto3>=1.34.0
+# scikit-learn: usado APENAS pelo retreino batch do filtro DINOv2
+# (worker.retrain_dinov2). A inferência em produção é numpy-pura (detector_dinov2).
+scikit-learn>=1.3.0

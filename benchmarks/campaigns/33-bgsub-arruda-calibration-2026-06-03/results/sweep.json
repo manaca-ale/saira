@@ -1,0 +1,802 @@
+[
+  {
+    "mode": "single",
+    "min_frames": 0.1,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 18,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.9,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.1,
+    "threshold": 300,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 18,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.9,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.1,
+    "threshold": 500,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 18,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.9,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.1,
+    "threshold": 750,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 18,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.9,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.1,
+    "threshold": 1000,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.15,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.15,
+    "threshold": 300,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.15,
+    "threshold": 500,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.15,
+    "threshold": 750,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.15,
+    "threshold": 1000,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.2,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.2,
+    "threshold": 300,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.2,
+    "threshold": 500,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.2,
+    "threshold": 750,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.2,
+    "threshold": 1000,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.3,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.3,
+    "threshold": 300,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.3,
+    "threshold": 500,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.3,
+    "threshold": 750,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.3,
+    "threshold": 1000,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.4,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.4,
+    "threshold": 300,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.4,
+    "threshold": 500,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.4,
+    "threshold": 750,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "single",
+    "min_frames": 0.4,
+    "threshold": 1000,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 20,
+    "neg_total": 20,
+    "neg_suppress_rate": 1.0,
+    "tp_detail": {
+      "id24_1242_lixo": 19103,
+      "id25_1528_poda": 19103,
+      "id26_1559_poda": 19103,
+      "id27_1826_entulho": 19103
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.1,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 2837,
+      "id26_1559_poda": 5987,
+      "id27_1826_entulho": 11459
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.1,
+    "threshold": 300,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 2837,
+      "id26_1559_poda": 5987,
+      "id27_1826_entulho": 11459
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.1,
+    "threshold": 500,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 2837,
+      "id26_1559_poda": 5987,
+      "id27_1826_entulho": 11459
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.1,
+    "threshold": 750,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 2837,
+      "id26_1559_poda": 5987,
+      "id27_1826_entulho": 11459
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.1,
+    "threshold": 1000,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 2837,
+      "id26_1559_poda": 5987,
+      "id27_1826_entulho": 11459
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.15,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.15,
+    "threshold": 300,
+    "tp_pass": 3,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.15,
+    "threshold": 500,
+    "tp_pass": 3,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.15,
+    "threshold": 750,
+    "tp_pass": 3,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.15,
+    "threshold": 1000,
+    "tp_pass": 2,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.2,
+    "threshold": 200,
+    "tp_pass": 4,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.2,
+    "threshold": 300,
+    "tp_pass": 3,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.2,
+    "threshold": 500,
+    "tp_pass": 3,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.2,
+    "threshold": 750,
+    "tp_pass": 3,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.2,
+    "threshold": 1000,
+    "tp_pass": 2,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 1184,
+      "id25_1528_poda": 223,
+      "id26_1559_poda": 839,
+      "id27_1826_entulho": 5644
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.3,
+    "threshold": 200,
+    "tp_pass": 1,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 136,
+      "id27_1826_entulho": 1490
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.3,
+    "threshold": 300,
+    "tp_pass": 1,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 136,
+      "id27_1826_entulho": 1490
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.3,
+    "threshold": 500,
+    "tp_pass": 1,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 136,
+      "id27_1826_entulho": 1490
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.3,
+    "threshold": 750,
+    "tp_pass": 1,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 136,
+      "id27_1826_entulho": 1490
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.3,
+    "threshold": 1000,
+    "tp_pass": 1,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 136,
+      "id27_1826_entulho": 1490
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.4,
+    "threshold": 200,
+    "tp_pass": 1,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 0,
+      "id27_1826_entulho": 424
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.4,
+    "threshold": 300,
+    "tp_pass": 1,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 0,
+      "id27_1826_entulho": 424
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.4,
+    "threshold": 500,
+    "tp_pass": 0,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 0,
+      "id27_1826_entulho": 424
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.4,
+    "threshold": 750,
+    "tp_pass": 0,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 0,
+      "id27_1826_entulho": 424
+    }
+  },
+  {
+    "mode": "dual",
+    "min_frames": 0.4,
+    "threshold": 1000,
+    "tp_pass": 0,
+    "tp_total": 4,
+    "neg_suppress": 13,
+    "neg_total": 20,
+    "neg_suppress_rate": 0.65,
+    "tp_detail": {
+      "id24_1242_lixo": 0,
+      "id25_1528_poda": 0,
+      "id26_1559_poda": 0,
+      "id27_1826_entulho": 424
+    }
+  }
+]

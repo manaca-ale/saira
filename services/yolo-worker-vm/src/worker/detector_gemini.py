@@ -19,6 +19,7 @@ except Exception:  # pragma: no cover - optional dependency while running YOLO-o
     types = None
 
 from . import config
+from . import _prompts_audit, _prompts_v2, _prompts_v3
 from .models import GeminiUsage
 from .mosaic import build_mosaic_2x1, build_mosaic_3x2_pair, build_mosaic_4x3
 from .schemas_gemini import GeminiInfractionReport, GeminiNewLitterReport
@@ -85,8 +86,10 @@ Voce e um auditor visual de descarte irregular de residuos em via publica no Bra
 Responda APENAS JSON valido com os campos solicitados.
 
 BASELINE ESPERADO: A cena padrao consiste em via asfaltada, calcadas, veiculos estacionados,
-infraestrutura municipal fixa (postes, lixeiras com tampa, bollards, marcacoes viarias) e
-iluminacao natural variavel. Estes elementos sao NORMAIS e ESPERADOS.
+infraestrutura municipal fixa (postes, lixeiras com tampa, bollards, marcacoes viarias),
+PILHAS DE LIXO PRE-EXISTENTES de janelas anteriores, e iluminacao natural variavel.
+Estes elementos sao NORMAIS e ESPERADOS — uma pilha que ja estava no primeiro frame
+e PERMANECE inalterada no ultimo frame NAO e infracao.
 
 PROCESSO DE VERIFICACAO (siga na ordem):
 1. INVENTARIO: Em baseline_description, liste ate 5 objetos fixos/permanentes visiveis no primeiro frame.
@@ -292,6 +295,9 @@ class GeminiNewLitterInferenceResult:
     latency_ms: int
     model: str
     raw_json: str
+    # V2 fields (default False/none for backwards compatibility with current prompts).
+    is_maintenance: bool = False
+    prompt_version: str = "current"
 
 
 _client = None
@@ -523,19 +529,109 @@ def _sanitize_report(
     return report
 
 
+def _build_mangabeira_pilecrops_user_prompt(
+    camera_context: Optional[dict[str, str]] = None,
+    *,
+    frame_names: Optional[list[str]] = None,
+    crop_count: int = 0,
+    prior_window_context: Optional[str] = None,
+) -> str:
+    """User prompt for the MANGABEIRA+pile-crops detail call.
+
+    Tells the model the input has TWO sequences: N global frames followed by
+    M hi-res pile-zone crops (upscale 2x). The system prompt
+    (DETAIL_PROMPT_MANGABEIRA_E_WITH_PILECROPS) handles the decision logic;
+    this just labels the input.
+    """
+    context_lines = []
+    if camera_context:
+        for key, value in camera_context.items():
+            if value:
+                context_lines.append(f"- {key}: {value}")
+    context_block = "\n".join(context_lines) if context_lines else "- sem contexto adicional"
+
+    prior_block = ""
+    if prior_window_context:
+        prior_block = f"\nPrior window context:\n{prior_window_context}\n"
+
+    n_global = len(frame_names or [])
+    frame_block = ", ".join(frame_names) if frame_names else "desconhecido"
+    return (
+        "Analise a sequencia temporal de imagens e retorne JSON estruturado conforme schema.\n"
+        f"\nESTRUTURA DO INPUT (em ordem):\n"
+        f"- SEQUENCIA 1: {n_global} FRAMES GLOBAIS da camera (ordem cronologica, "
+        f"primeiro=earliest, ultimo=latest).\n"
+        f"- SEQUENCIA 2: {crop_count} CROPS ALTA-RES (upscale 2x) da pile-zone, "
+        f"amostrados uniformemente da MESMA janela temporal.\n"
+        "Use ambas sequencias conforme o system prompt. event_frame_name e "
+        "offender_frame_name devem ser escolhidos dentre os nomes da SEQUENCIA 1.\n"
+        f"Nomes de frame permitidos (SEQUENCIA 1): {frame_block}\n"
+        f"{prior_block}"
+        "Contexto da camera:\n"
+        f"{context_block}"
+    )
+
+
 def analyze_with_gemini(
     image_paths: list[Path],
     camera_context: Optional[dict[str, str]] = None,
     request_id: Optional[str] = None,
     mosaic_mode: str = "off",
     prior_window_context: Optional[str] = None,
+    prompt_version: str = "current",
+    pile_crops: Optional[list[Path]] = None,
 ) -> GeminiInferenceResult:
     """Run Gemini inference with retry/timeout and strict schema validation.
 
     Args:
         mosaic_mode: "off" sends frames individually; "4x3" composes a single 4×3
             grid image; "3x2split" composes two 3×2 grid images.
+        prompt_version: "current" (default), "v2", "v3", "audit", "audit_v2", or
+            "mangabeira_with_pilecrops".
+            - V2 uses the behavioral anti-collection prompt.
+            - V3 uses posture-first signals.
+            - audit treats Agent-2 as an adversarial reviewer of the gate,
+              requiring `fp_pattern_match` enum to classify the scene and
+              rejecting infraction_confirmed when pattern != real_dumping.
+            - audit_v2 relaxes the V1 audit: drops the 4-question hard rule
+              and force-falses only for 5 unambiguous FP patterns
+              (traffic_passing, municipal_collection, pruning_crew,
+              rain_blur, parking_dropoff). carroceiro_sorting / other /
+              real_dumping are left to the model's judgement.
+            - mangabeira_with_pilecrops: per-camera (esp32_002 only),
+              negative-first prompt with pile-zone hi-res crops augmentation.
+              Requires `pile_crops` argument with N upscaled crop paths.
+              Campaign 24 winner for recall on cam_11 (91.7% single-call).
+        pile_crops: Optional list of hi-res pile-zone crop paths to send
+            alongside `image_paths` when prompt_version="mangabeira_with_pilecrops".
+            Ignored for other prompt versions (kept for backward compat).
     """
+    use_mangabeira_crops = prompt_version == "mangabeira_with_pilecrops"
+    use_audit_v2 = prompt_version == "audit_v2"
+    use_audit = prompt_version == "audit"
+    use_v3 = prompt_version == "v3"
+    use_v2 = prompt_version == "v2"
+    if use_mangabeira_crops:
+        # Per-camera detail prompt selected by device_id; crops mandatory.
+        system_prompt = _prompts_v3.detail_system_prompt_for_camera(
+            camera_context, has_pilecrops=True,
+        )
+        schema_cls = GeminiInfractionReport
+    elif use_audit_v2:
+        system_prompt = _prompts_audit.SYSTEM_PROMPT_AUDIT_V2
+        schema_cls = _prompts_audit.GeminiInfractionReportAudit
+    elif use_audit:
+        system_prompt = _prompts_audit.SYSTEM_PROMPT_AUDIT
+        schema_cls = _prompts_audit.GeminiInfractionReportAudit
+    elif use_v3:
+        system_prompt = _prompts_v3.SYSTEM_PROMPT_V3
+        schema_cls = GeminiInfractionReport
+    elif use_v2:
+        system_prompt = _prompts_v2.SYSTEM_PROMPT_V2
+        schema_cls = GeminiInfractionReport
+    else:
+        system_prompt = SYSTEM_PROMPT
+        schema_cls = GeminiInfractionReport
 
     if not image_paths:
         raise ValueError("image_paths must contain at least one frame")
@@ -558,6 +654,11 @@ def analyze_with_gemini(
         send_paths = image_paths
         allowed_frame_names = set(frame_names)
 
+    # MANGABEIRA + pile-crops: append hi-res crops AFTER globals. The prompt
+    # text explains the structure (sequencia 1 = globais, sequencia 2 = crops).
+    if use_mangabeira_crops and pile_crops:
+        send_paths = list(send_paths) + list(pile_crops)
+
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
     last_error: Optional[Exception] = None
 
@@ -565,20 +666,57 @@ def analyze_with_gemini(
         for attempt in range(1, attempts + 1):
             started = time.monotonic()
             try:
+                if use_audit_v2:
+                    user_prompt_text = _prompts_audit.build_audit_v2_user_prompt(
+                        camera_context, frame_names=frame_names,
+                        mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+                elif use_audit:
+                    user_prompt_text = _prompts_audit.build_audit_user_prompt(
+                        camera_context, frame_names=frame_names,
+                        mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+                elif use_mangabeira_crops:
+                    user_prompt_text = _build_mangabeira_pilecrops_user_prompt(
+                        camera_context,
+                        frame_names=frame_names,
+                        crop_count=len(pile_crops) if pile_crops else 0,
+                        prior_window_context=prior_window_context,
+                    )
+                elif use_v3:
+                    user_prompt_text = _prompts_v3.build_v3_user_prompt_detail(
+                        camera_context, frame_names=frame_names,
+                        mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+                elif use_v2:
+                    user_prompt_text = _prompts_v2.build_v2_user_prompt_detail(
+                        camera_context, frame_names=frame_names,
+                        mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+                else:
+                    user_prompt_text = _user_prompt(
+                        camera_context, frame_names=frame_names,
+                        mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
+                    )
+
                 with ThreadPoolExecutor(max_workers=1) as pool:
                     fut = pool.submit(
                         _call_model,
                         send_paths,
-                        SYSTEM_PROMPT,
-                        _user_prompt(camera_context, frame_names=frame_names, mosaic_mode=mosaic_mode, prior_window_context=prior_window_context),
+                        system_prompt,
+                        user_prompt_text,
                         config.GEMINI_MODEL,
-                        GeminiInfractionReport.model_json_schema(),
+                        schema_cls.model_json_schema(),
                     )
                     response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
 
                 raw_text = _extract_text(response)
-                report = GeminiInfractionReport.model_validate_json(raw_text)
+                report = schema_cls.model_validate_json(raw_text)
                 report = _sanitize_report(report, allowed_frame_names=allowed_frame_names)
+                if use_audit_v2:
+                    report = _prompts_audit.apply_audit_v2_consistency(report, request_id=request_id)
+                elif use_audit:
+                    report = _prompts_audit.apply_audit_consistency(report, request_id=request_id)
 
                 usage = _extract_usage(response)
                 latency_ms = int((time.monotonic() - started) * 1000)
@@ -645,6 +783,7 @@ def analyze_new_litter_with_gemini(
     prior_window_context: Optional[str] = None,
     use_mosaic: bool = False,
     mid_frames: Optional[list[Path]] = None,
+    prompt_version: str = "current",
 ) -> GeminiNewLitterInferenceResult:
     """Stage-1 gate: compare first and last frame for new litter appearance.
 
@@ -652,11 +791,29 @@ def analyze_new_litter_with_gemini(
         use_mosaic: when True, composes a 2x1 side-by-side image before sending.
         mid_frames: optional list of mid-window frames (e.g. at 25%/50%/75%) to detect
             ghost events (arrive-dump-leave within window).
+        prompt_version: "current" (V1), "v2" (behavioral discriminators, _prompts_v2.py),
+            or "v3" (posture-first signals, _prompts_v3.py).
     """
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
     last_error: Optional[Exception] = None
     model_name = config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL
     timeout_s = max(1, config.GEMINI_AGENT1_TIMEOUT_SECONDS)
+
+    camera_device_id = ""
+    if camera_context:
+        camera_device_id = str(camera_context.get("device_id") or "").strip().lower()
+    use_camera_v3_gate = camera_device_id in ("esp32_002", "esp32_001")
+    use_v3 = prompt_version == "v3" or use_camera_v3_gate
+    use_v2 = prompt_version == "v2"
+    if use_v3:
+        system_prompt = _prompts_v3.gate_system_prompt_for_camera(camera_context)
+        schema_cls = _prompts_v3.GeminiNewLitterReportV3
+    elif use_v2:
+        system_prompt = _prompts_v2.NEW_LITTER_SYSTEM_PROMPT_V2
+        schema_cls = _prompts_v2.GeminiNewLitterReportV2
+    else:
+        system_prompt = NEW_LITTER_SYSTEM_PROMPT
+        schema_cls = GeminiNewLitterReport
 
     mosaic_temp: Optional[Path] = None
     if use_mosaic:
@@ -670,6 +827,25 @@ def analyze_new_litter_with_gemini(
 
     mid_frame_names = [f.name for f in mid_frames] if mid_frames else None
 
+    if use_v3:
+        user_prompt_text = _prompts_v3.build_v3_user_prompt_gate(
+            first_frame.name, last_frame.name, camera_context,
+            prior_window_context=prior_window_context, mosaic=use_mosaic,
+            mid_frame_names=mid_frame_names,
+        )
+    elif use_v2:
+        user_prompt_text = _prompts_v2.build_v2_user_prompt_gate(
+            first_frame.name, last_frame.name, camera_context,
+            prior_window_context=prior_window_context, mosaic=use_mosaic,
+            mid_frame_names=mid_frame_names,
+        )
+    else:
+        user_prompt_text = _new_litter_user_prompt(
+            first_frame.name, last_frame.name, camera_context,
+            prior_window_context=prior_window_context, mosaic=use_mosaic,
+            mid_frame_names=mid_frame_names,
+        )
+
     try:
         for attempt in range(1, attempts + 1):
             started = time.monotonic()
@@ -678,17 +854,10 @@ def analyze_new_litter_with_gemini(
                     fut = pool.submit(
                         _call_model,
                         image_paths,
-                        NEW_LITTER_SYSTEM_PROMPT,
-                        _new_litter_user_prompt(
-                            first_frame.name,
-                            last_frame.name,
-                            camera_context,
-                            prior_window_context=prior_window_context,
-                            mosaic=use_mosaic,
-                            mid_frame_names=mid_frame_names,
-                        ),
+                        system_prompt,
+                        user_prompt_text,
                         model_name,
-                        GeminiNewLitterReport.model_json_schema(),
+                        schema_cls.model_json_schema(),
                         config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS,
                         thinking_budget=config.GEMINI_AGENT1_THINKING_BUDGET,
                         seed=42,
@@ -696,55 +865,55 @@ def analyze_new_litter_with_gemini(
                     response = fut.result(timeout=timeout_s)
 
                 raw_text = _extract_text(response)
-                report = GeminiNewLitterReport.model_validate_json(raw_text)
+                report = schema_cls.model_validate_json(raw_text)
                 report.waste_type = normalize_waste_type(report.waste_type)
                 report.confidence_0_100 = max(0, min(100, int(report.confidence_0_100)))
 
-                # Hard gate: override hallucinated detections when scene_type
-                # is not DUMPING.  The model must classify the scene BEFORE
-                # deciding, and only DUMPING scenes can trigger.
-                scene = getattr(report, "scene_type", "").upper().strip()
-                if scene != "DUMPING" and report.new_litter_detected:
-                    logger.info(
-                        "gate override: scene_type=%s but new_litter_detected=true -> forcing false (request_id=%s)",
-                        scene, request_id,
-                    )
-                    report.new_litter_detected = False
-                    report.confidence_0_100 = 0
+                is_maintenance = False
+                if use_v3:
+                    # V3 posture-first gate (handles invisible pedestrian dumping).
+                    report, is_maintenance = _prompts_v3.apply_v3_gates(report, request_id=request_id)
+                elif use_v2:
+                    # V2 behavioral gate (signals + uniform-independent override).
+                    report, is_maintenance = _prompts_v2.apply_v2_gates(report, request_id=request_id)
+                else:
+                    # V1 original gate (scene + 2-of-3 booleans).
+                    scene = getattr(report, "scene_type", "").upper().strip()
+                    if scene != "DUMPING" and report.new_litter_detected:
+                        logger.info(
+                            "gate override: scene_type=%s but new_litter_detected=true -> forcing false (request_id=%s)",
+                            scene, request_id,
+                        )
+                        report.new_litter_detected = False
+                        report.confidence_0_100 = 0
 
-                # Deterministic 2-of-3 gate — Python executes the Boolean logic,
-                # not the model. Flash-Lite evaluated each condition independently;
-                # we require at least 2 of 3 to pass (AND-3 was too strict for
-                # dumping on existing piles where new_ground_material is false).
-                bool_count = sum([
-                    bool(getattr(report, "vehicle_stopped", False)),
-                    bool(getattr(report, "person_handling_material", False)),
-                    bool(getattr(report, "new_ground_material", False)),
-                ])
-                if report.new_litter_detected and bool_count < 2:
-                    logger.info(
-                        "deterministic_gate: only %d/3 conditions met "
-                        "(vehicle_stopped=%s, person_handling=%s, new_ground=%s) "
-                        "-> forcing false (request_id=%s)",
-                        bool_count,
-                        getattr(report, "vehicle_stopped", False),
-                        getattr(report, "person_handling_material", False),
-                        getattr(report, "new_ground_material", False),
-                        request_id,
-                    )
-                    report.new_litter_detected = False
-                    report.confidence_0_100 = 0
+                    bool_count = sum([
+                        bool(getattr(report, "vehicle_stopped", False)),
+                        bool(getattr(report, "person_handling_material", False)),
+                        bool(getattr(report, "new_ground_material", False)),
+                    ])
+                    if report.new_litter_detected and bool_count < 2:
+                        logger.info(
+                            "deterministic_gate: only %d/3 conditions met "
+                            "(vehicle_stopped=%s, person_handling=%s, new_ground=%s) "
+                            "-> forcing false (request_id=%s)",
+                            bool_count,
+                            getattr(report, "vehicle_stopped", False),
+                            getattr(report, "person_handling_material", False),
+                            getattr(report, "new_ground_material", False),
+                            request_id,
+                        )
+                        report.new_litter_detected = False
+                        report.confidence_0_100 = 0
 
-                # Positive override: model classified DUMPING + 2-of-3 conditions
-                # met but set new_litter_detected=false — trust structured evidence.
-                if not report.new_litter_detected and scene == "DUMPING" and bool_count >= 2:
-                    logger.info(
-                        "positive_override: scene=DUMPING + %d/3 conditions met "
-                        "-> forcing new_litter_detected=true (request_id=%s)",
-                        bool_count, request_id,
-                    )
-                    report.new_litter_detected = True
-                    report.confidence_0_100 = max(report.confidence_0_100, 85)
+                    if not report.new_litter_detected and scene == "DUMPING" and bool_count >= 2:
+                        logger.info(
+                            "positive_override: scene=DUMPING + %d/3 conditions met "
+                            "-> forcing new_litter_detected=true (request_id=%s)",
+                            bool_count, request_id,
+                        )
+                        report.new_litter_detected = True
+                        report.confidence_0_100 = max(report.confidence_0_100, 85)
 
                 usage = _extract_usage(response)
                 latency_ms = int((time.monotonic() - started) * 1000)
@@ -770,6 +939,8 @@ def analyze_new_litter_with_gemini(
                     latency_ms=latency_ms,
                     model=model_name,
                     raw_json=raw_text,
+                    is_maintenance=is_maintenance,
+                    prompt_version=prompt_version,
                 )
             except FutureTimeoutError:
                 last_error = TimeoutError(f"Gemini gate timeout after {timeout_s}s")

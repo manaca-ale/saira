@@ -57,10 +57,36 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - S3_REGION=${S3_REGION:-sa-east-1}
+      - EXPORT_MAX_DAYS=${EXPORT_MAX_DAYS:-7}
+      - EXPORT_PRESIGNED_TTL_SECONDS=${EXPORT_PRESIGNED_TTL_SECONDS:-86400}
+      - EXPORT_S3_PREFIX=${EXPORT_S3_PREFIX:-exports}
+      - EXPORT_UPLOADS_DIR=/app/uploads
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=production
       - WORKER_STATE_DIR=/app/yolo_state
+      - REPORT_UPLOADS_DIR=/app/uploads
+      - REPORTS_OUTPUT_DIR=/app/reports
+      - REPORT_DASHBOARD_URL=${REPORT_DASHBOARD_URL:-https://saira.manaca.tech}
+      - REPORT_SNAPSHOT_ENABLED=${REPORT_SNAPSHOT_ENABLED:-true}
+      - REPORT_SNAPSHOT_HOUR_BRT=${REPORT_SNAPSHOT_HOUR_BRT:-3}
+      - REPORT_DEFAULT_CAPTURE_INTERVAL_S=${REPORT_DEFAULT_CAPTURE_INTERVAL_S:-30}
+      - KPI_I1_TARGET=${KPI_I1_TARGET:-90.0}
+      - KPI_I2_P95_TARGET_S=${KPI_I2_P95_TARGET_S:-60.0}
+      - KPI_I3_TARGET=${KPI_I3_TARGET:-80.0}
+      - KPI_I4_TARGET=${KPI_I4_TARGET:-80.0}
+      - KPI_I5_TARGET=${KPI_I5_TARGET:-100.0}
       - TZ=America/Sao_Paulo
+      # Daily Gemini billing report (email via Resend)
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - EMAIL_FROM=${EMAIL_FROM:-saira@pagamentos.manaca.tech}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-SAIRA Billing}
+      - BILLING_REPORT_RECIPIENTS=${BILLING_REPORT_RECIPIENTS:-alecoleto@gmail.com,contato@manaca.tech}
+      - BILLING_REPORT_ENABLED=${BILLING_REPORT_ENABLED:-true}
+      - BILLING_REPORT_HOUR_BRT=${BILLING_REPORT_HOUR_BRT:-7}
+      - BILLING_REPORT_MINUTE_BRT=${BILLING_REPORT_MINUTE_BRT:-0}
+      - GEMINI_INPUT_TOKEN_PRICE_PER_1M=${GEMINI_INPUT_TOKEN_PRICE_PER_1M:-0.15}
+      - GEMINI_OUTPUT_TOKEN_PRICE_PER_1M=${GEMINI_OUTPUT_TOKEN_PRICE_PER_1M:-0.60}
     depends_on:
       db:
         condition: service_healthy
@@ -70,6 +96,7 @@ services:
     volumes:
       - esp32_uploads_prod:/app/uploads:ro
       - yolo_state_prod:/app/yolo_state:ro
+      - reports_data_prod:/app/reports
     command: ["bash", "/app/start.sh", "--workers", "4"]
 
   # PostgreSQL + PostGIS
@@ -146,14 +173,15 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
       - REDIS_URL=redis://redis:6379/0
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5005}
-      - POLL_INTERVAL=10
+      - POLL_INTERVAL=${POLL_INTERVAL:-10}
       - PROCESSED_STRATEGY=${PROCESSED_STRATEGY:-two_folders}
+      - EVENT_WINDOW_MIN=${EVENT_WINDOW_MIN:-10}
       - WORKER_ENABLED=${WORKER_ENABLED:-true}
       - MOCK_MODE=${MOCK_MODE:-false}
       - AI_MODE=${AI_MODE:-yolo}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
-      - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-15}
+      - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-45}
       - GEMINI_MAX_RETRIES=${GEMINI_MAX_RETRIES:-2}
       - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}
       - GEMINI_MAX_OUTPUT_TOKENS=${GEMINI_MAX_OUTPUT_TOKENS:-2048}
@@ -165,6 +193,19 @@ services:
       - GEMINI_AGENT1_TIMEOUT_SECONDS=${GEMINI_AGENT1_TIMEOUT_SECONDS:-15}
       - GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE=${GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE:-75}
       - GEMINI_AGENT1_MAX_OUTPUT_TOKENS=${GEMINI_AGENT1_MAX_OUTPUT_TOKENS:-4096}
+      # Dual gate (full-frame + pile-crop, OR-escalate). Scoped to GATE_PILECROP_DEVICES.
+      # Catches small/zoom-dependent dumps the full frame misses (camp 19: esp32_002 92% recall).
+      - GEMINI_GATE_PILECROP_ENABLED=${GEMINI_GATE_PILECROP_ENABLED:-false}
+      - GATE_PILECROP_DEVICES=${GATE_PILECROP_DEVICES:-esp32_002}
+      - GEMINI_GATE_PILECROP_UPSCALE=${GEMINI_GATE_PILECROP_UPSCALE:-2}
+      # Detail-side pile-crop augmentation (campaign 24: esp32_002 91.7% recall + 1.6x V1 spec).
+      # When ENABLED, appends N hi-res pile-zone crops alongside the standard global frames
+      # in the Agent-2 detail call, and selects the MANGABEIRA_E_WITH_PILECROPS prompt per-camera.
+      # Default OFF in prod — promote only after a successful test-saira shadow A/B.
+      - GEMINI_DETAIL_PILECROP_ENABLED=${GEMINI_DETAIL_PILECROP_ENABLED:-false}
+      - DETAIL_PILECROP_DEVICES=${DETAIL_PILECROP_DEVICES:-esp32_002}
+      - GEMINI_DETAIL_PILECROP_UPSCALE=${GEMINI_DETAIL_PILECROP_UPSCALE:-2}
+      - GEMINI_DETAIL_PILECROP_N_FRAMES=${GEMINI_DETAIL_PILECROP_N_FRAMES:-12}
       - GEMINI_SEQUENCE_SIZE=${GEMINI_SEQUENCE_SIZE:-5}
       - GEMINI_SEQUENCE_MAX_SPAN_SECONDS=${GEMINI_SEQUENCE_MAX_SPAN_SECONDS:-4}
       - GEMINI_ENABLE_BATCH=${GEMINI_ENABLE_BATCH:-false}
@@ -172,6 +213,44 @@ services:
       - GEMINI_MAX_PAYLOAD_BYTES=${GEMINI_MAX_PAYLOAD_BYTES:-8000000}
       - GEMINI_INPUT_TOKEN_PRICE_PER_1M=${GEMINI_INPUT_TOKEN_PRICE_PER_1M:-0.10}
       - GEMINI_OUTPUT_TOKEN_PRICE_PER_1M=${GEMINI_OUTPUT_TOKEN_PRICE_PER_1M:-0.40}
+      # BGSUB pre-filter (opt-in; suppresses Gemini gate calls for empty windows)
+      - BGSUB_PREFILTER_ENABLED=${BGSUB_PREFILTER_ENABLED:-false}
+      - BGSUB_PERSISTENCE_THRESHOLD=${BGSUB_PERSISTENCE_THRESHOLD:-1000}
+      - BGSUB_MIN_PX_ACTIVE=${BGSUB_MIN_PX_ACTIVE:-800}
+      - BGSUB_MIN_PERSISTENCE_FRAMES=${BGSUB_MIN_PERSISTENCE_FRAMES:-0.6}
+      - BGSUB_MOG2_HISTORY=${BGSUB_MOG2_HISTORY:-80}
+      - BGSUB_MOG2_VAR_THRESHOLD=${BGSUB_MOG2_VAR_THRESHOLD:-40.0}
+      - BGSUB_SHADOW_THRESHOLD=${BGSUB_SHADOW_THRESHOLD:-100}
+      # Morphological post-processing mode (open_close=legacy, area_min, off)
+      - BGSUB_MORPHO_MODE=${BGSUB_MORPHO_MODE:-open_close}
+      - BGSUB_AREA_MIN=${BGSUB_AREA_MIN:-400}
+      # Adaptive baseline (Gemini-supervised MOG2 update)
+      - BGSUB_ADAPTIVE_ENABLED=${BGSUB_ADAPTIVE_ENABLED:-false}
+      - BGSUB_ADAPTIVE_LEARNING_RATE=${BGSUB_ADAPTIVE_LEARNING_RATE:-0.05}
+      - BGSUB_ADAPTIVE_MIN_CONFIDENCE=${BGSUB_ADAPTIVE_MIN_CONFIDENCE:-90}
+      - BGSUB_ADAPTIVE_SAVE_EVERY_N=${BGSUB_ADAPTIVE_SAVE_EVERY_N:-50}
+      - BGSUB_ADAPTIVE_DISABLE_DEVICES=${BGSUB_ADAPTIVE_DISABLE_DEVICES:-}
+      # DINOv2 post-detail FP filter (off|shadow|enforce); rejection-only, per-device
+      - DINOV2_FILTER_MODE=${DINOV2_FILTER_MODE:-off}
+      - DINOV2_FILTER_DEVICES=${DINOV2_FILTER_DEVICES:-esp32_001}
+      - DINOV2_VARIANT=${DINOV2_VARIANT:-dinov2_vits14}
+      - DINOV2_THRESHOLD=${DINOV2_THRESHOLD:-}
+      - DINOV2_N_FRAMES=${DINOV2_N_FRAMES:-3}
+      - DINOV2_INPUT_SIZE=${DINOV2_INPUT_SIZE:-224}
+      - DINOV2_TORCH_THREADS=${DINOV2_TORCH_THREADS:-2}
+      - DINOV2_RETRAIN_DEVICES=${DINOV2_RETRAIN_DEVICES:-esp32_001}
+      - DINOV2_RETRAIN_MIN_AUC=${DINOV2_RETRAIN_MIN_AUC:-0.85}
+      # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
+      - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
+      # Car-stopped shadow detector (parallel to Gemini, audit only)
+      - CAR_SHADOW_ENABLED=${CAR_SHADOW_ENABLED:-false}
+      - CAR_MODEL_PATH=${CAR_MODEL_PATH:-/app/models/yolov8_Car_tesi_100_n.pt}
+      - CAR_CONF_THRESHOLD=${CAR_CONF_THRESHOLD:-0.35}
+      - CAR_STATIONARY_PIXELS=${CAR_STATIONARY_PIXELS:-50.0}
+      - CAR_LOW_FRAMES=${CAR_LOW_FRAMES:-3}
+      - CAR_MED_FRAMES=${CAR_MED_FRAMES:-6}
+      - CAR_HIGH_FRAMES=${CAR_HIGH_FRAMES:-12}
+      - CAR_TRACK_TTL_SECONDS=${CAR_TRACK_TTL_SECONDS:-300}
       - TZ=America/Sao_Paulo
       - GDRIVE_ENABLED=${GDRIVE_ENABLED:-false}
       - GDRIVE_FOLDER_ID=${GDRIVE_FOLDER_ID:-15GxmM3W8fA3xrteLaSw4h3JRtRx-HnQP}
@@ -204,3 +283,4 @@ volumes:
   redis_data_prod:
   esp32_uploads_prod:
   yolo_state_prod:
+  reports_data_prod:

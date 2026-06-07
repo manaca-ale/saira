@@ -16,7 +16,7 @@ from app.models.user import User
 from app.models.detection import Detection, DetectionStatus
 from app.schemas.detection import (
     DetectionCreate, DetectionUpdate, DetectionResponse,
-    DetectionResolve, DetectionStartAnalysis, DetectionListResponse,
+    DetectionClassify, DetectionListResponse,
     DetectionAnalyzedFramesResponse,
 )
 from app.schemas.detection import DetectionStatus as DetectionStatusSchema
@@ -53,10 +53,12 @@ def _normalize_status_filter(value: str) -> Optional[DetectionStatus]:
     normalized = value.strip().lower()
     if normalized == "pendente":
         return DetectionStatus.PENDENTE
-    if normalized in {"em analise", "em análise"}:
-        return DetectionStatus.EM_ANALISE
-    if normalized == "resolvido":
-        return DetectionStatus.RESOLVIDO
+    if normalized == "confirmado":
+        return DetectionStatus.CONFIRMADO
+    if normalized == "rejeitado":
+        return DetectionStatus.REJEITADO
+    if normalized == "indeterminado":
+        return DetectionStatus.INDETERMINADO
     return None
 
 
@@ -427,14 +429,18 @@ async def delete_detection(
     return None
 
 
-@router.post("/{detection_id}/resolve", response_model=DetectionResponse)
-async def resolve_detection(
+@router.post("/{detection_id}/classify", response_model=DetectionResponse)
+async def classify_detection(
     detection_id: UUID,
-    resolve_data: DetectionResolve,
+    classify_data: DetectionClassify,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Marca uma detecção como resolvida"""
+    """Classifica a validade de uma detecção (Confirmado/Rejeitado/Indeterminado).
+
+    Permite re-classificar — o usuário pode corrigir uma decisão anterior.
+    Voltar para Pendente não é permitido aqui (use PATCH para edição admin).
+    """
     result = await db.execute(select(Detection).where(Detection.id == detection_id))
     detection = result.scalar_one_or_none()
 
@@ -444,48 +450,10 @@ async def resolve_detection(
             detail="Detection not found",
         )
 
-    if detection.status == DetectionStatus.RESOLVIDO:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Detection is already resolved",
-        )
-
-    detection.status = DetectionStatus.RESOLVIDO
-    detection.resolved_at = resolve_data.resolved_at
-    detection.resolved_by = current_user.id
-    detection.resolution_justification = resolve_data.resolution_justification
-    detection.forwarded_to_sector = resolve_data.forwarded_to_sector
-
-    await db.commit()
-    await db.refresh(detection)
-    return detection
-
-
-@router.post("/{detection_id}/start-analysis", response_model=DetectionResponse)
-async def start_analysis(
-    detection_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Marca uma detecção como em análise"""
-    result = await db.execute(select(Detection).where(Detection.id == detection_id))
-    detection = result.scalar_one_or_none()
-
-    if not detection:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Detection not found",
-        )
-
-    if detection.status != DetectionStatus.PENDENTE:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only pending detections can be moved to analysis",
-        )
-
-    detection.status = DetectionStatus.EM_ANALISE
-    detection.analysis_started_at = now_brazil()
-    detection.analysis_started_by = current_user.id
+    detection.status = DetectionStatus(classify_data.status.value)
+    detection.classified_at = now_brazil()
+    detection.classified_by = current_user.id
+    detection.validity_comment = classify_data.validity_comment
 
     await db.commit()
     await db.refresh(detection)

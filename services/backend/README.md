@@ -112,7 +112,7 @@ CRUD de cameras de monitoramento com coordenadas PostGIS.
 - `waste_type`, `material_type` - Classificacao do residuo
 - `volume_m3` - Volumetria estimada
 - `offenders` - Infratores identificados
-- `status` - PENDENTE, EM_ANALISE, RESOLVIDO
+- `status` - PENDENTE, CONFIRMADO, REJEITADO, INDETERMINADO
 - `image_url` - URL da imagem no S3
 - `confidence_score` - Confianca do modelo YOLO
 

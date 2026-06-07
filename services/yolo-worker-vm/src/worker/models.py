@@ -23,6 +23,17 @@ class CameraInfo:
     rpa: Optional[str]
     latitude: Optional[Decimal]
     longitude: Optional[Decimal]
+    # BGSUB pre-filter config (added 2026-05-23). Both None when not configured.
+    pile_zone_polygon: Optional[object] = None  # JSONB → list[list[list[int]]]
+    bgsub_calibrated_at: Optional[datetime] = None
+    # Per-camera BGSUB tuning (added 2026-05-25). All None = fall back to env globals.
+    bgsub_lr_fast: Optional[float] = None
+    bgsub_lr_slow: Optional[float] = None
+    bgsub_mog2_history_fast: Optional[int] = None
+    bgsub_mog2_history_slow: Optional[int] = None
+    bgsub_persistence_threshold: Optional[int] = None
+    bgsub_min_persistence_frames: Optional[float] = None
+    bgsub_min_px_active: Optional[int] = None
 
 
 @dataclass
@@ -44,6 +55,10 @@ class DetectionRecord:
     status: str = "PENDENTE"
     image_url: Optional[str] = None
     confidence_score: Optional[Decimal] = None
+    waste_bbox: Optional[list] = None
+    agent1_request_id: Optional[str] = None
+    agent2_request_id: Optional[str] = None
+    agent1_confidence: Optional[int] = None
 
 
 @dataclass
@@ -58,6 +73,7 @@ class OffenderRecord:
     estimated_volume_m3: Optional[Decimal] = None
     confidence_score: Optional[Decimal] = None
     notes: Optional[str] = None
+    offender_bbox: Optional[list] = None
     id: UUID = field(default_factory=uuid4)
 
 

@@ -1,0 +1,61 @@
+campaign: 24
+title: MANGABEIRA prompt E + pile-zone hi-res crops (Flash 2.5)
+type: input-augmentation
+date: 2026-05-30
+hypothesis: |
+  Crops alta-res da pile_zone esp32_002 (440x280px upscale 2x) recuperam
+  recall de sacolinhas pequenas invisíveis no full-frame. Mantém Flash 2.5 +
+  MANGABEIRA_E (prompt vencedor da camp 22) como base, adicionando 12 crops
+  como sequência adicional de input. Isola efeito do crop vs prompt
+  refinement (E2 da camp 23).
+
+models:
+  gate: gemini-2.5-flash-lite (unchanged)
+  detail: gemini-2.5-flash (unchanged)
+
+input:
+  global_frames: 48  # production parity (GEMINI_CASCADE_MAX_FRAMES)
+  crop_frames: 12    # subset uniform dos 48 globais
+  crop_upscale: 2    # match GEMINI_GATE_PILECROP_UPSCALE
+  pile_bbox: [480, 60, 920, 340]  # from cameras.pile_zone_polygon for cam_11
+
+production_parity:
+  n_frames: 48
+  mosaic: off
+  pile_crops_in_detail: NEW (não está em prod)
+
+dataset:
+  source: production DB cam_11 snapshot 2026-05-30 ~10:00 BRT
+  n_events: 40
+  cohort_single_call: 29
+  class_balance:
+    CON: ~14
+    REJ: ~26
+
+arms:
+  baseline_e:
+    label: Flash 2.5 + MANGABEIRA_E (camp 22 winner — reuse cache)
+    cache: /tmp/flash_mangabeira_E_cache.json
+  e_with_crops:
+    label: Flash 2.5 + MANGABEIRA_E + 12 pile-zone hi-res crops
+    prompt: prompts/mangabeira-e-with-pilecrops.md
+    cache: /tmp/flash_mangabeira_E_CROPS_cache.json
+
+provider: vertex_ai
+vertex:
+  service_account: saira-bench-vertex@gen-lang-client-0841492152
+  key: /tmp/saira-bench-vertex.json
+  location: global
+
+success_criteria:
+  recall_min: 80         # vs E baseline 75% — esperando ganho real
+  spec_min: 50           # manter ~52% do E baseline
+  acc_min: 65            # vs E baseline 62%
+  cost_per_event_max: 0.020  # +50% margin sobre E
+
+cost_budget_usd: 1.50
+
+caveats:
+  - "12 crops adicionam ~3-4k tokens entrada (+30% custo)"
+  - "Pile-crops em detail é NOVO em prod — não tem flag operacional"
+  - "Smoke test (1 evento, REJ) acertou onde E2 errou (sinal positivo)"

@@ -14,17 +14,16 @@ import {
   FilterAutocomplete,
 } from "../components/SharedFilters";
 import {
+  classifyDetection,
   getAllDetections,
-  resolveDetection,
-  startAnalysis,
 } from "../services/detectionService";
-import type { PoiData } from "../services/detectionService";
+import type { ClassifyStatus, PoiData } from "../services/detectionService";
 import { Tooltip } from "../components/Tooltip";
 import { OccurrenceModal } from "../components/OccurrenceModal";
 import { LoginNotificationBanner } from "../components/LoginNotificationBanner";
-import { ResolveConfirmationModal } from "../components/ResolveConfirmationModal";
-import { AnalysisConfirmationModal } from "../components/AnalysisConfirmationModal";
+import { ClassifyConfirmationModal } from "../components/ClassifyConfirmationModal";
 import { OffenderDashboardTab } from "../components/OffenderDashboardTab";
+import { ImageExportTab } from "../components/ImageExportTab";
 import { toBrazilDateString, BRAZIL_TIME_ZONE } from "../utils/datetime";
 
 type WasteType = "Entulho" | "Lixo domiciliar" | "Poda" | "Plástico";
@@ -52,7 +51,7 @@ const WASTE_TYPE_OPTIONS: WasteType[] = [
   "Plástico",
 ];
 
-const STATUS_OPTIONS = ["Pendente", "Resolvido", "Em análise"] as const;
+const STATUS_OPTIONS = ["Pendente", "Confirmado", "Rejeitado", "Indeterminado"] as const;
 const RPA_OPTIONS = [
   "RPA 1",
   "RPA 2",
@@ -222,7 +221,7 @@ const buildChartSeries = (data: PoiData[], start: Date, end: Date) => {
 
 export const Dashboard: React.FC = () => {
   // --- State Management ---
-  const [activeTab, setActiveTab] = useState<"ocorrencias" | "infratores">("ocorrencias");
+  const [activeTab, setActiveTab] = useState<"ocorrencias" | "infratores" | "exportar">("ocorrencias");
   const [detections, setDetections] = useState<PoiData[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
@@ -249,11 +248,12 @@ export const Dashboard: React.FC = () => {
   >(null);
   const [selectedOccurrence, setSelectedOccurrence] = useState<PoiData | null>(null);
   const [isOccurrenceModalOpen, setIsOccurrenceModalOpen] = useState(false);
-  const [resolveTarget, setResolveTarget] = useState<PoiData | null>(null);
-  const [analysisTarget, setAnalysisTarget] = useState<PoiData | null>(null);
-  const [isResolving, setIsResolving] = useState(false);
-  const [resolveError, setResolveError] = useState<string | null>(null);
-  const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
+  const [classifyTarget, setClassifyTarget] = useState<{
+    detection: PoiData;
+    action: ClassifyStatus;
+  } | null>(null);
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [classifyError, setClassifyError] = useState<string | null>(null);
 
   // --- Load Data from API ---
   useEffect(() => {
@@ -263,7 +263,13 @@ export const Dashboard: React.FC = () => {
       try {
         const startDate = filters.dateStart ? `${filters.dateStart}T${filters.startTime || "00:00"}:00` : undefined;
         const endDate = filters.dateEnd ? `${filters.dateEnd}T${filters.endTime || "23:59"}:59` : undefined;
-        const data = await getAllDetections({ start_date: startDate, end_date: endDate, maxRecords: 2000, pageSize: 100 });
+        const data = await getAllDetections({
+          start_date: startDate,
+          end_date: endDate,
+          status: filters.status.length > 0 ? filters.status : undefined,
+          maxRecords: 2000,
+          pageSize: 100,
+        });
         if (!cancelled) setDetections(data);
       } catch (e) {
         console.error("Failed to load detections:", e);
@@ -273,7 +279,7 @@ export const Dashboard: React.FC = () => {
     }
     loadDetections();
     return () => { cancelled = true; };
-  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime]);
+  }, [filters.dateStart, filters.dateEnd, filters.startTime, filters.endTime, filters.status]);
 
   const toDateInput = (date: Date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
@@ -471,7 +477,7 @@ export const Dashboard: React.FC = () => {
       dateEnd: toDateInput(today),
       startTime: "",
       endTime: "",
-      status: ["Pendente", "Em análise"],
+      status: ["Confirmado"],
       logradouro: "",
       bairro: "",
       rpa: [],
@@ -645,69 +651,57 @@ export const Dashboard: React.FC = () => {
         longitude: selectedOccurrence.longitude,
         hasOffender: selectedOccurrence.hasOffender,
         image_url: selectedOccurrence.photoUrl || undefined,
+        validityComment: selectedOccurrence.validityComment,
       }
     : null;
 
-  const handleResolve = async (data: {
-    resolved_at: string;
-    forwarded_to_sector: string;
-    resolution_justification: string;
-  }) => {
-    if (!resolveTarget) return;
-    setIsResolving(true);
-    setResolveError(null);
+  const handleClassify = async (validityComment?: string) => {
+    if (!classifyTarget) return;
+    setIsClassifying(true);
+    setClassifyError(null);
     try {
-      await resolveDetection(resolveTarget.id, data);
-      setDetections((prev) =>
-        prev.map((d) =>
-          d.id === resolveTarget.id ? { ...d, status: "Resolvido" as const } : d,
-        ),
+      await classifyDetection(
+        classifyTarget.detection.id,
+        classifyTarget.action,
+        validityComment,
       );
-      if (selectedOccurrence?.id === resolveTarget.id) {
-        setSelectedOccurrence((prev) =>
-          prev ? { ...prev, status: "Resolvido" as const } : null,
-        );
+      const newStatus = classifyTarget.action;
+      // Se virou algo diferente de Confirmado, remove do dashboard (que só mostra Confirmado).
+      setDetections((prev) =>
+        newStatus === "Confirmado"
+          ? prev.map((d) =>
+              d.id === classifyTarget.detection.id
+                ? { ...d, status: newStatus, validityComment }
+                : d,
+            )
+          : prev.filter((d) => d.id !== classifyTarget.detection.id),
+      );
+      if (selectedOccurrence?.id === classifyTarget.detection.id) {
+        if (newStatus === "Confirmado") {
+          setSelectedOccurrence((prev) =>
+            prev ? { ...prev, status: newStatus, validityComment } : null,
+          );
+        } else {
+          setSelectedOccurrence(null);
+        }
       }
-      setResolveTarget(null);
+      setClassifyTarget(null);
     } catch (e: any) {
       const detail =
         e?.response?.data?.detail ||
         (typeof e?.message === "string" ? e.message : null) ||
         "Falha ao atualizar ocorrência. Tente novamente.";
-      setResolveError(detail);
+      setClassifyError(detail);
     } finally {
-      setIsResolving(false);
+      setIsClassifying(false);
     }
   };
 
-  const handleStartAnalysis = async () => {
-    if (!analysisTarget) return;
-    setIsStartingAnalysis(true);
-    try {
-      await startAnalysis(analysisTarget.id);
-      setDetections((prev) =>
-        prev.map((d) =>
-          d.id === analysisTarget.id ? { ...d, status: "Em análise" as const } : d,
-        ),
-      );
-      setAnalysisTarget(null);
-    } catch (e) {
-      console.error("Erro ao iniciar analise:", e);
-    } finally {
-      setIsStartingAnalysis(false);
-    }
-  };
-
-  const handleResolveFromModal = () => {
+  const openClassifyFromModal = (action: ClassifyStatus) => {
     if (!selectedOccurrence) return;
     setIsOccurrenceModalOpen(false);
-    setResolveTarget(selectedOccurrence);
-  };
-
-  const handleStartAnalysisFromModal = () => {
-    if (!selectedOccurrence) return;
-    setIsOccurrenceModalOpen(false);
-    setAnalysisTarget(selectedOccurrence);
+    setClassifyError(null);
+    setClassifyTarget({ detection: selectedOccurrence, action });
   };
 
   const handleOccurrencePhotoUpdated = (imageUrl: string) => {
@@ -757,6 +751,16 @@ export const Dashboard: React.FC = () => {
           >
             Dashboard de Infratores
           </button>
+          <button
+            onClick={() => setActiveTab("exportar")}
+            className={`px-6 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+              activeTab === "exportar"
+                ? "bg-[#e9fbc0] text-[#1a1a1a] font-semibold"
+                : "text-gray-500 hover:bg-gray-50 font-medium"
+            }`}
+          >
+            Exportar Imagens
+          </button>
         </div>
 
         {/* --- Live Monitoring Section (ocorrencias only) --- */}
@@ -780,7 +784,8 @@ export const Dashboard: React.FC = () => {
         </div>
         )}
 
-        {/* --- Filter Controls Section --- */}
+        {/* --- Filter Controls Section (hidden for the export tab) --- */}
+        {activeTab !== "exportar" && (
         <div className="relative z-[2000]">
           <div className="flex items-start gap-4 mb-8">
             <div className="flex-1">
@@ -1009,6 +1014,10 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
+
+        {/* --- Image Export Tab Content --- */}
+        {activeTab === "exportar" && <ImageExportTab />}
 
         {/* --- Infratores Tab Content --- */}
         {activeTab === "infratores" && (
@@ -1174,26 +1183,21 @@ export const Dashboard: React.FC = () => {
           isOpen={isOccurrenceModalOpen}
           onClose={() => setIsOccurrenceModalOpen(false)}
           data={modalData}
-          onResolve={handleResolveFromModal}
-          onStartAnalysis={handleStartAnalysisFromModal}
+          onClassify={openClassifyFromModal}
           onPhotoUpdated={handleOccurrencePhotoUpdated}
         />
       )}
-      {resolveTarget && (
-        <ResolveConfirmationModal
-          isOpen={!!resolveTarget}
-          onClose={() => { setResolveTarget(null); setResolveError(null); }}
-          onConfirm={handleResolve}
-          isLoading={isResolving}
-          errorMessage={resolveError}
-        />
-      )}
-      {analysisTarget && (
-        <AnalysisConfirmationModal
-          isOpen={!!analysisTarget}
-          onClose={() => setAnalysisTarget(null)}
-          onConfirm={handleStartAnalysis}
-          isLoading={isStartingAnalysis}
+      {classifyTarget && (
+        <ClassifyConfirmationModal
+          isOpen={!!classifyTarget}
+          action={classifyTarget.action}
+          onClose={() => {
+            setClassifyTarget(null);
+            setClassifyError(null);
+          }}
+          onConfirm={handleClassify}
+          isLoading={isClassifying}
+          errorMessage={classifyError}
         />
       )}
     </div>

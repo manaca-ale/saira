@@ -1,0 +1,32 @@
+SAÍRA — Relatório diário {{ report.date_br }}
+
+Olá, equipe da Prefeitura,
+
+Segue o relatório de monitoramento SAÍRA referente ao dia {{ report.date_br }}.
+
+INDICADORES DE QUALIDADE DO SISTEMA
+{% for ind in [report.i1, report.i2, report.i3, report.i4, report.i5] -%}
+[{{ status_labels[ind.status.value] }}] {{ ind.code }} {{ ind.name }}: {{ ind.value_text }} (meta: {{ ind.target_text }}{% if ind.rolling_7d_text %}, 7d: {{ ind.rolling_7d_text }}{% endif %}{% if ind.rolling_30d_text %}, 30d: {{ ind.rolling_30d_text }}{% endif %})
+{% endfor %}
+ATIVIDADE DO DIA
+{% if report.activity.total_detections == 0 -%}
+Sem ocorrências registradas no dia.
+{%- else -%}
+{{ report.activity.total_detections }} {% if report.activity.total_detections == 1 %}ocorrência detectada{% else %}ocorrências detectadas{% endif %}
+{% for r in report.activity.by_rpa -%}
+  - RPA {{ r.rpa or '?' }}{% if r.bairros %} ({{ r.bairros | join(', ') }}){% endif %}: {{ r.count }}
+{% endfor -%}
+{%- endif %}
+
+{% if report.activity.top_hotspots_30d -%}
+PONTOS MAIS RECORRENTES (30 DIAS)
+{% for loc in report.activity.top_hotspots_30d -%}
+  - {{ loc.logradouro }}{% if loc.bairro %}, {{ loc.bairro }}{% endif %}{% if loc.rpa %} (RPA {{ loc.rpa }}){% endif %}: {{ loc.count }} {% if loc.count == 1 %}ocorrência{% else %}ocorrências{% endif %}
+{% endfor %}
+{%- endif %}
+
+Painel SAÍRA: {{ report.dashboard_url }}
+
+— Equipe Manacá Tecnologias Sociais
+contato@manaca.tech
+Relatório gerado em {{ report.generated_at }}.

@@ -1,0 +1,178 @@
+{
+  "summary": {
+    "v1": {
+      "tp_recall": "6/7",
+      "fn_recovered": "0/1",
+      "total_recall": "6/8",
+      "cost_usd": 0.007168
+    }
+  },
+  "results": [
+    {
+      "arm": "v1",
+      "rows": [
+        {
+          "event_id": "48350bb4",
+          "kind": "TP",
+          "meta": {
+            "datetime": "2026-05-19T18:39:29-03:00",
+            "tipo": "Lixo Domiciliar",
+            "just": "Dois homens descartando o conteúdo dentro de um grande saco/"
+          },
+          "gate": {
+            "ok": true,
+            "new_litter_detected": true,
+            "confidence_0_100": 90,
+            "triggered": true,
+            "scene_type": "DUMPING",
+            "n_frames_sent": 5,
+            "evidence_summary": "A white truck is stopped for an extended period. A person is observed near the truck, and a white sheet is present on the ground, indicating potential material deposition in an area known for illegal dumping.",
+            "cost_usd": 0.0011201,
+            "wall_ms": 10763,
+            "model": "gemini-2.5-flash-lite"
+          }
+        },
+        {
+          "event_id": "454c8308",
+          "kind": "TP",
+          "meta": {
+            "datetime": "2026-05-20T08:56:20-03:00",
+            "tipo": "Poda",
+            "just": "Um homem realizando o descarte de lixo com um carrinho de mã"
+          },
+          "gate": {
+            "ok": false,
+            "triggered": false,
+            "error": "RuntimeError: Gemini new-litter gate failed after 3 attempts: 1 validation error for GeminiNewLitterReport\n  Invalid JSON: EOF while parsing a string at line 13 column 7617 [type=json_invalid, input_value='{\\n  \"scene_type\": \"TRAF...le, debris_pile, debris', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid"
+          }
+        },
+        {
+          "event_id": "a73a3f44",
+          "kind": "TP",
+          "meta": {
+            "datetime": "2026-05-20T14:16:15-03:00",
+            "tipo": "Entulho",
+            "just": "Caminhonete azul escura realiza o descarte de um grande volu"
+          },
+          "gate": {
+            "ok": true,
+            "new_litter_detected": true,
+            "confidence_0_100": 95,
+            "triggered": true,
+            "scene_type": "DUMPING",
+            "n_frames_sent": 5,
+            "evidence_summary": "In the final frame, a dark car is stopped, and a person is observed near it, appearing to deposit material on the ground. This activity is consistent with dumping behavior.",
+            "cost_usd": 0.0009741,
+            "wall_ms": 8432,
+            "model": "gemini-2.5-flash-lite"
+          }
+        },
+        {
+          "event_id": "06414b5a",
+          "kind": "TP",
+          "meta": {
+            "datetime": "2026-05-20T14:27:35-03:00",
+            "tipo": "Lixo Domiciliar",
+            "just": "Carro escuro (preto) realizando descarte de lixo"
+          },
+          "gate": {
+            "ok": true,
+            "new_litter_detected": true,
+            "confidence_0_100": 90,
+            "triggered": true,
+            "scene_type": "DUMPING",
+            "n_frames_sent": 5,
+            "evidence_summary": "A person is observed near a pile of debris next to a stationary black car, suggesting active material deposition. The scene is characterized by existing debris piles.",
+            "cost_usd": 0.0009477,
+            "wall_ms": 7625,
+            "model": "gemini-2.5-flash-lite"
+          }
+        },
+        {
+          "event_id": "cb49921a",
+          "kind": "TP",
+          "meta": {
+            "datetime": "2026-05-20T15:45:45-03:00",
+            "tipo": "Lixo Domiciliar",
+            "just": "Pessoas realizando o descarte do conteúdo de um saco marom a"
+          },
+          "gate": {
+            "ok": true,
+            "new_litter_detected": true,
+            "confidence_0_100": 95,
+            "triggered": true,
+            "scene_type": "DUMPING",
+            "n_frames_sent": 5,
+            "evidence_summary": "A white truck remains stationary while a person is observed actively depositing material onto an existing debris pile, indicating dumping behavior.",
+            "cost_usd": 0.0010657,
+            "wall_ms": 8570,
+            "model": "gemini-2.5-flash-lite"
+          }
+        },
+        {
+          "event_id": "218673e1",
+          "kind": "TP",
+          "meta": {
+            "datetime": "2026-05-20T19:40:09-03:00",
+            "tipo": "Lixo Domiciliar",
+            "just": "Dois homens realizando o descarte de objetos grandes"
+          },
+          "gate": {
+            "ok": true,
+            "new_litter_detected": true,
+            "confidence_0_100": 95,
+            "triggered": true,
+            "scene_type": "DUMPING",
+            "n_frames_sent": 5,
+            "evidence_summary": "A vehicle remains stationary in the central area of the scene. Multiple individuals are observed near the vehicle, actively engaged in activities consistent with depositing material onto the ground or existing debris piles.",
+            "cost_usd": 0.0011205,
+            "wall_ms": 8775,
+            "model": "gemini-2.5-flash-lite"
+          }
+        },
+        {
+          "event_id": "12506543",
+          "kind": "TP",
+          "meta": {
+            "datetime": "2026-05-22T02:52:34-03:00",
+            "tipo": "Lixo Domiciliar",
+            "just": "Os dois homens ainda estavam mexendo no lixo, mas no final a"
+          },
+          "gate": {
+            "ok": true,
+            "new_litter_detected": true,
+            "confidence_0_100": 95,
+            "triggered": true,
+            "scene_type": "DUMPING",
+            "n_frames_sent": 5,
+            "evidence_summary": "A person with a cart is actively depositing material on the ground near a stationary vehicle in an area with existing debris.",
+            "cost_usd": 0.0010125,
+            "wall_ms": 9193,
+            "model": "gemini-2.5-flash-lite"
+          }
+        },
+        {
+          "event_id": "fn18_0517",
+          "kind": "FN",
+          "meta": {
+            "datetime": "2026-06-01T05:17:59",
+            "tipo": "Lixo Domiciliar",
+            "just": "Dois homens descartando lixo (prod MISSED)"
+          },
+          "gate": {
+            "ok": true,
+            "new_litter_detected": false,
+            "confidence_0_100": 80,
+            "triggered": false,
+            "scene_type": "PARKED",
+            "n_frames_sent": 5,
+            "evidence_summary": "Two cars are parked in the scene. People are walking, but no active material dumping is observed. The area contains pre-existing litter.",
+            "cost_usd": 0.0009269,
+            "wall_ms": 8672,
+            "model": "gemini-2.5-flash-lite"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+# Camp 27 — DINOv2 filter backtest cam_10 (Imbiribeira)
+dataset: n=32  CON(TP)=10  REJ(FP)=22  bbox=[6, 297, 995, 719]
+período: 2026-05-19 21:39:29+00 -> 2026-06-01 11:29:23+00
+
+## Distribuição temporal por classe
+  CON: 2026-05-19 .. 2026-05-28  (n=10)
+  REJ: 2026-05-27 .. 2026-06-01  (n=22)
+
+## 1. RepeatedStratifiedKFold 5x20 (random CV)
+  acc = 0.956 ± 0.021   AUC(oof) = 0.945
+     t   FP_elim   TP_lost  recall   spec    acc
+   0.0    0/22      0/10     100%    0%   31%
+   0.1   20/22      1/10      90%   91%   91%
+   0.2   21/22      1/10      90%   95%   94%  <== platô
+   0.3   21/22      1/10      90%   95%   94%  <== platô
+   0.4   22/22      1/10      90%  100%   97%  <== platô
+   0.5   22/22      1/10      90%  100%   97%  <== platô
+   0.6   22/22      1/10      90%  100%   97%
+   0.7   22/22      1/10      90%  100%   97%
+   0.8   22/22      1/10      90%  100%   97%
+   0.9   22/22      2/10      80%  100%   94%
+  TPs perdidos em t=0.2 (OOF): [('8bfe0a1f', np.float64(0.009))]
+
+## 2. Holdout TEMPORAL (treina passado, testa futuro)
+  corte=último CON (28/05): train CON=10 REJ=5 | test CON=0 REJ=17
+    t=0.2  FP_elim(futuro)=3/17  TP_lost=0/0  spec=18%
+    t=0.3  FP_elim(futuro)=6/17  TP_lost=0/0  spec=35%
+    t=0.5  FP_elim(futuro)=9/17  TP_lost=0/0  spec=53%
+  corte=mediana temporal: train CON=10 REJ=6 | test CON=0 REJ=16
+    t=0.2  FP_elim(futuro)=5/16  TP_lost=0/0  spec=31%
+    t=0.3  FP_elim(futuro)=7/16  TP_lost=0/0  spec=44%
+    t=0.5  FP_elim(futuro)=10/16  TP_lost=0/0  spec=62%
+
+## 2b. Diagnóstico — split random REJ-starved (10 CON + 5 REJ no treino)
+  FP_elim médio em test REJ (n_runs=100):
+    t=0.2: 67% ± 12%   (temporal foi 18-31%)
+    t=0.5: 82% ± 12%   (temporal foi 53-62%)
+  -> se ~igual ao temporal: queda = falta de REJ no treino (curável). se >> temporal: drift real.
+
+## 3. Fit completo nos 32 (modelo de produção, in-sample)
+    t=0.2  FP_elim=22/22  TP_lost=0/10  recall=100% spec=100% acc=100%
+    t=0.3  FP_elim=22/22  TP_lost=0/10  recall=100% spec=100% acc=100%
+    t=0.5  FP_elim=22/22  TP_lost=0/10  recall=100% spec=100% acc=100%
+
+(modelo in-sample é otimista; serve só p/ ver separabilidade e exportar pesos)
