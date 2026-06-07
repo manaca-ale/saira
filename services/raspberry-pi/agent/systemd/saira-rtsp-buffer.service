@@ -1,0 +1,17 @@
+[Unit]
+Description=SAIRA - Buffer circular de video RTSP (clip sob demanda)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/opt/saira/agent/.env
+ExecStartPre=/bin/mkdir -p /dev/shm/saira/segments
+ExecStart=/opt/saira/agent/cam-rtsp-buffer.sh
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

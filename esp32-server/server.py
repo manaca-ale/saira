@@ -1229,6 +1229,13 @@ SSE_HEARTBEAT_SECONDS = _int_env("SSE_HEARTBEAT_SECONDS", 30, minimum=5)
 BULK_UPLOAD_ROOT = os.path.join(
     os.getenv("UPLOAD_DIR", os.getenv("UPLOAD_ROOT", "/app/uploads")), "bulk"
 )
+# On-demand video clips (CMD_VIDEO_CLIP) land here, under the same volume so
+# they are reachable via the /uploads static route.
+VIDEO_ROOT = os.path.join(
+    os.getenv("UPLOAD_DIR", os.getenv("UPLOAD_ROOT", "/app/uploads")), "videos"
+)
+# Reject clips larger than this (raw mp4 stream). Default 200 MB.
+MAX_VIDEO_BYTES = _int_env("MAX_VIDEO_BYTES", 200 * 1024 * 1024, minimum=1024 * 1024)
 
 
 def _get_or_create_sse_queue(device_id: str):
@@ -1367,6 +1374,49 @@ def device_bulk_upload(device_id: str):
         "frames_saved": len(saved_files),
         "save_dir": save_dir,
     }, 200
+
+
+@app.route("/device/<device_id>/video", methods=["POST"])
+def device_video_clip(device_id: str):
+    """Receive an on-demand video clip (raw mp4 body) from a device.
+
+    Triggered by CMD_VIDEO_CLIP (see /device/<id>/trigger). The Raspberry Pi
+    agent concatenates its recent RTSP segment buffer into an mp4 and streams
+    it here. Saved under VIDEO_ROOT/<device_id>/<ts>.mp4 and reachable through
+    the /uploads static route.
+    """
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+
+    ts_str = datetime.now(CAPTURE_FILENAME_TZ).strftime("%Y%m%d_%H%M%S")
+    save_dir = os.path.join(VIDEO_ROOT, device_id)
+    os.makedirs(save_dir, exist_ok=True)
+    fname = f"{ts_str}.mp4"
+    save_path = os.path.join(save_dir, fname)
+
+    total = 0
+    tmp_path = save_path + ".part"
+    try:
+        with open(tmp_path, "wb") as f:
+            for chunk in request.stream:
+                total += len(chunk)
+                if total > MAX_VIDEO_BYTES:
+                    f.close()
+                    os.remove(tmp_path)
+                    return {"error": "clip too large"}, 413
+                f.write(chunk)
+    except OSError as exc:
+        return {"error": f"write failed: {exc}"}, 500
+
+    if total == 0:
+        os.remove(tmp_path)
+        return {"error": "empty body"}, 400
+    os.replace(tmp_path, save_path)
+
+    rel_url = f"videos/{device_id}/{fname}"
+    print(f"[video] device={device_id} bytes={total} -> {rel_url}", flush=True)
+    _record_device_event(device_id, "video_clip", f"Clip recebido: {rel_url} ({total} bytes)")
+    return {"status": "ok", "device_id": device_id, "bytes": total, "video_url": rel_url}, 200
 
 
 def _sha256_file(path: str) -> str:

@@ -1,9 +1,0 @@
-[Unit]
-Description=SAIRA - Limpeza de frames antigos
-
-[Service]
-Type=oneshot
-User=alecoleto
-ExecStart=/usr/local/bin/cam-prune-frames.sh
-StandardOutput=journal
-StandardError=journal

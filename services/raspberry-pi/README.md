@@ -1,76 +1,119 @@
-# Raspberry Pi — Agente de Captura SAIRA
+# Raspberry Pi — Agente de Captura SAIRA (relay de câmera IP)
 
-Captura frames JPEG da camera IMX219 (CSI) a cada 10s e envia para a EC2 via WireGuard VPN.
+Substitui a ESP32 no kit de campo. A Pi busca o snapshot da **câmera IP** e
+repassa, **byte a byte, sem reencode** (pass-through), para o `esp32-server`
+na EC2 — preservando a qualidade nativa da câmera. Mesmo contrato de rede da
+ESP32, então worker/backend **não mudam**.
 
 ## Arquitetura
 
 ```
-Camera IMX219 (CSI) -> Raspberry Pi 3B -> (LTE/4G + WireGuard VPN) -> EC2 (IA + Backend)
+Câmera IP (snapshot HTTP + RTSP, na LAN)
+   └─ LAN via roteador 4G ── Raspberry Pi 3 Model B ── 4G ── Internet
+                                   │  WireGuard (wg0, 10.8.0.x)
+                                   ▼
+                            EC2 (10.8.0.1)
+                            ├─ esp32-server :5002  /upload, /device/<id>/poll, /config.txt, /video
+                            └─ worker + backend
 ```
+
+## O que o agente faz
+
+| Requisito | Como |
+|---|---|
+| #1 Qualidade | Pass-through puro: o JPEG da câmera vai sem reencode. Zero `cv2`/`ffmpeg` no caminho da imagem. |
+| #2 Upload | HTTP **dentro do túnel WireGuard** (sem TLS, o WG já cifra) + `requests.Session` keep-alive. |
+| #3 Vídeo sob demanda | `saira-rtsp-buffer.service` mantém ~2 min de RTSP em segmentos `.ts` num tmpfs. `CMD_VIDEO_CLIP` concatena e envia um mp4. |
+| #4 BGSUB | **Fase 2** — hook `motion_gate()` em [agent/saira_agent.py](agent/saira_agent.py); porta o `bgsub_filter.py` do worker. |
+| #5 Intervalo ≥5s | `capture_loop` com agendamento monotônico; piso de 5s aplicado no código. |
+| #6 SSH/OTA | SSH pelo IP do túnel WireGuard. "OTA" = `git pull` + `systemctl restart saira-agent`. Config em runtime via `config.txt`. |
 
 ## Estrutura
 
 ```
-scripts/
-  cam-capture.sh          # Captura 1 frame JPEG com timestamp overlay
-  cam-upload.sh           # Envia frame mais recente para EC2 via HTTP POST
-  cam-prune-frames.sh     # Mantem apenas os 40 frames mais recentes
-  cam-export-last5min.sh  # Empacota frames recentes em .tar
-
-systemd/
-  cam-capture.service     # Oneshot — executado pelo timer
-  cam-capture.timer       # A cada 10s
-  cam-upload.service      # Oneshot — executado pelo timer
-  cam-upload.timer        # A cada 10s (defasado 5s da captura)
-  cam-prune-frames.service
-  cam-prune-frames.timer  # A cada 2min
-
+agent/
+  saira_agent.py            # daemon: captura + upload + config remota + comandos
+  config.py                 # carrega .env / variaveis de ambiente
+  cam-rtsp-buffer.sh        # ffmpeg: ring de segmentos RTSP (item #3)
+  .env.example              # copie para .env e ajuste
+  requirements.txt          # fase 1: requests (fase 2: opencv-headless+numpy)
+  systemd/
+    saira-agent.service
+    saira-rtsp-buffer.service
 wireguard/
-  wg0.conf.example        # Template de config WireGuard (sem chaves)
+  wg0.conf.example          # lado Pi do tunel
 ```
 
-## Deploy no Pi
+## 0) Gravar a imagem (no PC)
+
+Raspberry Pi Imager → **Raspberry Pi OS Lite (64-bit, Bookworm)**. Em
+"Editar configurações": hostname `pi-cam-001`, habilitar **SSH por chave
+pública**, usuário/senha, Wi-Fi de bancada, timezone `America/Recife`.
+
+## 1) WireGuard + SSH (itens #2 e #6)
+
+Lado EC2 (servidor WireGuard em 10.8.0.1:51820/udp) adiciona a Pi como peer.
+Lado Pi:
 
 ```bash
-# 1. Copiar scripts
-sudo cp scripts/cam-*.sh /usr/local/bin/
-sudo chmod +x /usr/local/bin/cam-*.sh
-
-# 2. Copiar systemd units
-sudo cp systemd/cam-* /etc/systemd/system/
-sudo systemctl daemon-reload
-
-# 3. Ativar timers
-sudo systemctl enable --now cam-capture.timer
-sudo systemctl enable --now cam-upload.timer
-sudo systemctl enable --now cam-prune-frames.timer
-
-# 4. Copiar .env
-cp .env.example ~/app/.env
-chmod 600 ~/app/.env
-# Editar ~/app/.env com valores reais
-```
-
-## WireGuard VPN
-
-```bash
-# Gerar chaves
+sudo apt update && sudo apt install -y wireguard-tools ffmpeg python3 python3-venv curl
 sudo bash -c 'umask 077 && wg genkey | tee /etc/wireguard/pi.key | wg pubkey > /etc/wireguard/pi.pub'
-
-# Copiar e editar config
-sudo cp wireguard/wg0.conf.example /etc/wireguard/wg0.conf
-# Preencher: PrivateKey, PublicKey da EC2, Endpoint
+sudo cp wireguard/wg0.conf.example /etc/wireguard/wg0.conf   # preencha as chaves/endpoint
 sudo chmod 600 /etc/wireguard/wg0.conf
-
-# Ativar
 sudo systemctl enable --now wg-quick@wg0
+sudo wg show                       # deve mostrar handshake
 ```
 
-## Verificacao
+Depois disso, da EC2: `ssh <user>@10.8.0.2`.
+
+## 2) Instalar o agente
 
 ```bash
-sudo systemctl status cam-capture.timer   # captura ativa
-sudo systemctl status cam-upload.timer    # upload ativo
-sudo wg show                              # VPN conectada
-ls -lht /var/spool/cam/frames/ | head -5  # frames recentes
+sudo mkdir -p /opt/saira
+sudo cp -r agent /opt/saira/
+cd /opt/saira/agent
+python3 -m venv /opt/saira/venv
+/opt/saira/venv/bin/pip install -r requirements.txt
+cp .env.example .env && nano .env     # DEVICE_ID, EC2_BASE, IP_CAM_*, RTSP_URL
+chmod +x cam-rtsp-buffer.sh
+
+sudo cp systemd/saira-*.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now saira-rtsp-buffer.service
+sudo systemctl enable --now saira-agent.service
 ```
+
+> Os units rodam como root (appliance dedicado, acesso só por SSH-key sobre
+> WireGuard). Para rodar como usuário próprio, adicione `User=` e garanta
+> permissão em `/var/spool/saira` e `/dev/shm/saira`.
+
+## 3) Verificação
+
+```bash
+journalctl -u saira-agent -f                 # 1 upload a cada ~5s
+journalctl -u saira-rtsp-buffer -f           # segmentos sendo gravados
+ls -lht /dev/shm/saira/segments | head        # ring de .ts
+ls -lht /var/spool/saira/frames | head        # frames recentes
+
+# Clip de video sob demanda (da EC2):
+curl -X POST http://10.8.0.1:5002/device/pi-cam-001/trigger \
+     -H 'Content-Type: application/json' -d '{"cmd":"CMD_VIDEO_CLIP"}'
+
+# Ajustar intervalo em runtime (sem restart):
+curl -X POST http://10.8.0.1:5002/device/pi-cam-001/config \
+     -H 'Content-Type: application/json' -d '{"timer_delay_ms":"5000"}'
+```
+
+## Config remota (runtime, via `/device/<id>/config.txt`)
+
+`timer_delay_ms` (≥5000 aplicado), `ip_cam_url`, `ip_cam_user`, `ip_cam_pass`.
+
+## Fase 2 — BGSUB no dispositivo (item #4)
+
+1. Capture cena real por alguns dias (já feito pelo agente).
+2. Defina o polígono de zona e calibre o baseline `.npz` por câmera.
+3. Porte `services/yolo-worker-vm/src/worker/bgsub_filter.py` (MOG2:
+   `history=80`, `varThreshold=40`, `shadow_threshold=100`, modo `area_min`
+   `area=400`, `persistence_threshold=1000`) para dentro de `motion_gate()`.
+4. `pip install opencv-python-headless numpy` (piwheels). Custo ~100-150ms/frame
+   @720p no Pi 3 Model B (1.2 GHz) — folgado a 5s. Só single-rate.
