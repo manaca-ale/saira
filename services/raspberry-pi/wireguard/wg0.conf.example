@@ -1,0 +1,19 @@
+# WireGuard — lado Raspberry Pi (cliente). Tunel de saida para a EC2.
+# Resolve o CGNAT do roteador 4G: a Pi inicia a conexao, e a EC2 passa a
+# alcancar a Pi (SSH, comandos) pelo IP do tunel. Upload vai em HTTP puro
+# (sem TLS) por dentro deste tunel.
+#
+#   sudo bash -c 'umask 077 && wg genkey | tee /etc/wireguard/pi.key | wg pubkey > /etc/wireguard/pi.pub'
+#   sudo cp wg0.conf.example /etc/wireguard/wg0.conf   # e preencha abaixo
+#   sudo chmod 600 /etc/wireguard/wg0.conf
+#   sudo systemctl enable --now wg-quick@wg0
+
+[Interface]
+Address = 10.8.0.2/24
+PrivateKey = <PI_PRIVATE_KEY>        # conteudo de /etc/wireguard/pi.key
+
+[Peer]
+PublicKey = <EC2_PUBLIC_KEY>         # chave publica do servidor WireGuard na EC2
+Endpoint = <EC2_PUBLIC_IP>:51820
+AllowedIPs = 10.8.0.0/24             # so o trafego do tunel; resto sai pelo 4G
+PersistentKeepalive = 25             # mantem o furo de NAT aberto no 4G
