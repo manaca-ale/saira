@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alert rules (gate quota/auth outage, gate stalled, worker health).
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  # Prod YOLO worker — resolved by compose service name on the saira-prod network.
+  # The prod stack was added 2026-06-09 (incident: prod worker was never scraped;
+  # only the TEST worker was, via the test Prometheus).
+  - job_name: saira-yolo-worker
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["yolo-worker:9108"]
