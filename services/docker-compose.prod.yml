@@ -191,6 +191,11 @@ services:
       - GCP_PROJECT=${GCP_PROJECT:-}
       - GCP_LOCATION=${GCP_LOCATION:-global}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
+      # Prometheus metrics endpoint (scraped by the prod monitoring stack on the
+      # saira-prod network as yolo-worker:9108). Explicit so it's not left to defaults.
+      - WORKER_METRICS_ENABLED=${WORKER_METRICS_ENABLED:-true}
+      - WORKER_METRICS_HOST=0.0.0.0
+      - WORKER_METRICS_PORT=9108
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
       - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-45}
       - GEMINI_MAX_RETRIES=${GEMINI_MAX_RETRIES:-2}
@@ -291,9 +296,65 @@ services:
         condition: service_started
     restart: on-failure
 
+  # ── Prod monitoring stack (added 2026-06-09) ──────────────────────────────
+  # Until now only the TEST worker was scraped; prod ran blind. Scrapes the prod
+  # worker on the saira-prod network and alerts to e-mail via Resend (Alertmanager).
+  # NOTE: bringing this up recreates the worker (WORKER_METRICS env) — coordinate.
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: saira-prometheus-prod
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus/prometheus.prod.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prometheus_data_prod:/prometheus
+    ports:
+      - "127.0.0.1:9092:9090"   # acesso via SSH tunnel; não exposto publicamente
+    depends_on:
+      - yolo-worker
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: saira-alertmanager-prod
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./observability/alertmanager/alertmanager.prod.yml:/etc/alertmanager/alertmanager.yml:ro
+      # Diretório de segredos: coloque o arquivo `resend_api_key` (= RESEND_API_KEY) aqui no servidor.
+      - ./observability/alertmanager/secrets:/etc/alertmanager/secrets:ro
+      - alertmanager_data_prod:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    restart: always
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: saira-grafana-prod
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data_prod:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3005:3000"
+    depends_on:
+      - prometheus
+    restart: always
+
 volumes:
   postgres_data_prod:
   redis_data_prod:
   esp32_uploads_prod:
   yolo_state_prod:
   reports_data_prod:
+  prometheus_data_prod:
+  grafana_data_prod:
+  alertmanager_data_prod:
