@@ -246,6 +246,26 @@ BGSUB_ADAPTIVE_DISABLE_DEVICES = {
     if d.strip()
 }
 
+# Weekly recalibration: night-frame mixing (item 6, 2026-06-09). esp32_005 (Arruda)
+# has a frozen baseline biased to daytime — nighttime persistence sits near the
+# threshold → spurious baseline alarms. For devices listed here, the recalibration
+# samples across the last LOOKBACK_DAYS and forces a NIGHT_FRACTION of frames from
+# NIGHT_HOURS so the baseline isn't day-biased. Empty set = legacy behavior
+# (single latest day-dir, evenly spaced). Runs inside the worker container, so set
+# this in the worker env (the cron does `docker exec ... python -m worker.recalibrate_bgsub`).
+BGSUB_RECAL_MIX_NIGHT_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("BGSUB_RECAL_MIX_NIGHT_DEVICES", "").split(",")
+    if d.strip()
+}
+BGSUB_RECAL_NIGHT_FRACTION = float(os.getenv("BGSUB_RECAL_NIGHT_FRACTION", "0.4"))
+BGSUB_RECAL_NIGHT_HOURS = {
+    int(h.strip())
+    for h in os.getenv("BGSUB_RECAL_NIGHT_HOURS", "0,1,2,3,4,5").split(",")
+    if h.strip().isdigit()
+}
+BGSUB_RECAL_LOOKBACK_DAYS = int(os.getenv("BGSUB_RECAL_LOOKBACK_DAYS", "7"))
+
 # Dual-rate MOG2 — two background models per camera (fast + slow learning).
 # Combines as `static_fg = slow_mask AND NOT fast_mask`, isolating objects that
 # remain stationary while filtering out moving pedestrians/vehicles. Resolves
