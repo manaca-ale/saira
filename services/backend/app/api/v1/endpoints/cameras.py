@@ -10,6 +10,7 @@ from geoalchemy2.functions import ST_SetSRID, ST_MakePoint
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.camera import Camera
+from app.utils.uploads import UPLOADS_ROOT, IMAGE_EXTENSIONS, find_latest_image_for_device
 from app.schemas.camera import (
     CameraBgsubConfigUpdate,
     CameraCreate,
@@ -30,9 +31,11 @@ CAMERA_SORTABLE_FIELDS: dict[str, Any] = {
 }
 CAMERA_DEFAULT_SORT = "created_at"
 
-UPLOADS_ROOT = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
 UPLOAD_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("/")
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+
+# Backwards-compatible alias kept for existing call sites in this module.
+# Upload-tree scanning now lives in app.utils.uploads (shared with the offline monitor).
+_find_latest_image_for_device = find_latest_image_for_device
 
 
 def _build_upload_image_url(relative_path: str) -> str:
@@ -40,35 +43,6 @@ def _build_upload_image_url(relative_path: str) -> str:
     if UPLOAD_PUBLIC_BASE_URL:
         return f"{UPLOAD_PUBLIC_BASE_URL}/uploads/{normalized}"
     return f"/uploads/{normalized}"
-
-
-def _find_latest_image_for_device(device_id: str) -> Optional[tuple[Path, float]]:
-    if not device_id:
-        return None
-
-    camera_dir = UPLOADS_ROOT / device_id
-    if not camera_dir.exists() or not camera_dir.is_dir():
-        return None
-
-    latest_path: Optional[Path] = None
-    latest_mtime = float("-inf")
-
-    for root, _, files in os.walk(camera_dir):
-        for file_name in files:
-            path = Path(root) / file_name
-            if path.suffix.lower() not in IMAGE_EXTENSIONS:
-                continue
-            try:
-                mtime = path.stat().st_mtime
-            except OSError:
-                continue
-            if mtime > latest_mtime:
-                latest_mtime = mtime
-                latest_path = path
-
-    if latest_path is None:
-        return None
-    return latest_path, latest_mtime
 
 
 @router.get("/", response_model=List[CameraResponse])

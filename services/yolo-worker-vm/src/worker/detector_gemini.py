@@ -310,9 +310,19 @@ def _get_client():
             "google-genai package is not available. Install dependencies from requirements.txt."
         )
     if _client is None:
-        if not config.GEMINI_API_KEY:
-            raise RuntimeError("GEMINI_API_KEY is required when AI_MODE is shadow or gemini")
-        _client = genai.Client(api_key=config.GEMINI_API_KEY)
+        if getattr(config, "GEMINI_USE_VERTEX", False):
+            _client = genai.Client(
+                vertexai=True,
+                project=config.GCP_PROJECT,
+                location=config.GCP_LOCATION,
+            )
+        elif config.GEMINI_API_KEY:
+            _client = genai.Client(api_key=config.GEMINI_API_KEY)
+        else:
+            raise RuntimeError(
+                "GEMINI_API_KEY is required when AI_MODE is shadow or gemini "
+                "(or set GEMINI_USE_VERTEX=true)"
+            )
     return _client
 
 

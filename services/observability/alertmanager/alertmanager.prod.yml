@@ -1,0 +1,27 @@
+# Alertmanager → e-mail via Resend SMTP (canal único de "alertas de prod").
+# Resend SMTP: smtp.resend.com:587, user "resend", senha = RESEND_API_KEY.
+# Alertmanager NÃO expande env vars no config, então a senha vem de um arquivo
+# montado (auth_password_file) — ver observability/alertmanager/README e o compose.
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: "smtp.resend.com:587"
+  smtp_from: "SAIRA Alertas <saira@pagamentos.manaca.tech>"
+  smtp_auth_username: "resend"
+  smtp_auth_password_file: /etc/alertmanager/secrets/resend_api_key
+  smtp_require_tls: true
+
+route:
+  receiver: saira-email
+  group_by: ["alertname"]
+  group_wait: 30s
+  group_interval: 5m
+  # re-notifica enquanto o alerta seguir ativo (gate caído por horas → lembra a cada 3h)
+  repeat_interval: 3h
+
+receivers:
+  - name: saira-email
+    email_configs:
+      # Mesmos destinatários do billing por padrão; ajuste no servidor se quiser
+      # um grupo de plantão separado.
+      - to: "alecoleto@gmail.com,contato@manaca.tech"
+        send_resolved: true

@@ -85,6 +85,15 @@ MOCK_MODE = os.getenv("MOCK_MODE", "false").strip().lower() in ("true", "1", "ye
 
 # Gemini settings.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+# Vertex AI (keyless via Workload Identity Federation). When true, the worker
+# authenticates to Gemini through Vertex (Cloud Billing pay-as-you-go) instead
+# of an AI Studio API key. project/location come from env (location "global").
+# Ported from prod (main 788ed7e) so test mirrors prod; activation is via the
+# server .env (GEMINI_USE_VERTEX=true + GCP_PROJECT). Default off keeps the
+# AI Studio key path until the WIF cred-config is wired.
+GEMINI_USE_VERTEX = os.getenv("GEMINI_USE_VERTEX", "false").strip().lower() in ("true", "1", "yes")
+GCP_PROJECT = os.getenv("GCP_PROJECT", os.getenv("GOOGLE_CLOUD_PROJECT", "")).strip()
+GCP_LOCATION = os.getenv("GCP_LOCATION", os.getenv("GOOGLE_CLOUD_LOCATION", "global")).strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 GEMINI_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
 GEMINI_MAX_RETRIES = int(os.getenv("GEMINI_MAX_RETRIES", "2"))
@@ -237,6 +246,26 @@ BGSUB_ADAPTIVE_DISABLE_DEVICES = {
     if d.strip()
 }
 
+# Weekly recalibration: night-frame mixing (item 6, 2026-06-09). esp32_005 (Arruda)
+# has a frozen baseline biased to daytime — nighttime persistence sits near the
+# threshold → spurious baseline alarms. For devices listed here, the recalibration
+# samples across the last LOOKBACK_DAYS and forces a NIGHT_FRACTION of frames from
+# NIGHT_HOURS so the baseline isn't day-biased. Empty set = legacy behavior
+# (single latest day-dir, evenly spaced). Runs inside the worker container, so set
+# this in the worker env (the cron does `docker exec ... python -m worker.recalibrate_bgsub`).
+BGSUB_RECAL_MIX_NIGHT_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("BGSUB_RECAL_MIX_NIGHT_DEVICES", "").split(",")
+    if d.strip()
+}
+BGSUB_RECAL_NIGHT_FRACTION = float(os.getenv("BGSUB_RECAL_NIGHT_FRACTION", "0.4"))
+BGSUB_RECAL_NIGHT_HOURS = {
+    int(h.strip())
+    for h in os.getenv("BGSUB_RECAL_NIGHT_HOURS", "0,1,2,3,4,5").split(",")
+    if h.strip().isdigit()
+}
+BGSUB_RECAL_LOOKBACK_DAYS = int(os.getenv("BGSUB_RECAL_LOOKBACK_DAYS", "7"))
+
 # Dual-rate MOG2 — two background models per camera (fast + slow learning).
 # Combines as `static_fg = slow_mask AND NOT fast_mask`, isolating objects that
 # remain stationary while filtering out moving pedestrians/vehicles. Resolves
@@ -333,8 +362,16 @@ S3_SYNC_HOUR = int(os.getenv("S3_SYNC_HOUR", "3"))  # 03:00 Brasilia by default
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "").strip()
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "").strip()
 
-# Auto-enable mock mode when model files are missing so the pipeline runs end-to-end for testing.
-if not MOCK_MODE and (not os.path.exists(P1_MODEL_PATH) or not os.path.exists(P2_MODEL_PATH)):
+# Auto-enable mock mode when the YOLO model files are missing so the pipeline runs
+# end-to-end for testing. Only relevant when AI_MODE uses local YOLO ("yolo"/"shadow");
+# in "gemini" mode the P1/P2 weights are never loaded, so a missing model must NOT flip
+# MOCK_MODE on — doing so was harmless but misleading in prod logs (the worker runs the
+# Gemini cascade regardless). Guarded on AI_MODE so gemini-mode prod no longer auto-mocks.
+if (
+    not MOCK_MODE
+    and AI_MODE in {"yolo", "shadow"}
+    and (not os.path.exists(P1_MODEL_PATH) or not os.path.exists(P2_MODEL_PATH))
+):
     logging.getLogger(__name__).warning(
         "Model file(s) not found (%s, %s) - MOCK_MODE activated automatically. "
         "Provide model weights or set MOCK_MODE=true to suppress this warning.",

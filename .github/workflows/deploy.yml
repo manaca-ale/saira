@@ -27,6 +27,11 @@ jobs:
             git fetch origin develop
             git reset --hard origin/develop
 
+            # Guard pós-reset: cron scripts são versionados 100755, mas reforça o +x
+            # como rede de segurança (incidente 2026-06-05: o reset zerou o +x e a
+            # recalibração semanal do BGSUB quebrou silenciosamente).
+            chmod +x services/yolo-worker-vm/scripts/*.sh 2>/dev/null || true
+
             cd services
 
             echo "Reiniciando Ambiente de Teste..."
@@ -79,6 +84,11 @@ jobs:
             cd /home/ubuntu/saira
             git fetch origin main
             git reset --hard origin/main
+
+            # Guard pós-reset: cron scripts são versionados 100755, mas reforça o +x
+            # como rede de segurança (incidente 2026-06-05: o reset zerou o +x e a
+            # recalibração semanal do BGSUB quebrou silenciosamente).
+            chmod +x services/yolo-worker-vm/scripts/*.sh 2>/dev/null || true
 
             cd services
 

@@ -5,8 +5,11 @@
 # baseline is loaded (bgsub cache is not hot-reloaded).
 #
 # Install on host saira-prod (crontab do ubuntu), domingos 04:30 BRT
-# (10min após o retrain do DINOv2 pra não competir CPU):
-#   (crontab -l 2>/dev/null; echo '30 4 * * 0 /home/ubuntu/saira/services/yolo-worker-vm/scripts/recalibrate_bgsub_cron.sh >> /home/ubuntu/bgsub_recalibrate.log 2>&1') | crontab -
+# (10min após o retrain do DINOv2 pra não competir CPU). Invoque via `bash` para
+# sobreviver à perda do bit +x num `git reset --hard` (incidente 2026-06-05: o
+# deploy zerou o +x e o cron quebrou silenciosamente com "Permission denied").
+# O script também é versionado com mode 100755, mas o `bash` é cinto-e-suspensório:
+#   (crontab -l 2>/dev/null; echo '30 4 * * 0 bash /home/ubuntu/saira/services/yolo-worker-vm/scripts/recalibrate_bgsub_cron.sh >> /home/ubuntu/bgsub_recalibrate.log 2>&1') | crontab -
 #
 # Per-run metrics: /app/state/bgsub_models/recalibrate_log.jsonl (volume yolo_state_prod).
 # Previous baseline backed up to {device}.npz.bak before each swap.

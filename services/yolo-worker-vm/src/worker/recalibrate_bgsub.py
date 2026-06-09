@@ -24,14 +24,21 @@ Run:  python -m worker.recalibrate_bgsub
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import cv2
 import numpy as np
 
 from . import config
+
+# Capture-time bucketing for --mix-night uses local Brazil time (frames are
+# named/captured in BRT and the night window is defined in local hours).
+_BRT = ZoneInfo("America/Sao_Paulo")
+_HHMMSS_RE = re.compile(r"^(\d{2})[-_:](\d{2})[-_:](\d{2})")
 
 
 def _pick_evenly(frames: list[Path], n: int) -> list[Path]:
@@ -39,6 +46,21 @@ def _pick_evenly(frames: list[Path], n: int) -> list[Path]:
         return frames
     step = len(frames) / n
     return [frames[int(i * step)] for i in range(n)]
+
+
+def _hour_of(path: Path) -> int | None:
+    """Best-effort capture hour (0-23, BRT). Prefer the HH-MM-SS filename;
+    fall back to the file mtime converted to BRT (TZ-correct regardless of the
+    container's TZ)."""
+    m = _HHMMSS_RE.match(path.stem)
+    if m:
+        h = int(m.group(1))
+        if 0 <= h <= 23:
+            return h
+    try:
+        return datetime.fromtimestamp(path.stat().st_mtime, _BRT).hour
+    except OSError:
+        return None
 
 
 def _latest_semocorrencia_dir(device_id: str) -> Path | None:
@@ -57,19 +79,82 @@ def _latest_semocorrencia_dir(device_id: str) -> Path | None:
     return None
 
 
-def recalibrate_device(device_id: str, n_frames: int = 120) -> dict:
+def _recent_semocorrencia_dirs(device_id: str, max_days: int) -> list[Path]:
+    """Up to `max_days` most-recent YYYY/MM/DD dirs (with JPGs), newest first."""
+    root = Path(config.UPLOAD_DIR) / device_id / "sem_ocorrencia"
+    if not root.is_dir():
+        return []
+    day_dirs = sorted((p for p in root.glob("*/*/*") if p.is_dir()), reverse=True)
+    out: list[Path] = []
+    for d in day_dirs:
+        if any(d.glob("*.jpg")):
+            out.append(d)
+        if len(out) >= max_days:
+            break
+    return out
+
+
+def _pick_mixed_night(
+    device_id: str, n_frames: int, *, night_hours: set[int],
+    night_fraction: float, lookback_days: int,
+) -> tuple[list[Path], dict]:
+    """Pick frames across recent days, forcing `night_fraction` from `night_hours`.
+
+    Falls back gracefully: if the night pool is empty it behaves like the legacy
+    even pick over whatever frames exist. Returns (paths, meta)."""
+    dirs = _recent_semocorrencia_dirs(device_id, lookback_days)
+    all_frames = sorted(f for d in dirs for f in d.glob("*.jpg"))
+    night: list[Path] = []
+    day: list[Path] = []
+    for f in all_frames:
+        h = _hour_of(f)
+        (night if (h is not None and h in night_hours) else day).append(f)
+
+    n_night_target = int(round(n_frames * night_fraction))
+    picked_night = _pick_evenly(night, min(n_night_target, len(night)))
+    remaining = n_frames - len(picked_night)
+    picked_day = _pick_evenly(day, min(remaining, len(day)))
+    picked = sorted(set(picked_night) | set(picked_day))
+    meta = {
+        "mix_night": True,
+        "lookback_days": lookback_days,
+        "night_hours": sorted(night_hours),
+        "n_days_scanned": len(dirs),
+        "n_night_available": len(night),
+        "n_day_available": len(day),
+        "n_night_picked": len(picked_night),
+        "n_day_picked": len(picked_day),
+    }
+    return picked, meta
+
+
+def recalibrate_device(device_id: str, n_frames: int = 120, *, mix_night: bool = False) -> dict:
     out = Path(config.BGSUB_MODELS_DIR) / f"{device_id}.npz"
-    src_dir = _latest_semocorrencia_dir(device_id)
     rec: dict = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "device_id": device_id,
         "ok": False,
     }
-    if src_dir is None:
-        rec["error"] = "no sem_ocorrencia frames found"
-        return rec
-    frames = sorted(src_dir.glob("*.jpg"))
-    picked = _pick_evenly(frames, n_frames)
+
+    if mix_night:
+        picked, mix_meta = _pick_mixed_night(
+            device_id, n_frames,
+            night_hours=config.BGSUB_RECAL_NIGHT_HOURS,
+            night_fraction=config.BGSUB_RECAL_NIGHT_FRACTION,
+            lookback_days=config.BGSUB_RECAL_LOOKBACK_DAYS,
+        )
+        rec.update(mix_meta)
+        if not picked:
+            rec["error"] = "no sem_ocorrencia frames found (mix-night)"
+            return rec
+        src_dir = None
+    else:
+        src_dir = _latest_semocorrencia_dir(device_id)
+        if src_dir is None:
+            rec["error"] = "no sem_ocorrencia frames found"
+            return rec
+        frames = sorted(src_dir.glob("*.jpg"))
+        picked = _pick_evenly(frames, n_frames)
     arrays = []
     for fp in picked:
         img = cv2.imread(str(fp))
@@ -100,7 +185,7 @@ def recalibrate_device(device_id: str, n_frames: int = 120) -> dict:
 
     rec.update({
         "ok": True,
-        "source_dir": str(src_dir),
+        "source_dir": str(src_dir) if src_dir is not None else "(mix-night, multi-day)",
         "n_frames": int(stack.shape[0]),
         "shape": list(stack.shape),
         "output": str(out),
@@ -108,7 +193,17 @@ def recalibrate_device(device_id: str, n_frames: int = 120) -> dict:
     return rec
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Recalibrate frozen BGSUB baselines.")
+    parser.add_argument(
+        "--mix-night", action="store_true",
+        help="Force night-frame mixing for ALL frozen devices (overrides the "
+             "per-device BGSUB_RECAL_MIX_NIGHT_DEVICES env).",
+    )
+    args = parser.parse_args(argv)
+
     devices = sorted(config.BGSUB_ADAPTIVE_DISABLE_DEVICES)
     if not devices:
         print("recalibrate_bgsub: BGSUB_ADAPTIVE_DISABLE_DEVICES empty — nothing to do.")
@@ -117,8 +212,9 @@ def main() -> int:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     rc = 0
     for dev in devices:
+        mix_night = args.mix_night or (dev in config.BGSUB_RECAL_MIX_NIGHT_DEVICES)
         try:
-            rec = recalibrate_device(dev)
+            rec = recalibrate_device(dev, mix_night=mix_night)
         except Exception as exc:  # noqa: BLE001
             rec = {"ts": datetime.now(timezone.utc).isoformat(), "device_id": dev,
                    "ok": False, "error": repr(exc)}

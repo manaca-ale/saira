@@ -37,6 +37,7 @@ from .detector_gemini import (
     normalize_offender_types,
 )
 from .metrics import (
+    classify_gemini_error,
     observe_bgsub_adaptive_update,
     observe_bgsub_evaluation,
     observe_car_shadow_comparison,
@@ -129,13 +130,18 @@ def _register_gemini_error(error_message: str, *, agent: str = "detail", camera=
     msg = str(error_message).lower()
     timeout = "timeout" in msg
     parse_fail = "validation" in msg or "json" in msg
+    error_type = classify_gemini_error(msg)
     GEMINI_METRICS["gemini_errors_total"] += 1
     if timeout:
         GEMINI_METRICS["gemini_timeout_total"] += 1
     if parse_fail:
         GEMINI_METRICS["gemini_parse_fail_total"] += 1
     observe_gemini_error(
-        timeout=timeout, parse_fail=parse_fail, agent=agent, camera_id=_camera_label(camera)
+        timeout=timeout,
+        parse_fail=parse_fail,
+        agent=agent,
+        camera_id=_camera_label(camera),
+        error_type=error_type,
     )
 
 
