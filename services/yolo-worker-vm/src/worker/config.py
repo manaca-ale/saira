@@ -333,8 +333,16 @@ S3_SYNC_HOUR = int(os.getenv("S3_SYNC_HOUR", "3"))  # 03:00 Brasilia by default
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "").strip()
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "").strip()
 
-# Auto-enable mock mode when model files are missing so the pipeline runs end-to-end for testing.
-if not MOCK_MODE and (not os.path.exists(P1_MODEL_PATH) or not os.path.exists(P2_MODEL_PATH)):
+# Auto-enable mock mode when the YOLO model files are missing so the pipeline runs
+# end-to-end for testing. Only relevant when AI_MODE uses local YOLO ("yolo"/"shadow");
+# in "gemini" mode the P1/P2 weights are never loaded, so a missing model must NOT flip
+# MOCK_MODE on — doing so was harmless but misleading in prod logs (the worker runs the
+# Gemini cascade regardless). Guarded on AI_MODE so gemini-mode prod no longer auto-mocks.
+if (
+    not MOCK_MODE
+    and AI_MODE in {"yolo", "shadow"}
+    and (not os.path.exists(P1_MODEL_PATH) or not os.path.exists(P2_MODEL_PATH))
+):
     logging.getLogger(__name__).warning(
         "Model file(s) not found (%s, %s) - MOCK_MODE activated automatically. "
         "Provide model weights or set MOCK_MODE=true to suppress this warning.",
