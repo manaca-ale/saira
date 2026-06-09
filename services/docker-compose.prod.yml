@@ -186,6 +186,11 @@ services:
       - MOCK_MODE=${MOCK_MODE:-false}
       - AI_MODE=${AI_MODE:-yolo}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      # Vertex AI keyless (active in prod since 788ed7e). Activation via server .env.
+      - GEMINI_USE_VERTEX=${GEMINI_USE_VERTEX:-false}
+      - GCP_PROJECT=${GCP_PROJECT:-}
+      - GCP_LOCATION=${GCP_LOCATION:-global}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
       - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-45}
       - GEMINI_MAX_RETRIES=${GEMINI_MAX_RETRIES:-2}
@@ -273,6 +278,8 @@ services:
       - esp32_uploads_prod:/app/uploads
       - yolo_state_prod:/app/state
       - ./yolo-worker-vm/models:/app/models
+      # Keyless Vertex WIF cred-config (server artifact). Only read when GEMINI_USE_VERTEX=true.
+      - ./yolo-worker-vm/vertex-cred-config.json:/app/vertex-cred-config.json:ro
       # To enable Drive sync: place your service account key on the server and uncomment:
       # - /home/ubuntu/saira/gdrive-sa-key.json:/app/gdrive-sa-key.json:ro
     depends_on:
