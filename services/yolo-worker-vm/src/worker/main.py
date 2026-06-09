@@ -2126,8 +2126,8 @@ def main() -> None:
         while True:
             time.sleep(3600)
 
-    if config.AI_MODE in {"shadow", "gemini"} and not config.GEMINI_API_KEY:
-        raise RuntimeError("GEMINI_API_KEY is required when AI_MODE is shadow or gemini")
+    if config.AI_MODE in {"shadow", "gemini"} and not config.GEMINI_API_KEY and not getattr(config, "GEMINI_USE_VERTEX", False):
+        raise RuntimeError("GEMINI_API_KEY is required when AI_MODE is shadow or gemini (or set GEMINI_USE_VERTEX=true)")
 
     start_metrics_server()
     init_connections()

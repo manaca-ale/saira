@@ -85,6 +85,12 @@ MOCK_MODE = os.getenv("MOCK_MODE", "false").strip().lower() in ("true", "1", "ye
 
 # Gemini settings.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+# Vertex AI (keyless via Workload Identity Federation). When true, the worker
+# authenticates to Gemini through Vertex (Cloud Billing pay-as-you-go) instead
+# of an AI Studio API key. project/location come from env (location "global").
+GEMINI_USE_VERTEX = os.getenv("GEMINI_USE_VERTEX", "false").strip().lower() in ("true", "1", "yes")
+GCP_PROJECT = os.getenv("GCP_PROJECT", os.getenv("GOOGLE_CLOUD_PROJECT", "")).strip()
+GCP_LOCATION = os.getenv("GCP_LOCATION", os.getenv("GOOGLE_CLOUD_LOCATION", "global")).strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 GEMINI_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
 GEMINI_MAX_RETRIES = int(os.getenv("GEMINI_MAX_RETRIES", "2"))
