@@ -246,6 +246,21 @@ BGSUB_ADAPTIVE_DISABLE_DEVICES = {
     if d.strip()
 }
 
+# Clean-zone-only adaptive (esp32_005 Arruda, 2026-06-10). Cameras listed here
+# run the adaptive baseline BUT only absorb a window when the gate confirms the
+# pile zone is genuinely CLEAN (no pre-existing pile AND no litter in the last
+# frame) — not merely "no NEW litter". This makes drop-and-stay drift
+# structurally impossible on chronic/busy points (the litter never enters the
+# baseline), while still adapting during genuinely-empty intervals. Pair with a
+# frequent mix-night re-anchor so the baseline stays fresh even when the zone is
+# rarely clean. A device here must NOT also be in BGSUB_ADAPTIVE_DISABLE_DEVICES.
+# Default empty → no behaviour change.
+BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES", "").split(",")
+    if d.strip()
+}
+
 # Weekly recalibration: night-frame mixing (item 6, 2026-06-09). esp32_005 (Arruda)
 # has a frozen baseline biased to daytime — nighttime persistence sits near the
 # threshold → spurious baseline alarms. For devices listed here, the recalibration
