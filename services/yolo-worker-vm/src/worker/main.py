@@ -1212,6 +1212,7 @@ def _process_with_gemini_cascade_window(
         )
         _register_bgsub_evaluation(bgsub_result, camera=camera)
         if bgsub_result.should_suppress:
+            bgsub_shadow = device_id in config.BGSUB_SHADOW_DEVICES
             logger.info(
                 json.dumps({
                     "event": "bgsub_suppressed",
@@ -1222,15 +1223,18 @@ def _process_with_gemini_cascade_window(
                     "n_frames_ok": bgsub_result.n_frames_ok,
                     "n_frames_total": bgsub_result.n_frames_total,
                     "threshold": config.BGSUB_PERSISTENCE_THRESHOLD,
+                    "shadow": bgsub_shadow,
                 }, ensure_ascii=False)
             )
-            return False, {
-                "provider": "gemini_cascade",
-                "success": True,
-                "skipped": True,
-                "skip_reason": "bgsub_filtered",
-                "bgsub_persistence": bgsub_result.persistence,
-            }
+            if not bgsub_shadow:
+                return False, {
+                    "provider": "gemini_cascade",
+                    "success": True,
+                    "skipped": True,
+                    "skip_reason": "bgsub_filtered",
+                    "bgsub_persistence": bgsub_result.persistence,
+                }
+            # Shadow device: log-only — fall through to the gate (no enforcement).
 
     try:
         gate = analyze_new_litter_with_gemini(
