@@ -17,6 +17,9 @@ from app.services.billing_scheduler import (
 from app.services.export_scheduler import (
     start_export_scheduler, stop_export_scheduler,
 )
+from app.services.offline_monitor import (
+    start_offline_monitor, stop_offline_monitor,
+)
 
 logger = logging.getLogger(__name__)
 _BRT = ZoneInfo("America/Sao_Paulo")
@@ -64,6 +67,7 @@ async def lifespan(app: FastAPI):
     await init_redis()
     start_billing_scheduler()
     start_export_scheduler()
+    start_offline_monitor()
     snapshot_task = asyncio.create_task(_report_snapshot_loop())
     try:
         yield
@@ -73,6 +77,7 @@ async def lifespan(app: FastAPI):
             await snapshot_task
         except (asyncio.CancelledError, Exception):
             pass
+        stop_offline_monitor()
         stop_export_scheduler()
         stop_billing_scheduler()
         await close_redis()

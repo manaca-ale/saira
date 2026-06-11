@@ -57,6 +57,18 @@ GEMINI_PARSE_FAIL_TOTAL = Counter(
     ["agent", "camera_id"],
 )
 
+# Gemini errors broken down by provider-agnostic class so alerting can fire
+# specifically on a dead gate (quota/credenciais) vs transient timeout/parse.
+# error_type values: "quota" (429/RESOURCE_EXHAUSTED/prepayment), "auth"
+# (RefreshError/credential/permission/401/403), "timeout", "parse", "other".
+# camera_id is intentionally omitted to keep cardinality low — a quota/auth
+# outage is fleet-wide, not per-camera.
+GEMINI_ERROR_TYPE_TOTAL = Counter(
+    "saira_gemini_error_type_total",
+    "Gemini call failures by provider-agnostic error class.",
+    ["agent", "error_type"],
+)
+
 GEMINI_INPUT_TOKENS_TOTAL = Counter(
     "saira_gemini_input_tokens_total",
     "Total Gemini input tokens consumed.",
@@ -174,14 +186,44 @@ def observe_gemini_success(
     GEMINI_LAST_ESTIMATED_COST_USD.set(max(0.0, float(estimated_cost_usd)))
 
 
+def classify_gemini_error(msg: str) -> str:
+    """Provider-agnostic error class for alerting (works for AI Studio + Vertex).
+
+    `msg` should already be lower-cased. Precedence: timeout/parse first
+    (transient), then the outage classes quota/auth that mean the gate is dead
+    and should page operators. Feeds GEMINI_ERROR_TYPE_TOTAL.
+    """
+    if "timeout" in msg:
+        return "timeout"
+    if "validation" in msg or "json" in msg:
+        return "parse"
+    if any(k in msg for k in ("resource_exhausted", "quota", "prepayment", "exhausted", "429")):
+        return "quota"
+    if any(
+        k in msg
+        for k in (
+            "refresh", "credential", "default credentials", "unauthenticated",
+            "permission", "reauth", "401", "403",
+        )
+    ):
+        return "auth"
+    return "other"
+
+
 def observe_gemini_error(
-    *, timeout: bool, parse_fail: bool, agent: str = "detail", camera_id: str = "unknown"
+    *,
+    timeout: bool,
+    parse_fail: bool,
+    agent: str = "detail",
+    camera_id: str = "unknown",
+    error_type: str = "other",
 ) -> None:
     GEMINI_ERRORS_TOTAL.labels(agent=agent, camera_id=camera_id).inc()
     if timeout:
         GEMINI_TIMEOUT_TOTAL.labels(agent=agent, camera_id=camera_id).inc()
     if parse_fail:
         GEMINI_PARSE_FAIL_TOTAL.labels(agent=agent, camera_id=camera_id).inc()
+    GEMINI_ERROR_TYPE_TOTAL.labels(agent=agent, error_type=error_type).inc()
 
 
 def set_gemini_avg_latency_ms(value: float) -> None:

@@ -76,6 +76,15 @@ class Settings(BaseSettings):
     GEMINI_INPUT_TOKEN_PRICE_PER_1M: float = 0.15
     GEMINI_OUTPUT_TOKEN_PRICE_PER_1M: float = 0.60
 
+    # Camera offline alert (email via Resend) — added 2026-06-09 (incident: esp32_001/002
+    # offline ~24h por crédito 4G esgotado, só visto no olho). Canal operacional separado
+    # do billing; reusa email_service/Resend. Lê o upload mais recente em CAMERA_UPLOADS_DIR.
+    CAMERA_OFFLINE_MONITOR_ENABLED: bool = True
+    CAMERA_OFFLINE_THRESHOLD_SECONDS: int = 3600       # 1h sem upload = offline
+    CAMERA_OFFLINE_CHECK_INTERVAL_MINUTES: int = 10
+    CAMERA_OFFLINE_REALERT_SECONDS: int = 21600        # re-alerta no máx. a cada 6h
+    OFFLINE_ALERT_RECIPIENTS: str = ""                 # vazio = fallback p/ BILLING_REPORT_RECIPIENTS
+
     # Geocodificação
     NOMINATIM_BASE_URL: str = "https://nominatim.openstreetmap.org"
     NOMINATIM_USER_AGENT: str = "saira-dashboard/1.0 (contato@saira.com)"

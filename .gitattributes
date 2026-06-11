@@ -10,3 +10,8 @@
 *.md text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
+
+# Shell scripts and systemd units must stay LF (CRLF breaks them on Linux)
+*.sh text eol=lf
+*.service text eol=lf
+*.timer text eol=lf

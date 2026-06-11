@@ -110,6 +110,16 @@ services:
       - BILLING_REPORT_MINUTE_BRT=${BILLING_REPORT_MINUTE_BRT:-0}
       - GEMINI_INPUT_TOKEN_PRICE_PER_1M=${GEMINI_INPUT_TOKEN_PRICE_PER_1M:-0.15}
       - GEMINI_OUTPUT_TOKEN_PRICE_PER_1M=${GEMINI_OUTPUT_TOKEN_PRICE_PER_1M:-0.60}
+      # Camera offline alert (email via Resend) — incident 2026-06-09.
+      # OFF by default on TEST: the real fleet (esp32_001/002/005) uploads to PROD,
+      # so the test uploads volume is stale and every active camera would look
+      # "offline" → false-positive e-mails. Enable deliberately (set =true) only
+      # for a controlled test. Prod keeps it on.
+      - CAMERA_OFFLINE_MONITOR_ENABLED=${CAMERA_OFFLINE_MONITOR_ENABLED:-false}
+      - CAMERA_OFFLINE_THRESHOLD_SECONDS=${CAMERA_OFFLINE_THRESHOLD_SECONDS:-3600}
+      - CAMERA_OFFLINE_CHECK_INTERVAL_MINUTES=${CAMERA_OFFLINE_CHECK_INTERVAL_MINUTES:-10}
+      - CAMERA_OFFLINE_REALERT_SECONDS=${CAMERA_OFFLINE_REALERT_SECONDS:-21600}
+      - OFFLINE_ALERT_RECIPIENTS=${OFFLINE_ALERT_RECIPIENTS:-}
     depends_on:
       db:
         condition: service_healthy
@@ -149,6 +159,12 @@ services:
       - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
       - AI_MODE=${AI_MODE:-shadow}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      # Vertex AI keyless (ported from prod). Default off; set GEMINI_USE_VERTEX=true
+      # + GCP_PROJECT in the server .env to switch test off the AI Studio prepaid key.
+      - GEMINI_USE_VERTEX=${GEMINI_USE_VERTEX:-false}
+      - GCP_PROJECT=${GCP_PROJECT:-}
+      - GCP_LOCATION=${GCP_LOCATION:-global}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
       - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-30}
       - GEMINI_MAX_RETRIES=${GEMINI_MAX_RETRIES:-2}
@@ -197,6 +213,9 @@ services:
       - BGSUB_ADAPTIVE_MIN_CONFIDENCE=${BGSUB_ADAPTIVE_MIN_CONFIDENCE:-90}
       - BGSUB_ADAPTIVE_SAVE_EVERY_N=${BGSUB_ADAPTIVE_SAVE_EVERY_N:-50}
       - BGSUB_ADAPTIVE_DISABLE_DEVICES=${BGSUB_ADAPTIVE_DISABLE_DEVICES:-}
+      # Night-frame mixing for frozen-baseline devices on weekly recalibration.
+      # Empty on test by default (esp32_005 is a prod camera).
+      - BGSUB_RECAL_MIX_NIGHT_DEVICES=${BGSUB_RECAL_MIX_NIGHT_DEVICES:-}
       # DINOv2 post-detail FP filter (off|shadow|enforce); rejection-only, per-device
       - DINOV2_FILTER_MODE=${DINOV2_FILTER_MODE:-off}
       - DINOV2_FILTER_DEVICES=${DINOV2_FILTER_DEVICES:-esp32_001}
@@ -225,6 +244,9 @@ services:
       - ../esp32-server/uploads:/app/uploads
       - yolo_state_test:/app/state
       - ./yolo-worker-vm/models:/app/models
+      # Keyless Vertex WIF cred-config (server artifact, shared host checkout). Only
+      # read when GEMINI_USE_VERTEX=true; harmless when absent/off.
+      - ./yolo-worker-vm/vertex-cred-config.json:/app/vertex-cred-config.json:ro
     ports:
       - "9108:9108"
       # To enable Drive sync: place your service account key on the server and uncomment:
