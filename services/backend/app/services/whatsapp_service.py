@@ -268,4 +268,8 @@ class WhatsAppService:
 
     @staticmethod
     def is_same_rpa(user_rpa: str | None, detection_rpa: str | None) -> bool:
-        return _format_rpa_key(user_rpa) == _format_rpa_key(detection_rpa)
+        user_key = _format_rpa_key(user_rpa)
+        # No RPA assigned to the user = no restriction → matches every RPA.
+        if not user_key:
+            return True
+        return user_key == _format_rpa_key(detection_rpa)

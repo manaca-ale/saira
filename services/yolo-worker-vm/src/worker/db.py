@@ -344,7 +344,13 @@ def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
             return digits if digits else raw.replace(" ", "").replace("-", "")
 
         det_key = _rpa_key(camera.rpa)
-        rpa_label = f"RPA {camera.rpa}" if camera.rpa else "RPA ?"
+        _rpa_raw = (camera.rpa or "").strip()
+        if not _rpa_raw:
+            rpa_label = "RPA ?"
+        elif _rpa_raw.lower().startswith("rpa"):
+            rpa_label = _rpa_raw  # already "RPA 5" / "RPA-1" — avoid "RPA RPA 5"
+        else:
+            rpa_label = f"RPA {_rpa_raw}"
         location = ", ".join(filter(None, [camera.logradouro, camera.bairro]))
         meta = json.dumps({
             "rpa": camera.rpa,
@@ -354,7 +360,9 @@ def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
         })
 
         for user_id, user_rpa in users:
-            if _rpa_key(user_rpa) != det_key:
+            user_key = _rpa_key(user_rpa)
+            # No RPA assigned to the user = no restriction → receives every RPA.
+            if user_key and user_key != det_key:
                 continue
             cur.execute(
                 """
