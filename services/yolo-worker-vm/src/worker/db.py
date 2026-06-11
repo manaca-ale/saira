@@ -354,7 +354,9 @@ def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
         })
 
         for user_id, user_rpa in users:
-            if _rpa_key(user_rpa) != det_key:
+            user_key = _rpa_key(user_rpa)
+            # No RPA assigned to the user = no restriction → receives every RPA.
+            if user_key and user_key != det_key:
                 continue
             cur.execute(
                 """
