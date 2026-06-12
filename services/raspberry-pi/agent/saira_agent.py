@@ -210,16 +210,19 @@ class Agent:
         return analyze
 
     def capture_loop(self) -> None:
-        next_at = time.monotonic()
+        # A cadência é reavaliada a CADA tick (0,5s): mudanças de config
+        # remoto, início de burst ou evento sintético encurtam a espera em
+        # andamento — com agendamento fixo, sair de um intervalo longo (ex.
+        # câmera pausada) só valeria após o sleep atual inteiro.
+        last_at = 0.0
         while not self._stop.is_set():
-            now = time.monotonic()
-            if now < next_at:
-                self._stop.wait(min(next_at - now, 0.5))
-                continue
             interval = self._capture_cadence()
-            next_at += interval
-            if next_at < now:  # guarda contra drift após atraso longo
-                next_at = now + interval
+            now = time.monotonic()
+            wait = (last_at + interval) - now
+            if wait > 0:
+                self._stop.wait(min(wait, 0.5))
+                continue
+            last_at = now
             try:
                 self._capture_once()
             except Exception:  # noqa: BLE001 - loop nunca pode morrer
