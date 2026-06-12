@@ -158,6 +158,12 @@ class _ModelCache:
         # Rolling buffer of frames per camera (adaptive baseline).
         self._frame_buffer: dict[str, collections.deque] = {}
         self._updates_since_save: dict[str, int] = {}
+        # mtime of the npz each cached model was built from. When an external
+        # recalibration rewrites the npz, the next get_models() sees a newer
+        # mtime and rebuilds — no worker restart needed (hot-reload, mirrors
+        # detector_dinov2._DinoCache). Adaptive checkpoints update this stamp
+        # after persisting so they don't trigger a self-rebuild.
+        self._npz_mtime: dict[str, float] = {}
 
     def _current_mode(self) -> str:
         return "dual" if config.BGSUB_DUAL_RATE_ENABLED else "single"
@@ -174,8 +180,18 @@ class _ModelCache:
         """
         mode = self._current_mode()
         cached_mode = self._mode.get(device_id)
+        path = Path(config.BGSUB_MODELS_DIR) / f"{device_id}.npz"
         if device_id in self._mog2 and cached_mode == mode:
-            return self._mog2[device_id]
+            try:
+                disk_mtime = path.stat().st_mtime if path.exists() else None
+            except OSError:
+                disk_mtime = None
+            if disk_mtime is None or disk_mtime == self._npz_mtime.get(device_id):
+                return self._mog2[device_id]
+            logger.info(
+                "bgsub: baseline npz changed on disk for %s, hot-reloading models",
+                device_id,
+            )
         # Mode changed (or first load) — rebuild from disk.
         if device_id in self._mog2 and cached_mode != mode:
             logger.info(
@@ -183,7 +199,6 @@ class _ModelCache:
                 device_id, cached_mode, mode,
             )
 
-        path = Path(config.BGSUB_MODELS_DIR) / f"{device_id}.npz"
         if not path.exists():
             return None
         try:
@@ -204,6 +219,10 @@ class _ModelCache:
 
             self._mog2[device_id] = entry
             self._mode[device_id] = mode
+            try:
+                self._npz_mtime[device_id] = path.stat().st_mtime
+            except OSError:
+                self._npz_mtime.pop(device_id, None)
             # Seed rolling buffer with baseline frames so future persistence
             # keeps the same shape and history.
             history = cfg["history_fast"] if mode == "dual" else cfg["history"]
@@ -319,6 +338,7 @@ class _ModelCache:
             self._bboxes.clear()
             self._frame_buffer.clear()
             self._updates_since_save.clear()
+            self._npz_mtime.clear()
         else:
             self._mog2.pop(device_id, None)
             self._mode.pop(device_id, None)
@@ -326,6 +346,7 @@ class _ModelCache:
             self._bboxes.pop(device_id, None)
             self._frame_buffer.pop(device_id, None)
             self._updates_since_save.pop(device_id, None)
+            self._npz_mtime.pop(device_id, None)
 
 
 _cache = _ModelCache()
@@ -624,6 +645,14 @@ def update_baseline_with_frames(
         persisted = _persist_frames_to_npz(device_id, list(buf), mode=mode)
         if persisted:
             _cache._updates_since_save[device_id] = 0
+            # Stamp the new npz mtime so the hot-reload check in get_models()
+            # doesn't treat our own checkpoint as an external recalibration.
+            try:
+                _cache._npz_mtime[device_id] = (
+                    Path(config.BGSUB_MODELS_DIR) / f"{device_id}.npz"
+                ).stat().st_mtime
+            except OSError:
+                pass
 
     if mode == "dual":
         logger.info(
