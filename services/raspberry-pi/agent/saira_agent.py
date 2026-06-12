@@ -318,18 +318,28 @@ class Agent:
         timer.daemon = True
         timer.start()
 
+    # Sentinela: o keyframe do RTSP ainda é o mesmo do ciclo anterior —
+    # pula o ciclo SEM cair para o snapshot HTTP (que é flaky).
+    _SAME_FRAME = object()
+
     def _fetch_snapshot(self) -> bytes | None:
         source = self.cfg.snapshot_source
         if source in ("auto", "rtsp"):
-            data = self._fetch_snapshot_rtsp()
-            if data is not None or source == "rtsp":
-                return data
+            res = self._fetch_snapshot_rtsp()
+            if res is Agent._SAME_FRAME:
+                return None
+            if res is not None or source == "rtsp":
+                return res
         return self._fetch_snapshot_http()
 
-    def _fetch_snapshot_rtsp(self) -> bytes | None:
+    def _fetch_snapshot_rtsp(self):
         """Lê o JPEG mantido pelo cam-rtsp-buffer.sh a partir dos keyframes
         do RTSP (escrita atômica). Sem rede e sem o snapshot HTTP flaky da
-        câmera; atualiza a cada GOP (~1-2s)."""
+        câmera; atualiza a cada GOP (~1-2s).
+
+        Retorna bytes (frame novo), _SAME_FRAME (sem keyframe novo ainda) ou
+        None (arquivo ausente/velho/corrompido — fallback HTTP no modo auto).
+        """
         path = self.cfg.snapshot_jpg
         try:
             mtime = path.stat().st_mtime
@@ -341,7 +351,7 @@ class Agent:
             self._warn_stale_snapshot(f"velho ({age:.0f}s)")
             return None
         if mtime == self._last_snapshot_mtime:
-            return None  # mesmo keyframe do ciclo anterior — não duplica upload
+            return Agent._SAME_FRAME
         try:
             data = path.read_bytes()
         except OSError:
