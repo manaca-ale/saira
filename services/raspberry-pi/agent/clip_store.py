@@ -162,7 +162,9 @@ class ClipStore:
         with self._lock:
             self._in_use.add(event_id)
         try:
-            tmp = out.with_suffix(".mp4.part")
+            # O temporário PRECISA terminar em .mp4: o ffmpeg infere o muxer
+            # pela extensão (".part" puro falha com "unable to choose format").
+            tmp = self.clips_dir / f"{event_id}.part.mp4"
             if not self._concat(sorted(src.glob("*.ts")), tmp):
                 tmp.unlink(missing_ok=True)
                 return None
