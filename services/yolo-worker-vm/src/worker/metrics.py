@@ -126,7 +126,9 @@ BGSUB_EVAL_TOTAL = Counter(
 
 # Adaptive-baseline update counter — emitted after Gemini gate returns.
 # reason values: applied | persisted | skipped_disabled | skipped_low_confidence
-#                | skipped_no_model | skipped_positive | error
+#                | skipped_no_model | skipped_positive | skipped_zone_not_clean | error
+# skipped_zone_not_clean: clean-zone-only device, but the pile zone still held
+#   litter (prior_had_litter or last_frame_has_litter) so absorption was skipped.
 BGSUB_ADAPTIVE_UPDATES_TOTAL = Counter(
     "saira_bgsub_adaptive_updates_total",
     "BGSUB MOG2 adaptive-baseline update outcomes per camera.",

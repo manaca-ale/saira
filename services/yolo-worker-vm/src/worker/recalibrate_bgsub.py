@@ -202,11 +202,25 @@ def main(argv: list[str] | None = None) -> int:
         help="Force night-frame mixing for ALL frozen devices (overrides the "
              "per-device BGSUB_RECAL_MIX_NIGHT_DEVICES env).",
     )
+    parser.add_argument(
+        "--device", default=None,
+        help="Recalibrate only this device_id (e.g. esp32_005) instead of the "
+             "full frozen/clean-zone set. Used by the frequent re-anchor cron.",
+    )
     args = parser.parse_args(argv)
 
-    devices = sorted(config.BGSUB_ADAPTIVE_DISABLE_DEVICES)
+    if args.device:
+        devices = [args.device.strip().lower()]
+    else:
+        # Frozen-baseline cameras AND clean-zone-adaptive cameras both need a
+        # periodic fresh baseline (the latter rarely absorbs on a chronic point,
+        # so it would otherwise age out between recalibrations).
+        devices = sorted(
+            config.BGSUB_ADAPTIVE_DISABLE_DEVICES
+            | config.BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES
+        )
     if not devices:
-        print("recalibrate_bgsub: BGSUB_ADAPTIVE_DISABLE_DEVICES empty — nothing to do.")
+        print("recalibrate_bgsub: no frozen/clean-zone devices configured — nothing to do.")
         return 0
     log_path = Path(config.BGSUB_MODELS_DIR) / "recalibrate_log.jsonl"
     log_path.parent.mkdir(parents=True, exist_ok=True)

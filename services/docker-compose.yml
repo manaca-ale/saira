@@ -256,6 +256,10 @@
       - BGSUB_ADAPTIVE_MIN_CONFIDENCE=${BGSUB_ADAPTIVE_MIN_CONFIDENCE:-90}
       - BGSUB_ADAPTIVE_SAVE_EVERY_N=${BGSUB_ADAPTIVE_SAVE_EVERY_N:-50}
       - BGSUB_ADAPTIVE_DISABLE_DEVICES=${BGSUB_ADAPTIVE_DISABLE_DEVICES:-}
+      # Clean-zone-only adaptive (absorb only when the pile zone is confirmed empty)
+      - BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES=${BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES:-}
+      # BGSUB shadow (log-only): evaluate + log would-suppress, always pass to the gate
+      - BGSUB_SHADOW_DEVICES=${BGSUB_SHADOW_DEVICES:-}
       # DINOv2 post-detail FP filter (off|shadow|enforce); rejection-only, per-device
       - DINOV2_FILTER_MODE=${DINOV2_FILTER_MODE:-off}
       - DINOV2_FILTER_DEVICES=${DINOV2_FILTER_DEVICES:-esp32_001}

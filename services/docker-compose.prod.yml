@@ -246,6 +246,10 @@ services:
       - BGSUB_ADAPTIVE_MIN_CONFIDENCE=${BGSUB_ADAPTIVE_MIN_CONFIDENCE:-90}
       - BGSUB_ADAPTIVE_SAVE_EVERY_N=${BGSUB_ADAPTIVE_SAVE_EVERY_N:-50}
       - BGSUB_ADAPTIVE_DISABLE_DEVICES=${BGSUB_ADAPTIVE_DISABLE_DEVICES:-}
+      # Clean-zone-only adaptive (absorb only when the pile zone is confirmed empty)
+      - BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES=${BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES:-}
+      # BGSUB shadow (log-only): evaluate + log would-suppress, always pass to the gate
+      - BGSUB_SHADOW_DEVICES=${BGSUB_SHADOW_DEVICES:-}
       # Weekly recalibration mixes night frames for these frozen-baseline devices
       # so the baseline isn't day-biased (esp32_005 Arruda). Read by the cron via
       # `docker exec ... python -m worker.recalibrate_bgsub`.

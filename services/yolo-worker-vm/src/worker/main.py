@@ -1212,6 +1212,7 @@ def _process_with_gemini_cascade_window(
         )
         _register_bgsub_evaluation(bgsub_result, camera=camera)
         if bgsub_result.should_suppress:
+            bgsub_shadow = device_id in config.BGSUB_SHADOW_DEVICES
             logger.info(
                 json.dumps({
                     "event": "bgsub_suppressed",
@@ -1222,15 +1223,18 @@ def _process_with_gemini_cascade_window(
                     "n_frames_ok": bgsub_result.n_frames_ok,
                     "n_frames_total": bgsub_result.n_frames_total,
                     "threshold": config.BGSUB_PERSISTENCE_THRESHOLD,
+                    "shadow": bgsub_shadow,
                 }, ensure_ascii=False)
             )
-            return False, {
-                "provider": "gemini_cascade",
-                "success": True,
-                "skipped": True,
-                "skip_reason": "bgsub_filtered",
-                "bgsub_persistence": bgsub_result.persistence,
-            }
+            if not bgsub_shadow:
+                return False, {
+                    "provider": "gemini_cascade",
+                    "success": True,
+                    "skipped": True,
+                    "skip_reason": "bgsub_filtered",
+                    "bgsub_persistence": bgsub_result.persistence,
+                }
+            # Shadow device: log-only — fall through to the gate (no enforcement).
 
     try:
         gate = analyze_new_litter_with_gemini(
@@ -1297,17 +1301,32 @@ def _process_with_gemini_cascade_window(
         config.BGSUB_PREFILTER_ENABLED
         and device_id not in config.BGSUB_ADAPTIVE_DISABLE_DEVICES
     )
+    # Clean-zone-only devices (e.g. esp32_005 Arruda) adapt ONLY when the gate
+    # confirms the pile zone is genuinely empty — never absorbing windows that
+    # still contain the chronic pile/recent dumps. This makes drop-and-stay drift
+    # structurally impossible on busy points (see config + camp 33).
+    clean_zone_only = device_id in config.BGSUB_ADAPTIVE_CLEAN_ZONE_ONLY_DEVICES
+    zone_is_clean = (
+        not prior_had_litter and not bool(gate_report.last_frame_has_litter)
+    )
     if adaptive_on and not bool(gate_report.new_litter_detected):
-        adapt_result = bgsub_filter.update_baseline_with_frames(
-            device_id=device_id,
-            frame_paths=window_paths,
-            gate_confidence=int(gate_report.confidence_0_100),
-            camera=camera,
-        )
-        observe_bgsub_adaptive_update(
-            camera_id=_camera_label(camera),
-            reason=adapt_result.reason,
-        )
+        if clean_zone_only and not zone_is_clean:
+            # Zone still holds litter — skip so it never drifts into the baseline.
+            observe_bgsub_adaptive_update(
+                camera_id=_camera_label(camera),
+                reason="skipped_zone_not_clean",
+            )
+        else:
+            adapt_result = bgsub_filter.update_baseline_with_frames(
+                device_id=device_id,
+                frame_paths=window_paths,
+                gate_confidence=int(gate_report.confidence_0_100),
+                camera=camera,
+            )
+            observe_bgsub_adaptive_update(
+                camera_id=_camera_label(camera),
+                reason=adapt_result.reason,
+            )
     elif adaptive_on and bool(gate_report.new_litter_detected):
         # Skip update when descarte detected — we don't want to absorb TPs.
         observe_bgsub_adaptive_update(
@@ -2349,8 +2368,8 @@ def main() -> None:
         while True:
             time.sleep(3600)
 
-    if config.AI_MODE in {"shadow", "gemini"} and not config.GEMINI_API_KEY:
-        raise RuntimeError("GEMINI_API_KEY is required when AI_MODE is shadow or gemini")
+    if config.AI_MODE in {"shadow", "gemini"} and not config.GEMINI_API_KEY and not getattr(config, "GEMINI_USE_VERTEX", False):
+        raise RuntimeError("GEMINI_API_KEY is required when AI_MODE is shadow or gemini (or set GEMINI_USE_VERTEX=true)")
 
     start_metrics_server()
     init_connections()
