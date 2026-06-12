@@ -1,23 +1,36 @@
 #!/usr/bin/env python3
-"""Agente de captura SAIRA para Raspberry Pi (relay de camera IP).
+"""Agente de captura SAIRA para Raspberry Pi (relay de câmera IP).
 
 Substitui o papel da ESP32 (firmware/espcam-saira/src/ipcam_relay.cpp):
-busca o snapshot da camera IP e repassa, byte a byte (pass-through, SEM
-reencode), para o esp32-server na EC2. Mantem o mesmo contrato de rede,
-entao worker/backend nao mudam.
+busca o snapshot da câmera IP e repassa, byte a byte (pass-through, SEM
+reencode), para o esp32-server na EC2. Mantém o mesmo contrato de rede,
+então worker/backend não mudam para dispositivos legados.
 
 Threads:
-  - capture_loop   : a cada >=5s, faz fetch do snapshot e upload (com spool
-                     local em caso de falha + drenagem de backlog).
+  - capture_loop   : busca snapshot, roda o motion gate (BGSUB streaming,
+                     ver motion_gate.py) e decide o que sobe:
+                       MOTION_ENABLED=off    -> 1 frame a cada CAPTURE_INTERVAL
+                       MOTION_ENABLED=shadow -> uploads legados; gate só loga
+                                                e arquiva clipes de eventos
+                       MOTION_ENABLED=on     -> burst durante eventos (com
+                                                event_id/event_state no form),
+                                                heartbeat esparso no idle
   - config_loop    : poll de /device/<id>/config.txt (ETag) e aplica
-                     timer_delay_ms / ip_cam_url / ip_cam_user / ip_cam_pass
-                     em runtime, sem reiniciar.
-  - command_loop   : long-poll de /device/<id>/poll; trata CMD_VIDEO_CLIP
-                     (exporta o buffer RTSP recente) e CMD_BULK_UPLOAD
-                     (envia o ring de frames como TLV).
+                     timer_delay_ms / ip_cam_* / pile_zone_polygon / tuning
+                     do gate em runtime, sem reiniciar.
+  - command_loop   : long-poll de /device/<id>/poll; comandos com argumento
+                     usam a convenção "CMD_NAME:<arg>":
+                       CMD_VIDEO_CLIP            -> exporta o ring recente
+                       CMD_VIDEO_CLIP:<event_id> -> sobe o clipe do evento
+                       CMD_PERSIST_CLIP:<event_id> -> RAM -> SD
+                       CMD_BULK_UPLOAD           -> envia o spool como TLV
+  - maintenance    : retenção dos clipes no SD (ClipStore.prune).
 
-Item BGSUB (#4) entra na FASE 2: ha um hook (motion_gate) que hoje sempre
-deixa passar; a portabilidade do bgsub_filter.py (MOG2) sera plugada aqui.
+Clipes de evento: ver clip_store.py (RAM-first; SD só após confirmação do
+worker; upload só quando a plataforma requisita).
+
+Hook de teste: SIGUSR1 injeta um evento sintético (~10s de burst + arquivo
+de clipe), útil para validar o pipeline sem movimento real.
 """
 
 from __future__ import annotations
@@ -25,20 +38,30 @@ from __future__ import annotations
 import logging
 import os
 import signal
+import struct
 import subprocess
 import threading
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
-from config import Config, MIN_CAPTURE_INTERVAL_S, load_config
+from config import (
+    Config,
+    MIN_ANALYZE_INTERVAL_S,
+    MIN_CAPTURE_INTERVAL_S,
+    load_config,
+)
 
 log = logging.getLogger("saira-agent")
 
 UPLOADED_SUFFIX = ".uploaded"
+SYNTHETIC_EVENT_SECONDS = 10.0
+WARMUP_UPLOAD_INTERVAL_S = 5.0  # warm-up sobe menos denso que burst de evento
+MAINTENANCE_INTERVAL_S = 6 * 3600
 
 
 class Agent:
@@ -46,44 +69,146 @@ class Agent:
         self.cfg = cfg
         self._stop = threading.Event()
 
-        # Estado de runtime mutavel por config remota (protegido por lock).
+        # Estado de runtime mutável por config remota (protegido por lock).
         self._lock = threading.Lock()
-        self._interval = cfg.capture_interval_s
+        self._interval = cfg.capture_interval_s  # cadência legada/shadow
         self._cam_url = cfg.ip_cam_url
         self._cam_user = cfg.ip_cam_user
         self._cam_pass = cfg.ip_cam_pass
         self._cam_auth = cfg.ip_cam_auth
+        self._motion_mode = cfg.motion_enabled if cfg.motion_enabled in (
+            "off", "shadow", "on") else "off"
+        self._idle_analyze_interval = cfg.idle_analyze_interval_s
+        self._burst_interval = cfg.burst_upload_interval_s
+        self._heartbeat_interval = float(cfg.heartbeat_interval_s)
 
-        # Sessoes HTTP persistentes (keep-alive evita handshake por frame).
+        # Sessões HTTP persistentes (keep-alive evita handshake por frame).
         self._cam_session = requests.Session()
         self._ec2_session = requests.Session()
         self._ec2_session.headers.update({"X-Device-Id": cfg.device_id})
 
         cfg.spool_dir.mkdir(parents=True, exist_ok=True)
 
+        # Motion gate (lazy: criado só se o modo pedir e o cv2 importar).
+        self._gate = None
+        if self._motion_mode != "off":
+            self._gate = self._build_gate()
+            if self._gate is None:
+                self._motion_mode = "off"
+
+        # Clip store (sempre disponível: CMD_VIDEO_CLIP:<id> e SIGUSR1
+        # funcionam mesmo com o gate desligado).
+        from clip_store import ClipStore
+
+        self._clips = ClipStore(
+            seg_dir=cfg.video_seg_dir,
+            archive_dir=cfg.archive_dir,
+            clips_dir=cfg.clips_dir,
+            archive_max_bytes=cfg.archive_max_bytes,
+            clip_seconds=cfg.video_clip_seconds,
+            seg_seconds=cfg.video_seg_seconds,
+            pre_roll_seconds=cfg.pre_roll_seconds,
+            tail_seconds=cfg.tail_seconds,
+            retention_days=cfg.clip_retention_days,
+        )
+
+        # Rastreio de eventos correntes (para timestamps do clipe).
+        self._event_start_ts: dict[str, float] = {}
+        self._last_upload_at = 0.0
+
+        # Evento sintético (SIGUSR1).
+        self._synthetic_id: Optional[str] = None
+        self._synthetic_start = 0.0
+        self._synthetic_until = 0.0
+        self._synthetic_start_sent = False
+
+    def _build_gate(self):
+        try:
+            from motion_gate import MotionGate
+        except ImportError as exc:
+            log.error(
+                "MOTION_ENABLED=%s mas cv2/numpy indisponíveis (%s) — "
+                "caindo para modo legado", self._motion_mode, exc,
+            )
+            return None
+        return MotionGate(
+            history=self.cfg.pi_bgsub_history,
+            var_threshold=self.cfg.pi_bgsub_var_threshold,
+            shadow_threshold=self.cfg.pi_bgsub_shadow_threshold,
+            min_px_active=self.cfg.pi_bgsub_min_px_active,
+            delta_min_px=self.cfg.pi_bgsub_delta_min_px,
+            consec_start=self.cfg.pi_bgsub_consec_start,
+            lr_idle=self.cfg.pi_bgsub_lr_idle,
+            lr_recover=self.cfg.pi_bgsub_lr_recover,
+            warmup_seconds=self.cfg.warmup_seconds,
+            event_end_quiet_s=self.cfg.event_end_quiet_s,
+            event_max_s=self.cfg.event_max_s,
+            recover_max_s=self.cfg.pi_bgsub_recover_max_s,
+            polygon_json=self.cfg.pile_zone_polygon,
+            device_id=self.cfg.device_id,
+        )
+
     # ----- ciclo de vida -------------------------------------------------
     def stop(self, *_: object) -> None:
         log.info("Encerrando agente...")
         self._stop.set()
+
+    def trigger_synthetic_event(self, *_: object) -> None:
+        """SIGUSR1: injeta um evento de teste (burst + clipe), em qualquer modo."""
+        now = time.time()
+        if self._synthetic_id is not None:
+            return
+        self._synthetic_id = "evt-test-" + time.strftime(
+            "%Y%m%d_%H%M%S", time.localtime(now)
+        )
+        self._synthetic_start = now
+        self._synthetic_until = now + SYNTHETIC_EVENT_SECONDS
+        self._synthetic_start_sent = False
+        log.info("Evento sintético %s iniciado (SIGUSR1)", self._synthetic_id)
 
     def run(self) -> None:
         threads = [
             threading.Thread(target=self.capture_loop, name="capture", daemon=True),
             threading.Thread(target=self.config_loop, name="config", daemon=True),
             threading.Thread(target=self.command_loop, name="command", daemon=True),
+            threading.Thread(target=self.maintenance_loop, name="maint", daemon=True),
         ]
         for t in threads:
             t.start()
         log.info(
-            "Agente iniciado device=%s cam=%s -> %s (intervalo=%.1fs)",
-            self.cfg.device_id, self._cam_url, self.cfg.upload_url, self._interval,
+            "Agente iniciado device=%s cam=%s -> %s (modo=%s, análise=%.1fs)",
+            self.cfg.device_id, self._cam_url, self.cfg.upload_url,
+            self._motion_mode, self._capture_cadence(),
         )
         while not self._stop.is_set():
             self._stop.wait(1.0)
         for t in threads:
             t.join(timeout=5.0)
 
+    def maintenance_loop(self) -> None:
+        while not self._stop.is_set():
+            try:
+                self._clips.prune()
+            except Exception:  # noqa: BLE001
+                log.exception("Falha na manutenção de clipes")
+            self._stop.wait(MAINTENANCE_INTERVAL_S)
+
     # ----- captura -------------------------------------------------------
+    def _capture_cadence(self) -> float:
+        """Cadência do loop de captura conforme o modo/estado."""
+        with self._lock:
+            mode = self._motion_mode
+            legacy = max(MIN_CAPTURE_INTERVAL_S, self._interval)
+            analyze = max(MIN_ANALYZE_INTERVAL_S, self._idle_analyze_interval)
+            burst = max(0.5, self._burst_interval)
+        if mode == "off":
+            return legacy if self._synthetic_id is None else burst
+        if self._synthetic_id is not None:
+            return burst
+        if self._gate is not None and self._gate.state in ("event", "warmup"):
+            return burst
+        return analyze
+
     def capture_loop(self) -> None:
         next_at = time.monotonic()
         while not self._stop.is_set():
@@ -91,10 +216,9 @@ class Agent:
             if now < next_at:
                 self._stop.wait(min(next_at - now, 0.5))
                 continue
-            with self._lock:
-                interval = max(MIN_CAPTURE_INTERVAL_S, self._interval)
+            interval = self._capture_cadence()
             next_at += interval
-            if next_at < now:  # guarda contra drift apos atraso longo
+            if next_at < now:  # guarda contra drift após atraso longo
                 next_at = now + interval
             try:
                 self._capture_once()
@@ -106,17 +230,86 @@ class Agent:
         if not data:
             self._drain_backlog()
             return
-        if not self._motion_gate(data):  # FASE 2: BGSUB; hoje sempre True
+
+        now = time.time()
+        synthetic = self._poll_synthetic(now)
+        if synthetic is not None:
+            event_id, state = synthetic
+            self._spool_and_upload(data, event_id=event_id, event_state=state)
             return
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        frame_path = self.cfg.spool_dir / f"{ts}.jpg"
-        tmp = frame_path.with_suffix(".jpg.tmp")
-        tmp.write_bytes(data)
-        tmp.replace(frame_path)
-        self._prune_spool()
-        # Sobe o frame recem-capturado primeiro; depois drena backlog antigo.
-        if self._upload_frame(frame_path):
-            self._drain_backlog()
+
+        with self._lock:
+            mode = self._motion_mode
+        if mode == "off" or self._gate is None:
+            self._spool_and_upload(data)
+            return
+
+        decision = self._gate.process(data)
+        if decision.action == "start" and not decision.is_warmup:
+            self._event_start_ts[decision.event_id] = now
+        if decision.action in ("start", "end"):
+            log.info(
+                "[gate:%s] %s %s fg_px=%d delta_px=%d",
+                mode, decision.event_id, decision.action,
+                decision.fg_px, decision.delta_px,
+            )
+
+        if mode == "shadow":
+            # Uploads continuam legados; o gate só loga e arquiva clipes.
+            if decision.action == "end" and not decision.is_warmup:
+                self._schedule_archive(decision.event_id, end_ts=now)
+            if now - self._last_upload_at >= max(MIN_CAPTURE_INTERVAL_S, self._interval):
+                self._spool_and_upload(data)
+            return
+
+        # ---- mode == "on" -------------------------------------------------
+        if decision.action == "end":
+            # Frame de fechamento sobe sempre (fecha o manifest no servidor).
+            self._spool_and_upload(data, event_id=decision.event_id, event_state="end")
+            if not decision.is_warmup:
+                self._schedule_archive(decision.event_id, end_ts=now)
+            return
+
+        if decision.event_id is not None and decision.action in ("start", "active"):
+            min_gap = WARMUP_UPLOAD_INTERVAL_S if decision.is_warmup else max(
+                0.5, self._burst_interval
+            )
+            if decision.action == "start" or now - self._last_upload_at >= min_gap:
+                state = "start" if decision.action == "start" else "active"
+                self._spool_and_upload(data, event_id=decision.event_id, event_state=state)
+            return
+
+        # idle/recover: heartbeat esparso mantém câmera "online" no painel.
+        if now - self._last_upload_at >= self._heartbeat_interval:
+            self._spool_and_upload(data)
+
+    def _poll_synthetic(self, now: float) -> Optional[tuple[str, str]]:
+        """Avança o evento sintético (SIGUSR1), devolvendo (event_id, state)."""
+        if self._synthetic_id is None:
+            return None
+        event_id = self._synthetic_id
+        if now >= self._synthetic_until:
+            self._synthetic_id = None
+            self._schedule_archive(event_id, end_ts=now, start_ts=self._synthetic_start)
+            log.info("Evento sintético %s encerrado", event_id)
+            return event_id, "end"
+        if not self._synthetic_start_sent:
+            self._synthetic_start_sent = True
+            return event_id, "start"
+        return event_id, "active"
+
+    def _schedule_archive(
+        self, event_id: str, *, end_ts: float, start_ts: Optional[float] = None
+    ) -> None:
+        """Agenda a cópia dos segmentos do ring após o tail (segmento fechado)."""
+        if start_ts is None:
+            start_ts = self._event_start_ts.pop(event_id, end_ts - 30.0)
+        delay = self.cfg.tail_seconds + self.cfg.video_seg_seconds
+        timer = threading.Timer(
+            delay, self._clips.archive_event, args=(event_id, start_ts, end_ts)
+        )
+        timer.daemon = True
+        timer.start()
 
     def _fetch_snapshot(self) -> bytes | None:
         with self._lock:
@@ -144,37 +337,63 @@ class Agent:
                 return None
             body = resp.content
             if len(body) < 500 or body[:2] != b"\xff\xd8":
-                log.warning("Snapshot invalido (%d bytes)", len(body))
+                log.warning("Snapshot inválido (%d bytes)", len(body))
                 return None
             return body
         return None
 
-    def _motion_gate(self, _data: bytes) -> bool:
-        """Hook do filtro de movimento (FASE 2 — BGSUB/MOG2).
-
-        Hoje sempre deixa passar. A portabilidade de
-        services/yolo-worker-vm/src/worker/bgsub_filter.py sera plugada aqui:
-        decodifica o JPEG, roda o MOG2 + zona, e retorna False para suprimir
-        frames sem movimento persistente (economiza 4G).
-        """
-        return True
-
     # ----- upload / spool ------------------------------------------------
+    @staticmethod
+    def _spool_name(ts: str, event_id: Optional[str], event_state: str) -> str:
+        """Nome no spool carrega o metadado do evento para sobreviver a retry:
+        "{ts}.jpg" (legado) ou "{ts}__{event_id}__{state}.jpg" (evento)."""
+        if not event_id:
+            return f"{ts}.jpg"
+        return f"{ts}__{event_id}__{event_state or 'active'}.jpg"
+
+    @staticmethod
+    def _parse_spool_name(name: str) -> tuple[Optional[str], str]:
+        """Extrai (event_id, event_state) do nome de spool, se presente."""
+        stem = name[:-4] if name.endswith(".jpg") else name
+        parts = stem.split("__")
+        if len(parts) == 3:
+            return parts[1], parts[2]
+        return None, ""
+
+    def _spool_and_upload(
+        self, data: bytes, *, event_id: Optional[str] = None, event_state: str = ""
+    ) -> None:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        frame_path = self.cfg.spool_dir / self._spool_name(ts, event_id, event_state)
+        tmp = frame_path.with_suffix(".jpg.tmp")
+        tmp.write_bytes(data)
+        tmp.replace(frame_path)
+        self._prune_spool()
+        # Sobe o frame recém-capturado primeiro; depois drena backlog antigo.
+        if self._upload_frame(frame_path):
+            self._drain_backlog()
+
     def _upload_frame(self, frame_path: Path) -> bool:
         try:
             data = frame_path.read_bytes()
         except OSError:
             return False
         files = {"imageFile": ("snapshot.jpg", data, "image/jpeg")}
+        event_id, event_state = self._parse_spool_name(frame_path.name)
+        form = {}
+        if event_id:
+            form = {"event_id": event_id, "event_state": event_state}
         try:
             resp = self._ec2_session.post(
-                self.cfg.upload_url, files=files, timeout=self.cfg.upload_timeout_s
+                self.cfg.upload_url, files=files, data=form,
+                timeout=self.cfg.upload_timeout_s,
             )
         except requests.RequestException as exc:
             log.warning("Upload falhou (%s): %s — frame fica no spool", frame_path.name, exc)
             return False
         if resp.status_code == 200:
             frame_path.with_name(frame_path.name + UPLOADED_SUFFIX).touch()
+            self._last_upload_at = time.time()
             log.info("Upload OK %s (%d bytes)", frame_path.name, len(data))
             return True
         log.warning("Upload HTTP %s (%s)", resp.status_code, frame_path.name)
@@ -231,6 +450,43 @@ class Agent:
                 if key in kv and getattr(self, attr) != kv[key]:
                     log.info("Config: %s atualizado", key)
                     setattr(self, attr, kv[key])
+            if "burst_interval_ms" in kv:
+                try:
+                    self._burst_interval = max(0.5, int(kv["burst_interval_ms"]) / 1000.0)
+                except ValueError:
+                    pass
+            if "idle_analyze_interval_ms" in kv:
+                try:
+                    self._idle_analyze_interval = max(
+                        MIN_ANALYZE_INTERVAL_S, int(kv["idle_analyze_interval_ms"]) / 1000.0
+                    )
+                except ValueError:
+                    pass
+            if "motion_enabled" in kv and kv["motion_enabled"] in ("off", "shadow", "on"):
+                new_mode = kv["motion_enabled"]
+                if new_mode != self._motion_mode:
+                    if new_mode != "off" and self._gate is None:
+                        self._gate = self._build_gate()
+                    if new_mode == "off" or self._gate is not None:
+                        log.info("Config: motion %s -> %s", self._motion_mode, new_mode)
+                        self._motion_mode = new_mode
+
+        # Tuning do gate (fora do lock do agente; gate é da thread de captura,
+        # mas estes campos são leituras simples de int/float).
+        if self._gate is not None:
+            if "pile_zone_polygon" in kv:
+                self._gate.set_polygon(kv["pile_zone_polygon"])
+            for key, attr, cast in (
+                ("motion_min_px_active", "min_px_active", int),
+                ("motion_warmup_s", "warmup_seconds", int),
+                ("event_max_s", "event_max_s", int),
+                ("event_end_quiet_s", "event_end_quiet_s", int),
+            ):
+                if key in kv:
+                    try:
+                        setattr(self._gate, attr, cast(kv[key]))
+                    except ValueError:
+                        pass
 
     # ----- comandos sob demanda -----------------------------------------
     def command_loop(self) -> None:
@@ -249,27 +505,67 @@ class Agent:
             if not cmd:
                 continue
             log.info("Comando recebido: %s", cmd)
+            name, _, arg = str(cmd).partition(":")
+            arg = arg.strip()
             try:
-                if cmd == "CMD_VIDEO_CLIP":
-                    self._export_and_upload_clip()
-                elif cmd == "CMD_BULK_UPLOAD":
+                if name == "CMD_VIDEO_CLIP" and arg:
+                    self._upload_event_clip(arg)
+                elif name == "CMD_VIDEO_CLIP":
+                    self._export_and_upload_ring()
+                elif name == "CMD_PERSIST_CLIP" and arg:
+                    self._clips.persist_clip(arg)
+                elif name == "CMD_BULK_UPLOAD":
                     self._bulk_upload_spool()
                 else:
                     log.warning("Comando desconhecido: %s", cmd)
             except Exception:  # noqa: BLE001
                 log.exception("Falha ao executar comando %s", cmd)
 
-    def _export_and_upload_clip(self) -> None:
-        """Concatena os segmentos .ts recentes do buffer RTSP em um mp4
-        (sem reencode) e envia para POST /device/<id>/video."""
+    def _upload_event_clip(self, event_id: str) -> None:
+        """CMD_VIDEO_CLIP:<event_id> — sobe o clipe arquivado do evento."""
+        path, is_temp = self._clips.export_clip(event_id)
+        if path is None:
+            log.warning("Clipe do evento %s indisponível (evicted/nunca arquivado)", event_id)
+            self._post_status(f"video_unavailable:{event_id}")
+            return
+        try:
+            with path.open("rb") as fh:
+                resp = self._ec2_session.post(
+                    self.cfg.video_url,
+                    params={"event_id": event_id},
+                    data=fh,
+                    headers={"Content-Type": "video/mp4"},
+                    timeout=self.cfg.upload_timeout_s * 4,
+                )
+            log.info("Clipe %s enviado HTTP %s", event_id, resp.status_code)
+        except requests.RequestException as exc:
+            log.warning("Upload do clipe %s falhou: %s", event_id, exc)
+        finally:
+            self._clips.cleanup_export(path, is_temp)
+
+    def _post_status(self, message: str) -> None:
+        """Registra um evento de auditoria no servidor (best-effort)."""
+        try:
+            self._ec2_session.post(
+                f"{self.cfg.ec2_base.rstrip('/')}/status",
+                data={"message": f"{self.cfg.device_id}: {message}"},
+                timeout=10,
+            )
+        except requests.RequestException:
+            pass
+
+    def _export_and_upload_ring(self) -> None:
+        """CMD_VIDEO_CLIP sem argumento (legado): concatena os segmentos .ts
+        recentes do buffer RTSP em um mp4 (sem reencode) e envia para
+        POST /device/<id>/video."""
         seg_dir = self.cfg.video_seg_dir
-        # segment_wrap recicla os nomes (seg_000..seg_NNN), entao a ordem
-        # cronologica vem do mtime, nao do nome.
+        # segment_wrap recicla os nomes (seg_000..seg_NNN), então a ordem
+        # cronológica vem do mtime, não do nome.
         segments = sorted(seg_dir.glob("seg_*.ts"), key=lambda s: s.stat().st_mtime)
         if not segments:
-            log.warning("Sem segmentos de video em %s", seg_dir)
+            log.warning("Sem segmentos de vídeo em %s", seg_dir)
             return
-        # Mantem aproximadamente os ultimos VIDEO_CLIP_SECONDS por mtime.
+        # Mantém aproximadamente os últimos VIDEO_CLIP_SECONDS por mtime.
         cutoff = time.time() - self.cfg.video_clip_seconds
         recent = [s for s in segments if s.stat().st_mtime >= cutoff] or segments
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -299,8 +595,6 @@ class Agent:
     def _bulk_upload_spool(self) -> None:
         """Envia todos os frames do ring como stream TLV para /bulk-upload
         (mesmo formato que a ESP32: [uint32 LE tamanho][JPEG])."""
-        import struct
-
         frames = sorted(self.cfg.spool_dir.glob("*.jpg"))
         if not frames:
             log.info("Bulk upload: nenhum frame no spool")
@@ -335,6 +629,8 @@ def main() -> None:
     agent = Agent(cfg)
     signal.signal(signal.SIGTERM, agent.stop)
     signal.signal(signal.SIGINT, agent.stop)
+    if hasattr(signal, "SIGUSR1"):
+        signal.signal(signal.SIGUSR1, agent.trigger_synthetic_event)
     agent.run()
 
 

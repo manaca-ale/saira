@@ -1,4 +1,6 @@
 flask
 gunicorn[gevent]
-gevent
+# Pinned: newer gevent releases ship no cp39 manylinux wheel and the slim
+# image has no C toolchain to build libev from source.
+gevent==24.2.1
 requests

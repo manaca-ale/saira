@@ -65,6 +65,26 @@ PROCESSED_STRATEGY = os.getenv("PROCESSED_STRATEGY", "two_folders")
 # Set to 0 to disable coalescing entirely (every window becomes a new detection).
 EVENT_WINDOW_MIN = int(os.getenv("EVENT_WINDOW_MIN", "10"))
 
+# Event-driven devices (Pi relay with on-device motion gate): these devices
+# upload frames tagged with an event_id and the esp32-server writes a JSON
+# manifest per event. The worker processes the manifest's frame set the
+# moment the event closes (skipping _collect_time_windows entirely), cutting
+# disposal->detection latency from the fixed 120s window to ~one poll cycle.
+EVENT_DRIVEN_DEVICES = {
+    d.strip()
+    for d in os.getenv("EVENT_DRIVEN_DEVICES", "").split(",")
+    if d.strip()
+}
+# Manifest stuck in state=open with no update for this long is treated as
+# closed (device died mid-event / lost end-frame).
+EVENT_STALE_SECONDS = int(os.getenv("EVENT_STALE_SECONDS", "180"))
+# Events with fewer resolved frames than this skip Gemini (GC only).
+EVENT_MIN_FRAMES = int(os.getenv("EVENT_MIN_FRAMES", "3"))
+# Frames of an event-driven device not referenced by any pending manifest
+# (heartbeats, late spool retries) are marked processed without Gemini calls
+# once older than this grace period.
+ORPHAN_GRACE_SECONDS = int(os.getenv("ORPHAN_GRACE_SECONDS", "300"))
+
 # Redis connection string (used for real-time notifications via SSE).
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 

@@ -58,6 +58,9 @@ services:
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
+      # Vídeo sob demanda (dispositivos event-driven / Pi relay)
+      - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      - VIDEO_REQUEST_TIMEOUT_S=${VIDEO_REQUEST_TIMEOUT_S:-600}
       - REDIS_URL=redis://redis:6379/0
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
@@ -244,6 +247,12 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      # Event-driven devices (Pi relay): process motion-event manifests
+      # immediately instead of fixed 120s windows; heartbeats GC'd w/o Gemini.
+      - EVENT_DRIVEN_DEVICES=${EVENT_DRIVEN_DEVICES:-}
+      - EVENT_STALE_SECONDS=${EVENT_STALE_SECONDS:-180}
+      - EVENT_MIN_FRAMES=${EVENT_MIN_FRAMES:-3}
+      - ORPHAN_GRACE_SECONDS=${ORPHAN_GRACE_SECONDS:-300}
     volumes:
       - ../esp32-server/uploads:/app/uploads
       - yolo_state_test:/app/state

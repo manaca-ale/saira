@@ -16,8 +16,11 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Intervalo minimo absoluto entre frames (requisito do produto: nunca < 5s).
+# Intervalo mínimo absoluto entre frames no modo legado (sem motion gate).
 MIN_CAPTURE_INTERVAL_S = 5.0
+# Piso da cadência de ANÁLISE no modo motion (análise local não custa 4G;
+# o que sobe é controlado por burst/heartbeat).
+MIN_ANALYZE_INTERVAL_S = 1.0
 
 
 def _load_env_file() -> None:
@@ -94,10 +97,40 @@ class Config:
     # Buffer de video (RTSP) e clip sob demanda
     video_seg_dir: Path
     video_clip_seconds: int
+    video_seg_seconds: int
 
     # Polling de config remota e de comandos
     config_poll_interval_s: int
     command_poll_timeout_s: int
+
+    # Motion gate (BGSUB streaming) — off | shadow | on
+    motion_enabled: str
+    idle_analyze_interval_s: float
+    burst_upload_interval_s: float
+    heartbeat_interval_s: int
+    warmup_seconds: int
+    event_end_quiet_s: int
+    event_max_s: int
+    pile_zone_polygon: str  # JSON compacto (ref 1280x720); vazio = frame inteiro
+
+    # Parâmetros BGSUB (já na escala do frame ANALISADO, 360p por padrão)
+    pi_bgsub_history: int
+    pi_bgsub_var_threshold: float
+    pi_bgsub_shadow_threshold: int
+    pi_bgsub_min_px_active: int
+    pi_bgsub_delta_min_px: int
+    pi_bgsub_consec_start: int
+    pi_bgsub_lr_idle: float
+    pi_bgsub_lr_recover: float
+    pi_bgsub_recover_max_s: int
+
+    # Arquivo de clipes (RAM -> SD)
+    archive_dir: Path
+    archive_max_bytes: int
+    clips_dir: Path
+    clip_retention_days: int
+    pre_roll_seconds: int
+    tail_seconds: int
 
     # URLs derivadas
     upload_url: str = field(init=False)
@@ -133,6 +166,32 @@ def load_config() -> Config:
         backlog_per_cycle=_env_int("BACKLOG_PER_CYCLE", 5, minimum=1),
         video_seg_dir=Path(_env("VIDEO_SEG_DIR", "/dev/shm/saira/segments")),
         video_clip_seconds=_env_int("VIDEO_CLIP_SECONDS", 120, minimum=10),
+        video_seg_seconds=_env_int("VIDEO_SEG_SECONDS", 2, minimum=1),
         config_poll_interval_s=_env_int("CONFIG_POLL_INTERVAL", 60, minimum=10),
         command_poll_timeout_s=_env_int("COMMAND_POLL_TIMEOUT", 25, minimum=5),
+        motion_enabled=_env("MOTION_ENABLED", "off").strip().lower(),
+        idle_analyze_interval_s=_env_float(
+            "IDLE_ANALYZE_INTERVAL", 2.0, minimum=MIN_ANALYZE_INTERVAL_S
+        ),
+        burst_upload_interval_s=_env_float("BURST_UPLOAD_INTERVAL", 1.5, minimum=0.5),
+        heartbeat_interval_s=_env_int("HEARTBEAT_INTERVAL", 60, minimum=10),
+        warmup_seconds=_env_int("WARMUP_SECONDS", 90, minimum=10),
+        event_end_quiet_s=_env_int("EVENT_END_QUIET_SECONDS", 10, minimum=3),
+        event_max_s=_env_int("EVENT_MAX_SECONDS", 120, minimum=30),
+        pile_zone_polygon=_env("PILE_ZONE_POLYGON", "").strip(),
+        pi_bgsub_history=_env_int("PI_BGSUB_HISTORY", 80, minimum=10),
+        pi_bgsub_var_threshold=_env_float("PI_BGSUB_VAR_THRESHOLD", 40.0, minimum=1.0),
+        pi_bgsub_shadow_threshold=_env_int("PI_BGSUB_SHADOW_THRESHOLD", 100, minimum=1),
+        pi_bgsub_min_px_active=_env_int("PI_BGSUB_MIN_PX_ACTIVE", 200, minimum=10),
+        pi_bgsub_delta_min_px=_env_int("PI_BGSUB_DELTA_MIN_PX", 100, minimum=10),
+        pi_bgsub_consec_start=_env_int("PI_BGSUB_CONSEC_START", 2, minimum=1),
+        pi_bgsub_lr_idle=_env_float("PI_BGSUB_LR_IDLE", 0.005, minimum=0.0),
+        pi_bgsub_lr_recover=_env_float("PI_BGSUB_LR_RECOVER", 0.05, minimum=0.0),
+        pi_bgsub_recover_max_s=_env_int("PI_BGSUB_RECOVER_MAX_S", 180, minimum=30),
+        archive_dir=Path(_env("ARCHIVE_DIR", "/dev/shm/saira/archive")),
+        archive_max_bytes=_env_int("ARCHIVE_MAX_BYTES", 200 * 1024 * 1024, minimum=16 * 1024 * 1024),
+        clips_dir=Path(_env("CLIPS_DIR", "/var/lib/saira/clips")),
+        clip_retention_days=_env_int("CLIP_RETENTION_DAYS", 7, minimum=1),
+        pre_roll_seconds=_env_int("PRE_ROLL_SECONDS", 30, minimum=0),
+        tail_seconds=_env_int("TAIL_SECONDS", 6, minimum=2),
     )

@@ -1,7 +1,8 @@
-# Agente SAIRA (Raspberry Pi) — relay de camera IP
-# Fase 1: pass-through de snapshot + buffer de video (ffmpeg via subprocess).
+# Agente SAIRA (Raspberry Pi) — relay de câmera IP
+# Fase 1: pass-through de snapshot + buffer de vídeo (ffmpeg via subprocess).
 requests>=2.28
 
-# Fase 2 (BGSUB no dispositivo) — instalar via piwheels no Pi quando ligar o filtro:
-# opencv-python-headless>=4.5
-# numpy>=1.21
+# Fase 2 (motion gate BGSUB no dispositivo) — wheels prontos via piwheels
+# no Raspberry Pi OS (aarch64). Necessário para MOTION_ENABLED=shadow|on.
+opencv-python-headless>=4.5
+numpy>=1.21
