@@ -1,13 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, XCircle, HelpCircle, UserPlus, Trash2 as UnlinkIcon, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle, XCircle, HelpCircle, UserPlus, Trash2 as UnlinkIcon, ChevronLeft, ChevronRight, Maximize2, Video } from "lucide-react";
 import JSZip from "jszip";
 import imgLixo from "../assets/lixo_exemplo.png";
 import imgInfrator from "../assets/infrator_exemplo.png";
 import { getDetectionOffenders, deleteDetectionOffender } from "../services/offenderService";
 import type { DetectionOffenderLink } from "../services/offenderService";
-import { getDetectionAnalyzedFrames, updateDetectionImage } from "../services/detectionService";
-import type { DetectionAnalyzedFrame, ClassifyStatus } from "../services/detectionService";
+import {
+  getDetectionAnalyzedFrames,
+  getDetectionVideo,
+  requestDetectionVideo,
+  updateDetectionImage,
+} from "../services/detectionService";
+import type { DetectionAnalyzedFrame, ClassifyStatus, DetectionVideoResponse } from "../services/detectionService";
 import { AddDetectionOffenderModal } from "./AddDetectionOffenderModal";
 import { formatDateTimeBrazil } from "../utils/datetime";
 
@@ -287,6 +292,9 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const stripRef = useRef<HTMLDivElement>(null);
   const activeThumbRef = useRef<HTMLButtonElement>(null);
+  const [videoInfo, setVideoInfo] = useState<DetectionVideoResponse | null>(null);
+  const [requestingVideo, setRequestingVideo] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
     if (isOpen && data?.id) {
@@ -299,6 +307,42 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
       setOffenderLinks([]);
     }
   }, [isOpen, data?.id]);
+
+  // Vídeo do evento (dispositivos event-driven): carrega o estado ao abrir.
+  useEffect(() => {
+    if (!isOpen || !data?.id) {
+      setVideoInfo(null);
+      setShowVideo(false);
+      return;
+    }
+    getDetectionVideo(data.id)
+      .then(setVideoInfo)
+      .catch(() => setVideoInfo(null));
+  }, [isOpen, data?.id]);
+
+  // Polling enquanto a requisição de vídeo está pendente (rearma a cada update).
+  useEffect(() => {
+    if (!isOpen || !data?.id || videoInfo?.status !== "requested") return;
+    const timer = setTimeout(() => {
+      getDetectionVideo(data.id)
+        .then(setVideoInfo)
+        .catch(() => { /* mantém estado atual */ });
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [isOpen, data?.id, videoInfo]);
+
+  const handleRequestVideo = async () => {
+    if (!data?.id || requestingVideo) return;
+    setRequestingVideo(true);
+    try {
+      const info = await requestDetectionVideo(data.id);
+      setVideoInfo(info);
+    } catch (e) {
+      console.error("Erro ao solicitar vídeo da ocorrência:", e);
+    } finally {
+      setRequestingVideo(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -578,6 +622,19 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
             )}
           </button>
 
+          {/* Vídeo do evento (clipe de até 2min gravado no dispositivo) */}
+          {showVideo && videoInfo?.status === "available" && videoInfo.video_url && (
+            <div className="w-full rounded-xl overflow-hidden bg-black">
+              <video
+                controls
+                autoPlay
+                playsInline
+                src={videoInfo.video_url}
+                className="w-full max-h-80"
+              />
+            </div>
+          )}
+
           {/* Info Grid */}
           <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
             <div>
@@ -755,6 +812,46 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                 <MapPin size={18} />
                 Ver no mapa
               </a>
+            )}
+
+            {/* Vídeo do evento — só para detecções com event_ref (Pi relay) */}
+            {videoInfo?.event_ref && videoInfo.status === "available" && (
+              <button
+                type="button"
+                onClick={() => setShowVideo((prev) => !prev)}
+                className="h-12 px-4 flex items-center gap-2 bg-white border border-lime-300 rounded-xl hover:bg-lime-50 transition-colors text-sm font-bold text-lime-700"
+              >
+                <Video size={18} />
+                {showVideo ? "Ocultar vídeo" : "Ver vídeo"}
+              </button>
+            )}
+            {videoInfo?.event_ref && videoInfo.status === "requested" && (
+              <button
+                type="button"
+                disabled
+                className="h-12 px-4 flex items-center gap-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-500"
+                title="O dispositivo está enviando o vídeo — pode levar alguns minutos"
+              >
+                <Loader2 size={18} className="animate-spin" />
+                Aguardando vídeo...
+              </button>
+            )}
+            {videoInfo?.event_ref &&
+              (videoInfo.status === "none" || videoInfo.status === "unavailable") && (
+              <button
+                type="button"
+                onClick={handleRequestVideo}
+                disabled={requestingVideo}
+                className="h-12 px-4 flex items-center gap-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 disabled:opacity-60"
+                title={
+                  videoInfo.status === "unavailable"
+                    ? "A última tentativa expirou — solicitar novamente"
+                    : "Solicitar o clipe de vídeo do evento ao dispositivo"
+                }
+              >
+                {requestingVideo ? <Loader2 size={18} className="animate-spin" /> : <Video size={18} />}
+                {videoInfo.status === "unavailable" ? "Tentar vídeo novamente" : "Solicitar vídeo"}
+              </button>
             )}
           </div>
 

@@ -69,11 +69,31 @@ class DetectionResponse(DetectionBase):
     classified_at: Optional[datetime] = None
     classified_by: Optional[int] = None
     validity_comment: Optional[str] = None
+    event_ref: Optional[str] = None
+    video_status: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class DetectionVideoResponse(BaseModel):
+    """Estado do clipe de vídeo de 2min da detecção (dispositivos event-driven).
+
+    status:
+      none        — detecção sem event_ref (dispositivo não event-driven)
+      requested   — comando enviado ao dispositivo, aguardando upload
+      available   — mp4 disponível em video_url
+      unavailable — pedido expirou sem upload (Pi offline / clipe perdido);
+                    pode ser re-requisitado
+    """
+
+    detection_id: UUID
+    event_ref: Optional[str] = None
+    status: str
+    video_url: Optional[str] = None
+    requested_at: Optional[datetime] = None
 
 
 class DetectionListResponse(BaseModel):
