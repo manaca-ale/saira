@@ -59,6 +59,54 @@ class FilterResult:
     mode: str = "single"         # "single" or "dual" — informational, for logs/metrics
 
 
+# Persistent decision ledger (same pattern as detector_dinov2): one JSONL row per
+# scored evaluation, in the models volume so the track record survives container
+# recreate. Needed to validate per-camera tuning (e.g. esp32_005 shadow) — worker
+# stdout does not survive and "passed" rows were previously invisible.
+SHADOW_LEDGER_NAME = "shadow_decisions.jsonl"
+
+
+def record_decision(
+    *,
+    gate_request_id: str,
+    device_id: str,
+    result: "FilterResult",
+    shadow: bool,
+    threshold: float,
+    models_dir: Optional[str] = None,
+) -> None:
+    """Append one BGSUB decision to the persistent ledger (fail-safe).
+
+    Records only scored evaluations (reason in filtered/passed); skipped_*/error
+    rows carry no signal. Never raises — a ledger write must not break the
+    pipeline.
+    """
+    if result.reason not in ("filtered", "passed"):
+        return
+    try:
+        from datetime import datetime, timezone
+
+        d = models_dir or config.BGSUB_MODELS_DIR
+        Path(d).mkdir(parents=True, exist_ok=True)
+        rec = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "gate_request_id": gate_request_id,
+            "device_id": device_id,
+            "should_suppress": bool(result.should_suppress),
+            "shadow": bool(shadow),
+            "reason": result.reason,
+            "persistence": float(result.persistence),
+            "n_frames_ok": int(result.n_frames_ok),
+            "n_frames_total": int(result.n_frames_total),
+            "threshold": float(threshold),
+            "mode": result.mode,
+        }
+        with open(Path(d) / SHADOW_LEDGER_NAME, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("bgsub: failed to record ledger decision: %s", exc)
+
+
 def _camera_attr(camera: Any, name: str, default: Any = None) -> Any:
     """Read an attribute or dict key from a camera-like object.
 

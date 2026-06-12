@@ -1211,6 +1211,17 @@ def _process_with_gemini_cascade_window(
             camera=camera,
         )
         _register_bgsub_evaluation(bgsub_result, camera=camera)
+        # Durable per-decision ledger (suppress AND pass, with persistence) — the
+        # basis for validating per-camera tuning before un-shadowing a device.
+        bgsub_filter.record_decision(
+            gate_request_id=gate_request_id,
+            device_id=device_id,
+            result=bgsub_result,
+            shadow=device_id in config.BGSUB_SHADOW_DEVICES,
+            threshold=bgsub_filter._camera_attr(
+                camera, "bgsub_persistence_threshold", config.BGSUB_PERSISTENCE_THRESHOLD,
+            ),
+        )
         if bgsub_result.should_suppress:
             bgsub_shadow = device_id in config.BGSUB_SHADOW_DEVICES
             logger.info(
