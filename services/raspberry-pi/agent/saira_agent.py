@@ -116,6 +116,10 @@ class Agent:
         self._event_start_ts: dict[str, float] = {}
         self._last_upload_at = 0.0
 
+        # Snapshot via RTSP (latest.jpg do cam-rtsp-buffer.sh).
+        self._last_snapshot_mtime = 0.0
+        self._stale_snapshot_warned = False
+
         # Evento sintético (SIGUSR1).
         self._synthetic_id: Optional[str] = None
         self._synthetic_start = 0.0
@@ -315,6 +319,49 @@ class Agent:
         timer.start()
 
     def _fetch_snapshot(self) -> bytes | None:
+        source = self.cfg.snapshot_source
+        if source in ("auto", "rtsp"):
+            data = self._fetch_snapshot_rtsp()
+            if data is not None or source == "rtsp":
+                return data
+        return self._fetch_snapshot_http()
+
+    def _fetch_snapshot_rtsp(self) -> bytes | None:
+        """Lê o JPEG mantido pelo cam-rtsp-buffer.sh a partir dos keyframes
+        do RTSP (escrita atômica). Sem rede e sem o snapshot HTTP flaky da
+        câmera; atualiza a cada GOP (~1-2s)."""
+        path = self.cfg.snapshot_jpg
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            self._warn_stale_snapshot("inexistente")
+            return None
+        age = time.time() - mtime
+        if age > self.cfg.snapshot_max_age_s:
+            self._warn_stale_snapshot(f"velho ({age:.0f}s)")
+            return None
+        if mtime == self._last_snapshot_mtime:
+            return None  # mesmo keyframe do ciclo anterior — não duplica upload
+        try:
+            data = path.read_bytes()
+        except OSError:
+            return None
+        if len(data) < 500 or data[:2] != b"\xff\xd8":
+            return None  # escrita atômica torna isso raro; trata como miss
+        self._last_snapshot_mtime = mtime
+        self._stale_snapshot_warned = False
+        return data
+
+    def _warn_stale_snapshot(self, why: str) -> None:
+        """Loga uma vez por episódio (evita 1 warning a cada ciclo)."""
+        if not self._stale_snapshot_warned:
+            log.warning(
+                "Snapshot RTSP %s (%s) — fallback HTTP; verifique saira-rtsp-buffer",
+                why, self.cfg.snapshot_jpg,
+            )
+            self._stale_snapshot_warned = True
+
+    def _fetch_snapshot_http(self) -> bytes | None:
         with self._lock:
             url, user, pwd, auth_mode = self._cam_url, self._cam_user, self._cam_pass, self._cam_auth
         attempts = (

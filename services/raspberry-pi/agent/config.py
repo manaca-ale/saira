@@ -99,6 +99,14 @@ class Config:
     video_clip_seconds: int
     video_seg_seconds: int
 
+    # Fonte do snapshot:
+    #   auto = lê SNAPSHOT_JPG (mantido pelo cam-rtsp-buffer.sh a partir dos
+    #          keyframes do RTSP) e cai para o snapshot HTTP se estiver velho
+    #   rtsp = só o arquivo do RTSP   |   http = só o snapshot HTTP (legado)
+    snapshot_source: str
+    snapshot_jpg: Path
+    snapshot_max_age_s: float
+
     # Polling de config remota e de comandos
     config_poll_interval_s: int
     command_poll_timeout_s: int
@@ -167,6 +175,9 @@ def load_config() -> Config:
         video_seg_dir=Path(_env("VIDEO_SEG_DIR", "/dev/shm/saira/segments")),
         video_clip_seconds=_env_int("VIDEO_CLIP_SECONDS", 120, minimum=10),
         video_seg_seconds=_env_int("VIDEO_SEG_SECONDS", 2, minimum=1),
+        snapshot_source=_env("SNAPSHOT_SOURCE", "auto").strip().lower(),
+        snapshot_jpg=Path(_env("SNAPSHOT_JPG", "/dev/shm/saira/latest.jpg")),
+        snapshot_max_age_s=_env_float("SNAPSHOT_MAX_AGE", 8.0, minimum=2.0),
         config_poll_interval_s=_env_int("CONFIG_POLL_INTERVAL", 60, minimum=10),
         command_poll_timeout_s=_env_int("COMMAND_POLL_TIMEOUT", 25, minimum=5),
         motion_enabled=_env("MOTION_ENABLED", "off").strip().lower(),
