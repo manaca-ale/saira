@@ -7,7 +7,7 @@ from sqlalchemy import select, func, and_, literal_column, String
 from sqlalchemy.orm import selectinload
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
-from app.models.detection import Detection
+from app.models.detection import Detection, DetectionStatus
 from app.models.offender import Offender, DetectionOffender, OffenderType, OffenderSource
 from app.schemas.offender import (
     OffenderCreate, OffenderUpdate, OffenderResponse,
@@ -38,6 +38,14 @@ def _detection_filters(
         filters.append(Detection.timestamp <= end_date)
     if status_filter:
         filters.append(Detection.status == status_filter)
+    else:
+        # Rejected/indeterminate detections only surface on the camera detections
+        # screen; dashboard aggregations must not count them.
+        filters.append(
+            Detection.status.notin_(
+                [DetectionStatus.REJEITADO, DetectionStatus.INDETERMINADO]
+            )
+        )
     if logradouro:
         filters.append(Detection.logradouro.ilike(f"%{logradouro}%"))
     if bairro:

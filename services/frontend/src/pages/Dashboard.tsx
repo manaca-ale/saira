@@ -51,7 +51,8 @@ const WASTE_TYPE_OPTIONS: WasteType[] = [
   "Plástico",
 ];
 
-const STATUS_OPTIONS = ["Pendente", "Confirmado", "Rejeitado", "Indeterminado"] as const;
+// Rejeitado/Indeterminado are intentionally absent: they only appear on the camera detections screen.
+const STATUS_OPTIONS = ["Pendente", "Confirmado"] as const;
 const RPA_OPTIONS = [
   "RPA 1",
   "RPA 2",
@@ -266,7 +267,7 @@ export const Dashboard: React.FC = () => {
         const data = await getAllDetections({
           start_date: startDate,
           end_date: endDate,
-          status: filters.status.length > 0 ? filters.status : undefined,
+          status: filters.status.length > 0 ? filters.status : [...STATUS_OPTIONS],
           maxRecords: 2000,
           pageSize: 100,
         });

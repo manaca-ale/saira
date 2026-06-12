@@ -94,6 +94,7 @@ async def test_on_new_detection_notification_fields(mock_db, fake_redis):
 
     detection = FakeDetection(rpa="5", bairro="Torre", logradouro="Av Norte")
     user = FakeUser(id=10)
+    user.rpa = "5"  # must match the detection RPA, otherwise no notification is created
 
     scalars_mock = MagicMock()
     scalars_mock.all.return_value = [user]

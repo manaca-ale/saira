@@ -58,7 +58,8 @@ const WASTE_TYPE_OPTIONS: WasteType[] = [
   "Poda",
   "Plástico",
 ];
-const STATUS_OPTIONS = ["Pendente", "Confirmado", "Rejeitado", "Indeterminado"];
+// Rejeitado/Indeterminado are intentionally absent: they only appear on the camera detections screen.
+const STATUS_OPTIONS = ["Pendente", "Confirmado"];
 const RPA_OPTIONS = ["RPA 1", "RPA 2", "RPA 3", "RPA 4", "RPA 5", "RPA 6"];
 const OFFENDER_OPTIONS = ["Identificado", "Não Identificado"];
 
@@ -152,7 +153,7 @@ export const HistoryPage: React.FC = () => {
         const all = await getAllDetections({
           start_date: `${range.start}T00:00:00`,
           end_date: `${range.end}T23:59:59`,
-          status: filters.status.length > 0 ? filters.status : undefined,
+          status: filters.status.length > 0 ? filters.status : [...STATUS_OPTIONS],
           maxRecords: 1000,
           pageSize: 100,
         });

@@ -136,11 +136,10 @@ const Legend: React.FC<{ map: L.Map | null; points: PoiData[] }> = ({ map, point
                     </div>
                 `;
             } else { // bubble mode
+                // Rejeitado/Indeterminado never reach the dashboard map, so the legend omits them.
                 const statusEntries: Array<PoiData["status"]> = [
                   "Pendente",
                   "Confirmado",
-                  "Rejeitado",
-                  "Indeterminado",
                 ];
                 let content = '<h4 class="font-bold text-sm mb-2">Status</h4>';
                 statusEntries.forEach((status) => {
