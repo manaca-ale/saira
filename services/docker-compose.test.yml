@@ -237,6 +237,10 @@ services:
       - DINOV2_TORCH_THREADS=${DINOV2_TORCH_THREADS:-2}
       - DINOV2_RETRAIN_DEVICES=${DINOV2_RETRAIN_DEVICES:-esp32_001}
       - DINOV2_RETRAIN_MIN_AUC=${DINOV2_RETRAIN_MIN_AUC:-0.85}
+      # Prompt do gate/detail. Em prod o V3 é hardcoded só p/ esp32_001/002;
+      # no teste rodamos V3 por default (cobre descarte a pé / objeto pequeno,
+      # caso da pi-cam-001). Var dedicada do teste — não afeta o .env de prod.
+      - GEMINI_PROMPT_VERSION=${TEST_GEMINI_PROMPT_VERSION:-v3}
       # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
       - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
       - TZ=America/Sao_Paulo
