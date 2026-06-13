@@ -164,10 +164,11 @@ services:
       - MOCK_MAX_OBJECTS=${MOCK_MAX_OBJECTS:-5}
       - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
       - AI_MODE=${AI_MODE:-shadow}
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      # Vertex AI keyless (ported from prod). Default off; set GEMINI_USE_VERTEX=true
-      # + GCP_PROJECT in the server .env to switch test off the AI Studio prepaid key.
-      - GEMINI_USE_VERTEX=${GEMINI_USE_VERTEX:-false}
+      # Gemini do TESTE usa o projeto de bench (gen-lang-client-0841492152) via
+      # TEST_GEMINI_API_KEY — o .env do servidor é compartilhado com prod e o
+      # GEMINI_API_KEY/Vertex de lá são de produção (billing saira-prod).
+      - GEMINI_API_KEY=${TEST_GEMINI_API_KEY:-}
+      - GEMINI_USE_VERTEX=${TEST_GEMINI_USE_VERTEX:-false}
       - GCP_PROJECT=${GCP_PROJECT:-}
       - GCP_LOCATION=${GCP_LOCATION:-global}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
