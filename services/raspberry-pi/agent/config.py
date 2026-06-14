@@ -131,6 +131,12 @@ class Config:
     pi_bgsub_lr_idle: float
     pi_bgsub_lr_recover: float
     pi_bgsub_recover_max_s: int
+    # Pré-filtro transiente: se o evento FECHA com fg residual abaixo deste
+    # valor, a zona voltou à baseline = nada NOVO foi depositado (foi só
+    # passagem). O evento é marcado "end_transient" e o worker o descarta
+    # sem chamar o Gemini. Descarte real fecha com fg alto (objeto recém-
+    # largado, ainda não absorvido pelo MOG2) e passa normalmente.
+    pi_event_min_residual_px: int
 
     # Arquivo de clipes (RAM -> SD)
     archive_dir: Path
@@ -199,6 +205,7 @@ def load_config() -> Config:
         pi_bgsub_lr_idle=_env_float("PI_BGSUB_LR_IDLE", 0.005, minimum=0.0),
         pi_bgsub_lr_recover=_env_float("PI_BGSUB_LR_RECOVER", 0.05, minimum=0.0),
         pi_bgsub_recover_max_s=_env_int("PI_BGSUB_RECOVER_MAX_S", 180, minimum=30),
+        pi_event_min_residual_px=_env_int("PI_EVENT_MIN_RESIDUAL_PX", 250, minimum=0),
         archive_dir=Path(_env("ARCHIVE_DIR", "/dev/shm/saira/archive")),
         archive_max_bytes=_env_int("ARCHIVE_MAX_BYTES", 200 * 1024 * 1024, minimum=16 * 1024 * 1024),
         clips_dir=Path(_env("CLIPS_DIR", "/var/lib/saira/clips")),

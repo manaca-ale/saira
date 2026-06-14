@@ -81,6 +81,7 @@ class Agent:
         self._idle_analyze_interval = cfg.idle_analyze_interval_s
         self._burst_interval = cfg.burst_upload_interval_s
         self._heartbeat_interval = float(cfg.heartbeat_interval_s)
+        self._event_min_residual_px = cfg.pi_event_min_residual_px
 
         # Sessões HTTP persistentes (keep-alive evita handshake por frame).
         self._cam_session = requests.Session()
@@ -271,10 +272,24 @@ class Agent:
 
         # ---- mode == "on" -------------------------------------------------
         if decision.action == "end":
+            # Pré-filtro transiente: a zona voltou à baseline (fg residual
+            # baixo) => nada NOVO ficou; foi passagem. Marca "end_transient"
+            # para o worker descartar sem custo de Gemini. Warm-up nunca é
+            # transiente (é fail-open, sempre julga na nuvem).
+            transient = (
+                not decision.is_warmup
+                and decision.fg_px < self._event_min_residual_px
+            )
+            state = "end_transient" if transient else "end"
             # Frame de fechamento sobe sempre (fecha o manifest no servidor).
-            self._spool_and_upload(data, event_id=decision.event_id, event_state="end")
+            self._spool_and_upload(data, event_id=decision.event_id, event_state=state)
             if not decision.is_warmup:
                 self._schedule_archive(decision.event_id, end_ts=now)
+            if transient:
+                log.info(
+                    "Evento %s transiente (fg_end=%d < %d) — não escala p/ Gemini",
+                    decision.event_id, decision.fg_px, self._event_min_residual_px,
+                )
             return
 
         if decision.event_id is not None and decision.action in ("start", "active"):
@@ -520,6 +535,11 @@ class Agent:
                     self._idle_analyze_interval = max(
                         MIN_ANALYZE_INTERVAL_S, int(kv["idle_analyze_interval_ms"]) / 1000.0
                     )
+                except ValueError:
+                    pass
+            if "event_min_residual_px" in kv:
+                try:
+                    self._event_min_residual_px = max(0, int(kv["event_min_residual_px"]))
                 except ValueError:
                     pass
             if "motion_enabled" in kv and kv["motion_enabled"] in ("off", "shadow", "on"):

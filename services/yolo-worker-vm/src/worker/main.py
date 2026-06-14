@@ -2167,6 +2167,20 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
         frames = event_windows.resolve_manifest_frames(manifest, upload_dir)
         frames = [f for f in frames if not is_processed(f)]
 
+        # Pré-filtro transiente: o dispositivo fechou o evento sinalizando que
+        # a zona voltou à baseline (nada novo depositado). Descarta sem Gemini
+        # — evita o FP de "pessoa passa perto de objeto já presente na cena".
+        if manifest.closed_reason == "transient":
+            for frame in frames:
+                mark_processed(frame, device_dir, False)
+                processed += 1
+            event_windows.mark_manifest_processed(manifest.path)
+            logger.info(
+                "Event %s/%s transient (zone back to baseline) — skipped Gemini (%d frames)",
+                device_id, manifest.event_id, len(frames),
+            )
+            continue
+
         if len(frames) < config.EVENT_MIN_FRAMES:
             logger.info(
                 "Event %s/%s has %d frame(s) (<%d) — skipping Gemini",

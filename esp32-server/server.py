@@ -1203,6 +1203,7 @@ def set_device_config(device_id: str):
         "motion_warmup_s",
         "event_max_s",
         "event_end_quiet_s",
+        "event_min_residual_px",
         "burst_interval_ms",
         "idle_analyze_interval_ms",
     }
@@ -1322,7 +1323,9 @@ def _pop_sse_cmd(device_id: str, timeout: float) -> str:
 # soon as it closes, instead of waiting for a fixed time window.
 
 _EVENT_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
-_EVENT_STATES = {"start", "active", "end", "heartbeat"}
+# "end_transient": fecha o evento sinalizando que a zona voltou à baseline
+# (nada novo depositado) — o worker descarta sem chamar o Gemini.
+_EVENT_STATES = {"start", "active", "end", "end_transient", "heartbeat"}
 _event_manifest_lock = threading.Lock()
 
 
@@ -1377,9 +1380,9 @@ def _update_event_manifest(
             manifest["updated_at"] = now_iso
             if frame_rel_url and frame_rel_url not in manifest["frames"]:
                 manifest["frames"].append(frame_rel_url)
-            if state == "end" and manifest.get("state") != "closed":
+            if state in ("end", "end_transient") and manifest.get("state") != "closed":
                 manifest["state"] = "closed"
-                manifest["closed_reason"] = "end"
+                manifest["closed_reason"] = "transient" if state == "end_transient" else "end"
                 manifest["closed_at"] = now_iso
             tmp_path = path + ".tmp"
             with open(tmp_path, "w", encoding="utf-8") as f:
