@@ -791,8 +791,15 @@ def _process_with_gemini(
     prior_window_context: Optional[str] = None,
     agent1_request_id: Optional[str] = None,
     agent1_confidence: Optional[int] = None,
+    inference_paths: Optional[list[Path]] = None,
 ) -> tuple[Optional[bool], dict[str, Any]]:
-    """Run Gemini inference and optionally persist resulting occurrence."""
+    """Run Gemini inference and optionally persist resulting occurrence.
+
+    inference_paths: when provided (crop-to-zone), these images are sent to the
+    model instead of sequence_paths. sequence_paths (originals) are still used
+    for evidence/event_frame resolution and DINOv2 — crops keep the same
+    filename/order, so event_frame_name maps back to the original frame.
+    """
     request_id = str(uuid4())
     _register_gemini_call(camera=camera)
 
@@ -865,7 +872,7 @@ def _process_with_gemini(
 
     try:
         result = analyze_with_gemini(
-            image_paths=sequence_paths,
+            image_paths=inference_paths or sequence_paths,
             camera_context=camera_context,
             request_id=request_id,
             mosaic_mode=config.GEMINI_MOSAIC_AGENT2,
@@ -1278,15 +1285,54 @@ def _process_with_gemini_cascade_window(
                 }
             # Shadow device: log-only — fall through to the gate (no enforcement).
 
+    # ------------------------------------------------------------------------
+    # Crop-to-zone (SUBSTITUTIVE): for configured devices, gate AND detail see
+    # ONLY the pile_zone bbox crop (upscaled) — the model never sees the trash
+    # bin / road outside the zone. Originals (first/last/window) are kept for
+    # evidence/state; crops keep the same filename+order so event_frame_name
+    # maps back to the original. Crops go to a per-device dir overwritten each
+    # window (no /tmp accumulation). Fails open to full-frame on any error.
+    # ------------------------------------------------------------------------
+    g_first, g_last, g_mids, g_inference = first_frame, last_frame, mid_frames, None
+    if device_id in config.CROP_TO_ZONE_DEVICES:
+        cz_bbox = _pile_bbox(getattr(camera, "pile_zone_polygon", None) or [])
+        if cz_bbox:
+            try:
+                cz_dir = Path(config.STATE_DIR) / "cropzone" / device_id
+                shutil.rmtree(cz_dir, ignore_errors=True)
+                cz_dir.mkdir(parents=True, exist_ok=True)
+                uniq = list(dict.fromkeys(
+                    [first_frame, last_frame, *(mid_frames or []), *window_paths]
+                ))
+                _make_pile_crops(uniq, cz_bbox, config.CROP_TO_ZONE_UPSCALE, cz_dir)
+
+                def _cz(p: Path) -> Path:
+                    c = cz_dir / p.name
+                    return c if c.exists() else p
+
+                g_first, g_last = _cz(first_frame), _cz(last_frame)
+                g_mids = [_cz(p) for p in mid_frames] if mid_frames else None
+                g_inference = [_cz(p) for p in window_paths]
+                logger.info(
+                    "crop_to_zone device=%s bbox=%s upscale=%d n=%d",
+                    device_id, cz_bbox, config.CROP_TO_ZONE_UPSCALE, len(window_paths),
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "crop_to_zone failed device=%s err=%s — fallback full-frame",
+                    device_id, exc,
+                )
+                g_first, g_last, g_mids, g_inference = first_frame, last_frame, mid_frames, None
+
     try:
         gate = analyze_new_litter_with_gemini(
-            first_frame=first_frame,
-            last_frame=last_frame,
+            first_frame=g_first,
+            last_frame=g_last,
             camera_context=camera_context,
             request_id=gate_request_id,
             prior_window_context=prior_window_context,
             use_mosaic=config.GEMINI_MOSAIC_AGENT1,
-            mid_frames=mid_frames,
+            mid_frames=g_mids,
             prompt_version=config.GEMINI_PROMPT_VERSION,
         )
         _register_gemini_success(gate.latency_ms, gate.usage, agent="gate", camera=camera)
@@ -1557,6 +1603,7 @@ def _process_with_gemini_cascade_window(
         prior_window_context=prior_window_context,
         agent1_request_id=gate_request_id,
         agent1_confidence=int(gate_report.confidence_0_100),
+        inference_paths=g_inference,
     )
 
     success = bool(agent2_payload.get("success"))

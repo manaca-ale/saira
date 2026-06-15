@@ -162,6 +162,19 @@ DETAIL_PILECROP_DEVICES = {
 GEMINI_DETAIL_PILECROP_UPSCALE = int(os.getenv("GEMINI_DETAIL_PILECROP_UPSCALE", "2"))
 GEMINI_DETAIL_PILECROP_N_FRAMES = int(os.getenv("GEMINI_DETAIL_PILECROP_N_FRAMES", "12"))
 
+# Crop-to-zone (SUBSTITUTIVE, not additive like pile-crop above). For the listed
+# devices, the gate AND detail receive ONLY the pile_zone bbox crop (upscaled)
+# instead of the full frame — so the model never sees out-of-zone distractors
+# (e.g. a public trash bin the model relativizes as "lixeira"). The ORIGINAL
+# frames are kept for evidence/image_url. Reuses _pile_bbox + _make_pile_crops.
+# Scoped per-device; default OFF (prod unaffected).
+CROP_TO_ZONE_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("CROP_TO_ZONE_DEVICES", "").split(",")
+    if d.strip()
+}
+CROP_TO_ZONE_UPSCALE = int(os.getenv("CROP_TO_ZONE_UPSCALE", "2"))
+
 # -----------------------------------------------------------------------------
 # Sliding-window SHADOW A/B (Camp 36, 2026-06-05). Runs an overlapping sliding
 # window (window_s, stride) alongside the live fixed-window pipeline and ONLY
