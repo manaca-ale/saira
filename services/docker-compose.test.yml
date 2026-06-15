@@ -200,7 +200,9 @@ services:
       # Crop-to-zone substitutivo: gate+detail recebem só o recorte da
       # pile_zone (exclui o cesto laranja do enquadramento). Default pi-cam-001.
       - CROP_TO_ZONE_DEVICES=${CROP_TO_ZONE_DEVICES:-pi-cam-001}
-      - CROP_TO_ZONE_UPSCALE=${CROP_TO_ZONE_UPSCALE:-2}
+      # upscale=1: o crop já foca a zona (vira o frame todo); 2x estourava o
+      # limite de payload do Gemini (9.5MB > 8MB) com ~25 frames no detail.
+      - CROP_TO_ZONE_UPSCALE=${CROP_TO_ZONE_UPSCALE:-1}
       - GEMINI_SEQUENCE_SIZE=${GEMINI_SEQUENCE_SIZE:-5}
       - GEMINI_SEQUENCE_MAX_SPAN_SECONDS=${GEMINI_SEQUENCE_MAX_SPAN_SECONDS:-4}
       - GEMINI_ENABLE_BATCH=${GEMINI_ENABLE_BATCH:-false}
