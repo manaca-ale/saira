@@ -85,20 +85,27 @@ enforce — e poderá rodar como 2º-estágio ou substituir/complementar o barra
 Testado o mesmo sinal (census_ntiles_t32 first-vs-last) nos 84 eventos rotulados de prod do
 esp32_001 (15 TP CONFIRMADO + 67 B3 + 2 B1B2, via DB + detection_frames + S3, $0):
 
-| métrica | Mangabeira (esp32_002) | **Imbiribeira (esp32_001)** |
-|---|---|---|
-| AUC (keep TP) | 0,827 | **0,496 (acaso)** · CI [0,36–0,63] |
-| n_tiles TP vs B3 (mediana) | 9 vs 1 | **7 vs 8 (idêntico)** |
-| holdout temporal | test 0,826 | train 0,535 / test 0,466 |
-| permutation | p=0,0000 | **p=0,96** (ruído) |
+Testado o mesmo sinal (census_ntiles_t32 first-vs-last) nas detecções rotuladas de prod das
+outras 2 câmeras (DB + detection_frames + S3, $0):
 
-**O sinal é específico do Mangabeira.** O Imbiribeira é terreno **aberto/difuso** com polígono de
-4 partes cobrindo meia-cena — um descarte e uma pessoa atravessando mudam **a mesma quantidade de
-tiles**, então não separa. O census-delta precisa de **pilha concentrada** (calçada) onde o
-depósito altera poucos tiles localizados. Resultado simétrico interessante: **DINOv2 funciona no
-Imbiribeira (cam_10) mas não no Mangabeira; structural-delta funciona no Mangabeira mas não no
-Imbiribeira → são complementares, por-câmera.** `STRUCTURAL_DEVICES` fica só em esp32_002.
-Artefato: `results/esp1_imbiribeira_struct.csv`.
+| métrica | Mangabeira esp32_002 | **Imbiribeira esp32_001** | **Arruda esp32_005** |
+|---|---|---|---|
+| N (TP/B3) | 71/142 | 15/67 | 17/59 |
+| AUC (keep TP) | **0,827** ✅ | 0,496 ❌ | 0,629 ❌ |
+| CI 95% | [0,77–0,88] | [0,36–0,63] | [0,47–0,78] (cruza 0,5) |
+| n_tiles TP vs B3 (med) | 9 vs 1 | 7 vs 8 | 2 vs 1 |
+| holdout test AUC | 0,826 | 0,466 | 0,676 |
+| permutation | p=0,0000 | p=0,96 | p=0,088 (n.s.) |
+| ponto de operação | 63% B3 @86% | — | 0% (sem thr) |
+
+**O sinal é específico do Mangabeira.** Imbiribeira = terreno **aberto/difuso** (polígono 4-partes
+meia-cena) → descarte e pessoa atravessando mudam a MESMA quantia de tiles (acaso). Arruda = faixa
+diagonal fina no muro, mudança minúscula nos dois grupos (med 2 vs 1) → dica fraca mas CI cruza
+0,5 e permutation n.s.; não-deployável. O census-delta precisa de **pilha concentrada** (calçada)
+onde o depósito altera poucos tiles localizados — só o Mangabeira tem essa geometria. Simetria:
+**DINOv2 funciona no Imbiribeira (cam_10) mas não no Mangabeira; structural o inverso →
+complementares, por-câmera.** `STRUCTURAL_DEVICES` fica só esp32_002.
+Artefatos: `results/esp1_imbiribeira_struct.csv`, `results/esp5_arruda_struct.csv`.
 
 ## Fase 2 — integração no worker EC2 (implementada, shadow)
 
