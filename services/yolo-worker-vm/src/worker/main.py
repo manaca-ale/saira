@@ -20,6 +20,7 @@ import requests
 from . import config
 from . import bgsub_filter
 from . import detector_dinov2
+from . import detector_structural
 from . import event_windows
 from .db import (
     find_recent_detection_for_camera,
@@ -963,6 +964,57 @@ def _process_with_gemini(
                             "p_con": round(dino_result.p_con, 4),
                             "reason": dino_result.reason,
                             "mode": config.DINOV2_FILTER_MODE,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+
+        # --------------------------------------------------------------------
+        # Structural-delta post-detail FP filter (Camp 41, esp32_002 Mangabeira).
+        # Census-Hamming + micro-tiles, before(1º frame) vs after(último frame).
+        # Só roda quando disposal=True. Shadow loga o que rejeitaria; enforce
+        # reverte disposal=False. Ortogonal ao DINOv2/BGSUB/barra-alta. Fail-open.
+        # --------------------------------------------------------------------
+        struct_result: Optional[detector_structural.StructFilterResult] = None
+        if config.STRUCTURAL_FILTER_MODE != "off" and disposal and device_id in config.STRUCTURAL_DEVICES:
+            pile_poly = getattr(camera, "pile_zone_polygon", None)
+            struct_result = detector_structural.evaluate(sequence_paths, device_id, pile_poly, camera)
+            detector_structural.record_shadow_decision(
+                request_id=request_id,
+                device_id=device_id,
+                result=struct_result,
+                gemini_disposal=True,
+            )
+            if struct_result.should_reject:
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "structural_shadow_would_reject"
+                            if config.STRUCTURAL_FILTER_MODE == "shadow"
+                            else "structural_enforce_reject",
+                            "request_id": request_id,
+                            "device_id": device_id,
+                            "n_tiles_changed": struct_result.n_tiles_changed,
+                            "threshold": struct_result.threshold,
+                            "reason": struct_result.reason,
+                            "latency_ms": round(struct_result.latency_ms, 1),
+                            "gemini_disposal": True,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+                if config.STRUCTURAL_FILTER_MODE == "enforce":
+                    disposal = False
+            else:
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "structural_pass",
+                            "request_id": request_id,
+                            "device_id": device_id,
+                            "n_tiles_changed": struct_result.n_tiles_changed,
+                            "reason": struct_result.reason,
+                            "mode": config.STRUCTURAL_FILTER_MODE,
                         },
                         ensure_ascii=False,
                     )

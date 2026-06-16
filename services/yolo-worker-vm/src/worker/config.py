@@ -388,6 +388,33 @@ DINOV2_RETRAIN_DEVICES = {
 }
 DINOV2_RETRAIN_MIN_AUC = float(os.getenv("DINOV2_RETRAIN_MIN_AUC", "0.85"))
 
+# -----------------------------------------------------------------------------
+# Structural-delta post-detail FP filter (Camp 41 — esp32_002 Mangabeira).
+# Census-Hamming + micro-tiles, before(1º frame) vs after(último frame) na
+# pile-zone. Medida determinística (cv2+numpy, SEM modelo treinado) ⇒ não sofre
+# o drift do DINOv2; valida offline com holdout temporal estável (AUC 0,83).
+# Modos: "off" (default) | "shadow" (loga o que rejeitaria) | "enforce"
+# (n_tiles_changed < threshold ⇒ disposal=False). Fail-open em toda falha.
+# -----------------------------------------------------------------------------
+STRUCTURAL_FILTER_MODE = os.getenv("STRUCTURAL_FILTER_MODE", "off").strip().lower()
+if STRUCTURAL_FILTER_MODE not in ("off", "shadow", "enforce"):
+    STRUCTURAL_FILTER_MODE = "off"
+STRUCTURAL_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("STRUCTURAL_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+STRUCTURAL_LEDGER_DIR = os.getenv(
+    "STRUCTURAL_LEDGER_DIR", os.path.join(STATE_DIR, "structural")
+)
+STRUCTURAL_TILE = int(os.getenv("STRUCTURAL_TILE", "32"))
+STRUCTURAL_TILE_FRAC = float(os.getenv("STRUCTURAL_TILE_FRAC", "0.50"))
+STRUCTURAL_HAM_THR = int(os.getenv("STRUCTURAL_HAM_THR", "3"))
+STRUCTURAL_MIN_TILE_COVER = int(os.getenv("STRUCTURAL_MIN_TILE_COVER", "24"))
+# Reject (sem depósito) se n_tiles_changed < threshold. Camp 41: thr=2 mantém
+# 86% TP e suprime 63% dos B3 (ponto de operação do piso de recall).
+STRUCTURAL_NTILES_THR = int(os.getenv("STRUCTURAL_NTILES_THR", "2"))
+
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.

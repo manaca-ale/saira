@@ -266,6 +266,10 @@ services:
       - DINOV2_TORCH_THREADS=${DINOV2_TORCH_THREADS:-2}
       - DINOV2_RETRAIN_DEVICES=${DINOV2_RETRAIN_DEVICES:-esp32_001}
       - DINOV2_RETRAIN_MIN_AUC=${DINOV2_RETRAIN_MIN_AUC:-0.85}
+      # Structural-delta post-detail FP filter (Camp 41); off|shadow|enforce, per-device
+      - STRUCTURAL_FILTER_MODE=${STRUCTURAL_FILTER_MODE:-off}
+      - STRUCTURAL_DEVICES=${STRUCTURAL_DEVICES:-esp32_002}
+      - STRUCTURAL_NTILES_THR=${STRUCTURAL_NTILES_THR:-2}
       # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
       - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
       # Car-stopped shadow detector (parallel to Gemini, audit only)
