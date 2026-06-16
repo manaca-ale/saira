@@ -80,6 +80,26 @@ recuperá-los re-injeta FP no alerta. O valor real é **veto de FP**. Como o bar
 80% dos B3, o detector entra em **SHADOW** (loga, não altera) pra medir no vivo antes de qualquer
 enforce — e poderá rodar como 2º-estágio ou substituir/complementar o barra-alta conforme os dados.
 
+## Generalização para outras câmeras — esp32_001 Imbiribeira: NÃO
+
+Testado o mesmo sinal (census_ntiles_t32 first-vs-last) nos 84 eventos rotulados de prod do
+esp32_001 (15 TP CONFIRMADO + 67 B3 + 2 B1B2, via DB + detection_frames + S3, $0):
+
+| métrica | Mangabeira (esp32_002) | **Imbiribeira (esp32_001)** |
+|---|---|---|
+| AUC (keep TP) | 0,827 | **0,496 (acaso)** · CI [0,36–0,63] |
+| n_tiles TP vs B3 (mediana) | 9 vs 1 | **7 vs 8 (idêntico)** |
+| holdout temporal | test 0,826 | train 0,535 / test 0,466 |
+| permutation | p=0,0000 | **p=0,96** (ruído) |
+
+**O sinal é específico do Mangabeira.** O Imbiribeira é terreno **aberto/difuso** com polígono de
+4 partes cobrindo meia-cena — um descarte e uma pessoa atravessando mudam **a mesma quantidade de
+tiles**, então não separa. O census-delta precisa de **pilha concentrada** (calçada) onde o
+depósito altera poucos tiles localizados. Resultado simétrico interessante: **DINOv2 funciona no
+Imbiribeira (cam_10) mas não no Mangabeira; structural-delta funciona no Mangabeira mas não no
+Imbiribeira → são complementares, por-câmera.** `STRUCTURAL_DEVICES` fica só em esp32_002.
+Artefato: `results/esp1_imbiribeira_struct.csv`.
+
 ## Fase 2 — integração no worker EC2 (implementada, shadow)
 
 - `services/yolo-worker-vm/src/worker/detector_structural.py` — espelha `detector_dinov2.py`:
