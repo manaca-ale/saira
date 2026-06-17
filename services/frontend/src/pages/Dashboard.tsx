@@ -16,6 +16,7 @@ import {
 import {
   classifyDetection,
   getAllDetections,
+  getFilterOptions,
 } from "../services/detectionService";
 import type { ClassifyStatus, PoiData } from "../services/detectionService";
 import { Tooltip } from "../components/Tooltip";
@@ -255,6 +256,24 @@ export const Dashboard: React.FC = () => {
   } | null>(null);
   const [isClassifying, setIsClassifying] = useState(false);
   const [classifyError, setClassifyError] = useState<string | null>(null);
+  // Opções de Bairro/Logradouro vindas do banco (domínio completo).
+  const [bairrosOptions, setBairrosOptions] = useState<string[]>([]);
+  const [logradouroOptions, setLogradouroOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getFilterOptions()
+      .then((opts) => {
+        if (!cancelled) {
+          setBairrosOptions(opts.bairros);
+          setLogradouroOptions(opts.logradouros);
+        }
+      })
+      .catch((e) => console.error("Failed to load filter options:", e));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // --- Load Data from API ---
   useEffect(() => {
@@ -364,38 +383,6 @@ export const Dashboard: React.FC = () => {
 
     return true;
   }, [filters]);
-
-  const bairrosOptions = useMemo(() => {
-    const filtered = baseData.filter((item) => matchesFilters(item, "bairro"));
-    return Array.from(new Set(filtered.map((item) => item.bairro))).sort();
-  }, [
-    baseData,
-    filters.bairro,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
-
-  const logradouroOptions = useMemo(() => {
-    const filtered = baseData.filter((item) =>
-      matchesFilters(item, "logradouro"),
-    );
-    return Array.from(new Set(filtered.map((item) => item.logradouro))).sort();
-  }, [
-    baseData,
-    filters.bairro,
-    filters.infratores,
-    filters.logradouro,
-    filters.rpa,
-    filters.status,
-    filters.tipoResiduo,
-    filters.volMax,
-    filters.volMin,
-  ]);
 
   const rpaOptions = useMemo(() => {
     const filtered = baseData.filter((item) => matchesFilters(item, "rpa"));

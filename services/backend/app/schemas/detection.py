@@ -103,6 +103,17 @@ class DetectionListResponse(BaseModel):
     limit: int
 
 
+class DetectionFilterOptionsResponse(BaseModel):
+    """Valores distintos do banco para popular os filtros do frontend.
+
+    Retorna o domínio completo (todos os bairros/logradouros já registrados),
+    independente de paginação ou de outros filtros ativos na tela.
+    """
+
+    bairros: List[str]
+    logradouros: List[str]
+
+
 class DetectionAnalyzedFrame(BaseModel):
     frame_name: str
     image_url: str

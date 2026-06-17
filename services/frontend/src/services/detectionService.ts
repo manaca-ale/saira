@@ -254,6 +254,19 @@ export async function getAllDetections(params?: GetAllDetectionsParams): Promise
   return all.slice(0, maxRecords);
 }
 
+export interface DetectionFilterOptions {
+  bairros: string[];
+  logradouros: string[];
+}
+
+export async function getFilterOptions(): Promise<DetectionFilterOptions> {
+  const response = await api.get<DetectionFilterOptions>('/detections/filter-options');
+  return {
+    bairros: response.data.bairros ?? [],
+    logradouros: response.data.logradouros ?? [],
+  };
+}
+
 export async function getDetectionById(id: string): Promise<PoiData> {
   const response = await api.get<Detection>(`/detections/${id}`);
   return toFrontendFormat(response.data);
