@@ -18,6 +18,7 @@ from app.schemas.detection import (
     DetectionCreate, DetectionUpdate, DetectionResponse,
     DetectionClassify, DetectionListResponse,
     DetectionAnalyzedFramesResponse,
+    DetectionFilterOptionsResponse,
 )
 from app.schemas.detection import DetectionStatus as DetectionStatusSchema
 from app.services import notification_service
@@ -213,6 +214,33 @@ async def search_detections(
     items = result.scalars().all()
 
     return DetectionListResponse(items=items, total=total, skip=skip, limit=limit)
+
+
+@router.get("/filter-options", response_model=DetectionFilterOptionsResponse)
+async def get_filter_options(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Valores distintos (domínio completo) para os filtros do frontend.
+
+    Retorna todos os bairros e logradouros já registrados no banco, ignorando
+    paginação e demais filtros — para que os autocompletes não fiquem limitados
+    ao subconjunto carregado na tela.
+    """
+
+    async def _distinct(column) -> List[str]:
+        query = (
+            select(column)
+            .where(column.is_not(None), func.length(func.trim(column)) > 0)
+            .distinct()
+            .order_by(column.asc())
+        )
+        rows = (await db.execute(query)).scalars().all()
+        return [value.strip() for value in rows]
+
+    bairros = await _distinct(Detection.bairro)
+    logradouros = await _distinct(Detection.logradouro)
+    return DetectionFilterOptionsResponse(bairros=bairros, logradouros=logradouros)
 
 
 @router.get("/{detection_id}", response_model=DetectionResponse)

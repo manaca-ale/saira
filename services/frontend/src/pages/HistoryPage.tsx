@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { Tooltip } from "../components/Tooltip";
-import { getAllDetections } from "../services/detectionService";
+import { getAllDetections, getFilterOptions } from "../services/detectionService";
 import type { PoiData } from "../services/detectionService";
 import { toBrazilDateString, toBrazilTimeString } from "../utils/datetime";
 import type { WasteType } from "../services/mockData";
@@ -63,6 +63,9 @@ const STATUS_OPTIONS = ["Pendente", "Confirmado"];
 const RPA_OPTIONS = ["RPA 1", "RPA 2", "RPA 3", "RPA 4", "RPA 5", "RPA 6"];
 const OFFENDER_OPTIONS = ["Identificado", "Não Identificado"];
 
+// Ordem fixa Domingo→Sábado (índice = Date.getUTCDay()).
+const WEEKDAY_LABELS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+
 // Define Colors
 const WASTE_COLORS: Record<string, string> = {
   Entulho: "#ccff33",
@@ -87,7 +90,8 @@ const getRpaForPoi = (poi: PoiData) => {
 };
 
 interface FilterState {
-  date: string;
+  dateStart: string;
+  dateEnd: string;
   startTime: string;
   endTime: string;
   status: string[];
@@ -131,7 +135,8 @@ export const HistoryPage: React.FC = () => {
     "period" | "volumetry" | null
   >(null);
   const [filters, setFilters] = useState<FilterState>({
-    date: "",
+    dateStart: "",
+    dateEnd: "",
     startTime: "",
     endTime: "",
     status: ["Confirmado"],
@@ -143,16 +148,36 @@ export const HistoryPage: React.FC = () => {
     volMax: "",
     infratores: [],
   });
+  const [bairroOptions, setBairroOptions] = useState<string[]>([]);
+  const [logradouroOptions, setLogradouroOptions] = useState<string[]>([]);
+
+  // Opções dos filtros vindas do banco (domínio completo), não do subconjunto carregado.
+  useEffect(() => {
+    let isMounted = true;
+    getFilterOptions()
+      .then((opts) => {
+        if (isMounted) {
+          setBairroOptions(opts.bairros);
+          setLogradouroOptions(opts.logradouros);
+        }
+      })
+      .catch((e) => console.error("Failed to load filter options:", e));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadDetections() {
       try {
-        const range = getDefault30DayRange();
+        const fallback = getDefault30DayRange();
+        const start = filters.dateStart || fallback.start;
+        const end = filters.dateEnd || fallback.end;
         const all = await getAllDetections({
-          start_date: `${range.start}T00:00:00`,
-          end_date: `${range.end}T23:59:59`,
+          start_date: `${start}T00:00:00`,
+          end_date: `${end}T23:59:59`,
           status: filters.status.length > 0 ? filters.status : [...STATUS_OPTIONS],
           maxRecords: 1000,
           pageSize: 100,
@@ -170,7 +195,7 @@ export const HistoryPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [filters.status]);
+  }, [filters.status, filters.dateStart, filters.dateEnd]);
 
   // --- FILTERING LOGIC ---
   const matchesFilters = useCallback(
@@ -224,10 +249,11 @@ export const HistoryPage: React.FC = () => {
           (!item.hasOffender && wantsUnknown);
         if (!matches) return false;
       }
-      if (filters.date) {
+      if (filters.dateStart || filters.dateEnd || filters.startTime || filters.endTime) {
         const itemIsoDate = toBrazilDateString(item.timestamp);
         const itemTime = toBrazilTimeString(item.timestamp);
-        if (itemIsoDate !== filters.date) return false;
+        if (filters.dateStart && itemIsoDate < filters.dateStart) return false;
+        if (filters.dateEnd && itemIsoDate > filters.dateEnd) return false;
         if (filters.startTime && itemTime < filters.startTime) return false;
         if (filters.endTime && itemTime > filters.endTime) return false;
       }
@@ -240,15 +266,6 @@ export const HistoryPage: React.FC = () => {
   const filteredData = useMemo(
     () => detections.filter((item) => matchesFilters(item)),
     [detections, matchesFilters],
-  );
-
-  const bairroOptions = useMemo(
-    () => Array.from(new Set(detections.map((i) => i.bairro))).sort(),
-    [detections],
-  );
-  const logradouroOptions = useMemo(
-    () => Array.from(new Set(detections.map((i) => i.logradouro))).sort(),
-    [detections],
   );
 
   // --- CHART DATA CALCULATIONS ---
@@ -320,46 +337,20 @@ export const HistoryPage: React.FC = () => {
     return top16.sort((a, b) => a.originalHour - b.originalHour);
   }, [filteredData]);
 
-  // 3. Weekday Distribution
+  // 3. Weekday Distribution — agrega TODO o período por dia da semana (DOM→SÁB).
   const weekdayData = useMemo(() => {
-    const timestamps = filteredData.map((d) => new Date(d.timestamp).getTime());
-    const maxDateMs =
-      timestamps.length > 0 ? Math.max(...timestamps) : Date.now();
-    const anchorDate = new Date(maxDateMs);
-    anchorDate.setHours(0, 0, 0, 0);
-
-    const days: { name: string; date: string; count: number }[] = [];
-    const dayByDate = new Map<string, { name: string; date: string; count: number }>();
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(anchorDate);
-      d.setDate(d.getDate() - i);
-
-      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const dayName = d
-        .toLocaleDateString("pt-BR", { weekday: "short" })
-        .toUpperCase()
-        .replace(".", "");
-
-      const dayEntry = {
-        name: dayName,
-        date: dateKey,
-        count: 0,
-      };
-      days.push(dayEntry);
-      dayByDate.set(dateKey, dayEntry);
-    }
+    const counts = new Array(7).fill(0);
 
     filteredData.forEach((item) => {
-      const d = new Date(item.timestamp);
-      const itemDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const targetDay = dayByDate.get(itemDate);
-      if (targetDay) {
-        targetDay.count++;
-      }
+      // Usa a data em horário de Brasília para evitar desvio de fuso na borda do dia.
+      const [year, month, day] = toBrazilDateString(item.timestamp)
+        .split("-")
+        .map(Number);
+      const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+      counts[weekday]++;
     });
 
-    return days;
+    return WEEKDAY_LABELS.map((name, i) => ({ name, count: counts[i] }));
   }, [filteredData]);
 
   // 4. UPDATED: Top Locations (Dynamic Size)
@@ -467,12 +458,18 @@ export const HistoryPage: React.FC = () => {
                   label="Período"
                   active={activePopover === "period"}
                   hasValue={
-                    !!(filters.date || filters.startTime || filters.endTime)
+                    !!(
+                      filters.dateStart ||
+                      filters.dateEnd ||
+                      filters.startTime ||
+                      filters.endTime
+                    )
                   }
                   onClear={() =>
                     setFilters((p) => ({
                       ...p,
-                      date: "",
+                      dateStart: "",
+                      dateEnd: "",
                       startTime: "",
                       endTime: "",
                     }))
@@ -482,17 +479,33 @@ export const HistoryPage: React.FC = () => {
                   }
                   onClose={() => setActivePopover(null)}
                 >
-                  <div className="flex flex-col gap-3">
-                    <div>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
                       <label className="text-xs text-gray-500 font-bold mb-1 block">
-                        Data
+                        De
                       </label>
                       <input
                         type="date"
                         className="w-full border border-gray-300 rounded p-2 text-sm"
-                        value={filters.date}
+                        value={filters.dateStart}
                         onChange={(e) =>
-                          setFilters((p) => ({ ...p, date: e.target.value }))
+                          setFilters((p) => ({
+                            ...p,
+                            dateStart: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs text-gray-500 font-bold mb-1 block">
+                        Até
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full border border-gray-300 rounded p-2 text-sm"
+                        value={filters.dateEnd}
+                        onChange={(e) =>
+                          setFilters((p) => ({ ...p, dateEnd: e.target.value }))
                         }
                       />
                     </div>
@@ -805,7 +818,7 @@ export const HistoryPage: React.FC = () => {
               <h3 className="text-sm font-bold text-gray-700">
                 Dias de maior incidência
               </h3>
-              <Tooltip text="Ocorrências nos últimos 7 dias.">
+              <Tooltip text="Ocorrências por dia da semana em todo o período selecionado.">
                 <Info
                   size={14}
                   className="text-gray-300 cursor-pointer hover:text-gray-500"
@@ -841,12 +854,6 @@ export const HistoryPage: React.FC = () => {
                       borderRadius: "8px",
                       border: "none",
                       boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    }}
-                    labelFormatter={(label, payload) => {
-                      if (payload && payload.length > 0) {
-                        return `${label} (${payload[0].payload.date})`;
-                      }
-                      return label;
                     }}
                   />
                   <Bar

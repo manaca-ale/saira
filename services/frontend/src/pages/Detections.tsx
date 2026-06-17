@@ -4,6 +4,7 @@ import {
   classifyDetection,
   getAllDetections,
   getDetectionById,
+  getFilterOptions,
   searchDetections,
 } from "../services/detectionService";
 import type { ClassifyStatus, PoiData } from "../services/detectionService";
@@ -41,7 +42,8 @@ interface Detection extends PoiData {
 }
 
 interface FilterState {
-  date: string;
+  dateStart: string;
+  dateEnd: string;
   startTime: string;
   endTime: string;
   status: string[];
@@ -113,7 +115,8 @@ export const Detections: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showItemsMenu, setShowItemsMenu] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
-    date: "",
+    dateStart: "",
+    dateEnd: "",
     startTime: "",
     endTime: "",
     status: [...DEFAULT_STATUS_FILTER],
@@ -132,29 +135,25 @@ export const Detections: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloadingCsv, setIsDownloadingCsv] = useState(false);
 
-  const bairroOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          detections
-            .map((item) => item.bairro?.trim())
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ).sort(),
-    [detections],
-  );
+  // Opções de Bairro/Logradouro vindas do banco (domínio completo), não do
+  // subconjunto paginado carregado na tela.
+  const [bairroOptions, setBairroOptions] = useState<string[]>([]);
+  const [logradouroOptions, setLogradouroOptions] = useState<string[]>([]);
 
-  const logradouroOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          detections
-            .map((item) => item.logradouro?.trim())
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ).sort(),
-    [detections],
-  );
+  useEffect(() => {
+    let isMounted = true;
+    getFilterOptions()
+      .then((opts) => {
+        if (isMounted) {
+          setBairroOptions(opts.bairros);
+          setLogradouroOptions(opts.logradouros);
+        }
+      })
+      .catch((e) => console.error("Failed to load filter options:", e));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const rpaOptions = RPA_OPTIONS;
   const tipoResiduoOptions = WASTE_TYPE_OPTIONS;
@@ -179,11 +178,13 @@ export const Detections: React.FC = () => {
       query.has_offender = filters.infratores[0] === "Identificado";
     }
 
-    if (filters.date) {
+    if (filters.dateStart) {
       const startTime = filters.startTime || "00:00";
+      query.start_date = `${filters.dateStart}T${startTime}:00`;
+    }
+    if (filters.dateEnd) {
       const endTime = filters.endTime || "23:59";
-      query.start_date = `${filters.date}T${startTime}:00`;
-      query.end_date = `${filters.date}T${endTime}:59`;
+      query.end_date = `${filters.dateEnd}T${endTime}:59`;
     }
 
     return query;
@@ -242,7 +243,8 @@ export const Detections: React.FC = () => {
         ...prev,
         rpa: rpaParam ? [rpaParam] : prev.rpa,
         status: statusParam ? [statusParam] : prev.status,
-        date: startDate ? startDate.split("T")[0] : prev.date,
+        dateStart: startDate ? startDate.split("T")[0] : prev.dateStart,
+        dateEnd: startDate ? startDate.split("T")[0] : prev.dateEnd,
       }));
     }
 
@@ -465,11 +467,19 @@ export const Detections: React.FC = () => {
                 <FilterPopover
                   label="Período"
                   active={activePopover === "period"}
-                  hasValue={!!(filters.date || filters.startTime || filters.endTime)}
+                  hasValue={
+                    !!(
+                      filters.dateStart ||
+                      filters.dateEnd ||
+                      filters.startTime ||
+                      filters.endTime
+                    )
+                  }
                   onClear={() =>
                     setFilters((p) => ({
                       ...p,
-                      date: "",
+                      dateStart: "",
+                      dateEnd: "",
                       startTime: "",
                       endTime: "",
                     }))
@@ -480,23 +490,41 @@ export const Detections: React.FC = () => {
                   onClose={() => setActivePopover(null)}
                 >
                   <div className="flex flex-col gap-3">
-                    <div>
-                      <label className="text-xs text-gray-500 font-bold mb-1 block">
-                        Data
-                      </label>
-                      <input
-                        type="date"
-                        className="w-full border border-gray-300 rounded p-2 text-sm"
-                        value={filters.date}
-                        onChange={(e) =>
-                          setFilters((p) => ({ ...p, date: e.target.value }))
-                        }
-                      />
-                    </div>
                     <div className="flex gap-2">
                       <div className="flex-1">
                         <label className="text-xs text-gray-500 font-bold mb-1 block">
                           De
+                        </label>
+                        <input
+                          type="date"
+                          className="w-full border border-gray-300 rounded p-2 text-sm"
+                          value={filters.dateStart}
+                          onChange={(e) =>
+                            setFilters((p) => ({
+                              ...p,
+                              dateStart: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs text-gray-500 font-bold mb-1 block">
+                          Até
+                        </label>
+                        <input
+                          type="date"
+                          className="w-full border border-gray-300 rounded p-2 text-sm"
+                          value={filters.dateEnd}
+                          onChange={(e) =>
+                            setFilters((p) => ({ ...p, dateEnd: e.target.value }))
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-xs text-gray-500 font-bold mb-1 block">
+                          Hora início
                         </label>
                         <input
                           type="time"
@@ -509,7 +537,7 @@ export const Detections: React.FC = () => {
                       </div>
                       <div className="flex-1">
                         <label className="text-xs text-gray-500 font-bold mb-1 block">
-                          Até
+                          Hora fim
                         </label>
                         <input
                           type="time"
