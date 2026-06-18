@@ -436,9 +436,10 @@ async def indicators_summary(
         IndicatorCard(
             id="I4", name="Assertividade das detecções", unit="%",
             polarity="higher_better", periodicity="Mensal",
-            value=model.accuracy_pct, secondary=human.accuracy_pct,
-            value_label="modelo", secondary_label="humano",
-            has_data=model.has_data or human.has_data,
+            # Humano (fiscal) em destaque; modelo (cascata) como leitura secundária.
+            value=human.accuracy_pct, secondary=model.accuracy_pct,
+            value_label="humano", secondary_label="modelo",
+            has_data=human.has_data or model.has_data,
         ),
         IndicatorCard(
             id="I5", name="Completude do dossiê", unit="%",

@@ -189,11 +189,12 @@ export const IndicadoresPage: React.FC = () => {
     .filter((c) => c.uptime_pct !== null)
     .map((c) => ({ name: c.name || c.device_id || `cam ${c.camera_id}`, val: c.uptime_pct as number }));
 
+  // Humano (fiscal) em destaque; modelo (cascata) em segundo plano.
   const i4ChartData =
-    i4 && (i4.model.has_data || i4.human.has_data)
+    i4 && (i4.human.has_data || i4.model.has_data)
       ? [
-          { name: "Modelo (cascata)", val: i4.model.accuracy_pct ?? 0, has: i4.model.has_data },
-          { name: "Humano (fiscal)", val: i4.human.accuracy_pct ?? 0, has: i4.human.has_data },
+          { name: "Humano (fiscal)", val: i4.human.accuracy_pct ?? 0, primary: true },
+          { name: "Modelo (cascata)", val: i4.model.accuracy_pct ?? 0, primary: false },
         ]
       : [];
 
@@ -339,10 +340,10 @@ export const IndicadoresPage: React.FC = () => {
             </div>
           </Panel>
 
-          {/* I4 — model vs human */}
+          {/* I4 — human (destaque) vs model (segundo plano) */}
           <Panel
-            title="I4 — Assertividade: modelo vs humano (%)"
-            hint="Modelo: confirmadas/(confirmadas+rejeitadas) na cascata Agent-1+Agent-2. Humano: confirmadas/(confirmadas+rejeitadas) pelo fiscal."
+            title="I4 — Assertividade: humano vs modelo (%)"
+            hint="Humano (destaque): confirmadas/(confirmadas+rejeitadas) pelo fiscal. Modelo (referência): confirmadas/(confirmadas+rejeitadas) na cascata Agent-1+Agent-2."
           >
             {i4ChartData.length === 0 ? (
               <p className="text-sm text-gray-400 py-10 text-center">Sem avaliações no período.</p>
@@ -355,16 +356,20 @@ export const IndicadoresPage: React.FC = () => {
                       <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                       <RechartsTooltip formatter={(v) => `${Number(v).toFixed(1)}%`} />
-                      <Bar dataKey="val" fill="#a3e635" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="val" radius={[4, 4, 0, 0]}>
+                        {i4ChartData.map((d, i) => (
+                          <Cell key={i} fill={d.primary ? "#a3e635" : "#d1d5db"} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mt-3 text-xs text-gray-500">
-                  <span>
-                    Modelo: {i4?.model.confirmed} conf. / {i4?.model.rejected} rej.
-                  </span>
-                  <span>
+                <div className="grid grid-cols-2 gap-4 mt-3 text-xs">
+                  <span className="text-gray-700 font-semibold">
                     Humano: {i4?.human.confirmed} conf. / {i4?.human.rejected} rej.
+                  </span>
+                  <span className="text-gray-400">
+                    Modelo: {i4?.model.confirmed} conf. / {i4?.model.rejected} rej.
                   </span>
                 </div>
               </>
