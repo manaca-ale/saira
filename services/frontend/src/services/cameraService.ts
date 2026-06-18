@@ -101,3 +101,14 @@ export async function requestCameraSnapshot(cameraId: number): Promise<void> {
     console.warn(`request-snapshot falhou p/ câmera ${cameraId}:`, error);
   }
 }
+
+/** Ajusta o zoom óptico (0 = aberto, 1 = aproximado). Só dispositivos com lente
+ *  motorizada (Pi/Intelbras) reagem; aplica em ~2-4s e sobe um frame novo. */
+export async function setCameraZoom(cameraId: number, zoom: number): Promise<void> {
+  await api.post(`/cameras/${cameraId}/zoom`, { zoom });
+}
+
+/** Dispara o autofoco da lente motorizada. */
+export async function cameraAutofocus(cameraId: number): Promise<void> {
+  await api.post(`/cameras/${cameraId}/autofocus`);
+}

@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { AlertCircle, Camera, Clock3, MapPin, Radio, X } from "lucide-react";
-import type { Camera as CameraEntity } from "../services/cameraService";
+import { AlertCircle, Camera, Clock3, Focus, MapPin, Radio, X, ZoomIn } from "lucide-react";
+import {
+  cameraAutofocus,
+  setCameraZoom,
+  type Camera as CameraEntity,
+} from "../services/cameraService";
 import type { GeocodingResult } from "../types/geocoding";
 import { AddressSearch } from "./AddressSearch";
 import { CameraMapPicker } from "./CameraMapPicker";
@@ -81,6 +85,37 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     is_active: true,
   });
   const [formError, setFormError] = useState("");
+
+  // Controle de zoom ao vivo (só ao editar — precisa do id da câmera). O comando
+  // roteia pelo dispositivo (Pi), então é assíncrono (~2-4s) e best-effort: só
+  // câmeras com lente motorizada (Intelbras) reagem.
+  const cameraId = initialData?.id ?? null;
+  const [zoom, setZoom] = useState(0);
+  const [zoomStatus, setZoomStatus] = useState<
+    "idle" | "sending" | "done" | "error"
+  >("idle");
+
+  const applyZoom = async (value: number) => {
+    if (cameraId == null) return;
+    setZoomStatus("sending");
+    try {
+      await setCameraZoom(cameraId, value);
+      setZoomStatus("done");
+    } catch {
+      setZoomStatus("error");
+    }
+  };
+
+  const triggerAutofocus = async () => {
+    if (cameraId == null) return;
+    setZoomStatus("sending");
+    try {
+      await cameraAutofocus(cameraId);
+      setZoomStatus("done");
+    } catch {
+      setZoomStatus("error");
+    }
+  };
 
   useEffect(() => {
     if (!initialData) {
@@ -312,6 +347,63 @@ export const CameraModal: React.FC<CameraModalProps> = ({
             longitude={formData.longitude ? parseFloat(formData.longitude) : null}
             onPositionChange={handleMapPositionChange}
           />
+
+          {cameraId != null ? (
+            <div className="rounded-2xl border border-gray-200 p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <ZoomIn size={18} className="text-gray-700" />
+                <span className="text-sm font-bold text-gray-700">
+                  Controle de zoom (ao vivo)
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">
+                Zoom óptico da lente motorizada (Intelbras). Aplica em ~2-4s; a
+                imagem atualiza no Painel de Câmeras.
+              </p>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 w-12 shrink-0">Aberto</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  onMouseUp={() => applyZoom(zoom)}
+                  onTouchEnd={() => applyZoom(zoom)}
+                  onKeyUp={() => applyZoom(zoom)}
+                  className="flex-1 accent-[#a3e635] cursor-pointer"
+                  aria-label="Zoom óptico"
+                />
+                <span className="text-xs text-gray-500 w-10 shrink-0 text-right">
+                  Tele
+                </span>
+                <span className="text-sm font-mono font-bold text-gray-700 w-12 shrink-0 text-right">
+                  {Math.round(zoom * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <button
+                  type="button"
+                  onClick={triggerAutofocus}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition-colors"
+                >
+                  <Focus size={16} /> Autofoco
+                </button>
+                <span className="text-xs">
+                  {zoomStatus === "sending" ? (
+                    <span className="text-gray-500">Enviando…</span>
+                  ) : zoomStatus === "done" ? (
+                    <span className="text-emerald-600">
+                      Comando enviado — atualize o painel para ver.
+                    </span>
+                  ) : zoomStatus === "error" ? (
+                    <span className="text-red-600">Falha ao enviar o comando.</span>
+                  ) : null}
+                </span>
+              </div>
+            </div>
+          ) : null}
 
           <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-gray-100">
             <button
