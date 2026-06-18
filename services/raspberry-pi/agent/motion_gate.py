@@ -71,6 +71,7 @@ class MotionGate:
         shadow_threshold: int = 100,
         min_px_active: int = 200,
         delta_min_px: int = 100,
+        delta_start_px: int = 120,
         consec_start: int = 2,
         lr_idle: float = 0.005,
         lr_recover: float = 0.05,
@@ -86,6 +87,10 @@ class MotionGate:
         self._shadow_threshold = shadow_threshold
         self.min_px_active = min_px_active
         self.delta_min_px = delta_min_px
+        # Limiar de MOVIMENTO (delta frame-a-frame) para ABRIR evento, além do
+        # foreground. Pega descarte de baixo contraste / na borda da zona, que
+        # gera pouco fg mas a pessoa depositando gera movimento. Recall-biased.
+        self.delta_start_px = delta_start_px
         self.consec_start = consec_start
         self.lr_idle = lr_idle
         self.lr_recover = lr_recover
@@ -276,16 +281,25 @@ class MotionGate:
 
         # ---- idle: aguardando início de evento ----------------------------
         if self.state == "idle":
-            if fg_active:
+            # Acorda por FOREGROUND (objeto novo vs baseline) OU por MOVIMENTO
+            # sustentado (delta). O descarte de baixo contraste / na borda da
+            # zona gera pouco fg (sacola escura em calçada cinza, fg≈0), mas a
+            # pessoa depositando gera movimento — sem a cláusula de delta o
+            # evento nunca abre e o ato cai no idle (miss real de 2026-06-15).
+            # Recall-biased: a nuvem filtra; melhor sobrar evento que perder
+            # descarte. consec_start frames consecutivos filtram flicker.
+            wake = fg_active or (delta_px >= self.delta_start_px)
+            if wake:
                 self._consec_active += 1
                 if self._consec_active >= self.consec_start:
                     self.state = "event"
                     self._event_id = self._new_event_id(now)
                     self._event_started_at = now
                     self._quiet_since = None
+                    trigger = "fg" if fg_active else "motion"
                     log.info(
-                        "Evento %s iniciado (fg_px=%d, delta_px=%d)",
-                        self._event_id, fg_px, delta_px,
+                        "Evento %s iniciado por %s (fg_px=%d, delta_px=%d)",
+                        self._event_id, trigger, fg_px, delta_px,
                     )
                     return GateDecision(
                         state="event", fg_px=fg_px, delta_px=delta_px,

@@ -115,6 +115,10 @@ class Config:
     motion_enabled: str
     idle_analyze_interval_s: float
     burst_upload_interval_s: float
+    # Envio em lote dos frames do evento: 0/1 = legado (1 POST por frame);
+    # >=2 = acumula até N frames e sobe num único POST /upload-batch (ou no
+    # fim do evento). Bound do delay = N frames, independente da duração.
+    event_batch_size: int
     heartbeat_interval_s: int
     warmup_seconds: int
     event_end_quiet_s: int
@@ -127,6 +131,10 @@ class Config:
     pi_bgsub_shadow_threshold: int
     pi_bgsub_min_px_active: int
     pi_bgsub_delta_min_px: int
+    # Limiar de MOVIMENTO para ABRIR evento (além do foreground). Recall-biased:
+    # descarte de baixo contraste/na borda gera pouco fg mas a pessoa deposita
+    # com movimento; sem isso o evento não abre e o ato cai no idle.
+    pi_bgsub_delta_start_px: int
     pi_bgsub_consec_start: int
     pi_bgsub_lr_idle: float
     pi_bgsub_lr_recover: float
@@ -138,6 +146,10 @@ class Config:
     # largado, ainda não absorvido pelo MOG2) e passa normalmente.
     pi_event_min_residual_px: int
 
+    # Ref_pré: enviar o frame "antes" (cena pré-intrusão) no início do evento,
+    # dando à nuvem o par antes/depois para julgar incremento na pilha.
+    pi_send_pre_frame: bool
+
     # Arquivo de clipes (RAM -> SD)
     archive_dir: Path
     archive_max_bytes: int
@@ -148,6 +160,7 @@ class Config:
 
     # URLs derivadas
     upload_url: str = field(init=False)
+    batch_upload_url: str = field(init=False)
     config_url: str = field(init=False)
     poll_url: str = field(init=False)
     bulk_upload_url: str = field(init=False)
@@ -156,6 +169,7 @@ class Config:
     def __post_init__(self) -> None:
         base = self.ec2_base.rstrip("/")
         object.__setattr__(self, "upload_url", f"{base}/upload")
+        object.__setattr__(self, "batch_upload_url", f"{base}/upload-batch")
         object.__setattr__(self, "config_url", f"{base}/device/{self.device_id}/config.txt")
         object.__setattr__(self, "poll_url", f"{base}/device/{self.device_id}/poll")
         object.__setattr__(self, "bulk_upload_url", f"{base}/device/{self.device_id}/bulk-upload")
@@ -191,6 +205,7 @@ def load_config() -> Config:
             "IDLE_ANALYZE_INTERVAL", 2.0, minimum=MIN_ANALYZE_INTERVAL_S
         ),
         burst_upload_interval_s=_env_float("BURST_UPLOAD_INTERVAL", 1.5, minimum=0.5),
+        event_batch_size=_env_int("EVENT_BATCH_SIZE", 0, minimum=0),
         heartbeat_interval_s=_env_int("HEARTBEAT_INTERVAL", 60, minimum=10),
         warmup_seconds=_env_int("WARMUP_SECONDS", 90, minimum=10),
         event_end_quiet_s=_env_int("EVENT_END_QUIET_SECONDS", 10, minimum=3),
@@ -201,11 +216,14 @@ def load_config() -> Config:
         pi_bgsub_shadow_threshold=_env_int("PI_BGSUB_SHADOW_THRESHOLD", 100, minimum=1),
         pi_bgsub_min_px_active=_env_int("PI_BGSUB_MIN_PX_ACTIVE", 200, minimum=10),
         pi_bgsub_delta_min_px=_env_int("PI_BGSUB_DELTA_MIN_PX", 100, minimum=10),
+        pi_bgsub_delta_start_px=_env_int("PI_BGSUB_DELTA_START_PX", 120, minimum=10),
         pi_bgsub_consec_start=_env_int("PI_BGSUB_CONSEC_START", 2, minimum=1),
         pi_bgsub_lr_idle=_env_float("PI_BGSUB_LR_IDLE", 0.005, minimum=0.0),
         pi_bgsub_lr_recover=_env_float("PI_BGSUB_LR_RECOVER", 0.05, minimum=0.0),
         pi_bgsub_recover_max_s=_env_int("PI_BGSUB_RECOVER_MAX_S", 180, minimum=30),
         pi_event_min_residual_px=_env_int("PI_EVENT_MIN_RESIDUAL_PX", 250, minimum=0),
+        pi_send_pre_frame=_env("PI_SEND_PRE_FRAME", "true").strip().lower()
+        not in ("0", "false", "no", "off"),
         archive_dir=Path(_env("ARCHIVE_DIR", "/dev/shm/saira/archive")),
         archive_max_bytes=_env_int("ARCHIVE_MAX_BYTES", 200 * 1024 * 1024, minimum=16 * 1024 * 1024),
         clips_dir=Path(_env("CLIPS_DIR", "/var/lib/saira/clips")),

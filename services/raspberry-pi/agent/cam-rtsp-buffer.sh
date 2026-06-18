@@ -37,7 +37,9 @@ SEGMENT_ARGS=(
 if [[ "$SNAPSHOT_FROM_RTSP" == "true" ]]; then
     # -skip_frame nokey é opção de DECODER (input): o ramo -c copy não decodifica,
     # então só o ramo do JPEG paga decode — e só nos keyframes.
-    exec ffmpeg -nostdin -loglevel warning \
+    # -y: o muxer image2 (-update 1) recusa sobrescrever um latest.jpg
+    # pré-existente e, com -nostdin, sai com erro em vez de perguntar.
+    exec ffmpeg -nostdin -y -loglevel warning \
         -rtsp_transport tcp \
         -skip_frame nokey \
         -i "$RTSP_URL" \
@@ -47,7 +49,7 @@ if [[ "$SNAPSHOT_FROM_RTSP" == "true" ]]; then
         -f image2 -update 1 -atomic_writing 1 \
         "$SNAPSHOT_JPG"
 else
-    exec ffmpeg -nostdin -loglevel warning \
+    exec ffmpeg -nostdin -y -loglevel warning \
         -rtsp_transport tcp \
         -i "$RTSP_URL" \
         "${SEGMENT_ARGS[@]}"

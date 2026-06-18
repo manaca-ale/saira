@@ -127,6 +127,17 @@ class Agent:
         self._synthetic_until = 0.0
         self._synthetic_start_sent = False
 
+        # Ref_pré: ring dos últimos frames de IDLE (sem evento). Congela no
+        # instante da intrusão (não atualiza durante evento), então ring[0] é a
+        # cena ANTES do ator. No início do evento sobe esse "antes" como primeiro
+        # frame, dando à nuvem o par antes/depois para julgar incremento na pilha.
+        self._frame_ring: list[bytes] = []
+        self._send_pre_frame = cfg.pi_send_pre_frame
+
+        # Lote de frames do evento (EVENT_BATCH_SIZE>=2): acumula e sobe num
+        # único POST /upload-batch a cada N frames ou no fim do evento.
+        self._event_batch: list[tuple[bytes, str, str]] = []  # (jpeg, event_id, state)
+
     def _build_gate(self):
         try:
             from motion_gate import MotionGate
@@ -142,6 +153,7 @@ class Agent:
             shadow_threshold=self.cfg.pi_bgsub_shadow_threshold,
             min_px_active=self.cfg.pi_bgsub_min_px_active,
             delta_min_px=self.cfg.pi_bgsub_delta_min_px,
+            delta_start_px=self.cfg.pi_bgsub_delta_start_px,
             consec_start=self.cfg.pi_bgsub_consec_start,
             lr_idle=self.cfg.pi_bgsub_lr_idle,
             lr_recover=self.cfg.pi_bgsub_lr_recover,
@@ -271,6 +283,14 @@ class Agent:
             return
 
         # ---- mode == "on" -------------------------------------------------
+        # Mantém o ring do "antes": só atualiza FORA de evento (idle/recover),
+        # congelando no instante da intrusão. ring[0] = frame mais antigo, que
+        # precede os consec_start frames de gatilho, garantindo cena sem o ator.
+        if decision.event_id is None and not decision.is_warmup:
+            self._frame_ring.append(data)
+            if len(self._frame_ring) > 4:
+                self._frame_ring.pop(0)
+
         if decision.action == "end":
             # Pré-filtro transiente: a zona voltou à baseline (fg residual
             # baixo) => nada NOVO ficou; foi passagem. Marca "end_transient"
@@ -282,7 +302,12 @@ class Agent:
             )
             state = "end_transient" if transient else "end"
             # Frame de fechamento sobe sempre (fecha o manifest no servidor).
-            self._spool_and_upload(data, event_id=decision.event_id, event_state=state)
+            if self.cfg.event_batch_size >= 2 and not decision.is_warmup:
+                # Enfileira o frame de fechamento: _queue_event_frame faz o
+                # flush imediato do lote pendente ao ver o estado de "end".
+                self._queue_event_frame(data, decision.event_id, state)
+            else:
+                self._spool_and_upload(data, event_id=decision.event_id, event_state=state)
             if not decision.is_warmup:
                 self._schedule_archive(decision.event_id, end_ts=now)
             if transient:
@@ -293,6 +318,30 @@ class Agent:
             return
 
         if decision.event_id is not None and decision.action in ("start", "active"):
+            batching = self.cfg.event_batch_size >= 2 and not decision.is_warmup
+            # No início do evento real, sobe o "antes" (cena pré-intrusão) como
+            # primeiro frame, dando à nuvem o par antes/depois. O frame do gatilho
+            # (com o ator) vai logo em seguida.
+            if (
+                decision.action == "start"
+                and not decision.is_warmup
+                and self._send_pre_frame
+                and self._frame_ring
+            ):
+                if batching:
+                    self._queue_event_frame(self._frame_ring[0], decision.event_id, "start")
+                else:
+                    self._spool_and_upload(
+                        self._frame_ring[0],
+                        event_id=decision.event_id,
+                        event_state="start",
+                    )
+            if batching:
+                # Captura densa (cadência ~burst); o upload só ocorre a cada N
+                # frames (flush dentro de _queue_event_frame), não por frame.
+                state = "start" if decision.action == "start" else "active"
+                self._queue_event_frame(data, decision.event_id, state)
+                return
             min_gap = WARMUP_UPLOAD_INTERVAL_S if decision.is_warmup else max(
                 0.5, self._burst_interval
             )
@@ -448,6 +497,58 @@ class Agent:
         if self._upload_frame(frame_path):
             self._drain_backlog()
 
+    def _queue_event_frame(self, data: bytes, event_id: str, state: str) -> None:
+        """Acumula um frame do evento; faz flush a cada EVENT_BATCH_SIZE frames
+        OU imediatamente quando o evento fecha (state end/end_transient)."""
+        # Troca de evento sem ter fechado o anterior: fecha o lote pendente.
+        if self._event_batch and self._event_batch[0][1] != event_id:
+            self._flush_event_batch()
+        self._event_batch.append((data, event_id, state))
+        if (
+            state in ("end", "end_transient")
+            or len(self._event_batch) >= self.cfg.event_batch_size
+        ):
+            self._flush_event_batch()
+
+    def _flush_event_batch(self) -> None:
+        """Sobe o lote acumulado num único POST /upload-batch. Em falha, cai
+        para o spool por frame (preserva resiliência e o manifest)."""
+        if not self._event_batch:
+            return
+        batch = self._event_batch
+        self._event_batch = []
+        event_id = batch[0][1]
+        # Estado do lote: fecha o manifest só se o último frame for terminal.
+        last_state = batch[-1][2]
+        batch_state = last_state if last_state in ("end", "end_transient") else "active"
+        files = [
+            ("imageFile", (f"f{i:03d}.jpg", d, "image/jpeg"))
+            for i, (d, _eid, _st) in enumerate(batch)
+        ]
+        form = {"event_id": event_id, "event_state": batch_state}
+        try:
+            resp = self._ec2_session.post(
+                self.cfg.batch_upload_url, files=files, data=form,
+                timeout=self.cfg.upload_timeout_s * 2,
+            )
+        except requests.RequestException as exc:
+            log.warning(
+                "Batch upload falhou (%d frames, %s): %s — caindo p/ spool",
+                len(batch), event_id, exc,
+            )
+            for d, eid, st in batch:
+                self._spool_and_upload(d, event_id=eid, event_state=st)
+            return
+        if resp.status_code == 200:
+            self._last_upload_at = time.time()
+            log.info("Batch OK %s: %d frames (state=%s)", event_id, len(batch), batch_state)
+        else:
+            log.warning(
+                "Batch HTTP %s (%s) — caindo p/ spool", resp.status_code, event_id
+            )
+            for d, eid, st in batch:
+                self._spool_and_upload(d, event_id=eid, event_state=st)
+
     def _upload_frame(self, frame_path: Path) -> bool:
         try:
             data = frame_path.read_bytes()
@@ -542,6 +643,10 @@ class Agent:
                     self._event_min_residual_px = max(0, int(kv["event_min_residual_px"]))
                 except ValueError:
                     pass
+            if "motion_send_pre_frame" in kv:
+                self._send_pre_frame = kv["motion_send_pre_frame"].strip().lower() not in (
+                    "0", "false", "no", "off",
+                )
             if "motion_enabled" in kv and kv["motion_enabled"] in ("off", "shadow", "on"):
                 new_mode = kv["motion_enabled"]
                 if new_mode != self._motion_mode:
@@ -558,6 +663,7 @@ class Agent:
                 self._gate.set_polygon(kv["pile_zone_polygon"])
             for key, attr, cast in (
                 ("motion_min_px_active", "min_px_active", int),
+                ("motion_delta_start_px", "delta_start_px", int),
                 ("motion_warmup_s", "warmup_seconds", int),
                 ("event_max_s", "event_max_s", int),
                 ("event_end_quiet_s", "event_end_quiet_s", int),

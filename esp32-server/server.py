@@ -1734,6 +1734,71 @@ def upload_file():
         "image_url": image_url,
     }, 200
 
+@app.route("/upload-batch", methods=["POST"])
+def upload_batch():
+    """Recebe VÁRIOS frames de um evento num único POST (event-driven em lote).
+
+    Campos multipart: N x `imageFile` + `event_id` + `event_state` (único para
+    o lote). Cada frame é salvo e anexado ao manifesto do evento; o manifesto
+    só fecha se `event_state` for terminal (end/end_transient). A lógica de
+    manifesto é a mesma do /upload — só amortiza o round-trip do 4G."""
+    global _upload_ok_count
+
+    raw_device_id = request.headers.get("X-Device-Id", "").strip()
+    device_id = _sanitize_device_id(raw_device_id) if raw_device_id else None
+    if not device_id:
+        device_id = "unknown_device"
+        print(f"WARNING: upload-batch X-Device-Id invalido/ausente: {raw_device_id!r}", flush=True)
+
+    files = [f for f in request.files.getlist("imageFile") if f and f.filename != ""]
+    if not files:
+        return {"error": "Missing imageFile"}, 400
+
+    event_id = _sanitize_event_id(request.form.get("event_id", ""))
+    event_state = (request.form.get("event_state") or "").strip().lower()
+    if event_state not in _EVENT_STATES:
+        event_state = ""
+
+    saved: list[str] = []
+    for idx, file in enumerate(files):
+        dt = datetime.now(CAPTURE_FILENAME_TZ)
+        # Sufixo de índice garante nome único e ORDEM estável mesmo que dois
+        # frames caiam no mesmo microssegundo (o worker ordena por nome).
+        timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S-%f") + f"-{idx:03d}"
+        filename = f"{timestamp_str}.jpg"
+        rel_path = os.path.join(device_id, dt.strftime("%Y/%m/%d"), filename)
+        save_path = os.path.join(UPLOAD_ROOT, rel_path)
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        file.save(save_path)
+        saved.append(rel_path.replace(os.sep, "/"))
+
+    if event_id and saved:
+        try:
+            # Anexa todos os frames como "active" (não fecha no meio do lote)…
+            for rel in saved:
+                _update_event_manifest(device_id, event_id, "active", rel)
+            # …e fecha uma única vez se este for o lote terminal do evento.
+            if event_state in ("end", "end_transient"):
+                _update_event_manifest(device_id, event_id, event_state, None)
+        except OSError as exc:
+            print(f"WARNING: batch manifest update failed ({event_id}): {exc}", flush=True)
+
+    _upload_ok_count += len(saved)
+    _record_device_event(
+        device_id, "upload", f"Lote recebido: {len(saved)} frames (event={event_id or '-'})"
+    )
+    print(
+        f"Batch recebido: {len(saved)} frames (device={device_id}, event={event_id or '-'}, "
+        f"state={event_state or '-'})",
+        flush=True,
+    )
+    return {
+        "status": "ok",
+        "device_id": device_id,
+        "saved": len(saved),
+        "frames": saved,
+    }, 200
+
 @app.route("/status", methods=["POST"])
 def receive_status():
     # Read status message from form-encoded data
