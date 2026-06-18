@@ -58,6 +58,9 @@ services:
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
+      # Vídeo sob demanda (dispositivos event-driven / Pi relay)
+      - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      - VIDEO_REQUEST_TIMEOUT_S=${VIDEO_REQUEST_TIMEOUT_S:-600}
       - REDIS_URL=redis://redis:6379/0
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
@@ -149,7 +152,10 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
       - REDIS_URL=redis://redis:6379/0
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
-      - POLL_INTERVAL=${POLL_INTERVAL:-10}
+      # TEST_POLL_INTERVAL: var própria do teste — o .env do servidor é
+      # COMPARTILHADO com prod e define POLL_INTERVAL=180; o caminho
+      # event-driven precisa de scan curto para reagir ao fechar do evento.
+      - POLL_INTERVAL=${TEST_POLL_INTERVAL:-5}
       - PROCESSED_STRATEGY=${PROCESSED_STRATEGY:-two_folders}
       - EVENT_WINDOW_MIN=${EVENT_WINDOW_MIN:-10}
       - WORKER_ENABLED=${WORKER_ENABLED:-true}
@@ -158,10 +164,11 @@ services:
       - MOCK_MAX_OBJECTS=${MOCK_MAX_OBJECTS:-5}
       - MOCK_INFRATOR_PROB=${MOCK_INFRATOR_PROB:-0.3}
       - AI_MODE=${AI_MODE:-shadow}
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      # Vertex AI keyless (ported from prod). Default off; set GEMINI_USE_VERTEX=true
-      # + GCP_PROJECT in the server .env to switch test off the AI Studio prepaid key.
-      - GEMINI_USE_VERTEX=${GEMINI_USE_VERTEX:-false}
+      # Gemini do TESTE usa o projeto de bench (gen-lang-client-0841492152) via
+      # TEST_GEMINI_API_KEY — o .env do servidor é compartilhado com prod e o
+      # GEMINI_API_KEY/Vertex de lá são de produção (billing saira-prod).
+      - GEMINI_API_KEY=${TEST_GEMINI_API_KEY:-}
+      - GEMINI_USE_VERTEX=${TEST_GEMINI_USE_VERTEX:-false}
       - GCP_PROJECT=${GCP_PROJECT:-}
       - GCP_LOCATION=${GCP_LOCATION:-global}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
@@ -190,6 +197,12 @@ services:
       - DETAIL_PILECROP_DEVICES=${DETAIL_PILECROP_DEVICES:-esp32_002}
       - GEMINI_DETAIL_PILECROP_UPSCALE=${GEMINI_DETAIL_PILECROP_UPSCALE:-2}
       - GEMINI_DETAIL_PILECROP_N_FRAMES=${GEMINI_DETAIL_PILECROP_N_FRAMES:-12}
+      # Crop-to-zone substitutivo: gate+detail recebem só o recorte da
+      # pile_zone (exclui o cesto laranja do enquadramento). Default pi-cam-001.
+      - CROP_TO_ZONE_DEVICES=${CROP_TO_ZONE_DEVICES:-pi-cam-001}
+      # upscale=1: o crop já foca a zona (vira o frame todo); 2x estourava o
+      # limite de payload do Gemini (9.5MB > 8MB) com ~25 frames no detail.
+      - CROP_TO_ZONE_UPSCALE=${CROP_TO_ZONE_UPSCALE:-1}
       - GEMINI_SEQUENCE_SIZE=${GEMINI_SEQUENCE_SIZE:-5}
       - GEMINI_SEQUENCE_MAX_SPAN_SECONDS=${GEMINI_SEQUENCE_MAX_SPAN_SECONDS:-4}
       - GEMINI_ENABLE_BATCH=${GEMINI_ENABLE_BATCH:-false}
@@ -223,6 +236,9 @@ services:
       # DINOv2 post-detail FP filter (off|shadow|enforce); rejection-only, per-device
       - DINOV2_FILTER_MODE=${DINOV2_FILTER_MODE:-off}
       - DINOV2_FILTER_DEVICES=${DINOV2_FILTER_DEVICES:-esp32_001}
+      - STRUCTURAL_FILTER_MODE=${STRUCTURAL_FILTER_MODE:-off}
+      - STRUCTURAL_DEVICES=${STRUCTURAL_DEVICES:-esp32_002}
+      - STRUCTURAL_NTILES_THR=${STRUCTURAL_NTILES_THR:-2}
       - DINOV2_VARIANT=${DINOV2_VARIANT:-dinov2_vits14}
       - DINOV2_THRESHOLD=${DINOV2_THRESHOLD:-}
       - DINOV2_N_FRAMES=${DINOV2_N_FRAMES:-3}
@@ -230,6 +246,10 @@ services:
       - DINOV2_TORCH_THREADS=${DINOV2_TORCH_THREADS:-2}
       - DINOV2_RETRAIN_DEVICES=${DINOV2_RETRAIN_DEVICES:-esp32_001}
       - DINOV2_RETRAIN_MIN_AUC=${DINOV2_RETRAIN_MIN_AUC:-0.85}
+      # Prompt do gate/detail. Em prod o V3 é hardcoded só p/ esp32_001/002;
+      # no teste rodamos V3 por default (cobre descarte a pé / objeto pequeno,
+      # caso da pi-cam-001). Var dedicada do teste — não afeta o .env de prod.
+      - GEMINI_PROMPT_VERSION=${TEST_GEMINI_PROMPT_VERSION:-v3}
       # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
       - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
       - TZ=America/Sao_Paulo
@@ -244,6 +264,12 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      # Event-driven devices (Pi relay): process motion-event manifests
+      # immediately instead of fixed 120s windows; heartbeats GC'd w/o Gemini.
+      - EVENT_DRIVEN_DEVICES=${EVENT_DRIVEN_DEVICES:-pi-cam-001}
+      - EVENT_STALE_SECONDS=${EVENT_STALE_SECONDS:-180}
+      - EVENT_MIN_FRAMES=${EVENT_MIN_FRAMES:-3}
+      - ORPHAN_GRACE_SECONDS=${ORPHAN_GRACE_SECONDS:-300}
     volumes:
       - ../esp32-server/uploads:/app/uploads
       - yolo_state_test:/app/state

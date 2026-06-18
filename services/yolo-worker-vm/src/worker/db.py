@@ -134,6 +134,33 @@ def update_camera_last_capture(camera_id: int) -> None:
 # DETECTIONS
 # ==========================================
 
+def update_detection_event_ref(detection_id: str, event_ref: str) -> None:
+    """Link a detection to its device-side motion event (clip correlation key).
+
+    Coalesced detections keep the FIRST event's ref — only the primary
+    event's clip is requestable from the UI (secondary refs live in the
+    detection_frames index).
+    """
+    conn = _get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE detections SET event_ref = %s, updated_at = NOW()
+            WHERE id = %s AND (event_ref IS NULL OR event_ref = '')
+            """,
+            (event_ref, detection_id),
+        )
+        conn.commit()
+        cur.close()
+    except Exception:
+        conn.rollback()
+        logger.exception(
+            "Error updating event_ref=%s for detection_id=%s", event_ref, detection_id
+        )
+    finally:
+        _put_conn(conn)
+
 def insert_detection(det: DetectionRecord) -> bool:
     """Insert a detection record. Returns True on success."""
     conn = _get_conn()
@@ -451,6 +478,57 @@ def insert_gemini_call_log(
             except Exception:
                 pass
         logger.exception("insert_gemini_call_log failed (non-fatal)")
+    finally:
+        if conn is not None:
+            _put_conn(conn)
+
+
+def insert_cascade_decision(rec: dict) -> None:
+    """Best-effort insert into cascade_decisions. Never raises.
+
+    Persiste cada avaliação do Agent-2 (inclusive REJEIÇÕES, que antes só viviam
+    no gemini_cascade_audit/*.jsonl) para alimentar os indicadores I4a
+    (assertividade do modelo) e I3 (qualidade da identificação). ``rec`` é o
+    mesmo dict do audit JSONL (ver main.py:_audit_record).
+    """
+    if _pool is None:
+        return
+    conn = None
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO cascade_decisions (
+                evaluated_at, camera_id, device_id, agent1_confidence,
+                agent2_success, agent2_disposal, offender_present,
+                offender_crop_extracted, detection_id
+            ) VALUES (
+                NOW(), %s, %s, %s,
+                %s, %s, %s,
+                %s, %s
+            )
+            """,
+            (
+                rec.get("camera_id"),
+                rec.get("device_id"),
+                rec.get("agent1_confidence"),
+                bool(rec.get("agent2_success")),
+                rec.get("agent2_disposal"),
+                rec.get("agent2_offender_detected"),
+                rec.get("agent2_has_offender_bbox"),
+                rec.get("detection_id"),
+            ),
+        )
+        conn.commit()
+        cur.close()
+    except Exception:
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        logger.exception("insert_cascade_decision failed (non-fatal)")
     finally:
         if conn is not None:
             _put_conn(conn)

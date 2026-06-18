@@ -25,6 +25,7 @@ A camp 12 vai comparar V2 vs V3 no mesmo dataset (174 janelas).
 from __future__ import annotations
 
 import logging
+import os
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -631,6 +632,64 @@ Se campo nao puder ser inferido, retorne null.
 """.strip()
 
 
+# =============================================================================
+# DETAIL_PROMPT_MANGABEIRA_HIGHBAR — barra-alta p/ FLAGRANTE (Camp 40, N grande)
+# -----------------------------------------------------------------------------
+# Visão por-evento NÃO separa descarte tiny-pedestre de transeunte (CV + DINOv2 +
+# VLM falham em N grande — muro tiny-bag). Reframe: o flagrante só importa para
+# descarte ATRIBUIVEL + SIGNIFICATIVO. Em 216 eventos reais de prod este prompt
+# cortou 80% dos FP B3 mantendo 100% dos descartes acionáveis (vol>0,3/veículo);
+# os tiny-pedestre perdidos vão para a métrica de volume longitudinal, não para
+# flagrante. Ativar via DETAIL_HIGHBAR_DEVICES=esp32_002; remover = reverte ao E.
+# =============================================================================
+DETAIL_PROMPT_MANGABEIRA_HIGHBAR = """
+Voce e um auditor de FLAGRANTE de descarte irregular em via publica no Brasil.
+Local: ponto cronico em Mangabeira, Recife (Av. Prof. Jose dos Anjos), com uma
+PILHA DE LIXO PERMANENTE no canteiro lateral (SEMPRE presente; NAO e infracao).
+Pessoas e veiculos passam o tempo todo perto dela. Responda APENAS JSON valido.
+
+ESTRUTURA DO INPUT: duas sequencias cronologicas — SEQUENCIA 1: ~48 frames
+globais (contexto). SEQUENCIA 2: ~12 crops alta-res da pile-zone (upscale 2x)
+para inspecionar deposito de objeto novo.
+
+ESTRATEGIA DE DECISAO — BARRA ALTA (flagrante e acao de fiscalizacao, nao
+contagem). A confabulacao classica aqui e inventar deposito quando uma pessoa
+so passa/interage rapido perto da pilha. Por isso o DEFAULT e infraction_confirmed
+=FALSE. So confirme (infraction_confirmed=true) se houver evidencia ATRIBUIVEL e
+SIGNIFICATIVA, em UMA destas tres bases:
+  (A) VEICULO/CARROCA/CARRINHO parado JUNTO a pilha COM material sendo
+      descarregado em direcao ao chao/pilha (carga saindo do veiculo/carrinho);
+  (B) pessoa AGACHADA ou PARADA LONGA (>=20s, mesma posicao em varios frames
+      consecutivos) claramente depositando uma CARGA VISIVEL (saco grande,
+      entulho, objeto volumoso) — postura curta/breve NAO basta;
+  (C) um objeto NOVO e VOLUMOSO aparece sobre/junto a pilha entre o inicio e o
+      fim da sequencia, confirmado nos CROPS.
+
+REJEITE (infraction_confirmed=false), MESMO que um descarte minusculo POSSA ter
+ocorrido (esses sao medidos por volume ao longo do tempo, nao por evento):
+  - pedestre passando/atravessando, com ou sem sacola pequena momentanea;
+  - interacao curta/ambigua sem deposito de carga visivel;
+  - pessoa parada olhando/esperando, ou mexendo/vasculhando o lixo existente,
+    catador, coleta/limpeza (EMLURB);
+  - veiculo apenas estacionado sem descarregar.
+
+Na duvida entre A/B/C e "passou rapido": REJEITE (default false). NAO confirme
+por proximidade, por sacola momentanea, nem por postura breve. Exija a base
+A, B ou C explicita.
+
+EVIDENCE_SUMMARY (ate 400 chars): diga qual base (A/B/C/NENHUMA) se aplica, a
+quem, e o que os CROPS mostram. Ex: "Base C: objeto volumoso escuro aparece no
+crop 7-12 junto a pilha, ausente no inicio. Pessoa P2 agachada 25s. CONF." ou
+"Nenhuma base: P1 passa com sacola em 1 frame, nao para; crops sem objeto novo.
+REJ."
+
+Quando infraction_confirmed=true, inclua bounding boxes normalizados 0-1000
+[y_min, x_min, y_max, x_max]: waste_bbox (residuo) e offender_bbox (agente).
+waste_type: "Lixo domiciliar" | "Poda" | "Entulho" | "Plastico".
+offender_detected: capacidade de identificar o autor. Campo nao inferivel: null.
+""".strip()
+
+
 def detail_system_prompt_for_camera(
     camera_context: Optional[dict[str, str]] = None,
     *,
@@ -638,6 +697,7 @@ def detail_system_prompt_for_camera(
 ) -> str:
     """Return the Agent-2 (detail) system prompt with per-camera/per-input overrides.
 
+    - esp32_002 + has_pilecrops + DETAIL_HIGHBAR_DEVICES → MANGABEIRA_HIGHBAR (Camp 40)
     - esp32_002 + has_pilecrops=True → MANGABEIRA_E_WITH_PILECROPS (campaign 24 winner)
     - Otherwise → SYSTEM_PROMPT_V3 (default V3 detail prompt)
     """
@@ -645,6 +705,13 @@ def detail_system_prompt_for_camera(
     if camera_context:
         device_id = str(camera_context.get("device_id") or "").strip().lower()
     if has_pilecrops and device_id == "esp32_002":
+        highbar = {
+            d.strip().lower()
+            for d in os.getenv("DETAIL_HIGHBAR_DEVICES", "").split(",")
+            if d.strip()
+        }
+        if device_id in highbar:
+            return DETAIL_PROMPT_MANGABEIRA_HIGHBAR
         return DETAIL_PROMPT_MANGABEIRA_E_WITH_PILECROPS
     return SYSTEM_PROMPT_V3
 

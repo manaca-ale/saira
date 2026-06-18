@@ -7,7 +7,7 @@ import shutil
 import sys
 import tempfile
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Optional
@@ -20,15 +20,19 @@ import requests
 from . import config
 from . import bgsub_filter
 from . import detector_dinov2
+from . import detector_structural
+from . import event_windows
 from .db import (
     find_recent_detection_for_camera,
     init_connections,
+    insert_cascade_decision,
     insert_detection,
     insert_notifications,
     insert_offenders,
     publish_detection_event,
     resolve_camera,
     update_camera_last_capture,
+    update_detection_event_ref,
     update_detection_on_merge,
 )
 from .detector_gemini import (
@@ -274,6 +278,7 @@ def _persist_detection_frame_index(
     moved_frames: list[Path],
     selected_frame_name: Optional[str],
     evidence_summary: Optional[str] = None,
+    event_ref: Optional[str] = None,
 ) -> None:
     if not detection_id or not moved_frames:
         return
@@ -306,6 +311,7 @@ def _persist_detection_frame_index(
     preserved_summary: Optional[str] = evidence_summary
     preserved_selected: Optional[str] = selected_frame_name
     preserved_created_at: Optional[str] = None
+    event_refs: list[str] = [event_ref] if event_ref else []
     if target.exists():
         try:
             prev = json.loads(target.read_text(encoding="utf-8"))
@@ -315,6 +321,10 @@ def _persist_detection_frame_index(
                 preserved_selected = prev.get("selected_frame_name")
             if not evidence_summary:
                 preserved_summary = prev.get("evidence_summary")
+            # Coalesced detections accumulate every contributing event ref
+            # (only the first is requestable from the UI via detections.event_ref).
+            prev_refs = [r for r in (prev.get("event_refs") or []) if r]
+            event_refs = prev_refs + [r for r in event_refs if r not in prev_refs]
         except Exception:
             logger.warning("detection_frames index unreadable, overwriting (%s)", target.name)
 
@@ -342,6 +352,7 @@ def _persist_detection_frame_index(
         "selected_frame_name": default_name,
         "evidence_summary": preserved_summary,
         "frames": merged,
+        "event_refs": event_refs,
         "created_at": preserved_created_at or datetime.now(BRASILIA).isoformat(),
         "updated_at": datetime.now(BRASILIA).isoformat(),
     }
@@ -392,14 +403,47 @@ def trigger_history_upload(device_id: str) -> None:
         logger.warning("trigger_history_upload device=%s failed: %s", device_id, exc)
 
 
-def parse_timestamp(filename: str) -> datetime:
-    """Parse Brasilia timestamp from filename (YYYY-MM-DD_HH-MM-SS)."""
-    stem = Path(filename).stem
+def trigger_persist_clip(device_id: str, event_ref: str) -> None:
+    """Tell the device to persist the event's clip from RAM to SD card.
+
+    Sent when a detection is recorded for an event-driven device, so the
+    2-min clip survives reboot/eviction until the platform requests it
+    (CMD_VIDEO_CLIP:<event_ref>).
+    """
+    base = config.ESP32_SERVER_URL
+    if not base:
+        return
+    url = f"{base}/device/{device_id}/trigger"
     try:
-        naive = datetime.strptime(stem, "%Y-%m-%d_%H-%M-%S")
-        return naive.replace(tzinfo=BRASILIA)
-    except ValueError:
-        return datetime.now(BRASILIA)
+        resp = requests.post(
+            url, json={"cmd": f"CMD_PERSIST_CLIP:{event_ref}"}, timeout=5
+        )
+        logger.info(
+            "trigger_persist_clip device=%s event=%s -> HTTP %d",
+            device_id, event_ref, resp.status_code,
+        )
+    except Exception as exc:
+        logger.warning(
+            "trigger_persist_clip device=%s event=%s failed: %s",
+            device_id, event_ref, exc,
+        )
+
+
+def parse_timestamp(filename: str) -> datetime:
+    """Parse Brasilia timestamp from filename.
+
+    Supports the legacy second-resolution name (YYYY-MM-DD_HH-MM-SS) and the
+    microsecond-suffixed name used by event-driven burst uploads
+    (YYYY-MM-DD_HH-MM-SS-ffffff).
+    """
+    stem = Path(filename).stem
+    for fmt in ("%Y-%m-%d_%H-%M-%S", "%Y-%m-%d_%H-%M-%S-%f"):
+        try:
+            naive = datetime.strptime(stem, fmt)
+            return naive.replace(tzinfo=BRASILIA)
+        except ValueError:
+            continue
+    return datetime.now(BRASILIA)
 
 
 def estimate_volume(detections: list[dict], img_w: int, img_h: int) -> Decimal:
@@ -749,8 +793,15 @@ def _process_with_gemini(
     prior_window_context: Optional[str] = None,
     agent1_request_id: Optional[str] = None,
     agent1_confidence: Optional[int] = None,
+    inference_paths: Optional[list[Path]] = None,
 ) -> tuple[Optional[bool], dict[str, Any]]:
-    """Run Gemini inference and optionally persist resulting occurrence."""
+    """Run Gemini inference and optionally persist resulting occurrence.
+
+    inference_paths: when provided (crop-to-zone), these images are sent to the
+    model instead of sequence_paths. sequence_paths (originals) are still used
+    for evidence/event_frame resolution and DINOv2 — crops keep the same
+    filename/order, so event_frame_name maps back to the original frame.
+    """
     request_id = str(uuid4())
     _register_gemini_call(camera=camera)
 
@@ -823,7 +874,7 @@ def _process_with_gemini(
 
     try:
         result = analyze_with_gemini(
-            image_paths=sequence_paths,
+            image_paths=inference_paths or sequence_paths,
             camera_context=camera_context,
             request_id=request_id,
             mosaic_mode=config.GEMINI_MOSAIC_AGENT2,
@@ -914,6 +965,57 @@ def _process_with_gemini(
                             "p_con": round(dino_result.p_con, 4),
                             "reason": dino_result.reason,
                             "mode": config.DINOV2_FILTER_MODE,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+
+        # --------------------------------------------------------------------
+        # Structural-delta post-detail FP filter (Camp 41, esp32_002 Mangabeira).
+        # Census-Hamming + micro-tiles, before(1º frame) vs after(último frame).
+        # Só roda quando disposal=True. Shadow loga o que rejeitaria; enforce
+        # reverte disposal=False. Ortogonal ao DINOv2/BGSUB/barra-alta. Fail-open.
+        # --------------------------------------------------------------------
+        struct_result: Optional[detector_structural.StructFilterResult] = None
+        if config.STRUCTURAL_FILTER_MODE != "off" and disposal and device_id in config.STRUCTURAL_DEVICES:
+            pile_poly = getattr(camera, "pile_zone_polygon", None)
+            struct_result = detector_structural.evaluate(sequence_paths, device_id, pile_poly, camera)
+            detector_structural.record_shadow_decision(
+                request_id=request_id,
+                device_id=device_id,
+                result=struct_result,
+                gemini_disposal=True,
+            )
+            if struct_result.should_reject:
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "structural_shadow_would_reject"
+                            if config.STRUCTURAL_FILTER_MODE == "shadow"
+                            else "structural_enforce_reject",
+                            "request_id": request_id,
+                            "device_id": device_id,
+                            "n_tiles_changed": struct_result.n_tiles_changed,
+                            "threshold": struct_result.threshold,
+                            "reason": struct_result.reason,
+                            "latency_ms": round(struct_result.latency_ms, 1),
+                            "gemini_disposal": True,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+                if config.STRUCTURAL_FILTER_MODE == "enforce":
+                    disposal = False
+            else:
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "structural_pass",
+                            "request_id": request_id,
+                            "device_id": device_id,
+                            "n_tiles_changed": struct_result.n_tiles_changed,
+                            "reason": struct_result.reason,
+                            "mode": config.STRUCTURAL_FILTER_MODE,
                         },
                         ensure_ascii=False,
                     )
@@ -1211,6 +1313,17 @@ def _process_with_gemini_cascade_window(
             camera=camera,
         )
         _register_bgsub_evaluation(bgsub_result, camera=camera)
+        # Durable per-decision ledger (suppress AND pass, with persistence) — the
+        # basis for validating per-camera tuning before un-shadowing a device.
+        bgsub_filter.record_decision(
+            gate_request_id=gate_request_id,
+            device_id=device_id,
+            result=bgsub_result,
+            shadow=device_id in config.BGSUB_SHADOW_DEVICES,
+            threshold=bgsub_filter._camera_attr(
+                camera, "bgsub_persistence_threshold", config.BGSUB_PERSISTENCE_THRESHOLD,
+            ),
+        )
         if bgsub_result.should_suppress:
             bgsub_shadow = device_id in config.BGSUB_SHADOW_DEVICES
             logger.info(
@@ -1236,15 +1349,54 @@ def _process_with_gemini_cascade_window(
                 }
             # Shadow device: log-only — fall through to the gate (no enforcement).
 
+    # ------------------------------------------------------------------------
+    # Crop-to-zone (SUBSTITUTIVE): for configured devices, gate AND detail see
+    # ONLY the pile_zone bbox crop (upscaled) — the model never sees the trash
+    # bin / road outside the zone. Originals (first/last/window) are kept for
+    # evidence/state; crops keep the same filename+order so event_frame_name
+    # maps back to the original. Crops go to a per-device dir overwritten each
+    # window (no /tmp accumulation). Fails open to full-frame on any error.
+    # ------------------------------------------------------------------------
+    g_first, g_last, g_mids, g_inference = first_frame, last_frame, mid_frames, None
+    if device_id in config.CROP_TO_ZONE_DEVICES:
+        cz_bbox = _pile_bbox(getattr(camera, "pile_zone_polygon", None) or [])
+        if cz_bbox:
+            try:
+                cz_dir = Path(config.STATE_DIR) / "cropzone" / device_id
+                shutil.rmtree(cz_dir, ignore_errors=True)
+                cz_dir.mkdir(parents=True, exist_ok=True)
+                uniq = list(dict.fromkeys(
+                    [first_frame, last_frame, *(mid_frames or []), *window_paths]
+                ))
+                _make_pile_crops(uniq, cz_bbox, config.CROP_TO_ZONE_UPSCALE, cz_dir)
+
+                def _cz(p: Path) -> Path:
+                    c = cz_dir / p.name
+                    return c if c.exists() else p
+
+                g_first, g_last = _cz(first_frame), _cz(last_frame)
+                g_mids = [_cz(p) for p in mid_frames] if mid_frames else None
+                g_inference = [_cz(p) for p in window_paths]
+                logger.info(
+                    "crop_to_zone device=%s bbox=%s upscale=%d n=%d",
+                    device_id, cz_bbox, config.CROP_TO_ZONE_UPSCALE, len(window_paths),
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "crop_to_zone failed device=%s err=%s — fallback full-frame",
+                    device_id, exc,
+                )
+                g_first, g_last, g_mids, g_inference = first_frame, last_frame, mid_frames, None
+
     try:
         gate = analyze_new_litter_with_gemini(
-            first_frame=first_frame,
-            last_frame=last_frame,
+            first_frame=g_first,
+            last_frame=g_last,
             camera_context=camera_context,
             request_id=gate_request_id,
             prior_window_context=prior_window_context,
             use_mosaic=config.GEMINI_MOSAIC_AGENT1,
-            mid_frames=mid_frames,
+            mid_frames=g_mids,
             prompt_version=config.GEMINI_PROMPT_VERSION,
         )
         _register_gemini_success(gate.latency_ms, gate.usage, agent="gate", camera=camera)
@@ -1515,13 +1667,16 @@ def _process_with_gemini_cascade_window(
         prior_window_context=prior_window_context,
         agent1_request_id=gate_request_id,
         agent1_confidence=int(gate_report.confidence_0_100),
+        inference_paths=g_inference,
     )
 
     success = bool(agent2_payload.get("success"))
     if not success:
-        _append_cascade_audit(device_id, _audit_record(
+        _audit = _audit_record(
             agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=None,
-        ))
+        )
+        _append_cascade_audit(device_id, _audit)
+        insert_cascade_decision(_audit)
         return None, {
             "provider": "gemini_cascade",
             "success": False,
@@ -1555,9 +1710,11 @@ def _process_with_gemini_cascade_window(
         if config.CAR_SHADOW_ENABLED
         else None
     )
-    _append_cascade_audit(device_id, _audit_record(
+    _audit = _audit_record(
         agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=bool(disposal),
-    ))
+    )
+    _append_cascade_audit(device_id, _audit)
+    insert_cascade_decision(_audit)
     return bool(disposal), {
         "provider": "gemini_cascade",
         "success": True,
@@ -2084,6 +2241,131 @@ def _log_gemini_metrics_snapshot() -> None:
 
 
 # ==========================================
+# EVENT-DRIVEN PROCESSING (Pi relay)
+# ==========================================
+def _gc_orphan_frames(device_dir: Path, device_id: str) -> int:
+    """Mark heartbeat/orphan frames processed WITHOUT any Gemini call.
+
+    For event-driven devices, every frame worth judging is referenced by an
+    event manifest. Anything else (idle heartbeats, spool retries that landed
+    after their manifest was consumed) just ages past ORPHAN_GRACE_SECONDS
+    and is moved to sem_ocorrencia.
+    """
+    pending = event_windows.pending_manifest_frames(device_dir)
+    cutoff = datetime.now(BRASILIA) - timedelta(seconds=config.ORPHAN_GRACE_SECONDS)
+    count = 0
+    for jpg in device_dir.rglob("*.jpg"):
+        if "labeled" in jpg.parts or is_processed(jpg) or jpg.name in pending:
+            continue
+        if parse_timestamp(jpg.name) > cutoff:
+            continue
+        mark_processed(jpg, device_dir, False)
+        count += 1
+    if count:
+        logger.info("Orphan GC: %d frame(s) of %s marked without Gemini", count, device_id)
+    return count
+
+
+def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
+    """Process closed/stale event manifests for an event-driven device.
+
+    Reuses the exact cascade of the windowed path
+    (_process_with_gemini_cascade_window: BGSUB prefilter -> Agent-1 gate ->
+    Agent-2 detail -> _record_detection with coalescing); only the window
+    SELECTION differs — the device's motion gate delimited it already.
+    """
+    processed = 0
+    upload_dir = Path(config.UPLOAD_DIR)
+    manifests = event_windows.discover_ready_manifests(device_dir, datetime.now(BRASILIA))
+
+    for manifest in manifests:
+        frames = event_windows.resolve_manifest_frames(manifest, upload_dir)
+        frames = [f for f in frames if not is_processed(f)]
+
+        # Pré-filtro transiente: o dispositivo fechou o evento sinalizando que
+        # a zona voltou à baseline (nada novo depositado). Descarta sem Gemini
+        # — evita o FP de "pessoa passa perto de objeto já presente na cena".
+        if manifest.closed_reason == "transient":
+            for frame in frames:
+                mark_processed(frame, device_dir, False)
+                processed += 1
+            event_windows.mark_manifest_processed(manifest.path)
+            logger.info(
+                "Event %s/%s transient (zone back to baseline) — skipped Gemini (%d frames)",
+                device_id, manifest.event_id, len(frames),
+            )
+            continue
+
+        if len(frames) < config.EVENT_MIN_FRAMES:
+            logger.info(
+                "Event %s/%s has %d frame(s) (<%d) — skipping Gemini",
+                device_id, manifest.event_id, len(frames), config.EVENT_MIN_FRAMES,
+            )
+            for frame in frames:
+                mark_processed(frame, device_dir, False)
+                processed += 1
+            event_windows.mark_manifest_processed(manifest.path)
+            continue
+
+        window_paths = event_windows.subsample_frames(
+            frames, config.GEMINI_CASCADE_MAX_FRAMES
+        )
+        try:
+            disposal, cascade_payload = _process_with_gemini_cascade_window(
+                window_paths=window_paths,
+                device_id=device_id,
+                camera=camera,
+                persist=True,
+            )
+        except Exception:
+            logger.exception(
+                "Error processing event %s/%s", device_id, manifest.event_id
+            )
+            continue
+
+        if not cascade_payload.get("success"):
+            logger.warning(
+                "Gemini cascade failed for event %s/%s. Keeping manifest for retry.",
+                device_id, manifest.event_id,
+            )
+            continue
+
+        final_disposal = bool(disposal)
+        moved_frames: list[Path] = []
+        for frame in frames:
+            moved = mark_processed(frame, device_dir, final_disposal)
+            moved_frames.append(moved)
+            processed += 1
+        event_windows.mark_manifest_processed(manifest.path)
+
+        if final_disposal:
+            agent2_result = cascade_payload.get("agent2_result") or {}
+            detection_id = agent2_result.get("detection_id")
+            if detection_id:
+                update_detection_event_ref(detection_id, manifest.event_id)
+                _persist_detection_frame_index(
+                    detection_id=detection_id,
+                    device_id=device_id,
+                    moved_frames=moved_frames,
+                    selected_frame_name=agent2_result.get("event_frame_name"),
+                    evidence_summary=agent2_result.get("evidence_summary"),
+                    event_ref=manifest.event_id,
+                )
+                # Confirmed disposal: make the device persist the 2-min clip
+                # from RAM to SD so the platform can request it later.
+                trigger_persist_clip(device_id, manifest.event_id)
+            logger.info(
+                "Disposal event recorded (event-driven): %s / %s (%d frames, reason=%s)",
+                device_id, manifest.event_id, len(frames), manifest.closed_reason,
+            )
+
+    processed += _gc_orphan_frames(device_dir, device_id)
+    if processed > 0:
+        update_camera_last_capture(camera.id)
+    return processed
+
+
+# ==========================================
 # CORE PROCESSING
 # ==========================================
 def scan_and_process() -> int:
@@ -2102,6 +2384,16 @@ def scan_and_process() -> int:
         camera = resolve_camera(device_id)
         if not camera:
             logger.debug("No camera registered for device_id=%s", device_id)
+            continue
+
+        if (
+            device_id in config.EVENT_DRIVEN_DEVICES
+            and config.AI_MODE == "gemini"
+            and config.GEMINI_CASCADE_ENABLED
+        ):
+            # Event-driven path: the device delimits the window (motion
+            # event manifest); never enters _collect_time_windows.
+            processed_count += _process_event_device(device_dir, device_id, camera)
             continue
 
         images = sorted(

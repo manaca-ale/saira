@@ -69,6 +69,16 @@ export interface DetectionAnalyzedFramesResponse {
   frames: DetectionAnalyzedFrame[];
 }
 
+export type DetectionVideoStatus = 'none' | 'requested' | 'available' | 'unavailable';
+
+export interface DetectionVideoResponse {
+  detection_id: string;
+  event_ref?: string | null;
+  status: DetectionVideoStatus;
+  video_url?: string | null;
+  requested_at?: string | null;
+}
+
 function normalizeImageUrl(url?: string | null): string {
   if (!url) return '';
   // Local uploads → same-origin proxy via /uploads/ → esp32-server:5000
@@ -281,6 +291,19 @@ export async function getDetectionAnalyzedFrames(id: string): Promise<DetectionA
       image_url: normalizeImageUrl(frame.image_url),
     })),
   };
+}
+
+export async function getDetectionVideo(id: string): Promise<DetectionVideoResponse> {
+  const response = await api.get<DetectionVideoResponse>(`/detections/${id}/video`);
+  return {
+    ...response.data,
+    video_url: response.data.video_url ? normalizeImageUrl(response.data.video_url) : response.data.video_url,
+  };
+}
+
+export async function requestDetectionVideo(id: string): Promise<DetectionVideoResponse> {
+  const response = await api.post<DetectionVideoResponse>(`/detections/${id}/request-video`);
+  return response.data;
 }
 
 export async function classifyDetection(

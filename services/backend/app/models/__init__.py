@@ -5,6 +5,8 @@ from app.models.notification import Notification, NotificationType
 from app.models.offender import Offender, DetectionOffender, OffenderType, OffenderSource
 from app.models.gemini_call_log import GeminiCallLog
 from app.models.image_export import ImageExport
+from app.models.camera_heartbeat import CameraHeartbeat
+from app.models.cascade_decision import CascadeDecision
 
 __all__ = [
     "User", "Camera", "Detection", "DetectionStatus",
@@ -12,4 +14,6 @@ __all__ = [
     "Offender", "DetectionOffender", "OffenderType", "OffenderSource",
     "GeminiCallLog",
     "ImageExport",
+    "CameraHeartbeat",
+    "CascadeDecision",
 ]

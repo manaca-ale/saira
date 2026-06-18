@@ -220,6 +220,8 @@ services:
       # Default OFF in prod — promote only after a successful test-saira shadow A/B.
       - GEMINI_DETAIL_PILECROP_ENABLED=${GEMINI_DETAIL_PILECROP_ENABLED:-false}
       - DETAIL_PILECROP_DEVICES=${DETAIL_PILECROP_DEVICES:-esp32_002}
+      # Camp 40 high-bar flagrante detail prompt (per-device). Empty = MANGABEIRA_E.
+      - DETAIL_HIGHBAR_DEVICES=${DETAIL_HIGHBAR_DEVICES:-}
       - GEMINI_DETAIL_PILECROP_UPSCALE=${GEMINI_DETAIL_PILECROP_UPSCALE:-2}
       - GEMINI_DETAIL_PILECROP_N_FRAMES=${GEMINI_DETAIL_PILECROP_N_FRAMES:-12}
       - GEMINI_SEQUENCE_SIZE=${GEMINI_SEQUENCE_SIZE:-5}
@@ -264,6 +266,10 @@ services:
       - DINOV2_TORCH_THREADS=${DINOV2_TORCH_THREADS:-2}
       - DINOV2_RETRAIN_DEVICES=${DINOV2_RETRAIN_DEVICES:-esp32_001}
       - DINOV2_RETRAIN_MIN_AUC=${DINOV2_RETRAIN_MIN_AUC:-0.85}
+      # Structural-delta post-detail FP filter (Camp 41); off|shadow|enforce, per-device
+      - STRUCTURAL_FILTER_MODE=${STRUCTURAL_FILTER_MODE:-off}
+      - STRUCTURAL_DEVICES=${STRUCTURAL_DEVICES:-esp32_002}
+      - STRUCTURAL_NTILES_THR=${STRUCTURAL_NTILES_THR:-2}
       # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
       - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
       # Car-stopped shadow detector (parallel to Gemini, audit only)

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, List, Optional
 from uuid import UUID
 from pathlib import Path
@@ -13,11 +13,12 @@ from app.api.deps import get_db, get_current_user
 from app.core.database import AsyncSessionLocal
 from app.core.redis import get_redis
 from app.models.user import User
+from app.models.camera import Camera
 from app.models.detection import Detection, DetectionStatus
 from app.schemas.detection import (
     DetectionCreate, DetectionUpdate, DetectionResponse,
     DetectionClassify, DetectionListResponse,
-    DetectionAnalyzedFramesResponse,
+    DetectionAnalyzedFramesResponse, DetectionVideoResponse,
     DetectionFilterOptionsResponse,
 )
 from app.schemas.detection import DetectionStatus as DetectionStatusSchema
@@ -29,6 +30,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 WORKER_STATE_DIR = Path(os.getenv("WORKER_STATE_DIR", "/app/yolo_state"))
 DETECTION_FRAMES_DIR = WORKER_STATE_DIR / "detection_frames"
+
+# Vídeo sob demanda (dispositivos event-driven / Pi relay).
+ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "").rstrip("/")
+CAMERA_UPLOADS_DIR = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
+VIDEO_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("/")
+VIDEO_REQUEST_TIMEOUT_S = int(os.getenv("VIDEO_REQUEST_TIMEOUT_S", "600"))
 
 # --- Sorting whitelist (previne SQL injection via campo inválido) ---
 DETECTION_SORTABLE_FIELDS: dict[str, Any] = {
@@ -486,3 +493,139 @@ async def classify_detection(
     await db.commit()
     await db.refresh(detection)
     return detection
+
+
+# ==========================================
+# Vídeo sob demanda (dispositivos event-driven / Pi relay)
+# ==========================================
+
+def _video_rel_path(device_id: str, event_ref: str) -> str:
+    return f"videos/{device_id}/{event_ref}.mp4"
+
+
+def _video_public_url(rel_path: str) -> str:
+    if VIDEO_PUBLIC_BASE_URL:
+        return f"{VIDEO_PUBLIC_BASE_URL}/uploads/{rel_path}"
+    return f"/uploads/{rel_path}"
+
+
+async def _detection_with_device(db: AsyncSession, detection_id: UUID):
+    result = await db.execute(
+        select(Detection, Camera.device_id)
+        .join(Camera, Detection.camera_id == Camera.id, isouter=True)
+        .where(Detection.id == detection_id)
+    )
+    row = result.first()
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Detection not found",
+        )
+    return row[0], row[1]
+
+
+@router.post(
+    "/{detection_id}/request-video",
+    response_model=DetectionVideoResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def request_detection_video(
+    detection_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Solicita ao dispositivo o clipe de 2min do evento desta detecção.
+
+    O dispositivo (Raspberry Pi) guarda o clipe localmente e só faz o upload
+    quando recebe este comando (CMD_VIDEO_CLIP:<event_ref> via esp32-server).
+    O mp4 chega de forma assíncrona — acompanhe via GET /{id}/video.
+    """
+    detection, device_id = await _detection_with_device(db, detection_id)
+
+    if not detection.event_ref or not device_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Detecção sem vídeo disponível (dispositivo não event-driven)",
+        )
+    if not ESP32_SERVER_URL:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="ESP32_SERVER_URL não configurado no backend",
+        )
+
+    import httpx
+
+    trigger_url = f"{ESP32_SERVER_URL}/device/{device_id}/trigger"
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.post(
+                trigger_url, json={"cmd": f"CMD_VIDEO_CLIP:{detection.event_ref}"}
+            )
+        resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        logger.warning("request-video trigger failed (%s): %s", trigger_url, exc)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Falha ao enviar comando ao servidor de dispositivos",
+        )
+
+    detection.video_status = "requested"
+    detection.video_requested_at = now_brazil()
+    await db.commit()
+
+    return DetectionVideoResponse(
+        detection_id=detection_id,
+        event_ref=detection.event_ref,
+        status="requested",
+        requested_at=detection.video_requested_at,
+    )
+
+
+@router.get("/{detection_id}/video", response_model=DetectionVideoResponse)
+async def get_detection_video(
+    detection_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Estado do clipe de vídeo da detecção (none/requested/available/unavailable).
+
+    'available' é detectado pela existência do mp4 no volume de uploads
+    (o esp32-server salva em videos/<device>/<event_ref>.mp4 — URL
+    determinística, sem callback). Pedido sem upload após
+    VIDEO_REQUEST_TIMEOUT_S vira 'unavailable' (re-requisitável; se a Pi
+    reconectar e entregar depois, volta a 'available').
+    """
+    detection, device_id = await _detection_with_device(db, detection_id)
+
+    if not detection.event_ref or not device_id:
+        return DetectionVideoResponse(detection_id=detection_id, status="none")
+
+    rel_path = _video_rel_path(device_id, detection.event_ref)
+    if (CAMERA_UPLOADS_DIR / rel_path).is_file():
+        if detection.video_status != "available":
+            detection.video_status = "available"
+            await db.commit()
+        return DetectionVideoResponse(
+            detection_id=detection_id,
+            event_ref=detection.event_ref,
+            status="available",
+            video_url=_video_public_url(rel_path),
+            requested_at=detection.video_requested_at,
+        )
+
+    video_status = detection.video_status or "none"
+    if video_status == "available":
+        # mp4 sumiu do volume (retenção/limpeza) — refletir a realidade.
+        video_status = "unavailable"
+    elif video_status == "requested" and detection.video_requested_at is not None:
+        if now_brazil() - detection.video_requested_at > timedelta(
+            seconds=VIDEO_REQUEST_TIMEOUT_S
+        ):
+            video_status = "unavailable"
+
+    return DetectionVideoResponse(
+        detection_id=detection_id,
+        event_ref=detection.event_ref,
+        status=video_status,
+        requested_at=detection.video_requested_at,
+    )

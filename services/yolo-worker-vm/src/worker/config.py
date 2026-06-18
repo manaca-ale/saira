@@ -65,6 +65,26 @@ PROCESSED_STRATEGY = os.getenv("PROCESSED_STRATEGY", "two_folders")
 # Set to 0 to disable coalescing entirely (every window becomes a new detection).
 EVENT_WINDOW_MIN = int(os.getenv("EVENT_WINDOW_MIN", "10"))
 
+# Event-driven devices (Pi relay with on-device motion gate): these devices
+# upload frames tagged with an event_id and the esp32-server writes a JSON
+# manifest per event. The worker processes the manifest's frame set the
+# moment the event closes (skipping _collect_time_windows entirely), cutting
+# disposal->detection latency from the fixed 120s window to ~one poll cycle.
+EVENT_DRIVEN_DEVICES = {
+    d.strip()
+    for d in os.getenv("EVENT_DRIVEN_DEVICES", "").split(",")
+    if d.strip()
+}
+# Manifest stuck in state=open with no update for this long is treated as
+# closed (device died mid-event / lost end-frame).
+EVENT_STALE_SECONDS = int(os.getenv("EVENT_STALE_SECONDS", "180"))
+# Events with fewer resolved frames than this skip Gemini (GC only).
+EVENT_MIN_FRAMES = int(os.getenv("EVENT_MIN_FRAMES", "3"))
+# Frames of an event-driven device not referenced by any pending manifest
+# (heartbeats, late spool retries) are marked processed without Gemini calls
+# once older than this grace period.
+ORPHAN_GRACE_SECONDS = int(os.getenv("ORPHAN_GRACE_SECONDS", "300"))
+
 # Redis connection string (used for real-time notifications via SSE).
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
@@ -141,6 +161,19 @@ DETAIL_PILECROP_DEVICES = {
 }
 GEMINI_DETAIL_PILECROP_UPSCALE = int(os.getenv("GEMINI_DETAIL_PILECROP_UPSCALE", "2"))
 GEMINI_DETAIL_PILECROP_N_FRAMES = int(os.getenv("GEMINI_DETAIL_PILECROP_N_FRAMES", "12"))
+
+# Crop-to-zone (SUBSTITUTIVE, not additive like pile-crop above). For the listed
+# devices, the gate AND detail receive ONLY the pile_zone bbox crop (upscaled)
+# instead of the full frame — so the model never sees out-of-zone distractors
+# (e.g. a public trash bin the model relativizes as "lixeira"). The ORIGINAL
+# frames are kept for evidence/image_url. Reuses _pile_bbox + _make_pile_crops.
+# Scoped per-device; default OFF (prod unaffected).
+CROP_TO_ZONE_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("CROP_TO_ZONE_DEVICES", "").split(",")
+    if d.strip()
+}
+CROP_TO_ZONE_UPSCALE = int(os.getenv("CROP_TO_ZONE_UPSCALE", "2"))
 
 # -----------------------------------------------------------------------------
 # Sliding-window SHADOW A/B (Camp 36, 2026-06-05). Runs an overlapping sliding
@@ -354,6 +387,33 @@ DINOV2_RETRAIN_DEVICES = {
     if d.strip()
 }
 DINOV2_RETRAIN_MIN_AUC = float(os.getenv("DINOV2_RETRAIN_MIN_AUC", "0.85"))
+
+# -----------------------------------------------------------------------------
+# Structural-delta post-detail FP filter (Camp 41 — esp32_002 Mangabeira).
+# Census-Hamming + micro-tiles, before(1º frame) vs after(último frame) na
+# pile-zone. Medida determinística (cv2+numpy, SEM modelo treinado) ⇒ não sofre
+# o drift do DINOv2; valida offline com holdout temporal estável (AUC 0,83).
+# Modos: "off" (default) | "shadow" (loga o que rejeitaria) | "enforce"
+# (n_tiles_changed < threshold ⇒ disposal=False). Fail-open em toda falha.
+# -----------------------------------------------------------------------------
+STRUCTURAL_FILTER_MODE = os.getenv("STRUCTURAL_FILTER_MODE", "off").strip().lower()
+if STRUCTURAL_FILTER_MODE not in ("off", "shadow", "enforce"):
+    STRUCTURAL_FILTER_MODE = "off"
+STRUCTURAL_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("STRUCTURAL_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+STRUCTURAL_LEDGER_DIR = os.getenv(
+    "STRUCTURAL_LEDGER_DIR", os.path.join(STATE_DIR, "structural")
+)
+STRUCTURAL_TILE = int(os.getenv("STRUCTURAL_TILE", "32"))
+STRUCTURAL_TILE_FRAC = float(os.getenv("STRUCTURAL_TILE_FRAC", "0.50"))
+STRUCTURAL_HAM_THR = int(os.getenv("STRUCTURAL_HAM_THR", "3"))
+STRUCTURAL_MIN_TILE_COVER = int(os.getenv("STRUCTURAL_MIN_TILE_COVER", "24"))
+# Reject (sem depósito) se n_tiles_changed < threshold. Camp 41: thr=2 mantém
+# 86% TP e suprime 63% dos B3 (ponto de operação do piso de recall).
+STRUCTURAL_NTILES_THR = int(os.getenv("STRUCTURAL_NTILES_THR", "2"))
 
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.

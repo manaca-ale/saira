@@ -37,5 +37,10 @@ class Detection(Base):
     classified_at = Column(DateTime(timezone=True), nullable=True)
     classified_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     validity_comment = Column(Text, nullable=True)
+    # Evento de movimento no dispositivo (clipe de 2min correlacionado).
+    # Preenchido pelo worker para dispositivos event-driven (Pi relay).
+    event_ref = Column(String(64), nullable=True, index=True)
+    video_status = Column(String(16), nullable=True)  # requested | available | unavailable
+    video_requested_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=now_brazil)
     updated_at = Column(DateTime(timezone=True), default=now_brazil, onupdate=now_brazil)

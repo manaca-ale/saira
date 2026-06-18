@@ -1196,6 +1196,16 @@ def set_device_config(device_id: str):
         "crop_y",
         "crop_w",
         "crop_h",
+        # Raspberry Pi motion-gate keys (compact JSON allowed as value)
+        "pile_zone_polygon",
+        "motion_enabled",
+        "motion_min_px_active",
+        "motion_warmup_s",
+        "event_max_s",
+        "event_end_quiet_s",
+        "event_min_residual_px",
+        "burst_interval_ms",
+        "idle_analyze_interval_ms",
     }
     cleaned: dict[str, str] = {}
     for k, v in payload.items():
@@ -1203,10 +1213,32 @@ def set_device_config(device_id: str):
         if kk in allowed:
             cleaned[kk] = v.strip()
 
+    # Merge semantics: overlay posted keys on the existing config instead of
+    # rewriting the whole file (a partial POST used to silently drop every
+    # key it did not mention). An empty value removes the key.
+    existing: dict[str, str] = {}
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if "=" not in line:
+                        continue
+                    k, _, v = line.partition("=")
+                    k = k.strip().lower()
+                    if k and k != "version":
+                        existing[k] = v.strip()
+        except OSError:
+            existing = {}
+    for k, v in cleaned.items():
+        if v == "":
+            existing.pop(k, None)
+        else:
+            existing[k] = v
+
     version = datetime.now(BRAZIL_TZ).strftime("%Y-%m-%d_%H-%M-%S")
     lines = [f"version={version}"]
-    for k in sorted(cleaned.keys()):
-        lines.append(f"{k}={cleaned[k]}")
+    for k in sorted(existing.keys()):
+        lines.append(f"{k}={existing[k]}")
     body = "\n".join(lines) + "\n"
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -1238,23 +1270,126 @@ VIDEO_ROOT = os.path.join(
 MAX_VIDEO_BYTES = _int_env("MAX_VIDEO_BYTES", 200 * 1024 * 1024, minimum=1024 * 1024)
 
 
+COMMAND_QUEUE_DEPTH = _int_env("COMMAND_QUEUE_DEPTH", 4, minimum=1)
+# Pending command strings per device, used to collapse identical duplicates
+# (keeps the reconnect-flood protection that maxsize=1 used to provide) while
+# letting distinct commands (e.g. CMD_BULK_UPLOAD + CMD_PERSIST_CLIP:<id>)
+# coexist in the queue. NOTE: queue + dedup set are in-memory, so command
+# delivery requires GUNICORN_WORKERS=1 (already the deployed configuration).
+_sse_pending: dict[str, set] = {}
+
+
 def _get_or_create_sse_queue(device_id: str):
     with _sse_lock:
         if device_id not in _sse_queues:
-            # maxsize=1: only one pending trigger per device at a time.
-            # Prevents flood when device reconnects after an offline period.
             # Uses gevent.queue.Queue when available so get(timeout=N) is truly
             # cooperative and wakes immediately when an item is put().
-            _sse_queues[device_id] = _Queue(maxsize=1)
+            _sse_queues[device_id] = _Queue(maxsize=COMMAND_QUEUE_DEPTH)
         return _sse_queues[device_id]
 
 
 def _push_sse_cmd(device_id: str, cmd: str) -> None:
     q = _get_or_create_sse_queue(device_id)
-    try:
-        q.put_nowait(cmd)
-    except _QueueFull:
-        pass  # already one pending — discard duplicate
+    with _sse_lock:
+        pending = _sse_pending.setdefault(device_id, set())
+        if cmd in pending:
+            return  # identical command already queued — collapse duplicate
+        try:
+            q.put_nowait(cmd)
+        except _QueueFull:
+            return
+        pending.add(cmd)
+
+
+def _pop_sse_cmd(device_id: str, timeout: float) -> str:
+    """Blocking queue get that also clears the dedup marker.
+
+    Raises _QueueEmpty on timeout (same contract as queue.get).
+    """
+    q = _get_or_create_sse_queue(device_id)
+    cmd = q.get(timeout=timeout)
+    with _sse_lock:
+        _sse_pending.get(device_id, set()).discard(cmd)
+    return cmd
+
+
+# ---------------------------------------------------------------------------
+# Motion-event manifests (event-driven devices, e.g. Raspberry Pi relay)
+# ---------------------------------------------------------------------------
+# Event-driven devices tag uploads with event_id/event_state form fields. The
+# server maintains one JSON manifest per event under
+# {UPLOAD_ROOT}/{device_id}/events/{event_id}.json so the YOLO worker (which
+# shares the uploads volume) can process the exact frame set of an event as
+# soon as it closes, instead of waiting for a fixed time window.
+
+_EVENT_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+# "end_transient": fecha o evento sinalizando que a zona voltou à baseline
+# (nada novo depositado) — o worker descarta sem chamar o Gemini.
+_EVENT_STATES = {"start", "active", "end", "end_transient", "heartbeat"}
+_event_manifest_lock = threading.Lock()
+
+
+def _sanitize_event_id(event_id: str) -> Optional[str]:
+    event_id = (event_id or "").strip()
+    if not event_id or not _EVENT_ID_RE.fullmatch(event_id):
+        return None
+    return event_id
+
+
+def _event_manifest_path(device_id: str, event_id: str) -> str:
+    return os.path.join(UPLOAD_ROOT, device_id, "events", f"{event_id}.json")
+
+
+def _update_event_manifest(
+    device_id: str, event_id: str, state: str, frame_rel_url: Optional[str]
+) -> None:
+    """Create/append/close the event manifest atomically (.tmp + rename).
+
+    A greenlet lock plus a per-manifest flock guard the read-modify-write so
+    the file stays consistent even if gunicorn ever runs multiple workers.
+    """
+    path = _event_manifest_path(device_id, event_id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    now_iso = datetime.now(BRAZIL_TZ).isoformat()
+    lock_path = path + ".lock"
+    with _event_manifest_lock:
+        lock_fh = open(lock_path, "a")
+        try:
+            try:
+                import fcntl
+
+                fcntl.flock(lock_fh.fileno(), fcntl.LOCK_EX)
+            except ImportError:
+                pass  # non-POSIX dev box — greenlet lock alone is enough
+            manifest: dict = {}
+            if os.path.isfile(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        manifest = json.load(f)
+                except (OSError, ValueError):
+                    manifest = {}
+            if not manifest:
+                manifest = {
+                    "event_id": event_id,
+                    "device_id": device_id,
+                    "state": "open",
+                    "started_at": now_iso,
+                    "closed_reason": None,
+                    "frames": [],
+                }
+            manifest["updated_at"] = now_iso
+            if frame_rel_url and frame_rel_url not in manifest["frames"]:
+                manifest["frames"].append(frame_rel_url)
+            if state in ("end", "end_transient") and manifest.get("state") != "closed":
+                manifest["state"] = "closed"
+                manifest["closed_reason"] = "transient" if state == "end_transient" else "end"
+                manifest["closed_at"] = now_iso
+            tmp_path = path + ".tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(manifest, f, ensure_ascii=False)
+            os.replace(tmp_path, path)
+        finally:
+            lock_fh.close()
 
 
 @app.route("/device/<device_id>/events", methods=["GET"])
@@ -1263,13 +1398,11 @@ def device_events(device_id: str):
     if not _sanitize_device_id(device_id):
         return {"error": "Invalid device id"}, 400
 
-    q = _get_or_create_sse_queue(device_id)
-
     def generate():
         yield ": connected\n\n"
         while True:
             try:
-                cmd = q.get(timeout=SSE_HEARTBEAT_SECONDS)
+                cmd = _pop_sse_cmd(device_id, timeout=SSE_HEARTBEAT_SECONDS)
                 yield f"data: {cmd}\n\n"
             except _QueueEmpty:
                 yield ": heartbeat\n\n"
@@ -1314,9 +1447,8 @@ def device_poll(device_id: str):
         return {"error": "Invalid device id"}, 400
 
     timeout_s = _int_env("POLL_TIMEOUT_SECONDS", 25, minimum=5)
-    q = _get_or_create_sse_queue(device_id)
     try:
-        cmd = q.get(timeout=timeout_s)
+        cmd = _pop_sse_cmd(device_id, timeout=timeout_s)
         return {"cmd": cmd}, 200
     except _QueueEmpty:
         return {"cmd": None}, 200
@@ -1388,10 +1520,17 @@ def device_video_clip(device_id: str):
     if not _sanitize_device_id(device_id):
         return {"error": "Invalid device id"}, 400
 
-    ts_str = datetime.now(CAPTURE_FILENAME_TZ).strftime("%Y%m%d_%H%M%S")
+    # When the clip answers CMD_VIDEO_CLIP:<event_id>, the device passes the
+    # event id back so the file lands at a deterministic, correlatable URL
+    # (videos/<device>/<event_id>.mp4). Legacy clips keep the timestamp name.
+    event_id = _sanitize_event_id(request.args.get("event_id", ""))
     save_dir = os.path.join(VIDEO_ROOT, device_id)
     os.makedirs(save_dir, exist_ok=True)
-    fname = f"{ts_str}.mp4"
+    if event_id:
+        fname = f"{event_id}.mp4"
+    else:
+        ts_str = datetime.now(CAPTURE_FILENAME_TZ).strftime("%Y%m%d_%H%M%S")
+        fname = f"{ts_str}.mp4"
     save_path = os.path.join(save_dir, fname)
 
     total = 0
@@ -1548,14 +1687,34 @@ def upload_file():
         )
         return {"error": "Empty filename"}, 400
 
+    # Optional motion-event metadata (event-driven devices, e.g. Pi relay).
+    # Legacy uploads (no event fields) keep the exact same path/naming.
+    event_id = _sanitize_event_id(request.form.get("event_id", ""))
+    event_state = (request.form.get("event_state") or "").strip().lower()
+    if event_state not in _EVENT_STATES:
+        event_state = ""
+
     # Build path: {device_id}/YYYY/MM/DD/HH-MM-SS.jpg
+    # Event frames get a microsecond suffix: burst cadence is sub-second-safe
+    # (the 1s-resolution legacy name silently overwrites same-second uploads).
     dt = datetime.now(CAPTURE_FILENAME_TZ)
-    timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S")
+    if event_id:
+        timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S-%f")
+    else:
+        timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"{timestamp_str}.jpg"
     rel_path = os.path.join(device_id, dt.strftime("%Y/%m/%d"), filename)
     save_path = os.path.join(UPLOAD_ROOT, rel_path)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file.save(save_path)
+
+    if event_id:
+        try:
+            _update_event_manifest(
+                device_id, event_id, event_state, rel_path.replace(os.sep, "/")
+            )
+        except OSError as exc:
+            print(f"WARNING: event manifest update failed ({event_id}): {exc}", flush=True)
 
     _upload_ok_count += 1
     if (_upload_ok_count % UPLOAD_LOG_EVERY) == 0:
@@ -1573,6 +1732,71 @@ def upload_file():
         "device_id": device_id,
         "filename": rel_url,
         "image_url": image_url,
+    }, 200
+
+@app.route("/upload-batch", methods=["POST"])
+def upload_batch():
+    """Recebe VÁRIOS frames de um evento num único POST (event-driven em lote).
+
+    Campos multipart: N x `imageFile` + `event_id` + `event_state` (único para
+    o lote). Cada frame é salvo e anexado ao manifesto do evento; o manifesto
+    só fecha se `event_state` for terminal (end/end_transient). A lógica de
+    manifesto é a mesma do /upload — só amortiza o round-trip do 4G."""
+    global _upload_ok_count
+
+    raw_device_id = request.headers.get("X-Device-Id", "").strip()
+    device_id = _sanitize_device_id(raw_device_id) if raw_device_id else None
+    if not device_id:
+        device_id = "unknown_device"
+        print(f"WARNING: upload-batch X-Device-Id invalido/ausente: {raw_device_id!r}", flush=True)
+
+    files = [f for f in request.files.getlist("imageFile") if f and f.filename != ""]
+    if not files:
+        return {"error": "Missing imageFile"}, 400
+
+    event_id = _sanitize_event_id(request.form.get("event_id", ""))
+    event_state = (request.form.get("event_state") or "").strip().lower()
+    if event_state not in _EVENT_STATES:
+        event_state = ""
+
+    saved: list[str] = []
+    for idx, file in enumerate(files):
+        dt = datetime.now(CAPTURE_FILENAME_TZ)
+        # Sufixo de índice garante nome único e ORDEM estável mesmo que dois
+        # frames caiam no mesmo microssegundo (o worker ordena por nome).
+        timestamp_str = dt.strftime("%Y-%m-%d_%H-%M-%S-%f") + f"-{idx:03d}"
+        filename = f"{timestamp_str}.jpg"
+        rel_path = os.path.join(device_id, dt.strftime("%Y/%m/%d"), filename)
+        save_path = os.path.join(UPLOAD_ROOT, rel_path)
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        file.save(save_path)
+        saved.append(rel_path.replace(os.sep, "/"))
+
+    if event_id and saved:
+        try:
+            # Anexa todos os frames como "active" (não fecha no meio do lote)…
+            for rel in saved:
+                _update_event_manifest(device_id, event_id, "active", rel)
+            # …e fecha uma única vez se este for o lote terminal do evento.
+            if event_state in ("end", "end_transient"):
+                _update_event_manifest(device_id, event_id, event_state, None)
+        except OSError as exc:
+            print(f"WARNING: batch manifest update failed ({event_id}): {exc}", flush=True)
+
+    _upload_ok_count += len(saved)
+    _record_device_event(
+        device_id, "upload", f"Lote recebido: {len(saved)} frames (event={event_id or '-'})"
+    )
+    print(
+        f"Batch recebido: {len(saved)} frames (device={device_id}, event={event_id or '-'}, "
+        f"state={event_state or '-'})",
+        flush=True,
+    )
+    return {
+        "status": "ok",
+        "device_id": device_id,
+        "saved": len(saved),
+        "frames": saved,
     }, 200
 
 @app.route("/status", methods=["POST"])

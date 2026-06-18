@@ -1,0 +1,80 @@
+id,status,bucket,created_at,n_tiles_changed
+01c9e4c7-1152-40a3-97e7-842e957950d3,CONFIRMADO,TP,2026-05-29 10:43:50-03,0
+6834dad7-364e-4b1c-b8b4-75d01af73619,CONFIRMADO,TP,2026-05-29 11:08:25-03,2
+01e54259-23b3-4ce2-8645-c7ce5a693c0b,CONFIRMADO,TP,2026-05-29 11:45:34-03,0
+3af136cd-1c3d-4c4f-8840-b59ec14cb368,REJEITADO,B3, mas nõa descarta nada,1
+9d71a737-36f3-4e67-8a61-2c8b64516f6d,REJEITADO,B1B2, sem deposito novo,0
+0e865565-8518-4ae1-9cbb-8d4d31447439,REJEITADO,B1B2, mas não deposita nada,0
+9085ad0e-cd1f-4113-a6f1-f80c3e92ba15,CONFIRMADO,TP,2026-05-30 09:33:11-03,1
+7aefa8da-1293-4b25-997a-0f2db3b4b6bf,REJEITADO,B3,2026-05-30 13:55:33-03,4
+d7822b53-f0c2-466e-bb40-3f5235c0bef9,CONFIRMADO,TP,2026-06-04 15:28:39-03,7
+bcb8038c-7982-4f03-8169-074b48c1b629,CONFIRMADO,TP,2026-06-04 15:41:49-03,9
+a5a72209-6f36-44c2-b3b2-69dab4445103,CONFIRMADO,TP, às 20h45,3
+8f208f36-bd32-499a-80b8-b9a7a2037f1e,REJEITADO,B3,2026-06-05 10:19:58-03,0
+f4187c1e-f96b-4b8e-a865-88b1d2677b56,REJEITADO,B3,2026-06-05 13:39:49-03,0
+278a25cd-bae2-4555-8dca-4277121a34d1,REJEITADO,B3,2026-06-05 19:24:18-03,0
+d05407dc-7c5b-4bad-a13a-966a0afb4dce,REJEITADO,B3,2026-06-06 02:41:03-03,2
+7dd7fc21-e593-4045-a676-d22471f529ea,REJEITADO,B3,2026-06-06 07:23:20-03,0
+ce13f76c-f4cb-4e54-a51f-895d249721d6,CONFIRMADO,TP, realizada por um carroceiro.,8
+47ef561c-faf2-4289-9023-69bc878d597d,REJEITADO,B3,2026-06-06 15:31:00-03,1
+3435b0a8-b485-4189-b7c4-1e2d39a031f3,REJEITADO,B3,2026-06-06 16:02:25-03,0
+b3b3505d-f1e9-4c7a-b601-c689193d25ac,REJEITADO,B3,2026-06-06 17:09:39-03,1
+66187ce6-1963-4f50-b533-b33058af41a4,REJEITADO,B3,2026-06-06 23:26:19-03,0
+5ecd9bed-95f7-4c5a-ba80-cb82accaf6db,REJEITADO,B3,2026-06-07 02:24:44-03,1
+bb4ff82a-8a3c-44d6-9fca-7cde48091c85,REJEITADO,B3,2026-06-07 09:01:50-03,0
+6328e4e6-6c29-4f54-b4eb-87b9687d7472,CONFIRMADO,TP, cidadão com carro de mão.,0
+9734831a-7dca-4815-90af-ded8a4830d6e,REJEITADO,B3,2026-06-07 14:48:25-03,1
+7d78bc0b-c885-45c1-8557-a7f879ba0256,REJEITADO,B3,2026-06-07 21:43:10-03,14
+50c32313-8a37-4d32-bb19-fd945b288c7e,CONFIRMADO,TP, provavelmente,6
+bba91276-0677-4e75-98c5-85d14323562f,REJEITADO,B3, não constatamos descarte irregular.,0
+4d8b8659-b413-4780-9ebf-282a926a3858,REJEITADO,B3, não constatamos descarte irregular.,0
+3d245b0d-7634-411f-aced-0aedd450d959,REJEITADO,B3, não constatamos descarte irregular.,0
+71d9f186-fdb6-4fd2-9ac6-af8fad424a21,REJEITADO,B3, constatamos que não houve descarte irregular,2
+a70adde9-334c-4e8e-87c4-6bb0c61ae65d,REJEITADO,B3, constatamos que não houve descarte irregular ,0
+9d6d4ede-883b-4904-9552-255307c2313b,REJEITADO,B3, constatamos que não houve descarte irregular,2
+c584359b-ab46-4fb0-925e-931daf825c68,REJEITADO,B3, não constatamos o descarte irregular.,0
+40ee3a04-1707-4b4f-840d-57be627f4fe4,REJEITADO,B3, não constatamos o descarte irregular.,1
+f0028803-7630-4044-9146-609f9029c8ae,REJEITADO,B3, não constatamos o descarte irregular.,0
+fc7b1ca1-0d40-490f-b3cc-514e3d8a4229,REJEITADO,B3, não constatamos o descarte irregular,0
+dc28f6db-88c6-43fe-80d1-4cc61c1efe6f,REJEITADO,B3, não constatamos o descarte irregular,2
+a00ba69c-99b8-4a1c-a766-e28f9da3c9e7,REJEITADO,B3, não constatamos o descarte irregular,3
+7f70fb50-13fd-439f-888f-0925b99920ac,REJEITADO,B3, não constatamos o descarte irregular,9
+7ab5880b-f9eb-440f-8cdc-3a638f2275ac,REJEITADO,B3, não constatamos o descarte irregular,2
+5066ab54-19df-48f3-b581-f1d9735b4a40,REJEITADO,B3, não constatamos o descarte irregular,10
+711dd084-24bd-4b75-97dc-e2febabbd908,REJEITADO,B3,2026-06-11 10:07:05-03,3
+098d3182-916a-42b4-96a1-b40139d6f108,REJEITADO,B3, houve um recolhimento de lixo,2
+435d39f1-7dfc-47aa-9ae9-157aa3086679,REJEITADO,B3, apenas recolhimento feito por um catador,4
+709008ea-9033-4b6c-89ab-e8e29aef6847,REJEITADO,B3,2026-06-11 11:31:55-03,0
+3ee3f599-1dcd-480b-9e95-6d90f54d8b23,REJEITADO,B3,2026-06-11 12:03:40-03,1
+6b8b1210-1b6b-4e4c-8cb5-6245b43c9140,REJEITADO,B3, apenas movimentação de catadores de recicláveis.,0
+05b2ada1-24cd-4914-af6a-9b9e196dea7f,REJEITADO,B3, apenas movimentação de catadores.,0
+1061d861-2b3e-43fb-86ca-f03cab0cde0d,REJEITADO,B3,2026-06-11 19:34:43-03,0
+3e5978c8-969d-4719-9b4e-84ff52c8d8a3,CONFIRMADO,TP, provavelmente domiciliar,0
+5b3aa975-354f-41b0-aa77-e8fe4a1b8b54,REJEITADO,B3, apenas a presença de catadores.,0
+05bc1c5f-be02-4555-89fd-e8038337ae62,REJEITADO,B3, apenas a presença de catadores de recicláveis.,1
+dbcdd93d-9dfa-4201-b5b6-5f4149a1d4e3,REJEITADO,B3, apenas a presença de catadores de recicláveis.,2
+33f519f6-7210-48b3-a70a-0ca99c1be14c,CONFIRMADO,TP,2026-06-12 05:37:50-03,0
+fb4b9b69-fb46-4019-b10c-9d3c946a9cef,CONFIRMADO,TP,2026-06-12 10:56:35-03,2
+bf82562e-6194-4a99-8fec-1fd14f9c540d,CONFIRMADO,TP, às 11h14,0
+7c569100-f1db-4b08-8503-bbc160d19cb2,REJEITADO,B3,2026-06-12 12:27:39-03,3
+0c806ecb-c9bf-416f-bbe6-0e5761390323,REJEITADO,B3, constatamos que huve coleta de material já existente.,0
+c187d85b-d655-449a-b2ad-bc267d13d0df,CONFIRMADO,TP, conforme imagens. Insp. Nery procedeu com o devido procedimento.,6
+aa059727-40c6-460e-891e-9e53f05759da,REJEITADO,B3,2026-06-12 15:32:20-03,0
+480845e3-751b-44ad-b1ef-055919d44bab,REJEITADO,B3,2026-06-12 20:23:09-03,2
+b2c26aaf-8230-4b6f-876e-e1fd2e6741e1,CONFIRMADO,TP, alguns sacos de lixo,5
+57c281bb-b90b-4871-89d9-22ef53fe1354,REJEITADO,B3,2026-06-13 11:04:51-03,1
+666eefa3-e712-4542-a3d8-5f9a77b4c106,CONFIRMADO,TP,2026-06-13 11:48:51-03,1
+a38c3ef7-7e81-4c61-b75c-747efc2c856f,REJEITADO,B3, apenas o pessoal da Emlurb fazendo a limpeza do local,4
+ac992453-da1c-4fa4-a5e1-aa7af4197963,REJEITADO,B3,2026-06-13 17:31:26-03,1
+03fd747c-59b6-4474-98de-0582fb0bfced,REJEITADO,B3,2026-06-13 19:54:11-03,1
+b1507cac-07a0-4351-b3fd-91527c8a4ba3,REJEITADO,B3,2026-06-13 21:58:01-03,1
+b3b1bf2e-eae5-43f3-b21e-24eba88597f1,REJEITADO,B3, apenas uma movimentação de pessoas físicas,3
+4abd0693-ac43-4b5b-a2d2-a79b230db6c2,REJEITADO,B3,2026-06-14 05:49:07-03,0
+648da35a-741e-4759-9e41-d7b1dba58851,REJEITADO,B3,2026-06-14 11:05:34-03,0
+addf88a1-648f-4226-b137-2e34a28d504c,REJEITADO,B3, apenas passeio de transeuntes.,1
+72cdd2a2-38ed-463f-9837-54568e100497,REJEITADO,B3, apenas passeio de transeuntes.,0
+eebdb0c8-4fdf-4e43-ab93-2b741099e82a,REJEITADO,B3, apenas passeio de transeuntes.,0
+a74e4d55-f540-42d5-b253-ea629dc8f512,REJEITADO,B1B2,2026-06-15 11:03:43-03,2
+2930d263-2bdb-4e3e-926f-d183a5d5824e,REJEITADO,B3, apenas passeio de transeuntes.,0
+33d9e7ff-5796-4824-919c-215cdcdab36c,REJEITADO,B3,2026-06-15 12:48:53-03,0
+9ec54844-be93-4f19-90f0-b84c999b945d,REJEITADO,B3, apenas passeio de transeuntes e veículos.,0
