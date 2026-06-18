@@ -1,7 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { AlertCircle, Camera, Clock3, Focus, MapPin, Radio, X, ZoomIn } from "lucide-react";
+import {
+  AlertCircle,
+  Camera,
+  Clock3,
+  Focus,
+  ImageOff,
+  MapPin,
+  Radio,
+  RefreshCw,
+  X,
+  ZoomIn,
+} from "lucide-react";
 import {
   cameraAutofocus,
+  getLatestCameraImageFromFolder,
+  requestCameraSnapshot,
   setCameraZoom,
   type Camera as CameraEntity,
 } from "../services/cameraService";
@@ -94,6 +107,41 @@ export const CameraModal: React.FC<CameraModalProps> = ({
   const [zoomStatus, setZoomStatus] = useState<
     "idle" | "sending" | "done" | "error"
   >("idle");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageBusy, setImageBusy] = useState(false);
+
+  // Busca a última imagem (cache-bust por timestamp p/ refletir frames novos).
+  const fetchImage = async () => {
+    if (cameraId == null) return;
+    try {
+      const latest = await getLatestCameraImageFromFolder(cameraId);
+      if (latest?.image_url) {
+        const sep = latest.image_url.includes("?") ? "&" : "?";
+        setImageUrl(`${latest.image_url}${sep}t=${Date.now()}`);
+      }
+    } catch {
+      /* mantém a imagem atual */
+    }
+  };
+
+  // A Pi sobe um snapshot ~10-15s após aplicar zoom/autofoco; rebusca algumas vezes.
+  const scheduleImageRefresh = () => {
+    window.setTimeout(fetchImage, 8000);
+    window.setTimeout(fetchImage, 15000);
+  };
+
+  // Botão "atualizar": pede um frame fresco sob demanda e rebusca.
+  const refreshImage = async () => {
+    if (cameraId == null || imageBusy) return;
+    setImageBusy(true);
+    try {
+      await requestCameraSnapshot(cameraId);
+      await new Promise((r) => window.setTimeout(r, 3500));
+      await fetchImage();
+    } finally {
+      setImageBusy(false);
+    }
+  };
 
   const applyZoom = async (value: number) => {
     if (cameraId == null) return;
@@ -101,6 +149,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     try {
       await setCameraZoom(cameraId, value);
       setZoomStatus("done");
+      scheduleImageRefresh();
     } catch {
       setZoomStatus("error");
     }
@@ -112,10 +161,20 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     try {
       await cameraAutofocus(cameraId);
       setZoomStatus("done");
+      scheduleImageRefresh();
     } catch {
       setZoomStatus("error");
     }
   };
+
+  // Carrega a imagem ao abrir o modal de edição.
+  useEffect(() => {
+    setImageUrl(null);
+    if (cameraId != null) {
+      void fetchImage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraId]);
 
   useEffect(() => {
     if (!initialData) {
@@ -357,9 +416,35 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-gray-500 mb-4">
-                Zoom óptico da lente motorizada (Intelbras). Aplica em ~2-4s; a
-                imagem atualiza no Painel de Câmeras.
+                Zoom óptico da lente motorizada (Intelbras). Aplica em ~5-15s; a
+                imagem abaixo atualiza sozinha após o comando.
               </p>
+
+              <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-gray-100 mb-4">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt="Imagem atual da câmera"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                    <ImageOff size={28} />
+                    <span className="text-xs font-medium">Sem imagem</span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={refreshImage}
+                  disabled={imageBusy}
+                  title="Atualizar imagem"
+                  className="absolute top-2 right-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/55 hover:bg-black/70 text-white text-xs font-semibold backdrop-blur-sm transition-colors disabled:opacity-60"
+                >
+                  <RefreshCw size={14} className={imageBusy ? "animate-spin" : ""} />
+                  Atualizar
+                </button>
+              </div>
+
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-500 w-12 shrink-0">Aberto</span>
                 <input
