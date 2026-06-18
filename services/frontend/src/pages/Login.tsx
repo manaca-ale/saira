@@ -22,6 +22,13 @@ export const Login: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { signIn, signInWithConecta } = useAuth();
 
+  // Destino pós-login: ?next=/rota (apenas caminhos internos; nunca volta ao /login).
+  const nextParam = searchParams.get("next");
+  const redirectTarget =
+    nextParam && nextParam.startsWith("/") && !nextParam.startsWith("/login")
+      ? nextParam
+      : "/dashboard";
+
   // --- Login Form State ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,7 +74,7 @@ export const Login: React.FC = () => {
 
     try {
       await signIn({ email, password });
-      navigate("/dashboard");
+      navigate(redirectTarget);
     } catch (err) {
       setError("Email ou senha incorretos.");
     } finally {
@@ -79,7 +86,7 @@ export const Login: React.FC = () => {
     setError("");
     setConectaLoading(true);
     try {
-      await signInWithConecta("/dashboard");
+      await signInWithConecta(redirectTarget);
     } catch (err: any) {
       setError(err?.message || "Falha ao iniciar login com Conecta Recife");
       setConectaLoading(false);
