@@ -8,6 +8,7 @@ import {
   History,
   Bell,
   Camera as CameraIcon,
+  BarChart3,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -25,6 +26,7 @@ export const Sidebar: React.FC = () => {
 
   const menuItems = [
     { icon: LayoutDashboard, path: "/dashboard" },
+    { icon: BarChart3, path: "/indicadores" }, // Indicadores de Resultado (Anexo II)
     { icon: History, path: "/history" }, // NEW: History Page Link
     { icon: CameraIcon, path: "/cameras" },
     { icon: Cctv, path: "/detections" },

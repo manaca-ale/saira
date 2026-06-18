@@ -29,7 +29,9 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.core.redis import get_redis
+from app.core.timezone import now_brazil
 from app.models.camera import Camera
+from app.models.camera_heartbeat import CameraHeartbeat
 from app.services.email_service import parse_recipients, send_email
 from app.utils.uploads import find_latest_image_for_device
 
@@ -133,9 +135,12 @@ async def run_offline_check() -> None:
         return
 
     recipients = _recipients()
-    if not recipients:
-        logger.warning("offline_monitor: sem destinatários (OFFLINE_ALERT_RECIPIENTS) — pulando")
-        return
+    can_email = bool(recipients)
+    if not can_email:
+        logger.warning(
+            "offline_monitor: sem destinatários (OFFLINE_ALERT_RECIPIENTS) — "
+            "registrando heartbeat mas sem enviar e-mail"
+        )
 
     threshold = settings.CAMERA_OFFLINE_THRESHOLD_SECONDS
     realert = settings.CAMERA_OFFLINE_REALERT_SECONDS
@@ -151,6 +156,9 @@ async def run_offline_check() -> None:
         return
 
     now = time.time()
+    checked_at = now_brazil()
+    # Série temporal de conectividade (indicador I1). 1 linha por câmera por ciclo.
+    heartbeats: list[tuple[int, str | None, bool]] = []
     for cam in cameras:
         try:
             latest = find_latest_image_for_device(cam.device_id)
@@ -163,6 +171,13 @@ async def run_offline_check() -> None:
                 age = now - mtime
                 last_iso = datetime.fromtimestamp(mtime, BRT).strftime("%Y-%m-%d %H:%M:%S %Z")
                 offline = age > threshold
+
+            cam_id = getattr(cam, "id", None)
+            if cam_id is not None:
+                heartbeats.append((cam_id, cam.device_id, not offline))
+
+            if not can_email:
+                continue
 
             active_key = _ACTIVE_KEY.format(device_id=cam.device_id)
             cooldown_key = _COOLDOWN_KEY.format(device_id=cam.device_id)
@@ -182,6 +197,23 @@ async def run_offline_check() -> None:
                     _send_recovery_email(recipients, cam, last_iso)
         except Exception:
             logger.exception("offline_monitor: erro avaliando device=%s", cam.device_id)
+
+    # Persiste os heartbeats do ciclo (best-effort; nunca derruba o monitor).
+    if heartbeats:
+        try:
+            async with AsyncSessionLocal() as db:
+                db.add_all(
+                    CameraHeartbeat(
+                        checked_at=checked_at,
+                        camera_id=cam_id,
+                        device_id=dev_id,
+                        is_online=online,
+                    )
+                    for cam_id, dev_id, online in heartbeats
+                )
+                await db.commit()
+        except Exception:
+            logger.exception("offline_monitor: falha ao gravar camera_heartbeats")
 
 
 def start_offline_monitor() -> None:

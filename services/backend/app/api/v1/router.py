@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     reports,
     billing,
     exports,
+    indicators,
 )
 
 api_router = APIRouter()
@@ -31,3 +32,4 @@ api_router.include_router(geocoding.router, prefix="/geocoding", tags=["geocodin
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(billing.router, prefix="/billing", tags=["billing"])
 api_router.include_router(exports.router, prefix="/exports", tags=["exports"])
+api_router.include_router(indicators.router, prefix="/indicators", tags=["indicators"])

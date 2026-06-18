@@ -483,6 +483,57 @@ def insert_gemini_call_log(
             _put_conn(conn)
 
 
+def insert_cascade_decision(rec: dict) -> None:
+    """Best-effort insert into cascade_decisions. Never raises.
+
+    Persiste cada avaliação do Agent-2 (inclusive REJEIÇÕES, que antes só viviam
+    no gemini_cascade_audit/*.jsonl) para alimentar os indicadores I4a
+    (assertividade do modelo) e I3 (qualidade da identificação). ``rec`` é o
+    mesmo dict do audit JSONL (ver main.py:_audit_record).
+    """
+    if _pool is None:
+        return
+    conn = None
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO cascade_decisions (
+                evaluated_at, camera_id, device_id, agent1_confidence,
+                agent2_success, agent2_disposal, offender_present,
+                offender_crop_extracted, detection_id
+            ) VALUES (
+                NOW(), %s, %s, %s,
+                %s, %s, %s,
+                %s, %s
+            )
+            """,
+            (
+                rec.get("camera_id"),
+                rec.get("device_id"),
+                rec.get("agent1_confidence"),
+                bool(rec.get("agent2_success")),
+                rec.get("agent2_disposal"),
+                rec.get("agent2_offender_detected"),
+                rec.get("agent2_has_offender_bbox"),
+                rec.get("detection_id"),
+            ),
+        )
+        conn.commit()
+        cur.close()
+    except Exception:
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        logger.exception("insert_cascade_decision failed (non-fatal)")
+    finally:
+        if conn is not None:
+            _put_conn(conn)
+
+
 def publish_detection_event(detection: DetectionRecord, camera: CameraInfo) -> None:
     """Publish a new_detection event to Redis so the backend SSE stream delivers
     it to the frontend NotificationToastContainer."""

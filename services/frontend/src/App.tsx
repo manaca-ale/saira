@@ -12,6 +12,7 @@ import { UsersPage } from "./pages/UsersPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { CamerasSettingsPage } from "./pages/CamerasSettingsPage";
 import { CameraSnapshotsPage } from "./pages/CameraSnapshotsPage";
+import { IndicadoresPage } from "./pages/IndicadoresPage";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { NotificationToastContainer } from "./components/NotificationToast";
 
@@ -24,6 +25,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/login/callback" element={<ConectaCallback />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/indicadores" element={<IndicadoresPage />} />
           <Route path="/detections" element={<Detections />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/history" element={<HistoryPage />} />

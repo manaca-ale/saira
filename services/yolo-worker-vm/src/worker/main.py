@@ -25,6 +25,7 @@ from . import event_windows
 from .db import (
     find_recent_detection_for_camera,
     init_connections,
+    insert_cascade_decision,
     insert_detection,
     insert_notifications,
     insert_offenders,
@@ -1671,9 +1672,11 @@ def _process_with_gemini_cascade_window(
 
     success = bool(agent2_payload.get("success"))
     if not success:
-        _append_cascade_audit(device_id, _audit_record(
+        _audit = _audit_record(
             agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=None,
-        ))
+        )
+        _append_cascade_audit(device_id, _audit)
+        insert_cascade_decision(_audit)
         return None, {
             "provider": "gemini_cascade",
             "success": False,
@@ -1707,9 +1710,11 @@ def _process_with_gemini_cascade_window(
         if config.CAR_SHADOW_ENABLED
         else None
     )
-    _append_cascade_audit(device_id, _audit_record(
+    _audit = _audit_record(
         agent2_ran=True, agent2_payload_obj=agent2_payload, disposal_value=bool(disposal),
-    ))
+    )
+    _append_cascade_audit(device_id, _audit)
+    insert_cascade_decision(_audit)
     return bool(disposal), {
         "provider": "gemini_cascade",
         "success": True,
