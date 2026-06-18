@@ -216,7 +216,8 @@ export const IndicadoresPage: React.FC = () => {
     );
   }
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    // Preserva o destino para o login retornar aqui após autenticar.
+    return <Navigate to={`/login?next=${encodeURIComponent("/indicadores")}`} replace />;
   }
 
   return (
