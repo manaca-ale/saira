@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Sidebar } from "../components/Sidebar";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { Tooltip } from "../components/Tooltip";
 import { Info, ArrowUpRight, ArrowDownRight, Loader2, Lock } from "lucide-react";
 import {
@@ -142,9 +143,12 @@ export const IndicadoresPage: React.FC = () => {
   const [i4, setI4] = useState<DetectionAccuracy | null>(null);
   const [i5, setI5] = useState<DossierCompleteness | null>(null);
 
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
   const range = useMemo(() => ({ start, end }), [start, end]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     let cancelled = false;
     setLoading(true);
     Promise.all([
@@ -174,7 +178,7 @@ export const IndicadoresPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [range]);
+  }, [range, isAuthenticated]);
 
   const setQuickRange = (days: number) => {
     setStart(daysAgo(days - 1));
@@ -203,10 +207,21 @@ export const IndicadoresPage: React.FC = () => {
       ]
     : [];
 
+  // Página standalone, mas restrita: exige login (sem o menu lateral do app).
+  if (authLoading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-[#f8f9fa]">
+        <Loader2 className="animate-spin text-gray-400" size={28} />
+      </div>
+    );
+  }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
-    <div className="flex h-full bg-[#f8f9fa] font-sans relative">
-      <Sidebar />
-      <main className="flex-1 ml-20 p-4 md:p-8 h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto bg-[#f8f9fa] font-sans">
+      <main className="max-w-7xl mx-auto p-4 md:p-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl font-bold text-[#1a1a1a]">Indicadores de Resultado</h1>
           {loading && <Loader2 className="animate-spin text-gray-400" size={20} />}
