@@ -12,6 +12,25 @@ from typing import Optional
 
 UPLOADS_ROOT = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+KEEPALIVE_MARKER = ".keepalive"
+
+
+def find_last_keepalive_for_device(device_id: str) -> Optional[float]:
+    """Return the mtime of the device's keepalive marker, or None.
+
+    The esp32-server touches {device_id}/.keepalive on POST /device/<id>/keepalive.
+    This lets a device stay "online" without uploading an image (e.g. the
+    event-driven Pi relay, which only sends frames on real events / on demand).
+    Kept separate from find_latest_image_for_device so the marker is never shown
+    as a preview image.
+    """
+    if not device_id:
+        return None
+    marker = UPLOADS_ROOT / device_id / KEEPALIVE_MARKER
+    try:
+        return marker.stat().st_mtime
+    except OSError:
+        return None
 
 
 def find_latest_image_for_device(device_id: str) -> Optional[tuple[Path, float]]:

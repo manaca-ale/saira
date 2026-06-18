@@ -88,3 +88,16 @@ export async function getLatestCameraImageFromFolder(
   const response = await api.get<CameraLatestImage>(`/cameras/${cameraId}/latest-image`);
   return response.data ?? null;
 }
+
+/**
+ * Pede um frame atual sob demanda (dispositivos event-driven, ex.: Pi, que não
+ * mandam mais heartbeat-imagem). Best-effort: dispositivos que ignoram o comando
+ * (esp32) não falham. Após chamar, espere ~3s e rebusque getLatestCameraImageFromFolder.
+ */
+export async function requestCameraSnapshot(cameraId: number): Promise<void> {
+  try {
+    await api.post(`/cameras/${cameraId}/request-snapshot`);
+  } catch (error) {
+    console.warn(`request-snapshot falhou p/ câmera ${cameraId}:`, error);
+  }
+}

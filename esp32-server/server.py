@@ -1200,6 +1200,7 @@ def set_device_config(device_id: str):
         "pile_zone_polygon",
         "motion_enabled",
         "motion_min_px_active",
+        "motion_delta_start_px",
         "motion_warmup_s",
         "event_max_s",
         "event_end_quiet_s",
@@ -1798,6 +1799,26 @@ def upload_batch():
         "saved": len(saved),
         "frames": saved,
     }, 200
+
+@app.route("/device/<device_id>/keepalive", methods=["POST"])
+def device_keepalive(device_id: str):
+    """Keepalive leve (sem imagem): faz touch num marcador que o offline_monitor
+    do backend lê para manter a câmera 'online' sem gastar 4G com um frame.
+    Usado por dispositivos event-driven (Pi relay) que só sobem imagem em
+    evento real / sob demanda."""
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+    marker = os.path.join(UPLOAD_ROOT, device_id, ".keepalive")
+    try:
+        os.makedirs(os.path.dirname(marker), exist_ok=True)
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write(datetime.now(BRAZIL_TZ).isoformat())
+    except OSError as exc:
+        print(f"WARNING: keepalive marker falhou ({device_id}): {exc}", flush=True)
+        return {"error": "marker write failed"}, 500
+    _record_device_event(device_id, "keepalive", "keepalive")
+    return {"status": "ok", "device_id": device_id}, 200
+
 
 @app.route("/status", methods=["POST"])
 def receive_status():
