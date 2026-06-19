@@ -102,6 +102,16 @@ export async function requestCameraSnapshot(cameraId: number): Promise<void> {
   }
 }
 
+/**
+ * As câmeras ESP32 não aceitam comandos remotos (snapshot sob demanda, zoom)
+ * nem têm lente motorizada. Dispositivos event-driven (ex.: Pi/Intelbras) sim.
+ * Discrimina por device_id (esp32* = sem controle remoto).
+ */
+export function cameraSupportsRemoteControl(deviceId?: string | null): boolean {
+  const d = (deviceId || "").trim().toLowerCase();
+  return d.length > 0 && !d.startsWith("esp32");
+}
+
 /** Ajusta o zoom óptico (0 = aberto, 1 = aproximado). Só dispositivos com lente
  *  motorizada (Pi/Intelbras) reagem; aplica em ~2-4s e sobe um frame novo. */
 export async function setCameraZoom(cameraId: number, zoom: number): Promise<void> {

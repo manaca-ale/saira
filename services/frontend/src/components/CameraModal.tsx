@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import {
   cameraAutofocus,
+  cameraSupportsRemoteControl,
   getLatestCameraImageFromFolder,
   requestCameraSnapshot,
   setCameraZoom,
@@ -407,7 +408,8 @@ export const CameraModal: React.FC<CameraModalProps> = ({
             onPositionChange={handleMapPositionChange}
           />
 
-          {cameraId != null ? (
+          {cameraId != null &&
+          cameraSupportsRemoteControl(initialData?.device_id) ? (
             <div className="rounded-2xl border border-gray-200 p-5">
               <div className="flex items-center gap-2 mb-1">
                 <ZoomIn size={18} className="text-gray-700" />

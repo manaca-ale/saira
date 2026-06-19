@@ -10,6 +10,7 @@ import {
 import { Sidebar } from "../components/Sidebar";
 import { CameraDetailsModal } from "../components/CameraDetailsModal";
 import {
+  cameraSupportsRemoteControl,
   getCameras,
   getLatestCameraImageFromFolder,
   requestCameraSnapshot,
@@ -18,8 +19,10 @@ import {
 } from "../services/cameraService";
 import { formatDateTimeBrazil } from "../utils/datetime";
 
-// Imagem é sob demanda: ao abrir o painel e ao clicar "Atualizar agora" pedimos
-// um frame fresco (request-snapshot) e esperamos o dispositivo subir antes de ler.
+// Câmeras event-driven (Pi): imagem sob demanda — request-snapshot ao abrir e no
+// "Atualizar agora". Câmeras esp32 (sobem no timer, sem comando remoto): seguem no
+// auto-poll de 30s (só GET da última imagem; não custa 4G da câmera).
+const POLLING_INTERVAL_MS = 30_000;
 const SNAPSHOT_WAIT_MS = 3_500;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -88,10 +91,22 @@ export const CameraSnapshotsPage: React.FC = () => {
     return Object.fromEntries(entries) as SnapshotMap;
   };
 
-  // Dispara request-snapshot (best-effort) para cada câmera — só os dispositivos
-  // event-driven (Pi) reagem; esp32 ignoram (já mandam no timer).
+  // Pede frame fresco sob demanda — SÓ p/ dispositivos que aceitam comando remoto
+  // (Pi event-driven). As esp32 não pollam comandos, então pular evita chamada inútil.
   const requestSnapshots = async (list: CameraEntity[]): Promise<void> => {
-    await Promise.allSettled(list.map((c) => requestCameraSnapshot(c.id)));
+    const remote = list.filter((c) => cameraSupportsRemoteControl(c.device_id));
+    if (remote.length === 0) return;
+    await Promise.allSettled(remote.map((c) => requestCameraSnapshot(c.id)));
+  };
+
+  // Auto-poll leve (só GET da última imagem) — mantém as esp32 (que sobem no
+  // timer) com imagem fresca no painel; não dispara captura nem custa 4G da câmera.
+  const pollSnapshots = async (): Promise<void> => {
+    const list = camerasRef.current;
+    if (list.length === 0) return;
+    const next = await fetchSnapshots(list);
+    setSnapshots(next);
+    setLastRefreshAt(new Date());
   };
 
   const refreshSnapshots = async (listArg?: CameraEntity[]): Promise<void> => {
@@ -137,7 +152,16 @@ export const CameraSnapshotsPage: React.FC = () => {
     };
   }, []);
 
-  // Sem auto-poll: a imagem é sob demanda (abrir painel + "Atualizar agora").
+  // Auto-poll de 30s (GET da última imagem) — para as esp32 always-on. As
+  // Pi event-driven recebem frame fresco no open/refresh (request-snapshot).
+  useEffect(() => {
+    if (isInitialLoading) return;
+    const id = window.setInterval(() => {
+      void pollSnapshots();
+    }, POLLING_INTERVAL_MS);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialLoading]);
 
   useEffect(() => {
     const tick = window.setInterval(() => setNow(new Date()), 1000);
