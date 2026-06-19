@@ -120,6 +120,11 @@ class Config:
     # fim do evento). Bound do delay = N frames, independente da duração.
     event_batch_size: int
     heartbeat_interval_s: int
+    # "image" = legado (sobe um frame no idle p/ manter a câmera online + thumb no
+    # painel). "keepalive" = só um POST leve /keepalive (sem imagem) — corta 4G;
+    # a câmera fica online pelo marcador, e a imagem do painel vem de evento/sob
+    # demanda. Event-driven (Pi): use "keepalive".
+    heartbeat_mode: str
     warmup_seconds: int
     event_end_quiet_s: int
     event_max_s: int
@@ -161,6 +166,7 @@ class Config:
     # URLs derivadas
     upload_url: str = field(init=False)
     batch_upload_url: str = field(init=False)
+    keepalive_url: str = field(init=False)
     config_url: str = field(init=False)
     poll_url: str = field(init=False)
     bulk_upload_url: str = field(init=False)
@@ -170,6 +176,7 @@ class Config:
         base = self.ec2_base.rstrip("/")
         object.__setattr__(self, "upload_url", f"{base}/upload")
         object.__setattr__(self, "batch_upload_url", f"{base}/upload-batch")
+        object.__setattr__(self, "keepalive_url", f"{base}/device/{self.device_id}/keepalive")
         object.__setattr__(self, "config_url", f"{base}/device/{self.device_id}/config.txt")
         object.__setattr__(self, "poll_url", f"{base}/device/{self.device_id}/poll")
         object.__setattr__(self, "bulk_upload_url", f"{base}/device/{self.device_id}/bulk-upload")
@@ -207,6 +214,7 @@ def load_config() -> Config:
         burst_upload_interval_s=_env_float("BURST_UPLOAD_INTERVAL", 1.5, minimum=0.5),
         event_batch_size=_env_int("EVENT_BATCH_SIZE", 0, minimum=0),
         heartbeat_interval_s=_env_int("HEARTBEAT_INTERVAL", 60, minimum=10),
+        heartbeat_mode=_env("HEARTBEAT_MODE", "image").strip().lower(),
         warmup_seconds=_env_int("WARMUP_SECONDS", 90, minimum=10),
         event_end_quiet_s=_env_int("EVENT_END_QUIET_SECONDS", 10, minimum=3),
         event_max_s=_env_int("EVENT_MAX_SECONDS", 120, minimum=30),

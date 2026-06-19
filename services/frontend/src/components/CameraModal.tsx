@@ -1,6 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { AlertCircle, Camera, Clock3, MapPin, Radio, X } from "lucide-react";
-import type { Camera as CameraEntity } from "../services/cameraService";
+import {
+  AlertCircle,
+  Camera,
+  Clock3,
+  Focus,
+  ImageOff,
+  MapPin,
+  Radio,
+  RefreshCw,
+  X,
+  ZoomIn,
+} from "lucide-react";
+import {
+  cameraAutofocus,
+  getLatestCameraImageFromFolder,
+  requestCameraSnapshot,
+  setCameraZoom,
+  type Camera as CameraEntity,
+} from "../services/cameraService";
 import type { GeocodingResult } from "../types/geocoding";
 import { AddressSearch } from "./AddressSearch";
 import { CameraMapPicker } from "./CameraMapPicker";
@@ -81,6 +98,83 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     is_active: true,
   });
   const [formError, setFormError] = useState("");
+
+  // Controle de zoom ao vivo (só ao editar — precisa do id da câmera). O comando
+  // roteia pelo dispositivo (Pi), então é assíncrono (~2-4s) e best-effort: só
+  // câmeras com lente motorizada (Intelbras) reagem.
+  const cameraId = initialData?.id ?? null;
+  const [zoom, setZoom] = useState(0);
+  const [zoomStatus, setZoomStatus] = useState<
+    "idle" | "sending" | "done" | "error"
+  >("idle");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageBusy, setImageBusy] = useState(false);
+
+  // Busca a última imagem (cache-bust por timestamp p/ refletir frames novos).
+  const fetchImage = async () => {
+    if (cameraId == null) return;
+    try {
+      const latest = await getLatestCameraImageFromFolder(cameraId);
+      if (latest?.image_url) {
+        const sep = latest.image_url.includes("?") ? "&" : "?";
+        setImageUrl(`${latest.image_url}${sep}t=${Date.now()}`);
+      }
+    } catch {
+      /* mantém a imagem atual */
+    }
+  };
+
+  // A Pi sobe um snapshot ~10-15s após aplicar zoom/autofoco; rebusca algumas vezes.
+  const scheduleImageRefresh = () => {
+    window.setTimeout(fetchImage, 8000);
+    window.setTimeout(fetchImage, 15000);
+  };
+
+  // Botão "atualizar": pede um frame fresco sob demanda e rebusca.
+  const refreshImage = async () => {
+    if (cameraId == null || imageBusy) return;
+    setImageBusy(true);
+    try {
+      await requestCameraSnapshot(cameraId);
+      await new Promise((r) => window.setTimeout(r, 3500));
+      await fetchImage();
+    } finally {
+      setImageBusy(false);
+    }
+  };
+
+  const applyZoom = async (value: number) => {
+    if (cameraId == null) return;
+    setZoomStatus("sending");
+    try {
+      await setCameraZoom(cameraId, value);
+      setZoomStatus("done");
+      scheduleImageRefresh();
+    } catch {
+      setZoomStatus("error");
+    }
+  };
+
+  const triggerAutofocus = async () => {
+    if (cameraId == null) return;
+    setZoomStatus("sending");
+    try {
+      await cameraAutofocus(cameraId);
+      setZoomStatus("done");
+      scheduleImageRefresh();
+    } catch {
+      setZoomStatus("error");
+    }
+  };
+
+  // Carrega a imagem ao abrir o modal de edição.
+  useEffect(() => {
+    setImageUrl(null);
+    if (cameraId != null) {
+      void fetchImage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraId]);
 
   useEffect(() => {
     if (!initialData) {
@@ -312,6 +406,89 @@ export const CameraModal: React.FC<CameraModalProps> = ({
             longitude={formData.longitude ? parseFloat(formData.longitude) : null}
             onPositionChange={handleMapPositionChange}
           />
+
+          {cameraId != null ? (
+            <div className="rounded-2xl border border-gray-200 p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <ZoomIn size={18} className="text-gray-700" />
+                <span className="text-sm font-bold text-gray-700">
+                  Controle de zoom (ao vivo)
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">
+                Zoom óptico da lente motorizada (Intelbras). Aplica em ~5-15s; a
+                imagem abaixo atualiza sozinha após o comando.
+              </p>
+
+              <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-gray-100 mb-4">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt="Imagem atual da câmera"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                    <ImageOff size={28} />
+                    <span className="text-xs font-medium">Sem imagem</span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={refreshImage}
+                  disabled={imageBusy}
+                  title="Atualizar imagem"
+                  className="absolute top-2 right-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/55 hover:bg-black/70 text-white text-xs font-semibold backdrop-blur-sm transition-colors disabled:opacity-60"
+                >
+                  <RefreshCw size={14} className={imageBusy ? "animate-spin" : ""} />
+                  Atualizar
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 w-12 shrink-0">Aberto</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  onMouseUp={() => applyZoom(zoom)}
+                  onTouchEnd={() => applyZoom(zoom)}
+                  onKeyUp={() => applyZoom(zoom)}
+                  className="flex-1 accent-[#a3e635] cursor-pointer"
+                  aria-label="Zoom óptico"
+                />
+                <span className="text-xs text-gray-500 w-10 shrink-0 text-right">
+                  Tele
+                </span>
+                <span className="text-sm font-mono font-bold text-gray-700 w-12 shrink-0 text-right">
+                  {Math.round(zoom * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <button
+                  type="button"
+                  onClick={triggerAutofocus}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition-colors"
+                >
+                  <Focus size={16} /> Autofoco
+                </button>
+                <span className="text-xs">
+                  {zoomStatus === "sending" ? (
+                    <span className="text-gray-500">Enviando…</span>
+                  ) : zoomStatus === "done" ? (
+                    <span className="text-emerald-600">
+                      Comando enviado — atualize o painel para ver.
+                    </span>
+                  ) : zoomStatus === "error" ? (
+                    <span className="text-red-600">Falha ao enviar o comando.</span>
+                  ) : null}
+                </span>
+              </div>
+            </div>
+          ) : null}
 
           <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-gray-100">
             <button

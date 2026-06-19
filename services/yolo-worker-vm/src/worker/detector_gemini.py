@@ -423,23 +423,53 @@ def _call_model(
     )
 
 
-def _extract_usage(resp) -> GeminiUsage:
+# Preços por modelo (USD por 1M tokens) — (input, output). A taxa de output
+# também se aplica aos tokens de THINKING. Fallback = config (preço único legado).
+_MODEL_PRICES = {
+    "gemini-2.5-flash-lite": (0.10, 0.40),
+    "gemini-2.5-flash": (0.30, 2.50),
+}
+
+
+def _price_key(model_name: str) -> str:
+    """Normaliza nomes versionados (ex.: gemini-2.5-flash-002) para a chave de preço."""
+    m = (model_name or "").strip().lower()
+    if "flash-lite" in m:
+        return "gemini-2.5-flash-lite"
+    if "flash" in m:
+        return "gemini-2.5-flash"
+    return ""
+
+
+def _extract_usage(resp, model_name: str = "") -> GeminiUsage:
     metadata = getattr(resp, "usage_metadata", None)
     if not metadata:
         return GeminiUsage()
 
     input_tokens = int(getattr(metadata, "prompt_token_count", 0) or 0)
     output_tokens = int(getattr(metadata, "candidates_token_count", 0) or 0)
-    total_tokens = int(getattr(metadata, "total_token_count", 0) or (input_tokens + output_tokens))
+    # Tokens de "thinking": faturados na taxa de OUTPUT mas NÃO vêm em
+    # candidates_token_count. Sem contá-los, o custo do detail (flash + thinking)
+    # era subestimado em ~10x.
+    thinking_tokens = int(getattr(metadata, "thoughts_token_count", 0) or 0)
+    total_tokens = int(
+        getattr(metadata, "total_token_count", 0)
+        or (input_tokens + output_tokens + thinking_tokens)
+    )
 
+    in_price, out_price = _MODEL_PRICES.get(
+        _price_key(model_name),
+        (config.GEMINI_INPUT_TOKEN_PRICE_PER_1M, config.GEMINI_OUTPUT_TOKEN_PRICE_PER_1M),
+    )
     estimated_cost = (
-        (input_tokens / 1_000_000.0) * config.GEMINI_INPUT_TOKEN_PRICE_PER_1M
-        + (output_tokens / 1_000_000.0) * config.GEMINI_OUTPUT_TOKEN_PRICE_PER_1M
+        (input_tokens / 1_000_000.0) * in_price
+        + ((output_tokens + thinking_tokens) / 1_000_000.0) * out_price
     )
 
     return GeminiUsage(
         input_tokens=input_tokens,
         output_tokens=output_tokens,
+        thinking_tokens=thinking_tokens,
         total_tokens=total_tokens,
         estimated_cost_usd=round(estimated_cost, 8),
     )
@@ -728,7 +758,7 @@ def analyze_with_gemini(
                 elif use_audit:
                     report = _prompts_audit.apply_audit_consistency(report, request_id=request_id)
 
-                usage = _extract_usage(response)
+                usage = _extract_usage(response, config.GEMINI_MODEL)
                 latency_ms = int((time.monotonic() - started) * 1000)
 
                 logger.info(
@@ -740,6 +770,7 @@ def analyze_with_gemini(
                             "latency_ms": latency_ms,
                             "input_tokens": usage.input_tokens,
                             "output_tokens": usage.output_tokens,
+                            "thinking_tokens": usage.thinking_tokens,
                             "total_tokens": usage.total_tokens,
                         },
                         ensure_ascii=False,
@@ -925,7 +956,7 @@ def analyze_new_litter_with_gemini(
                         report.new_litter_detected = True
                         report.confidence_0_100 = max(report.confidence_0_100, 85)
 
-                usage = _extract_usage(response)
+                usage = _extract_usage(response, model_name)
                 latency_ms = int((time.monotonic() - started) * 1000)
                 logger.info(
                     json.dumps(
@@ -936,6 +967,7 @@ def analyze_new_litter_with_gemini(
                             "latency_ms": latency_ms,
                             "input_tokens": usage.input_tokens,
                             "output_tokens": usage.output_tokens,
+                            "thinking_tokens": usage.thinking_tokens,
                             "total_tokens": usage.total_tokens,
                             "first_frame": first_frame.name,
                             "last_frame": last_frame.name,

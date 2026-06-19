@@ -43,15 +43,21 @@ def test_records_reject_and_pass(tmp_path):
     assert pas["should_reject"] is False and pas["n_tiles_changed"] == 9
 
 
-def test_skips_non_scored_reasons(tmp_path):
-    for reason in ("skipped_disabled", "skipped_not_targeted", "skipped_no_polygon",
-                   "skipped_no_frames", "error"):
+def test_records_all_reasons_including_skips(tmp_path):
+    # Skips/errors MUST be recorded too — sem isso os fail-opens ficam invisíveis e
+    # o shadow parece coletar dados quando não roda (bug 2026-06-18: 3 de 26 logavam).
+    reasons = ("skipped_no_polygon", "skipped_no_frames", "error_unreadable",
+               "error_shape", "skipped_one_frame")
+    for reason in reasons:
         record_shadow_decision(
             request_id=f"req-{reason}", device_id="esp32_002",
             result=StructFilterResult(should_reject=False, reason=reason),
             gemini_disposal=True, models_dir=str(tmp_path),
         )
-    assert _read_ledger(tmp_path) == []
+    rows = _read_ledger(tmp_path)
+    assert len(rows) == len(reasons)
+    assert {r["reason"] for r in rows} == set(reasons)
+    assert all(r["should_reject"] is False for r in rows)
 
 
 def test_never_raises_on_bad_dir(tmp_path):

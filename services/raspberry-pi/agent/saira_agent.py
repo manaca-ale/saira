@@ -350,9 +350,14 @@ class Agent:
                 self._spool_and_upload(data, event_id=decision.event_id, event_state=state)
             return
 
-        # idle/recover: heartbeat esparso mantém câmera "online" no painel.
+        # idle/recover: mantém a câmera "online" no painel.
         if now - self._last_upload_at >= self._heartbeat_interval:
-            self._spool_and_upload(data)
+            if self.cfg.heartbeat_mode == "keepalive":
+                # Sem imagem: só um ping leve (corta 4G). A imagem do painel vem
+                # de evento ou sob demanda (CMD_SNAPSHOT).
+                self._post_keepalive()
+            else:
+                self._spool_and_upload(data)
 
     def _poll_synthetic(self, now: float) -> Optional[tuple[str, str]]:
         """Avança o evento sintético (SIGUSR1), devolvendo (event_id, state)."""
@@ -575,6 +580,99 @@ class Agent:
         log.warning("Upload HTTP %s (%s)", resp.status_code, frame_path.name)
         return False
 
+    def _post_keepalive(self) -> None:
+        """Ping leve (sem imagem): o servidor faz touch num marcador que o
+        offline_monitor lê para manter a câmera 'online' no painel. ~100 bytes
+        vs ~290KB de um frame — corta o 4G do heartbeat."""
+        try:
+            resp = self._ec2_session.post(self.cfg.keepalive_url, timeout=10)
+            if resp.status_code == 200:
+                self._last_upload_at = time.time()  # reusa o relógio do heartbeat
+            else:
+                log.debug("Keepalive HTTP %s", resp.status_code)
+        except requests.RequestException as exc:
+            log.debug("Keepalive falhou: %s", exc)
+
+    def _upload_snapshot_now(self) -> None:
+        """CMD_SNAPSHOT: sobe UM frame atual sob demanda (abrir painel / "atualizar
+        agora"). Sem event_id → vira a "última imagem" do painel, não dispara o
+        worker. Lê o latest.jpg do RTSP (≈1s fresco); cai para o snapshot HTTP."""
+        data: bytes | None = None
+        try:
+            raw = self.cfg.snapshot_jpg.read_bytes()
+            if len(raw) >= 500 and raw[:2] == b"\xff\xd8":
+                data = raw
+        except OSError:
+            pass
+        if data is None:
+            data = self._fetch_snapshot_http()
+        if data:
+            self._spool_and_upload(data)
+            log.info("CMD_SNAPSHOT: frame enviado (%d bytes)", len(data))
+        else:
+            log.warning("CMD_SNAPSHOT: sem frame disponível")
+
+    # ----- controle de zoom (lente motorizada Intelbras/Dahua) -----------
+    def _camera_base(self) -> str:
+        """http://host[:porta] extraído do IP_CAM_URL (a câmera só é alcançável
+        de dentro da LAN da Pi)."""
+        from urllib.parse import urlparse
+        with self._lock:
+            u = urlparse(self._cam_url)
+        return f"{u.scheme or 'http'}://{u.netloc}"
+
+    def _devvideo(self, action: str, **params):
+        with self._lock:
+            user, pwd = self._cam_user, self._cam_pass
+        return self._cam_session.get(
+            f"{self._camera_base()}/cgi-bin/devVideoInput.cgi",
+            params={"action": action, "channel": 0, **params},
+            auth=HTTPDigestAuth(user, pwd),
+            timeout=self.cfg.cam_timeout_s,
+        )
+
+    def _read_zoom(self) -> float | None:
+        try:
+            for line in self._devvideo("getFocusStatus").text.splitlines():
+                k, _, v = line.partition("=")
+                if k.strip().lower().endswith(".zoom"):
+                    return float(v.strip())
+        except (requests.RequestException, ValueError):
+            pass
+        return None
+
+    def _handle_zoom_cmd(self, arg: str) -> None:
+        """CMD_ZOOM:<0-1> — zoom óptico absoluto (0=aberto, 1=tele). Reenvia o
+        adjustFocus até convergir (a lente ignora comando durante autofoco),
+        roda autofoco e sobe um frame pro painel refletir o novo enquadramento."""
+        try:
+            target = max(0.0, min(1.0, float(arg)))
+        except ValueError:
+            log.warning("CMD_ZOOM arg inválido: %s", arg)
+            return
+        try:
+            for _ in range(8):
+                self._devvideo("adjustFocus", zoom=f"{target:.4f}", focus=f"{target:.4f}")
+                time.sleep(1.5)
+                z = self._read_zoom()
+                if z is not None and abs(z - target) <= 0.03:
+                    break
+            self._devvideo("autoFocus")
+        except requests.RequestException as exc:
+            log.warning("CMD_ZOOM falhou: %s", exc)
+            return
+        log.info("CMD_ZOOM: zoom=%.2f aplicado (lido=%s)", target, self._read_zoom())
+        self._upload_snapshot_now()
+
+    def _handle_autofocus_cmd(self) -> None:
+        try:
+            self._devvideo("autoFocus")
+            log.info("CMD_AUTOFOCUS aplicado")
+        except requests.RequestException as exc:
+            log.warning("CMD_AUTOFOCUS falhou: %s", exc)
+            return
+        self._upload_snapshot_now()
+
     def _pending_frames(self) -> list[Path]:
         frames = sorted(self.cfg.spool_dir.glob("*.jpg"), reverse=True)  # mais novo primeiro
         return [f for f in frames if not f.with_name(f.name + UPLOADED_SUFFIX).exists()]
@@ -702,6 +800,12 @@ class Agent:
                     self._clips.persist_clip(arg)
                 elif name == "CMD_BULK_UPLOAD":
                     self._bulk_upload_spool()
+                elif name == "CMD_SNAPSHOT":
+                    self._upload_snapshot_now()
+                elif name == "CMD_ZOOM" and arg:
+                    self._handle_zoom_cmd(arg)
+                elif name == "CMD_AUTOFOCUS":
+                    self._handle_autofocus_cmd()
                 else:
                     log.warning("Comando desconhecido: %s", cmd)
             except Exception:  # noqa: BLE001

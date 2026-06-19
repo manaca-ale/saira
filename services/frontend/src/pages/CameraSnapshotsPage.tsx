@@ -12,12 +12,16 @@ import { CameraDetailsModal } from "../components/CameraDetailsModal";
 import {
   getCameras,
   getLatestCameraImageFromFolder,
+  requestCameraSnapshot,
   type Camera as CameraEntity,
   type CameraLatestImage,
 } from "../services/cameraService";
 import { formatDateTimeBrazil } from "../utils/datetime";
 
-const POLLING_INTERVAL_MS = 30_000;
+// Imagem é sob demanda: ao abrir o painel e ao clicar "Atualizar agora" pedimos
+// um frame fresco (request-snapshot) e esperamos o dispositivo subir antes de ler.
+const SNAPSHOT_WAIT_MS = 3_500;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type SnapshotMap = Record<number, CameraLatestImage | null>;
 
@@ -84,11 +88,19 @@ export const CameraSnapshotsPage: React.FC = () => {
     return Object.fromEntries(entries) as SnapshotMap;
   };
 
-  const refreshSnapshots = async (): Promise<void> => {
-    const list = camerasRef.current;
+  // Dispara request-snapshot (best-effort) para cada câmera — só os dispositivos
+  // event-driven (Pi) reagem; esp32 ignoram (já mandam no timer).
+  const requestSnapshots = async (list: CameraEntity[]): Promise<void> => {
+    await Promise.allSettled(list.map((c) => requestCameraSnapshot(c.id)));
+  };
+
+  const refreshSnapshots = async (listArg?: CameraEntity[]): Promise<void> => {
+    const list = listArg ?? camerasRef.current;
     if (list.length === 0) return;
     setIsRefreshing(true);
     try {
+      await requestSnapshots(list); // pede frame fresco sob demanda
+      await sleep(SNAPSHOT_WAIT_MS); // espera o dispositivo capturar + subir
       const next = await fetchSnapshots(list);
       setSnapshots(next);
       setBrokenImages(new Set());
@@ -105,10 +117,14 @@ export const CameraSnapshotsPage: React.FC = () => {
         const list = await getCameras({ limit: 100 });
         if (cancelled) return;
         setCameras(list);
+        // Mostra a última imagem conhecida na hora (instantâneo)...
         const initialSnapshots = await fetchSnapshots(list);
         if (cancelled) return;
         setSnapshots(initialSnapshots);
         setLastRefreshAt(new Date());
+        setIsInitialLoading(false);
+        // ...e pede UM frame fresco ao abrir o painel (sob demanda).
+        if (!cancelled) await refreshSnapshots(list);
       } catch (error) {
         console.error("Failed to load cameras:", error);
       } finally {
@@ -121,13 +137,7 @@ export const CameraSnapshotsPage: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (isInitialLoading) return;
-    const interval = window.setInterval(() => {
-      refreshSnapshots();
-    }, POLLING_INTERVAL_MS);
-    return () => window.clearInterval(interval);
-  }, [isInitialLoading]);
+  // Sem auto-poll: a imagem é sob demanda (abrir painel + "Atualizar agora").
 
   useEffect(() => {
     const tick = window.setInterval(() => setNow(new Date()), 1000);

@@ -33,7 +33,7 @@ from app.core.timezone import now_brazil
 from app.models.camera import Camera
 from app.models.camera_heartbeat import CameraHeartbeat
 from app.services.email_service import parse_recipients, send_email
-from app.utils.uploads import find_latest_image_for_device
+from app.utils.uploads import find_latest_image_for_device, find_last_keepalive_for_device
 
 logger = logging.getLogger(__name__)
 BRT = ZoneInfo("America/Sao_Paulo")
@@ -161,13 +161,18 @@ async def run_offline_check() -> None:
     heartbeats: list[tuple[int, str | None, bool]] = []
     for cam in cameras:
         try:
+            # "Vivo" = última imagem OU keepalive recente. Aditivo: câmeras que
+            # sobem imagem (esp32) seguem pelo mtime da imagem; a Pi event-driven
+            # (que só manda frame em evento/sob demanda) fica online pelo keepalive.
             latest = find_latest_image_for_device(cam.device_id)
-            if latest is None:
+            img_mtime = latest[1] if latest else None
+            ka_mtime = find_last_keepalive_for_device(cam.device_id)
+            mtime = max((m for m in (img_mtime, ka_mtime) if m is not None), default=None)
+            if mtime is None:
                 age: float | None = None
                 last_iso: str | None = None
                 offline = True
             else:
-                _, mtime = latest
                 age = now - mtime
                 last_iso = datetime.fromtimestamp(mtime, BRT).strftime("%Y-%m-%d %H:%M:%S %Z")
                 offline = age > threshold

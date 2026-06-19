@@ -146,9 +146,12 @@ def record_shadow_decision(
     mode: Optional[str] = None,
     models_dir: Optional[str] = None,
 ) -> None:
-    """Append uma decisão shadow/enforce ao ledger durável (fail-safe, nunca levanta)."""
-    if result.reason not in ("rejected", "passed"):
-        return
+    """Append uma decisão shadow/enforce ao ledger durável (fail-safe, nunca levanta).
+
+    Grava TODOS os reasons (inclusive skips/errors) — sem isso, fail-opens ficam
+    invisíveis e o shadow parece coletar dados quando na verdade não roda (bug
+    achado 2026-06-18: só 3 de 26 janelas logavam). O analista filtra por reason.
+    """
     try:
         d = models_dir or config.STRUCTURAL_LEDGER_DIR
         Path(d).mkdir(parents=True, exist_ok=True)
@@ -193,10 +196,30 @@ def evaluate(
     t0 = time.time()
     try:
         import cv2
-        before = cv2.imread(str(sequence_paths[0]))
-        after = cv2.imread(str(sequence_paths[-1]))
-        if before is None or after is None or before.shape != after.shape:
-            return StructFilterResult(should_reject=False, reason="error",
+        # Leitura ROBUSTA: o 1º/último frame da janela pode estar ilegível (movido
+        # p/ processed ou purgado em janela coalescida). Varre do início p/ o 1º
+        # frame legível (before) e do fim p/ o último legível (after), preservando
+        # a semântica first-vs-last validada na Camp 41.
+        before = b_path = None
+        for _p in sequence_paths:
+            _img = cv2.imread(str(_p))
+            if _img is not None:
+                before, b_path = _img, _p
+                break
+        after = a_path = None
+        for _p in reversed(sequence_paths):
+            _img = cv2.imread(str(_p))
+            if _img is not None:
+                after, a_path = _img, _p
+                break
+        if before is None or after is None:
+            return StructFilterResult(should_reject=False, reason="error_unreadable",
+                                      latency_ms=(time.time() - t0) * 1000.0)
+        if b_path == a_path:
+            return StructFilterResult(should_reject=False, reason="skipped_one_frame",
+                                      latency_ms=(time.time() - t0) * 1000.0)
+        if before.shape != after.shape:
+            return StructFilterResult(should_reject=False, reason="error_shape",
                                       latency_ms=(time.time() - t0) * 1000.0)
         mask = _build_mask(pile_zone_polygon, before.shape[:2])
         if mask is None:

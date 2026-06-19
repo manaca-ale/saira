@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
@@ -32,6 +32,9 @@ CAMERA_SORTABLE_FIELDS: dict[str, Any] = {
 CAMERA_DEFAULT_SORT = "created_at"
 
 UPLOAD_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("/")
+# esp32-server base URL — usado para enfileirar CMD_SNAPSHOT (imagem sob demanda)
+# no poll do dispositivo (Pi event-driven, que não manda mais heartbeat-imagem).
+ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "http://esp32-server:5000").rstrip("/")
 
 # Backwards-compatible alias kept for existing call sites in this module.
 # Upload-tree scanning now lives in app.utils.uploads (shared with the offline monitor).
@@ -132,6 +135,94 @@ async def get_camera_latest_image(
         captured_at=captured_at,
         file_path=relative,
     )
+
+
+@router.post("/{camera_id}/request-snapshot")
+async def request_camera_snapshot(
+    camera_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Pede um frame atual sob demanda (abrir painel / "atualizar agora").
+
+    Enfileira CMD_SNAPSHOT no poll do dispositivo via esp32-server /trigger; o
+    dispositivo sobe 1 frame e o frontend o lê em seguida via /latest-image.
+    Best-effort: dispositivos que não tratam o comando (ex.: esp32, que já
+    mandam imagem no timer) simplesmente o ignoram.
+    """
+    import httpx
+
+    result = await db.execute(select(Camera).where(Camera.id == camera_id))
+    camera = result.scalar_one_or_none()
+    if not camera:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Camera not found")
+
+    device_id = (camera.device_id or "").strip() or None
+    if not device_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera has no device_id")
+
+    url = f"{ESP32_SERVER_URL}/device/{device_id}/trigger"
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.post(url, json={"cmd": "CMD_SNAPSHOT"})
+            resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"esp32-server indisponível: {exc}",
+        )
+    return {"status": "requested", "camera_id": camera_id, "device_id": device_id}
+
+
+async def _enqueue_device_cmd(camera_id: int, db: AsyncSession, cmd: str) -> str:
+    """Resolve o device_id da câmera e enfileira um comando no poll do
+    dispositivo via esp32-server /trigger. Retorna o device_id."""
+    import httpx
+
+    result = await db.execute(select(Camera).where(Camera.id == camera_id))
+    camera = result.scalar_one_or_none()
+    if not camera:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Camera not found")
+    device_id = (camera.device_id or "").strip() or None
+    if not device_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera has no device_id")
+
+    url = f"{ESP32_SERVER_URL}/device/{device_id}/trigger"
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.post(url, json={"cmd": cmd})
+            resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"esp32-server indisponível: {exc}",
+        )
+    return device_id
+
+
+@router.post("/{camera_id}/zoom")
+async def set_camera_zoom(
+    camera_id: int,
+    zoom: float = Body(..., embed=True, ge=0.0, le=1.0),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Ajusta o zoom óptico (0 = aberto, 1 = aproximado) — só dispositivos com
+    lente motorizada (Pi/Intelbras) reagem. Enfileira CMD_ZOOM:<valor>; a câmera
+    aplica em ~2-4s e sobe um frame novo (visível via /latest-image)."""
+    device_id = await _enqueue_device_cmd(camera_id, db, f"CMD_ZOOM:{zoom:.4f}")
+    return {"status": "requested", "camera_id": camera_id, "device_id": device_id, "zoom": zoom}
+
+
+@router.post("/{camera_id}/autofocus")
+async def camera_autofocus(
+    camera_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dispara o autofoco da lente motorizada (best-effort)."""
+    device_id = await _enqueue_device_cmd(camera_id, db, "CMD_AUTOFOCUS")
+    return {"status": "requested", "camera_id": camera_id, "device_id": device_id}
 
 
 @router.post("/", response_model=CameraResponse, status_code=status.HTTP_201_CREATED)
