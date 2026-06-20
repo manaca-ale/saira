@@ -1225,6 +1225,31 @@ def _make_pile_crops(
     return crops
 
 
+def _gate_borderline_negative(report, effective_threshold: int) -> bool:
+    """A single-call gate NEGATIVE that might be a missed on-foot deposit and is
+    worth exactly one re-vote (Flash-Lite non-determinism, see config).
+
+    Borderline = a NEW object appeared on the ground, OR a pile-related person
+    posture, OR gray-zone confidence. Clear negatives — EMPTY scene, pure passing,
+    collection/maintenance — return False so they are never re-voted (cost control).
+    """
+    scene = (getattr(report, "scene_type", "") or "").upper().strip()
+    if scene in ("EMPTY", "COLLECTION_OR_MAINTENANCE"):
+        return False
+    new_ground = bool(getattr(report, "new_ground_material", False))
+    last_litter = bool(getattr(report, "last_frame_has_litter", False))
+    first_litter = bool(getattr(report, "first_frame_has_litter", False))
+    object_appeared = new_ground or (last_litter and not first_litter)
+    posture = (getattr(report, "person_position_signature", "") or "").lower().strip()
+    pile_posture = posture in (
+        "depositing_at_pile", "leaving_pile_area", "approaching_pile", "standing_near_pile",
+    )
+    conf = int(getattr(report, "confidence_0_100", 0) or 0)
+    conf_min = config.GEMINI_GATE_REVOTE_CONF_MIN
+    gray_conf = conf_min > 0 and conf_min <= conf < effective_threshold
+    return object_appeared or pile_posture or gray_conf
+
+
 def _process_with_gemini_cascade_window(
     window_paths: list[Path],
     device_id: str,
@@ -1439,6 +1464,66 @@ def _process_with_gemini_cascade_window(
         }
 
     gate_report = gate.report
+
+    # --- Conditional re-vote (Flash-Lite non-determinism) ---------------------
+    # A single negative call sometimes hedges a real on-foot deposit to
+    # PARKED/passing (observed 2026-06-20 10:36 & 13:31 — offline the same window
+    # triggers 3-5/5). Re-run the gate ONCE when the negative is borderline; if the
+    # re-vote triggers, adopt it (OR logic). Skips clear negatives, so cost is ~one
+    # extra flash-lite call on ambiguous events only.
+    gate_revote_info: Optional[dict[str, Any]] = None
+    _first_trigger = (
+        bool(gate_report.new_litter_detected)
+        and int(gate_report.confidence_0_100) >= effective_threshold
+    )
+    if (
+        config.GEMINI_GATE_REVOTE_ENABLED
+        and not _first_trigger
+        and _gate_borderline_negative(gate_report, effective_threshold)
+    ):
+        revote_request_id = str(uuid4())
+        _register_gemini_call(agent="gate", camera=camera)
+        try:
+            revote = analyze_new_litter_with_gemini(
+                first_frame=g_first,
+                last_frame=g_last,
+                camera_context=camera_context,
+                request_id=revote_request_id,
+                prior_window_context=prior_window_context,
+                use_mosaic=config.GEMINI_MOSAIC_AGENT1,
+                mid_frames=g_mids,
+                prompt_version=config.GEMINI_PROMPT_VERSION,
+            )
+            _register_gemini_success(revote.latency_ms, revote.usage, agent="gate", camera=camera)
+            _log_gemini_call(
+                camera=camera, device_id=device_id, agent="gate", model=revote.model,
+                request_id=revote_request_id, usage=revote.usage,
+                latency_ms=revote.latency_ms, success=True,
+            )
+            rv = revote.report
+            rv_trigger = (
+                bool(rv.new_litter_detected)
+                and int(rv.confidence_0_100) >= effective_threshold
+            )
+            gate_revote_info = {
+                "revote_request_id": revote_request_id,
+                "first_scene_type": getattr(gate_report, "scene_type", None),
+                "first_confidence": int(gate_report.confidence_0_100),
+                "revote_scene_type": getattr(rv, "scene_type", None),
+                "revote_new_litter": bool(rv.new_litter_detected),
+                "revote_confidence": int(rv.confidence_0_100),
+                "flipped": bool(rv_trigger),
+            }
+            logger.info(
+                json.dumps({"event": "gemini_gate_revote", **gate_revote_info,
+                            "original_request_id": gate_request_id}, ensure_ascii=False)
+            )
+            if rv_trigger:
+                gate = revote
+                gate_report = revote.report
+        except Exception as exc:  # noqa: BLE001
+            _register_gemini_error(str(exc), agent="gate", camera=camera)
+            logger.warning("gate_revote error request_id=%s err=%s", revote_request_id, exc)
 
     # Persist litter state and last-frame reference for next window (Correction 2)
     save_state(device_id, {
