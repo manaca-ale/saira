@@ -1288,17 +1288,21 @@ def _process_with_gemini_cascade_window(
         else config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE
     )
 
-    # Select mid-window frames at 25%/50%/75% to detect ghost events (arrive-dump-leave)
+    # Select interior ("mid") frames to detect ghost events (arrive-dump-leave). They
+    # are spread EVENLY across the window so a brief deposition burst near either end
+    # is less likely to fall between samples (legacy 25/50/75% missed early on-foot
+    # dumps — the crouch frames sat before the 25% mark). Count is configurable via
+    # GEMINI_GATE_MID_FRAMES (default 3 == legacy density).
     mid_frames: Optional[list[Path]] = None
     n = len(window_paths)
-    if n >= 5:
-        mid_frames = [
-            window_paths[n // 4],       # ~25%
-            window_paths[n // 2],       # ~50%
-            window_paths[3 * n // 4],   # ~75%
-        ]
-    elif n >= 4:
-        mid_frames = [window_paths[n // 2]]
+    mid_count = max(0, config.GEMINI_GATE_MID_FRAMES)
+    if n >= 3 and mid_count > 0:
+        # Evenly spaced interior indices, excluding endpoints (0 and n-1 = first/last).
+        step = (n - 1) / (mid_count + 1)
+        idxs = sorted({int(round(step * (i + 1))) for i in range(mid_count)})
+        idxs = [k for k in idxs if 0 < k < n - 1]
+        if idxs:
+            mid_frames = [window_paths[k] for k in idxs]
 
     # ------------------------------------------------------------------------
     # BGSUB pre-filter (added 2026-05-23 — see docs/bgsub_prefilter.md).

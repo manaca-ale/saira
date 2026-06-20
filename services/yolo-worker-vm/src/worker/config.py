@@ -134,6 +134,15 @@ GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
 
+# Number of interior ("mid") frames sent to the Agent-1 gate, evenly spaced across
+# the window (in addition to first + last). Brief on-foot dumps (arrive-deposit-leave
+# within one motion burst) are easily missed by sparse sampling: the deposition act
+# can sit between sampled frames, so the gate sees only the static object afterwards
+# and reads the person as a passer-by. More evenly-spaced mids raise the chance the
+# crouch/deposit frames land in the window. Default 3 preserves the legacy 25/50/75%
+# behavior; gate runs on flash-lite so extra frames are cheap. Override per-deploy.
+GEMINI_GATE_MID_FRAMES = int(os.getenv("GEMINI_GATE_MID_FRAMES", "3"))
+
 # Dual gate (full-frame + pile-crop) — runs Agent-1 a SECOND time on a crop of the
 # pile zone (cameras.pile_zone_polygon) and escalates if EITHER pass triggers.
 # Catches small/zoom-dependent dumps (handcart) that the full frame misses, while the

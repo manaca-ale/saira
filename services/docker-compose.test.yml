@@ -185,6 +185,12 @@ services:
       - GEMINI_AGENT1_TIMEOUT_SECONDS=${GEMINI_AGENT1_TIMEOUT_SECONDS:-15}
       - GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE=${GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE:-75}
       - GEMINI_AGENT1_MAX_OUTPUT_TOKENS=${GEMINI_AGENT1_MAX_OUTPUT_TOKENS:-4096}
+      # Frames intermediários enviados ao gate (espaçados na janela). 10 dá cobertura
+      # densa o bastante p/ pegar bursts curtos de descarte a pé (agachar-largar-sair)
+      # que o 25/50/75% legado pulava — o flash-lite precisa de vários frames do ato
+      # pra reconstruir o depósito (com 1 frame diluído ele lê como passante).
+      # +first +last = 12 imgs ≈ 4,5MB < limite de 8MB de payload.
+      - GEMINI_GATE_MID_FRAMES=${GEMINI_GATE_MID_FRAMES:-10}
       # Dual gate (full-frame + pile-crop, OR-escalate). Scoped to GATE_PILECROP_DEVICES.
       - GEMINI_GATE_PILECROP_ENABLED=${GEMINI_GATE_PILECROP_ENABLED:-false}
       - GATE_PILECROP_DEVICES=${GATE_PILECROP_DEVICES:-esp32_002}
@@ -198,8 +204,11 @@ services:
       - GEMINI_DETAIL_PILECROP_UPSCALE=${GEMINI_DETAIL_PILECROP_UPSCALE:-2}
       - GEMINI_DETAIL_PILECROP_N_FRAMES=${GEMINI_DETAIL_PILECROP_N_FRAMES:-12}
       # Crop-to-zone substitutivo: gate+detail recebem só o recorte da
-      # pile_zone (exclui o cesto laranja do enquadramento). Default pi-cam-001.
-      - CROP_TO_ZONE_DEVICES=${CROP_TO_ZONE_DEVICES:-pi-cam-001}
+      # pile_zone (exclui o cesto laranja do enquadramento). Vazio por padrão:
+      # a pi-cam-001 passou a operar com ZOOM óptico (enquadramento já fechado),
+      # então o recorte para o polígono antigo (FOV aberto) mandava região vazia
+      # ao Gemini → "scene empty" em descartes reais. Sem crop = frame completo.
+      - CROP_TO_ZONE_DEVICES=${CROP_TO_ZONE_DEVICES:-}
       # upscale=1: o crop já foca a zona (vira o frame todo); 2x estourava o
       # limite de payload do Gemini (9.5MB > 8MB) com ~25 frames no detail.
       - CROP_TO_ZONE_UPSCALE=${CROP_TO_ZONE_UPSCALE:-1}
