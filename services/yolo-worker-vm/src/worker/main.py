@@ -1225,17 +1225,17 @@ def _make_pile_crops(
     return crops
 
 
-def _gate_borderline_negative(report, effective_threshold: int) -> bool:
-    """A single-call gate NEGATIVE that might be a missed on-foot deposit and is
-    worth exactly one re-vote (Flash-Lite non-determinism, see config).
+def _gate_revote_eval(report, effective_threshold: int) -> dict[str, Any]:
+    """Per-detection breakdown of the conditional re-vote criteria (Flash-Lite
+    non-determinism, see config). Logged on EVERY gate decision so a negative
+    records exactly which criteria did/didn't match — even when no re-vote runs.
 
-    Borderline = a NEW object appeared on the ground, OR a pile-related person
-    posture, OR gray-zone confidence. Clear negatives — EMPTY scene, pure passing,
-    collection/maintenance — return False so they are never re-voted (cost control).
+    Borderline = scene is not a clear negative (EMPTY / COLLECTION_OR_MAINTENANCE)
+    AND at least one of: a NEW object appeared on the ground, a pile-related person
+    posture, or gray-zone confidence.
     """
     scene = (getattr(report, "scene_type", "") or "").upper().strip()
-    if scene in ("EMPTY", "COLLECTION_OR_MAINTENANCE"):
-        return False
+    clear_negative_scene = scene in ("EMPTY", "COLLECTION_OR_MAINTENANCE")
     new_ground = bool(getattr(report, "new_ground_material", False))
     last_litter = bool(getattr(report, "last_frame_has_litter", False))
     first_litter = bool(getattr(report, "first_frame_has_litter", False))
@@ -1247,7 +1247,17 @@ def _gate_borderline_negative(report, effective_threshold: int) -> bool:
     conf = int(getattr(report, "confidence_0_100", 0) or 0)
     conf_min = config.GEMINI_GATE_REVOTE_CONF_MIN
     gray_conf = conf_min > 0 and conf_min <= conf < effective_threshold
-    return object_appeared or pile_posture or gray_conf
+    borderline = (not clear_negative_scene) and (object_appeared or pile_posture or gray_conf)
+    return {
+        "enabled": bool(config.GEMINI_GATE_REVOTE_ENABLED),
+        "scene_type": scene,
+        "object_appeared": bool(object_appeared),
+        "pile_posture": bool(pile_posture),
+        "gray_conf": bool(gray_conf),
+        "borderline": bool(borderline),
+        "revote_fired": False,
+        "flipped": False,
+    }
 
 
 def _process_with_gemini_cascade_window(
@@ -1472,6 +1482,9 @@ def _process_with_gemini_cascade_window(
     # re-vote triggers, adopt it (OR logic). Skips clear negatives, so cost is ~one
     # extra flash-lite call on ambiguous events only.
     gate_revote_info: Optional[dict[str, Any]] = None
+    # Evaluated on the FIRST gate report (before any flip) so the per-detection log
+    # records why a re-vote did/didn't run, regardless of the outcome.
+    revote_eval = _gate_revote_eval(gate_report, effective_threshold)
     _first_trigger = (
         bool(gate_report.new_litter_detected)
         and int(gate_report.confidence_0_100) >= effective_threshold
@@ -1479,8 +1492,9 @@ def _process_with_gemini_cascade_window(
     if (
         config.GEMINI_GATE_REVOTE_ENABLED
         and not _first_trigger
-        and _gate_borderline_negative(gate_report, effective_threshold)
+        and revote_eval["borderline"]
     ):
+        revote_eval["revote_fired"] = True
         revote_request_id = str(uuid4())
         _register_gemini_call(agent="gate", camera=camera)
         try:
@@ -1514,6 +1528,7 @@ def _process_with_gemini_cascade_window(
                 "revote_confidence": int(rv.confidence_0_100),
                 "flipped": bool(rv_trigger),
             }
+            revote_eval["flipped"] = bool(rv_trigger)
             logger.info(
                 json.dumps({"event": "gemini_gate_revote", **gate_revote_info,
                             "original_request_id": gate_request_id}, ensure_ascii=False)
@@ -1690,6 +1705,7 @@ def _process_with_gemini_cascade_window(
                 "prior_had_litter": prior_had_litter,
                 "scene_delta_analysis": gate_report.scene_delta_analysis or "",
                 "evidence_summary": gate_report.evidence_summary,
+                "revote_eval": revote_eval,
             },
             ensure_ascii=False,
         )
