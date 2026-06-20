@@ -350,6 +350,34 @@ class MotionGate:
             )
 
         # ---- recover: absorvendo o depósito / rearmando --------------------
+        # Reabre evento por MOVIMENTO. Um novo depósito/atividade durante o
+        # recover gera delta sustentado, ao contrário de uma pilha estática
+        # assentando (fg alto, delta ~0). Sem isto, um descarte cujo ato de
+        # largar é de baixo movimento dispara o fim por "quiet", cai no recover
+        # e é silenciosamente absorvido na baseline — nunca enviado (gap de
+        # captura de 2026-06-20 10:52: evento encerrou com fg_px=1416 e o
+        # recover "limpou" a sacola). Mesma barra de abertura do idle
+        # (delta_start_px + consec_start), recall-biased: a nuvem filtra.
+        if delta_px >= self.delta_start_px:
+            self._consec_active += 1
+            if self._consec_active >= self.consec_start:
+                self.state = "event"
+                self._event_id = self._new_event_id(now)
+                self._event_started_at = now
+                self._quiet_since = None
+                self._consec_active = 0
+                self._recover_clear_frames = 0
+                log.info(
+                    "Evento %s reaberto por movimento no recover (fg_px=%d, delta_px=%d)",
+                    self._event_id, fg_px, delta_px,
+                )
+                return GateDecision(
+                    state="event", fg_px=fg_px, delta_px=delta_px,
+                    event_id=self._event_id, action="start",
+                )
+        else:
+            self._consec_active = 0
+
         if not fg_active:
             self._recover_clear_frames += 1
             if self._recover_clear_frames >= 3:
