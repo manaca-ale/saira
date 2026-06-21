@@ -55,6 +55,7 @@ class GateDecision:
     event_id: Optional[str]  # evento corrente (se houver)
     action: Optional[str]  # start | active | end | None
     is_warmup: bool = False
+    reason: Optional[str] = None  # motivo da transição (open:*/close:*/reopen:*)
 
 
 class MotionGate:
@@ -304,6 +305,7 @@ class MotionGate:
                     return GateDecision(
                         state="event", fg_px=fg_px, delta_px=delta_px,
                         event_id=self._event_id, action="start",
+                        reason=f"open:{trigger}",
                     )
             else:
                 self._consec_active = 0
@@ -347,6 +349,7 @@ class MotionGate:
             return GateDecision(
                 state="recover", fg_px=fg_px, delta_px=delta_px,
                 event_id=ended_id, action="end",
+                reason=f"close:{reason}",
             )
 
         # ---- recover: absorvendo o depósito / rearmando --------------------
@@ -374,6 +377,7 @@ class MotionGate:
                 return GateDecision(
                     state="event", fg_px=fg_px, delta_px=delta_px,
                     event_id=self._event_id, action="start",
+                    reason="reopen:motion",
                 )
         else:
             self._consec_active = 0
@@ -398,3 +402,125 @@ class MotionGate:
             state=self.state, fg_px=fg_px, delta_px=delta_px,
             event_id=None, action=None,
         )
+
+
+def _parse_polygons(polygon_json: str, w: int, h: int) -> list[np.ndarray]:
+    """Converte o JSON do pile_zone_polygon (ref 1280×720) em polígonos no
+    shape pedido. Vazio/None/inválido -> [] (frame inteiro)."""
+    polygon_json = (polygon_json or "").strip()
+    if not polygon_json:
+        return []
+    polygons: list[np.ndarray] = []
+    try:
+        raw = json.loads(polygon_json)
+        if raw and isinstance(raw[0][0], (int, float)):
+            raw = [raw]
+        sx = w / float(POLYGON_REF_W)
+        sy = h / float(POLYGON_REF_H)
+        for poly in raw:
+            pts = np.array(
+                [[int(round(x * sx)), int(round(y * sy))] for x, y in poly],
+                dtype=np.int32,
+            )
+            if len(pts) >= 3:
+                polygons.append(pts)
+    except (ValueError, TypeError, IndexError) as exc:
+        log.warning("pile_zone_polygon inválido na calibração (%s)", exc)
+    return polygons
+
+
+class CalibrationProbe:
+    """Medição de fg/delta independente do gate vivo, para o modo calibração.
+
+    Roda na thread de comandos (o MotionGate vivo é da thread de captura e não
+    é thread-safe). MOG2 próprio com learningRate automático, que converge na
+    janela de calibração. Também rende um snapshot anotado (polígono + heatmap
+    de foreground + painel de texto) para o operador desenhar a zona à distância.
+    """
+
+    def __init__(
+        self,
+        *,
+        polygon_json: str = "",
+        history: int = 80,
+        var_threshold: float = 40.0,
+        shadow_threshold: int = 100,
+    ) -> None:
+        self._polygon_json = polygon_json
+        self._shadow_threshold = shadow_threshold
+        self._kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+        self._mog2 = cv2.createBackgroundSubtractorMOG2(
+            history=history, varThreshold=var_threshold, detectShadows=True,
+        )
+        self._prev_gray: Optional[np.ndarray] = None
+        self._last_fg_bin: Optional[np.ndarray] = None
+
+    def measure(self, jpeg_bytes: bytes) -> Optional[tuple[int, int]]:
+        """Retorna (fg_px, delta_px) na escala analisada (360p), ou None se o
+        JPEG for inválido."""
+        buf = np.frombuffer(jpeg_bytes, dtype=np.uint8)
+        img = cv2.imdecode(buf, cv2.IMREAD_REDUCED_COLOR_2)
+        if img is None:
+            return None
+        h, w = img.shape[:2]
+        polys = _parse_polygons(self._polygon_json, w, h)
+        mask = np.zeros((h, w), dtype=np.uint8)
+        if polys:
+            cv2.fillPoly(mask, polys, 255)
+        else:
+            mask[:] = 255
+
+        fg = self._mog2.apply(img, learningRate=-1.0)
+        _, fg_bin = cv2.threshold(fg, self._shadow_threshold, 255, cv2.THRESH_BINARY)
+        fg_bin = cv2.morphologyEx(fg_bin, cv2.MORPH_OPEN, self._kernel)
+        fg_bin = cv2.morphologyEx(fg_bin, cv2.MORPH_CLOSE, self._kernel)
+        self._last_fg_bin = cv2.bitwise_and(fg_bin, mask)
+        fg_px = int(np.count_nonzero(self._last_fg_bin))
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        delta_px = 0
+        if self._prev_gray is not None and self._prev_gray.shape == gray.shape:
+            diff = cv2.absdiff(gray, self._prev_gray)
+            _, diff_bin = cv2.threshold(
+                diff, _DELTA_INTENSITY_THRESHOLD, 255, cv2.THRESH_BINARY
+            )
+            diff_bin = cv2.morphologyEx(diff_bin, cv2.MORPH_OPEN, self._kernel)
+            delta_px = int(np.count_nonzero(cv2.bitwise_and(diff_bin, mask)))
+        self._prev_gray = gray
+        return fg_px, delta_px
+
+    def annotate(self, jpeg_bytes: bytes, lines: list[str]) -> Optional[bytes]:
+        """Desenha o polígono da zona + heatmap do último foreground + um painel
+        de texto sobre o frame em resolução cheia. Retorna JPEG ou None."""
+        buf = np.frombuffer(jpeg_bytes, dtype=np.uint8)
+        img = cv2.imdecode(buf, cv2.IMREAD_COLOR)
+        if img is None:
+            return None
+        h, w = img.shape[:2]
+
+        # Heatmap do foreground (reescala a máscara 360p para o frame cheio).
+        if self._last_fg_bin is not None:
+            up = cv2.resize(self._last_fg_bin, (w, h), interpolation=cv2.INTER_NEAREST)
+            red = np.zeros_like(img)
+            red[:, :, 2] = up
+            img = cv2.addWeighted(img, 1.0, red, 0.4, 0)
+
+        # Polígono da zona.
+        polys = _parse_polygons(self._polygon_json, w, h)
+        if polys:
+            overlay = img.copy()
+            cv2.fillPoly(overlay, polys, (0, 255, 255))
+            img = cv2.addWeighted(overlay, 0.18, img, 0.82, 0)
+            cv2.polylines(img, polys, True, (0, 255, 255), 2)
+
+        # Painel de texto.
+        y = 26
+        for line in lines:
+            cv2.putText(img, line, (12, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                        (0, 0, 0), 4, cv2.LINE_AA)
+            cv2.putText(img, line, (12, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                        (255, 255, 255), 1, cv2.LINE_AA)
+            y += 26
+
+        ok, out = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        return out.tobytes() if ok else None

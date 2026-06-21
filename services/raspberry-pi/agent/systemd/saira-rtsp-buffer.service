@@ -2,6 +2,8 @@
 Description=SAIRA - Buffer circular de video RTSP (clip sob demanda)
 After=network-online.target
 Wants=network-online.target
+# Nunca desistir de reiniciar (camera/4G podem oscilar muito em campo).
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
