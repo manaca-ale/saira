@@ -390,13 +390,62 @@ ground, sweeping, hauling away), parked-only vehicles, and pass-through with emp
 """.strip()
 
 
+# Imbiribeira (esp32_001) VEHICLE-FOCUSED gate addon — campaign 44 (2026-06-23).
+# Operator decision: at this far/wide open lot, only big VEHICLE-borne dumps matter; losing
+# on-foot disposals is acceptable, but FP must NOT rise. Benchmark (full operator corpus,
+# 20 TP / 147 FP, 3 reps): this "B3 stopped-vehicle + deposit activity" arm DOMINATES the
+# E_modality baseline — vehicle-recall 7.7/12 (>= baseline 7.0) AND FP 54 vs 67.7 (-20%),
+# fewest false negatives of all arms (4/20). It keeps the discriminator "vehicle STOPPED +
+# deposit activity" (not mere vehicle presence — 110/147 FPs have a vehicle parking/passing).
+# Gated by GATE_VEHICLE_ADDON_DEVICES (default esp32_001); rollback to E_modality = set
+# GATE_VEHICLE_ADDON_DEVICES="" in services/.env + restart worker (no rebuild).
+# NOTE: text below is VERBATIM the benchmarked "B3" arm
+# (scripts/prompts_vehicle.VEHICLE_STOPPED_ACTIVITY_ADDON) — deploy == tested.
+ESP32_001_IMBIRIBEIRA_VEHICLE_ADDON = """
+=============================================================================
+CAMERA-SPECIFIC MODE - esp32_001 / Imbiribeira (OPEN VACANT LOT)
+=============================================================================
+This camera overlooks an OPEN VACANT LOT (terreno baldio) that is a chronic illegal
+dumping ground. Scene facts you MUST assume:
+- A vertical utility/light POLE crosses the center of the frame. IGNORE the pole.
+- There is NO single pile. Scattered debris already covers much of the lot; the ENTIRE
+  lot surface (ground, edges, near the shacks on the right) is a valid dumping target.
+  "pile_volume_change" is unreliable here (debris is everywhere) — do NOT rely on it.
+- Subjects often appear SMALL and DISTANT in the wide lot. A small figure is STILL a
+  person; do NOT dismiss small/distant figures as "just traffic".
+- The lot is ALSO used for parking and as a through-path, and municipal/informal teams
+  sometimes REMOVE garbage with a truck. These are NOT dumping.
+Agent-1 is only a cheap gate for Agent-2. Keep evidence_summary and scene_delta_analysis
+under 260 chars each. Do not quote this block in your JSON fields.
+
+DECISION RULE — STOPPED VEHICLE WITH DEPOSIT ACTIVITY:
+ESCALATE (scene_type="DUMPING", new_litter_detected=true, confidence_0_100 >= 85) if a
+car/pickup/truck/van is STOPPED in the lot (same spot in 2+ frames) AND there is deposit
+activity tied to it: a person unloading/carrying cargo between the vehicle and the ground,
+OR new material/objects left on the ground near the stopped vehicle.
+SUPPRESS (new_litter_detected=false, confidence <= 50): moving/passing vehicles; parked
+vehicles with people merely standing/talking and NO material left on the ground; on-foot
+disposal with no vehicle; COLLECTION/REMOVAL (loading garbage off the ground).
+""".strip()
+
+
+# Devices whose gate uses the VEHICLE-focused addon instead of E_modality. Env-overridable
+# for rollback without a rebuild (set GATE_VEHICLE_ADDON_DEVICES="" to revert esp32_001).
+GATE_VEHICLE_ADDON_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("GATE_VEHICLE_ADDON_DEVICES", "esp32_001").split(",")
+    if d.strip()
+}
+
+
 def gate_system_prompt_for_camera(camera_context: Optional[dict[str, str]] = None) -> str:
     """Return the V3 gate system prompt with camera-specific overrides.
 
     esp32_002 uses the B3 recall addon (campaign 19 winner for the dual full+pile-crop
     gate: 92% TP recall / 15% baseline when OR-ed with the pile-crop pass).
-    esp32_001 (Imbiribeira, open lot) uses the E_modality addon (campaign 31 winner:
-    recall 6/7 == V1, specificity 0.58 vs 0.19, kills the collection-truck FP).
+    esp32_001 (Imbiribeira, open lot) uses the VEHICLE-focused addon when listed in
+    GATE_VEHICLE_ADDON_DEVICES (campaign 44 default), else the E_modality addon
+    (campaign 31: recall 6/7 == V1, specificity 0.58 vs 0.19).
     """
     device_id = ""
     if camera_context:
@@ -404,7 +453,10 @@ def gate_system_prompt_for_camera(camera_context: Optional[dict[str, str]] = Non
     if device_id == "esp32_002":
         return NEW_LITTER_SYSTEM_PROMPT_V3 + "\n\n" + ESP32_002_RECALL_B3_ADDON
     if device_id == "esp32_001":
-        return NEW_LITTER_SYSTEM_PROMPT_V3 + "\n\n" + ESP32_001_IMBIRIBEIRA_E_ADDON
+        addon = (ESP32_001_IMBIRIBEIRA_VEHICLE_ADDON
+                 if device_id in GATE_VEHICLE_ADDON_DEVICES
+                 else ESP32_001_IMBIRIBEIRA_E_ADDON)
+        return NEW_LITTER_SYSTEM_PROMPT_V3 + "\n\n" + addon
     return NEW_LITTER_SYSTEM_PROMPT_V3
 
 
