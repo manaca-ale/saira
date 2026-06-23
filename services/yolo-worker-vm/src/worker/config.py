@@ -134,6 +134,28 @@ GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
 
+# Number of interior ("mid") frames sent to the Agent-1 gate, evenly spaced across
+# the window (in addition to first + last). Brief on-foot dumps (arrive-deposit-leave
+# within one motion burst) are easily missed by sparse sampling: the deposition act
+# can sit between sampled frames, so the gate sees only the static object afterwards
+# and reads the person as a passer-by. More evenly-spaced mids raise the chance the
+# crouch/deposit frames land in the window. Default 3 preserves the legacy 25/50/75%
+# behavior; gate runs on flash-lite so extra frames are cheap. Override per-deploy.
+GEMINI_GATE_MID_FRAMES = int(os.getenv("GEMINI_GATE_MID_FRAMES", "3"))
+
+# Conditional gate re-vote. Flash-Lite is non-deterministic and occasionally hedges
+# a real on-foot deposit to PARKED/passing on a single call (observed 2026-06-20
+# 10:36 & 13:31 — offline the same window triggers 3-5/5). When enabled, a single
+# NEGATIVE gate call that looks like a borderline "maybe a deposit" (new object on
+# the ground, pile-related person posture, or gray-zone confidence) is re-run ONCE;
+# if the re-vote triggers, the cascade escalates (OR logic). Clear negatives (EMPTY,
+# pure passing, collection) are NOT re-voted, so cost stays ~one extra flash-lite
+# call on ambiguous events only (detail/Agent-2 dominates cost). Default OFF.
+GEMINI_GATE_REVOTE_ENABLED = os.getenv("GEMINI_GATE_REVOTE_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+# Confidence floor for the gray-zone re-vote trigger (a negative with conf in
+# [floor, effective_threshold) is borderline). 0 disables the gray-zone path.
+GEMINI_GATE_REVOTE_CONF_MIN = int(os.getenv("GEMINI_GATE_REVOTE_CONF_MIN", "40"))
+
 # Dual gate (full-frame + pile-crop) — runs Agent-1 a SECOND time on a crop of the
 # pile zone (cameras.pile_zone_polygon) and escalates if EITHER pass triggers.
 # Catches small/zoom-dependent dumps (handcart) that the full frame misses, while the

@@ -35,14 +35,19 @@ de clipe), útil para validar o pipeline sem movimento real.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+import shutil
 import signal
+import socket
 import struct
 import subprocess
 import threading
 import time
+from collections import deque
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
 
@@ -62,6 +67,81 @@ UPLOADED_SUFFIX = ".uploaded"
 SYNTHETIC_EVENT_SECONDS = 10.0
 WARMUP_UPLOAD_INTERVAL_S = 5.0  # warm-up sobe menos denso que burst de evento
 MAINTENANCE_INTERVAL_S = 6 * 3600
+# Referência em que os polígonos são desenhados (igual ao motion_gate).
+POLYGON_REF_W = 1280
+POLYGON_REF_H = 720
+_LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
+
+
+def _cfg_parse(kv: dict, rej: dict, key: str, cast, scale: float = 1.0):
+    """Parseia kv[key]; registra rejeição (e devolve None) se não casar o tipo."""
+    raw = kv[key]
+    try:
+        val = cast(raw)
+    except (ValueError, TypeError):
+        rej[key] = raw
+        return None
+    return val * scale if scale != 1.0 else val
+
+
+def _cfg_num(kv: dict, rej: dict, key: str, lo, hi, cast, scale: float = 1.0):
+    """Valida em [lo,hi]; REJEITA fora da faixa (protege contra fat-finger em
+    thresholds/tamanhos)."""
+    val = _cfg_parse(kv, rej, key, cast, scale)
+    if val is None:
+        return None
+    if (lo is not None and val < lo) or (hi is not None and val > hi):
+        rej[key] = kv[key]
+        return None
+    return val
+
+
+def _cfg_clamp(kv: dict, rej: dict, key: str, lo, hi, cast, scale: float = 1.0):
+    """Parseia e CLAMPA em [lo,hi] (knobs de cadência: clampar é inofensivo e
+    preserva a UX legada de piso/teto)."""
+    val = _cfg_parse(kv, rej, key, cast, scale)
+    if val is None:
+        return None
+    return max(lo, min(hi, val))
+
+
+def sd_notify(state: str) -> None:
+    """Envia uma notificação ao systemd (Type=notify / WatchdogSec) via o
+    socket UNIX em $NOTIFY_SOCKET. No-op fora do systemd. Sem dependência."""
+    addr = os.environ.get("NOTIFY_SOCKET")
+    if not addr:
+        return
+    if addr.startswith("@"):  # namespace abstrato
+        addr = "\0" + addr[1:]
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as sock:
+            sock.connect(addr)
+            sock.sendall(state.encode("utf-8"))
+    except OSError:
+        pass  # melhor esforço; nunca derruba o agente
+
+
+def setup_logging(cfg: Config) -> None:
+    """Console (journal) + arquivo rotativo, para o CMD_GET_LOGS poder ler o
+    próprio log recente sem depender de journalctl/permissões."""
+    root = logging.getLogger()
+    root.setLevel(cfg.log_level)
+    fmt = logging.Formatter(
+        "%(asctime)s %(levelname)s [%(threadName)s] %(name)s: %(message)s"
+    )
+    stream = logging.StreamHandler()
+    stream.setFormatter(fmt)
+    root.addHandler(stream)
+    try:
+        cfg.log_file.parent.mkdir(parents=True, exist_ok=True)
+        fileh = RotatingFileHandler(
+            cfg.log_file, maxBytes=cfg.log_max_bytes,
+            backupCount=cfg.log_backup_count, encoding="utf-8",
+        )
+        fileh.setFormatter(fmt)
+        root.addHandler(fileh)
+    except OSError as exc:  # disco cheio / permissão — segue só com journal
+        log.warning("Sem log em arquivo (%s): %s", cfg.log_file, exc)
 
 
 class Agent:
@@ -137,6 +217,35 @@ class Agent:
         # Lote de frames do evento (EVENT_BATCH_SIZE>=2): acumula e sobe num
         # único POST /upload-batch a cada N frames ou no fim do evento.
         self._event_batch: list[tuple[bytes, str, str]] = []  # (jpeg, event_id, state)
+        self._event_batch_size = cfg.event_batch_size  # hot-reload via config
+
+        # ----- observabilidade / auto-cura (deploy remoto) -----------------
+        self._start_monotonic = time.monotonic()
+        self._heartbeat_mode = cfg.heartbeat_mode
+        self._snapshot_source = cfg.snapshot_source
+        self._log_level = cfg.log_level
+        self._safe_mode = False
+        # Saúde de captura/câmera (separar "Pi muda" de "câmera caída").
+        self._last_capture_ok_at = 0.0
+        self._last_capture_source = "none"
+        self._camera_ok = False
+        self._last_fg_px = 0
+        self._last_delta_px = 0
+        # Eventos do dia (reseta na virada de data BRT-naive local).
+        self._last_event_id: Optional[str] = None
+        self._last_event_at = 0.0
+        self._events_today = 0
+        self._events_today_date = time.strftime("%Y-%m-%d")
+        # Config: versão aplicada + chaves rejeitadas (vão p/ a telemetria).
+        self._config_version = "0"
+        self._rejected_config: dict[str, str] = {}
+        self._last_good_polygon = cfg.pile_zone_polygon
+        # Watchdog: cada thread "bate" no topo da iteração.
+        self._beats: dict[str, float] = {}
+        # Pedido de re-anchor do gate (CMD_RECALIBRATE / mudança de enquadramento):
+        # setado por qualquer thread, consumido pela thread de captura (dona do gate).
+        self._recalibrate_requested = False
+        self._disk_low = False
 
     def _build_gate(self):
         try:
@@ -183,20 +292,32 @@ class Agent:
         self._synthetic_start_sent = False
         log.info("Evento sintético %s iniciado (SIGUSR1)", self._synthetic_id)
 
+    def _beat(self, name: str) -> None:
+        """Marca a thread como viva (consumido pelo watchdog)."""
+        self._beats[name] = time.monotonic()
+
     def run(self) -> None:
         threads = [
             threading.Thread(target=self.capture_loop, name="capture", daemon=True),
             threading.Thread(target=self.config_loop, name="config", daemon=True),
             threading.Thread(target=self.command_loop, name="command", daemon=True),
+            threading.Thread(target=self.telemetry_loop, name="telemetry", daemon=True),
             threading.Thread(target=self.maintenance_loop, name="maint", daemon=True),
         ]
+        now = time.monotonic()
+        for name in ("capture", "config", "command", "telemetry"):
+            self._beats[name] = now
         for t in threads:
             t.start()
+        # Watchdog não é monitorado (é o monitor) e roda mesmo se uma thread cair.
+        threading.Thread(target=self.watchdog_loop, name="watchdog", daemon=True).start()
         log.info(
-            "Agente iniciado device=%s cam=%s -> %s (modo=%s, análise=%.1fs)",
-            self.cfg.device_id, self._cam_url, self.cfg.upload_url,
-            self._motion_mode, self._capture_cadence(),
+            "Agente iniciado v=%s device=%s cam=%s -> %s (modo=%s, análise=%.1fs)",
+            self.cfg.agent_version, self.cfg.device_id, self._cam_url,
+            self.cfg.upload_url, self._motion_mode, self._capture_cadence(),
         )
+        sd_notify("READY=1")
+        sd_notify(f"STATUS=device={self.cfg.device_id} mode={self._motion_mode}")
         while not self._stop.is_set():
             self._stop.wait(1.0)
         for t in threads:
@@ -233,6 +354,7 @@ class Agent:
         # câmera pausada) só valeria após o sleep atual inteiro.
         last_at = 0.0
         while not self._stop.is_set():
+            self._beat("capture")
             interval = self._capture_cadence()
             now = time.monotonic()
             wait = (last_at + interval) - now
@@ -241,9 +363,21 @@ class Agent:
                 continue
             last_at = now
             try:
+                self._consume_recalibrate()
                 self._capture_once()
             except Exception:  # noqa: BLE001 - loop nunca pode morrer
                 log.exception("Falha inesperada no ciclo de captura")
+
+    def _consume_recalibrate(self) -> None:
+        """Re-anchor do gate pedido por outra thread (CMD_RECALIBRATE / zoom /
+        troca de IP). Só a thread de captura toca o gate, então o pedido é
+        consumido aqui via flag."""
+        if not self._recalibrate_requested:
+            return
+        self._recalibrate_requested = False
+        if self._gate is not None:
+            log.info("Re-anchor do gate (warm-up silencioso) por solicitação")
+            self._gate.begin_warmup(silent=True)
 
     def _capture_once(self) -> None:
         data = self._fetch_snapshot()
@@ -252,6 +386,8 @@ class Agent:
             return
 
         now = time.time()
+        self._last_capture_ok_at = now
+        self._camera_ok = True
         synthetic = self._poll_synthetic(now)
         if synthetic is not None:
             event_id, state = synthetic
@@ -265,12 +401,21 @@ class Agent:
             return
 
         decision = self._gate.process(data)
+        self._last_fg_px = decision.fg_px
+        self._last_delta_px = decision.delta_px
         if decision.action == "start" and not decision.is_warmup:
             self._event_start_ts[decision.event_id] = now
+            self._note_event(decision.event_id, now)
         if decision.action in ("start", "end"):
             log.info(
-                "[gate:%s] %s %s fg_px=%d delta_px=%d",
+                "[gate:%s] %s %s fg_px=%d delta_px=%d reason=%s",
                 mode, decision.event_id, decision.action,
+                decision.fg_px, decision.delta_px, decision.reason or "-",
+            )
+        else:
+            log.debug(
+                "[gate:%s] %s state=%s fg_px=%d delta_px=%d",
+                mode, decision.event_id or "-", decision.state,
                 decision.fg_px, decision.delta_px,
             )
 
@@ -302,7 +447,7 @@ class Agent:
             )
             state = "end_transient" if transient else "end"
             # Frame de fechamento sobe sempre (fecha o manifest no servidor).
-            if self.cfg.event_batch_size >= 2 and not decision.is_warmup:
+            if self._event_batch_size >= 2 and not decision.is_warmup:
                 # Enfileira o frame de fechamento: _queue_event_frame faz o
                 # flush imediato do lote pendente ao ver o estado de "end".
                 self._queue_event_frame(data, decision.event_id, state)
@@ -318,7 +463,7 @@ class Agent:
             return
 
         if decision.event_id is not None and decision.action in ("start", "active"):
-            batching = self.cfg.event_batch_size >= 2 and not decision.is_warmup
+            batching = self._event_batch_size >= 2 and not decision.is_warmup
             # No início do evento real, sobe o "antes" (cena pré-intrusão) como
             # primeiro frame, dando à nuvem o par antes/depois. O frame do gatilho
             # (com o ator) vai logo em seguida.
@@ -350,14 +495,21 @@ class Agent:
                 self._spool_and_upload(data, event_id=decision.event_id, event_state=state)
             return
 
-        # idle/recover: mantém a câmera "online" no painel.
-        if now - self._last_upload_at >= self._heartbeat_interval:
-            if self.cfg.heartbeat_mode == "keepalive":
-                # Sem imagem: só um ping leve (corta 4G). A imagem do painel vem
-                # de evento ou sob demanda (CMD_SNAPSHOT).
-                self._post_keepalive()
-            else:
-                self._spool_and_upload(data)
+        # idle/recover: no modo "image" sobe um frame esparso p/ o painel ter
+        # thumbnail. O keepalive leve + telemetria de saúde é da telemetry_loop
+        # (roda mesmo com a câmera caída, então "Pi muda" != "câmera offline").
+        if self._heartbeat_mode == "image" and now - self._last_upload_at >= self._heartbeat_interval:
+            self._spool_and_upload(data)
+
+    def _note_event(self, event_id: Optional[str], now: float) -> None:
+        """Atualiza contadores de evento para a telemetria (rollover diário)."""
+        today = time.strftime("%Y-%m-%d", time.localtime(now))
+        if today != self._events_today_date:
+            self._events_today_date = today
+            self._events_today = 0
+        self._events_today += 1
+        self._last_event_id = event_id
+        self._last_event_at = now
 
     def _poll_synthetic(self, now: float) -> Optional[tuple[str, str]]:
         """Avança o evento sintético (SIGUSR1), devolvendo (event_id, state)."""
@@ -392,14 +544,20 @@ class Agent:
     _SAME_FRAME = object()
 
     def _fetch_snapshot(self) -> bytes | None:
-        source = self.cfg.snapshot_source
+        source = self._snapshot_source
         if source in ("auto", "rtsp"):
             res = self._fetch_snapshot_rtsp()
             if res is Agent._SAME_FRAME:
                 return None
-            if res is not None or source == "rtsp":
+            if res is not None:
+                self._last_capture_source = "rtsp"
                 return res
-        return self._fetch_snapshot_http()
+            if source == "rtsp":
+                return None
+        data = self._fetch_snapshot_http()
+        if data is not None:
+            self._last_capture_source = "http"
+        return data
 
     def _fetch_snapshot_rtsp(self):
         """Lê o JPEG mantido pelo cam-rtsp-buffer.sh a partir dos keyframes
@@ -495,8 +653,16 @@ class Agent:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         frame_path = self.cfg.spool_dir / self._spool_name(ts, event_id, event_state)
         tmp = frame_path.with_suffix(".jpg.tmp")
-        tmp.write_bytes(data)
-        tmp.replace(frame_path)
+        try:
+            tmp.write_bytes(data)
+            tmp.replace(frame_path)
+        except OSError as exc:
+            # Disco cheio / IO: degrada graciosamente (não derruba a thread).
+            log.warning("Falha ao gravar frame no spool (%s) — descartado: %s",
+                        frame_path.name, exc)
+            tmp.unlink(missing_ok=True)
+            self._prune_spool()
+            return
         self._prune_spool()
         # Sobe o frame recém-capturado primeiro; depois drena backlog antigo.
         if self._upload_frame(frame_path):
@@ -511,7 +677,7 @@ class Agent:
         self._event_batch.append((data, event_id, state))
         if (
             state in ("end", "end_transient")
-            or len(self._event_batch) >= self.cfg.event_batch_size
+            or len(self._event_batch) >= self._event_batch_size
         ):
             self._flush_event_batch()
 
@@ -559,11 +725,20 @@ class Agent:
             data = frame_path.read_bytes()
         except OSError:
             return False
+        # Frame corrompido (escrita parcial / disco cheio): descarta em vez de
+        # subir lixo. Não marca .uploaded (some do backlog ao apagar).
+        if len(data) < 500 or data[:2] != b"\xff\xd8":
+            log.warning("Frame corrompido no spool (%s, %d bytes) — descartado",
+                        frame_path.name, len(data))
+            frame_path.unlink(missing_ok=True)
+            frame_path.with_name(frame_path.name + UPLOADED_SUFFIX).unlink(missing_ok=True)
+            return False
         files = {"imageFile": ("snapshot.jpg", data, "image/jpeg")}
         event_id, event_state = self._parse_spool_name(frame_path.name)
         form = {}
         if event_id:
             form = {"event_id": event_id, "event_state": event_state}
+        t0 = time.monotonic()
         try:
             resp = self._ec2_session.post(
                 self.cfg.upload_url, files=files, data=form,
@@ -575,23 +750,220 @@ class Agent:
         if resp.status_code == 200:
             frame_path.with_name(frame_path.name + UPLOADED_SUFFIX).touch()
             self._last_upload_at = time.time()
-            log.info("Upload OK %s (%d bytes)", frame_path.name, len(data))
+            log.info("Upload OK %s (%d bytes, %dms, backlog=%d)", frame_path.name,
+                     len(data), int((time.monotonic() - t0) * 1000),
+                     len(self._pending_frames()))
             return True
         log.warning("Upload HTTP %s (%s)", resp.status_code, frame_path.name)
         return False
 
-    def _post_keepalive(self) -> None:
-        """Ping leve (sem imagem): o servidor faz touch num marcador que o
-        offline_monitor lê para manter a câmera 'online' no painel. ~100 bytes
-        vs ~290KB de um frame — corta o 4G do heartbeat."""
+    def _post_keepalive(self) -> bool:
+        """Keepalive + telemetria de saúde no corpo JSON. O servidor faz touch
+        no marcador (offline_monitor mantém a câmera 'online') e grava
+        .health.json. Retrocompatível: servidor antigo ignora o corpo. ~1KB."""
         try:
-            resp = self._ec2_session.post(self.cfg.keepalive_url, timeout=10)
+            resp = self._ec2_session.post(
+                self.cfg.keepalive_url, json=self._health_snapshot(), timeout=10,
+            )
             if resp.status_code == 200:
                 self._last_upload_at = time.time()  # reusa o relógio do heartbeat
-            else:
-                log.debug("Keepalive HTTP %s", resp.status_code)
+                return True
+            log.debug("Keepalive HTTP %s", resp.status_code)
         except requests.RequestException as exc:
             log.debug("Keepalive falhou: %s", exc)
+        return False
+
+    # ----- telemetria / saúde --------------------------------------------
+    def telemetry_loop(self) -> None:
+        """Emite keepalive + telemetria a cada heartbeat, INDEPENDENTE da
+        captura — a Pi continua 'online' e reporta mesmo com a câmera caída
+        (camera_ok=false), distinguindo 'Pi muda' de 'câmera offline'."""
+        while not self._stop.is_set():
+            self._beat("telemetry")
+            try:
+                self._disk_guard()
+                self._post_keepalive()
+            except Exception:  # noqa: BLE001
+                log.exception("Falha no ciclo de telemetria")
+            self._stop.wait(max(10.0, float(self._heartbeat_interval)))
+
+    def _health_snapshot(self) -> dict:
+        now = time.time()
+        cam_age = (now - self._last_capture_ok_at) if self._last_capture_ok_at else None
+        camera_ok = cam_age is not None and cam_age < max(30.0, 2 * self._heartbeat_interval)
+        up_age = (now - self._last_upload_at) if self._last_upload_at else None
+        evt_age = (now - self._last_event_at) if self._last_event_at else None
+        return {
+            "device_id": self.cfg.device_id,
+            "agent_version": self.cfg.agent_version,
+            "ts": datetime.now().isoformat(timespec="seconds"),
+            "uptime_s": int(time.monotonic() - self._start_monotonic),
+            "clock_synced": self._clock_synced(),
+            "motion_mode": self._motion_mode,
+            "safe_mode": self._safe_mode,
+            "gate_state": self._gate.state if self._gate is not None else "off",
+            "config_version": self._config_version,
+            "rejected_config_keys": sorted(self._rejected_config.keys()),
+            "log_level": self._log_level,
+            "snapshot_source": self._snapshot_source,
+            "heartbeat_mode": self._heartbeat_mode,
+            "last_capture_source": self._last_capture_source,
+            "last_capture_age_s": round(cam_age, 1) if cam_age is not None else None,
+            "camera_ok": camera_ok,
+            "rtsp_buffer_ok": self._rtsp_buffer_ok(),
+            "last_upload_age_s": round(up_age, 1) if up_age is not None else None,
+            "last_event_id": self._last_event_id,
+            "last_event_age_s": round(evt_age, 1) if evt_age is not None else None,
+            "events_today": self._events_today,
+            "fg_px": self._last_fg_px,
+            "delta_px": self._last_delta_px,
+            "spool_depth": self._spool_depth(),
+            "backlog_depth": len(self._pending_frames()),
+            "disk_free_mb": self._disk_free_mb(self.cfg.clips_dir),
+            "spool_free_mb": self._disk_free_mb(self.cfg.spool_dir),
+            "disk_low": self._disk_low,
+            "cpu_temp_c": self._cpu_temp_c(),
+            "throttled": self._throttled(),
+            "load_avg": self._load_avg(),
+            "mem_free_mb": self._mem_free_mb(),
+        }
+
+    def _spool_depth(self) -> int:
+        try:
+            return sum(1 for _ in self.cfg.spool_dir.glob("*.jpg"))
+        except OSError:
+            return -1
+
+    @staticmethod
+    def _disk_free_mb(path: Path) -> Optional[int]:
+        try:
+            return int(shutil.disk_usage(path).free // (1024 * 1024))
+        except OSError:
+            return None
+
+    def _rtsp_buffer_ok(self) -> Optional[bool]:
+        try:
+            age = time.time() - self.cfg.snapshot_jpg.stat().st_mtime
+        except OSError:
+            return None
+        return age < max(10.0, self.cfg.snapshot_max_age_s * 2)
+
+    @staticmethod
+    def _clock_synced() -> Optional[bool]:
+        try:
+            return Path("/run/systemd/timesync/synchronized").exists()
+        except OSError:
+            return None
+
+    @staticmethod
+    def _cpu_temp_c() -> Optional[float]:
+        try:
+            raw = Path("/sys/class/thermal/thermal_zone0/temp").read_text().strip()
+            return round(int(raw) / 1000.0, 1)
+        except (OSError, ValueError):
+            return None
+
+    @staticmethod
+    def _throttled() -> Optional[str]:
+        try:
+            out = subprocess.run(
+                ["vcgencmd", "get_throttled"], capture_output=True, timeout=5, text=True,
+            )
+            val = out.stdout.strip()
+            return val.split("=", 1)[1] if "=" in val else (val or None)
+        except (OSError, subprocess.SubprocessError):
+            return None
+
+    @staticmethod
+    def _load_avg() -> Optional[float]:
+        try:
+            return round(os.getloadavg()[0], 2)
+        except (OSError, AttributeError):
+            return None
+
+    @staticmethod
+    def _mem_free_mb() -> Optional[int]:
+        try:
+            for line in Path("/proc/meminfo").read_text().splitlines():
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) // 1024
+        except (OSError, ValueError, IndexError):
+            pass
+        return None
+
+    def _disk_guard(self) -> None:
+        """Se o espaço cair abaixo do piso, poda agressivamente e alerta uma
+        vez (best-effort; nunca derruba a thread)."""
+        free = self._disk_free_mb(self.cfg.clips_dir)
+        spool_free = self._disk_free_mb(self.cfg.spool_dir)
+        floor = self.cfg.min_disk_free_mb
+        low = (free is not None and free < floor) or (
+            spool_free is not None and spool_free < floor
+        )
+        if low and not self._disk_low:
+            log.warning("Disco baixo (clips=%sMB spool=%sMB < %dMB) — poda agressiva",
+                        free, spool_free, floor)
+            self._post_status(f"disk_low clips={free}MB spool={spool_free}MB")
+        if low:
+            self._emergency_prune()
+        self._disk_low = low
+
+    def _emergency_prune(self) -> None:
+        try:
+            clips = sorted(self.cfg.clips_dir.glob("*.mp4"), key=lambda p: p.stat().st_mtime)
+            for old in clips[:-3]:  # mantém os 3 clipes mais novos
+                old.unlink(missing_ok=True)
+                log.info("Disco baixo: clipe %s removido", old.name)
+        except OSError:
+            pass
+        try:
+            frames = sorted(self.cfg.spool_dir.glob("*.jpg"), reverse=True)
+            for old in frames[max(5, self.cfg.keep_frames // 2):]:
+                old.unlink(missing_ok=True)
+                old.with_name(old.name + UPLOADED_SUFFIX).unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    # ----- watchdog ------------------------------------------------------
+    def _thread_limits(self) -> dict[str, float]:
+        return {
+            "capture": self.cfg.watchdog_capture_stall_s,
+            "config": max(0.0, self.cfg.config_poll_interval_s * 3.0),
+            "command": max(0.0, self.cfg.command_poll_timeout_s * 3.0 + 30.0),
+            "telemetry": max(0.0, self._heartbeat_interval * 3.0 + 30.0),
+        }
+
+    def _watchdog_overdue(self, mono: float, wall: float) -> Optional[str]:
+        """Função pura: devolve o motivo (nome da thread ou 'mute') se algo
+        estourou o limiar, senão None. Separado do loop para ser testável."""
+        for name, limit in self._thread_limits().items():
+            if limit <= 0:
+                continue
+            if mono - self._beats.get(name, mono) > limit:
+                return f"thread:{name}"
+        mute = self.cfg.watchdog_mute_restart_s
+        if mute > 0 and self._last_upload_at > 0 and (wall - self._last_upload_at) > mute:
+            return "mute"
+        return None
+
+    def watchdog_loop(self) -> None:
+        """Reinicia o processo (os._exit -> systemd) se uma thread travar
+        ('vivo mas mudo') e bate o WatchdogSec do systemd a cada tick."""
+        while not self._stop.is_set():
+            try:
+                sd_notify("WATCHDOG=1")
+                reason = self._watchdog_overdue(time.monotonic(), time.time())
+                if reason is not None:
+                    log.critical("Watchdog: %s estourou o limiar — reiniciando processo", reason)
+                    self._die()
+            except Exception:  # noqa: BLE001 - watchdog jamais pode morrer
+                log.exception("Erro no watchdog (ignorado)")
+            self._stop.wait(self.cfg.watchdog_tick_s)
+
+    @staticmethod
+    def _die() -> None:
+        logging.shutdown()
+        os._exit(1)
 
     def _upload_snapshot_now(self) -> None:
         """CMD_SNAPSHOT: sobe UM frame atual sob demanda (abrir painel / "atualizar
@@ -662,6 +1034,8 @@ class Agent:
             log.warning("CMD_ZOOM falhou: %s", exc)
             return
         log.info("CMD_ZOOM: zoom=%.2f aplicado (lido=%s)", target, self._read_zoom())
+        # Enquadramento mudou -> baseline do gate inválido: re-anchor.
+        self._recalibrate_requested = True
         self._upload_snapshot_now()
 
     def _handle_autofocus_cmd(self) -> None:
@@ -672,6 +1046,150 @@ class Agent:
             log.warning("CMD_AUTOFOCUS falhou: %s", exc)
             return
         self._upload_snapshot_now()
+
+    # ----- logs remotos --------------------------------------------------
+    def _read_recent_logs(self, n: int) -> str:
+        """Últimas N linhas do log rotativo; cai para journalctl se sem arquivo."""
+        try:
+            if self.cfg.log_file.is_file():
+                lines = self.cfg.log_file.read_text(
+                    encoding="utf-8", errors="replace"
+                ).splitlines()
+                return "\n".join(lines[-n:])
+        except OSError:
+            pass
+        try:
+            out = subprocess.run(
+                ["journalctl", "-u", "saira-agent", "-n", str(n), "--no-pager"],
+                capture_output=True, timeout=30, text=True,
+            )
+            return out.stdout
+        except (OSError, subprocess.SubprocessError):
+            return ""
+
+    def _send_logs(self, arg: str) -> None:
+        """CMD_GET_LOGS[:n] — sobe as últimas N linhas do log (default 500) para
+        POST /device/<id>/logs. Permite rastrear o teste de campo sem SSH."""
+        try:
+            n = max(1, min(5000, int(arg))) if arg else 500
+        except ValueError:
+            n = 500
+        text = self._read_recent_logs(n)
+        if not text:
+            log.warning("CMD_GET_LOGS: sem log disponível")
+            self._post_status("logs_unavailable")
+            return
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        fname = f"{self.cfg.device_id}_{ts}.log"
+        try:
+            resp = self._ec2_session.post(
+                self.cfg.logs_url,
+                files={"logFile": (fname, text.encode("utf-8", "replace"), "text/plain")},
+                timeout=self.cfg.upload_timeout_s * 2,
+            )
+            log.info("CMD_GET_LOGS: %d linhas enviadas HTTP %s", n, resp.status_code)
+        except requests.RequestException as exc:
+            log.warning("CMD_GET_LOGS upload falhou: %s", exc)
+
+    # ----- modo calibração ----------------------------------------------
+    def _fetch_calib_frame(self) -> Optional[bytes]:
+        """Frame para calibração: latest.jpg do RTSP, caindo p/ snapshot HTTP."""
+        try:
+            raw = self.cfg.snapshot_jpg.read_bytes()
+            if len(raw) >= 500 and raw[:2] == b"\xff\xd8":
+                return raw
+        except OSError:
+            pass
+        return self._fetch_snapshot_http()
+
+    def _run_calibration(self, arg: str) -> None:
+        """CMD_CALIBRATE[:s] — por S segundos mede fg/delta com uma sonda
+        independente do gate vivo e sobe (1) um snapshot ANOTADO (polígono +
+        heatmap de foreground + painel) para /upload e (2) um relatório JSON
+        para /device/<id>/logs. Modo calibração remoto: desenhar a zona e achar
+        o enquadramento sem ir ao local."""
+        try:
+            secs = max(3, min(120, int(arg))) if arg else 20
+        except ValueError:
+            secs = 20
+        log.info("CMD_CALIBRATE: amostrando por %ds", secs)
+        polygon = self._last_good_polygon
+        try:
+            from motion_gate import CalibrationProbe
+        except ImportError as exc:
+            log.warning("CMD_CALIBRATE: cv2/numpy indisponíveis (%s) — só snapshot cru", exc)
+            self._upload_snapshot_now()
+            self._post_status(f"calibrate framing-only (sem cv2: {exc})")
+            return
+        probe = CalibrationProbe(
+            polygon_json=polygon,
+            history=self.cfg.pi_bgsub_history,
+            var_threshold=self.cfg.pi_bgsub_var_threshold,
+            shadow_threshold=self.cfg.pi_bgsub_shadow_threshold,
+        )
+        samples: list[tuple[int, int]] = []
+        last_frame: Optional[bytes] = None
+        deadline = time.monotonic() + secs
+        while time.monotonic() < deadline and not self._stop.is_set():
+            frame = self._fetch_calib_frame()
+            if frame is not None:
+                last_frame = frame
+                m = probe.measure(frame)
+                if m is not None:
+                    samples.append(m)
+            self._stop.wait(1.0)
+
+        if not samples or last_frame is None:
+            log.warning("CMD_CALIBRATE: sem frames")
+            self._post_status("calibrate no-frames")
+            return
+
+        fgs = [s[0] for s in samples]
+        deltas = [s[1] for s in samples]
+        cur_min_active = self._gate.min_px_active if self._gate else self.cfg.pi_bgsub_min_px_active
+        cur_delta_start = self._gate.delta_start_px if self._gate else self.cfg.pi_bgsub_delta_start_px
+        report = {
+            "device_id": self.cfg.device_id,
+            "ts": datetime.now().isoformat(timespec="seconds"),
+            "seconds": secs,
+            "frames": len(samples),
+            "fg_px": {"min": min(fgs), "max": max(fgs), "mean": round(sum(fgs) / len(fgs), 1)},
+            "delta_px": {"min": min(deltas), "max": max(deltas), "mean": round(sum(deltas) / len(deltas), 1)},
+            "current": {
+                "pile_zone_polygon": polygon,
+                "min_px_active": cur_min_active,
+                "delta_start_px": cur_delta_start,
+            },
+            # Sugestão: piso acima do ruído observado na cena (folga 1,5×+50).
+            "suggested": {
+                "min_px_active": int(max(fgs) * 1.5) + 50,
+                "delta_start_px": int(max(deltas) * 1.5) + 50,
+            },
+        }
+        last_fg, last_delta = samples[-1]
+        lines = [
+            f"CALIB {self.cfg.device_id} {report['ts']}",
+            f"fg_px now={last_fg} min={min(fgs)} max={max(fgs)} mean={report['fg_px']['mean']}",
+            f"delta_px now={last_delta} min={min(deltas)} max={max(deltas)} mean={report['delta_px']['mean']}",
+            f"atual: min_px_active={cur_min_active} delta_start_px={cur_delta_start}",
+            f"sugerido: min_px_active>={report['suggested']['min_px_active']} "
+            f"delta_start_px>={report['suggested']['delta_start_px']}",
+        ]
+        annotated = probe.annotate(last_frame, lines)
+        self._spool_and_upload(annotated if annotated else last_frame)
+        try:
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self._ec2_session.post(
+                self.cfg.logs_url,
+                files={"logFile": (f"calib_{self.cfg.device_id}_{ts}.json",
+                                   json.dumps(report, indent=2, ensure_ascii=False).encode("utf-8"),
+                                   "application/json")},
+                timeout=self.cfg.upload_timeout_s * 2,
+            )
+        except requests.RequestException as exc:
+            log.warning("CMD_CALIBRATE: upload do relatório falhou: %s", exc)
+        log.info("CMD_CALIBRATE: %d frames, fg[%d..%d] delta[%d..%d]",
+                 len(samples), min(fgs), max(fgs), min(deltas), max(deltas))
 
     def _pending_frames(self) -> list[Path]:
         frames = sorted(self.cfg.spool_dir.glob("*.jpg"), reverse=True)  # mais novo primeiro
@@ -692,6 +1210,7 @@ class Agent:
     def config_loop(self) -> None:
         etag: str | None = None
         while not self._stop.is_set():
+            self._beat("config")
             try:
                 headers = {"If-None-Match": etag} if etag else {}
                 resp = self._ec2_session.get(
@@ -704,77 +1223,197 @@ class Agent:
                 log.debug("Config poll falhou: %s", exc)
             self._stop.wait(self.cfg.config_poll_interval_s)
 
+    @staticmethod
+    def _as_bool(s: str) -> bool:
+        return s.strip().lower() not in ("0", "false", "no", "off", "")
+
+    @staticmethod
+    def _validate_polygon(polygon_json: str) -> bool:
+        """True se o JSON parseia e tem ≥1 polígono não-degenerado (≥3 pontos,
+        área ≥0,2% do frame de referência, pontos dentro dos limites). Puro
+        Python (sem cv2): roda mesmo com o gate desligado. Vazio = frame inteiro
+        (válido). Impede que um polígono minúsculo/zerado cegue a detecção."""
+        s = (polygon_json or "").strip()
+        if not s:
+            return True
+        try:
+            raw = json.loads(s)
+            if raw and isinstance(raw[0][0], (int, float)):
+                raw = [raw]
+            min_area = 0.002 * POLYGON_REF_W * POLYGON_REF_H
+            for poly in raw:
+                if len(poly) < 3:
+                    continue
+                if any(
+                    not (-1 <= x <= POLYGON_REF_W + 1 and -1 <= y <= POLYGON_REF_H + 1)
+                    for x, y in poly
+                ):
+                    continue
+                n = len(poly)
+                area = abs(sum(
+                    poly[i][0] * poly[(i + 1) % n][1] - poly[(i + 1) % n][0] * poly[i][1]
+                    for i in range(n)
+                )) / 2.0
+                if area >= min_area:
+                    return True
+            return False
+        except (ValueError, TypeError, IndexError, KeyError):
+            return False
+
     def _apply_config(self, body: str) -> None:
+        """Aplica config remota com validação + rejeição visível + rollback
+        leve (mantém valor anterior) + kill-switch safe_mode. Chaves inválidas
+        NÃO são engolidas em silêncio: vão para self._rejected_config e a
+        telemetria, e o operador vê o que de fato está vivo."""
         kv: dict[str, str] = {}
         for line in body.splitlines():
             if "=" in line:
                 k, _, v = line.partition("=")
                 kv[k.strip()] = v.strip()
-        with self._lock:
-            if "timer_delay_ms" in kv:
-                try:
-                    secs = int(kv["timer_delay_ms"]) / 1000.0
-                    new = max(MIN_CAPTURE_INTERVAL_S, secs)
-                    if new != self._interval:
-                        log.info("Config: intervalo %.1fs -> %.1fs", self._interval, new)
-                        self._interval = new
-                except ValueError:
-                    pass
-            for key, attr in (("ip_cam_url", "_cam_url"), ("ip_cam_user", "_cam_user"), ("ip_cam_pass", "_cam_pass")):
-                if key in kv and getattr(self, attr) != kv[key]:
-                    log.info("Config: %s atualizado", key)
-                    setattr(self, attr, kv[key])
-            if "burst_interval_ms" in kv:
-                try:
-                    self._burst_interval = max(0.5, int(kv["burst_interval_ms"]) / 1000.0)
-                except ValueError:
-                    pass
-            if "idle_analyze_interval_ms" in kv:
-                try:
-                    self._idle_analyze_interval = max(
-                        MIN_ANALYZE_INTERVAL_S, int(kv["idle_analyze_interval_ms"]) / 1000.0
-                    )
-                except ValueError:
-                    pass
-            if "event_min_residual_px" in kv:
-                try:
-                    self._event_min_residual_px = max(0, int(kv["event_min_residual_px"]))
-                except ValueError:
-                    pass
-            if "motion_send_pre_frame" in kv:
-                self._send_pre_frame = kv["motion_send_pre_frame"].strip().lower() not in (
-                    "0", "false", "no", "off",
-                )
-            if "motion_enabled" in kv and kv["motion_enabled"] in ("off", "shadow", "on"):
-                new_mode = kv["motion_enabled"]
-                if new_mode != self._motion_mode:
-                    if new_mode != "off" and self._gate is None:
-                        self._gate = self._build_gate()
-                    if new_mode == "off" or self._gate is not None:
-                        log.info("Config: motion %s -> %s", self._motion_mode, new_mode)
-                        self._motion_mode = new_mode
+        rej: dict[str, str] = {}
 
-        # Tuning do gate (fora do lock do agente; gate é da thread de captura,
-        # mas estes campos são leituras simples de int/float).
-        if self._gate is not None:
-            if "pile_zone_polygon" in kv:
+        if "version" in kv and kv["version"]:
+            self._config_version = kv["version"]
+
+        # log_level: hot-reload, sempre aplicável (mesmo em safe_mode).
+        if "log_level" in kv:
+            lvl = kv["log_level"].strip().upper()
+            if lvl in _LOG_LEVELS:
+                if lvl != self._log_level:
+                    logging.getLogger().setLevel(lvl)
+                    self._log_level = lvl
+                    log.info("Config: log_level -> %s", lvl)
+            else:
+                rej["log_level"] = kv["log_level"]
+
+        # safe_mode: kill-switch. Liga -> força estado seguro (frames fluindo).
+        safe = self._safe_mode
+        if "safe_mode" in kv:
+            safe = self._as_bool(kv["safe_mode"])
+
+        with self._lock:
+            was_safe = self._safe_mode
+            self._safe_mode = safe
+            if safe:
+                if not was_safe:
+                    log.warning("Config: SAFE_MODE LIGADO — motion=off, intervalo "
+                                "padrão, heartbeat=image (escape garantido)")
+                self._motion_mode = "off"
+                self._heartbeat_mode = "image"
+                self._interval = max(MIN_CAPTURE_INTERVAL_S, self.cfg.capture_interval_s)
+            else:
+                if was_safe:
+                    log.info("Config: SAFE_MODE DESLIGADO")
+                self._apply_runtime_keys(kv, rej)
+
+        if not safe:
+            self._apply_gate_keys(kv, rej)
+
+        self._rejected_config = rej
+        if rej:
+            log.warning("Config v%s: chaves REJEITADAS (mantido valor anterior): %s",
+                        self._config_version,
+                        ", ".join(f"{k}={v!r}" for k, v in rej.items()))
+
+    def _apply_runtime_keys(self, kv: dict, rej: dict) -> None:
+        """Chaves de runtime do agente (chamado sob self._lock, fora do safe_mode).
+        Cadências CLAMPAM em [piso,teto]; thresholds/tamanhos REJEITAM fora da faixa."""
+        if "timer_delay_ms" in kv:
+            v = _cfg_clamp(kv, rej, "timer_delay_ms", MIN_CAPTURE_INTERVAL_S, 3600.0, int, 0.001)
+            if v is not None and v != self._interval:
+                log.info("Config: intervalo %.1fs -> %.1fs", self._interval, v)
+                self._interval = v
+
+        for key, attr in (("ip_cam_url", "_cam_url"), ("ip_cam_user", "_cam_user"),
+                          ("ip_cam_pass", "_cam_pass")):
+            if key in kv and getattr(self, attr) != kv[key]:
+                log.info("Config: %s atualizado", key)
+                setattr(self, attr, kv[key])
+                if key == "ip_cam_url":
+                    # Câmera/posição pode ter mudado -> baseline inválido.
+                    self._recalibrate_requested = True
+
+        if "burst_interval_ms" in kv:
+            v = _cfg_clamp(kv, rej, "burst_interval_ms", 0.5, 60.0, int, 0.001)
+            if v is not None:
+                self._burst_interval = v
+        if "idle_analyze_interval_ms" in kv:
+            v = _cfg_clamp(kv, rej, "idle_analyze_interval_ms", MIN_ANALYZE_INTERVAL_S, 600.0, int, 0.001)
+            if v is not None:
+                self._idle_analyze_interval = v
+        if "heartbeat_interval_ms" in kv:
+            v = _cfg_clamp(kv, rej, "heartbeat_interval_ms", 10.0, 3600.0, int, 0.001)
+            if v is not None:
+                self._heartbeat_interval = v
+        if "event_min_residual_px" in kv:
+            v = _cfg_num(kv, rej, "event_min_residual_px", 0, 1_000_000, int)
+            if v is not None:
+                self._event_min_residual_px = v
+        if "event_batch_size" in kv:
+            v = _cfg_num(kv, rej, "event_batch_size", 0, 64, int)
+            if v is not None:
+                self._event_batch_size = v
+        if "motion_send_pre_frame" in kv:
+            self._send_pre_frame = self._as_bool(kv["motion_send_pre_frame"])
+        if "snapshot_source" in kv:
+            src = kv["snapshot_source"].strip().lower()
+            if src in ("auto", "rtsp", "http"):
+                self._snapshot_source = src
+            else:
+                rej["snapshot_source"] = kv["snapshot_source"]
+        if "heartbeat_mode" in kv:
+            hm = kv["heartbeat_mode"].strip().lower()
+            if hm in ("image", "keepalive"):
+                self._heartbeat_mode = hm
+            else:
+                rej["heartbeat_mode"] = kv["heartbeat_mode"]
+        if "motion_enabled" in kv:
+            new_mode = kv["motion_enabled"].strip().lower()
+            if new_mode not in ("off", "shadow", "on"):
+                rej["motion_enabled"] = kv["motion_enabled"]
+            elif new_mode != self._motion_mode:
+                if new_mode != "off" and self._gate is None:
+                    self._gate = self._build_gate()
+                if new_mode == "off" or self._gate is not None:
+                    log.info("Config: motion %s -> %s", self._motion_mode, new_mode)
+                    self._motion_mode = new_mode
+
+    def _apply_gate_keys(self, kv: dict, rej: dict) -> None:
+        """Tuning do gate (fora do lock; gate é da thread de captura, mas são
+        escritas atômicas de int). Com clamps e guard de polígono."""
+        if self._gate is None:
+            return
+        if "pile_zone_polygon" in kv:
+            if self._validate_polygon(kv["pile_zone_polygon"]):
                 self._gate.set_polygon(kv["pile_zone_polygon"])
-            for key, attr, cast in (
-                ("motion_min_px_active", "min_px_active", int),
-                ("motion_delta_start_px", "delta_start_px", int),
-                ("motion_warmup_s", "warmup_seconds", int),
-                ("event_max_s", "event_max_s", int),
-                ("event_end_quiet_s", "event_end_quiet_s", int),
-            ):
-                if key in kv:
-                    try:
-                        setattr(self._gate, attr, cast(kv[key]))
-                    except ValueError:
-                        pass
+                self._last_good_polygon = kv["pile_zone_polygon"]
+            else:
+                rej["pile_zone_polygon"] = (kv["pile_zone_polygon"][:40] + "…") \
+                    if len(kv["pile_zone_polygon"]) > 40 else kv["pile_zone_polygon"]
+                log.warning("Config: pile_zone_polygon degenerado — mantido o anterior")
+        for key, attr, lo, hi in (
+            ("motion_min_px_active", "min_px_active", 10, 1_000_000),
+            ("motion_delta_start_px", "delta_start_px", 10, 1_000_000),
+            ("motion_warmup_s", "warmup_seconds", 10, 3600),
+            ("event_max_s", "event_max_s", 30, 3600),
+            ("event_end_quiet_s", "event_end_quiet_s", 3, 3600),
+        ):
+            if key not in kv:
+                continue
+            try:
+                val = int(kv[key])
+            except (ValueError, TypeError):
+                rej[key] = kv[key]
+                continue
+            if val < lo or val > hi:
+                rej[key] = kv[key]
+                continue
+            setattr(self._gate, attr, val)
 
     # ----- comandos sob demanda -----------------------------------------
     def command_loop(self) -> None:
         while not self._stop.is_set():
+            self._beat("command")
             try:
                 resp = self._ec2_session.get(
                     self.cfg.poll_url,
@@ -791,25 +1430,63 @@ class Agent:
             log.info("Comando recebido: %s", cmd)
             name, _, arg = str(cmd).partition(":")
             arg = arg.strip()
+            t0 = time.monotonic()
             try:
-                if name == "CMD_VIDEO_CLIP" and arg:
-                    self._upload_event_clip(arg)
-                elif name == "CMD_VIDEO_CLIP":
-                    self._export_and_upload_ring()
-                elif name == "CMD_PERSIST_CLIP" and arg:
-                    self._clips.persist_clip(arg)
-                elif name == "CMD_BULK_UPLOAD":
-                    self._bulk_upload_spool()
-                elif name == "CMD_SNAPSHOT":
-                    self._upload_snapshot_now()
-                elif name == "CMD_ZOOM" and arg:
-                    self._handle_zoom_cmd(arg)
-                elif name == "CMD_AUTOFOCUS":
-                    self._handle_autofocus_cmd()
-                else:
-                    log.warning("Comando desconhecido: %s", cmd)
+                self._dispatch_command(name, arg, cmd)
             except Exception:  # noqa: BLE001
                 log.exception("Falha ao executar comando %s", cmd)
+            else:
+                log.info("Comando %s concluído (%dms)", name,
+                         int((time.monotonic() - t0) * 1000))
+
+    def _dispatch_command(self, name: str, arg: str, cmd: str) -> None:
+        if name == "CMD_VIDEO_CLIP" and arg:
+            self._upload_event_clip(arg)
+        elif name == "CMD_VIDEO_CLIP":
+            self._export_and_upload_ring()
+        elif name == "CMD_PERSIST_CLIP" and arg:
+            self._clips.persist_clip(arg)
+        elif name == "CMD_BULK_UPLOAD":
+            self._bulk_upload_spool()
+        elif name == "CMD_SNAPSHOT":
+            self._upload_snapshot_now()
+        elif name == "CMD_ZOOM" and arg:
+            self._handle_zoom_cmd(arg)
+        elif name == "CMD_AUTOFOCUS":
+            self._handle_autofocus_cmd()
+        elif name == "CMD_GET_LOGS":
+            self._send_logs(arg)
+        elif name == "CMD_CALIBRATE":
+            self._run_calibration(arg)
+        elif name == "CMD_RECALIBRATE":
+            self._recalibrate_requested = True
+            log.info("CMD_RECALIBRATE: re-anchor do gate solicitado")
+            self._post_status("recalibrate_requested")
+        elif name == "CMD_HEALTH":
+            self._post_keepalive()
+        elif name == "CMD_RESTART_AGENT":
+            log.warning("CMD_RESTART_AGENT: reiniciando o processo (systemd sobe de novo)")
+            self._post_status("restart_agent")
+            logging.shutdown()
+            os._exit(0)
+        elif name == "CMD_RESTART_BUFFER":
+            self._restart_buffer()
+        else:
+            log.warning("Comando desconhecido: %s", cmd)
+
+    def _restart_buffer(self) -> None:
+        """Reinicia o cam-rtsp-buffer (recupera latest.jpg travado). Requer que
+        o agente rode como root (ou sudoers para systemctl)."""
+        try:
+            subprocess.run(
+                ["systemctl", "restart", "saira-rtsp-buffer"],
+                check=True, capture_output=True, timeout=30,
+            )
+            log.info("CMD_RESTART_BUFFER: saira-rtsp-buffer reiniciado")
+            self._post_status("restart_buffer ok")
+        except (OSError, subprocess.SubprocessError) as exc:
+            log.warning("CMD_RESTART_BUFFER falhou: %s", exc)
+            self._post_status(f"restart_buffer fail: {exc}")
 
     def _upload_event_clip(self, event_id: str) -> None:
         """CMD_VIDEO_CLIP:<event_id> — sobe o clipe arquivado do evento."""
@@ -911,11 +1588,8 @@ class Agent:
 
 
 def main() -> None:
-    logging.basicConfig(
-        level=os.environ.get("LOG_LEVEL", "INFO").upper(),
-        format="%(asctime)s %(levelname)s [%(threadName)s] %(message)s",
-    )
     cfg = load_config()
+    setup_logging(cfg)
     agent = Agent(cfg)
     signal.signal(signal.SIGTERM, agent.stop)
     signal.signal(signal.SIGINT, agent.stop)

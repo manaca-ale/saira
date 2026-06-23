@@ -18,6 +18,8 @@ except Exception:  # pragma: no cover - optional dependency while running YOLO-o
     genai = None
     types = None
 
+from pydantic import ValidationError
+
 from . import config
 from . import _prompts_audit, _prompts_v2, _prompts_v3
 from .models import GeminiUsage
@@ -491,6 +493,34 @@ def _extract_text(resp) -> str:
     return "\n".join(chunks)
 
 
+def _parse_report_lenient(schema_cls, raw_text: str):
+    """Validate JSON against a Pydantic schema, tolerating over-long string fields.
+
+    Flash-Lite is non-deterministic and on rich/real dumping scenes it occasionally
+    overruns a `max_length` text field (e.g. `evidence_summary` >500 chars). Plain
+    `model_validate_json` would then raise `string_too_long`, and after retries the
+    whole gate call fails with RuntimeError — i.e. a REAL descarte gets dropped on a
+    cosmetic field. Here we clip the offending fields to their schema maxLength and
+    re-validate, preserving the actual decision (scene_type/new_litter_detected/etc).
+    """
+    try:
+        return schema_cls.model_validate_json(raw_text)
+    except ValidationError as exc:
+        errs = exc.errors()
+        if not any(e.get("type") == "string_too_long" for e in errs):
+            raise
+        data = json.loads(raw_text)
+        props = schema_cls.model_json_schema().get("properties", {})
+        limits = {k: v["maxLength"] for k, v in props.items() if "maxLength" in v}
+        for e in errs:
+            loc = e.get("loc") or ()
+            if e.get("type") == "string_too_long" and loc:
+                key = loc[0]
+                if key in limits and isinstance(data.get(key), str):
+                    data[key] = data[key][: limits[key]]
+        return schema_cls.model_validate(data)
+
+
 def _validate_bbox(bbox: object, label: str) -> Optional[list[int]]:
     """Validate a Gemini bounding box [y_min, x_min, y_max, x_max] normalized 0-1000.
 
@@ -906,7 +936,7 @@ def analyze_new_litter_with_gemini(
                     response = fut.result(timeout=timeout_s)
 
                 raw_text = _extract_text(response)
-                report = schema_cls.model_validate_json(raw_text)
+                report = _parse_report_lenient(schema_cls, raw_text)
                 report.waste_type = normalize_waste_type(report.waste_type)
                 report.confidence_0_100 = max(0, min(100, int(report.confidence_0_100)))
 

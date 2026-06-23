@@ -1225,6 +1225,41 @@ def _make_pile_crops(
     return crops
 
 
+def _gate_revote_eval(report, effective_threshold: int) -> dict[str, Any]:
+    """Per-detection breakdown of the conditional re-vote criteria (Flash-Lite
+    non-determinism, see config). Logged on EVERY gate decision so a negative
+    records exactly which criteria did/didn't match — even when no re-vote runs.
+
+    Borderline = scene is not a clear negative (EMPTY / COLLECTION_OR_MAINTENANCE)
+    AND at least one of: a NEW object appeared on the ground, a pile-related person
+    posture, or gray-zone confidence.
+    """
+    scene = (getattr(report, "scene_type", "") or "").upper().strip()
+    clear_negative_scene = scene in ("EMPTY", "COLLECTION_OR_MAINTENANCE")
+    new_ground = bool(getattr(report, "new_ground_material", False))
+    last_litter = bool(getattr(report, "last_frame_has_litter", False))
+    first_litter = bool(getattr(report, "first_frame_has_litter", False))
+    object_appeared = new_ground or (last_litter and not first_litter)
+    posture = (getattr(report, "person_position_signature", "") or "").lower().strip()
+    pile_posture = posture in (
+        "depositing_at_pile", "leaving_pile_area", "approaching_pile", "standing_near_pile",
+    )
+    conf = int(getattr(report, "confidence_0_100", 0) or 0)
+    conf_min = config.GEMINI_GATE_REVOTE_CONF_MIN
+    gray_conf = conf_min > 0 and conf_min <= conf < effective_threshold
+    borderline = (not clear_negative_scene) and (object_appeared or pile_posture or gray_conf)
+    return {
+        "enabled": bool(config.GEMINI_GATE_REVOTE_ENABLED),
+        "scene_type": scene,
+        "object_appeared": bool(object_appeared),
+        "pile_posture": bool(pile_posture),
+        "gray_conf": bool(gray_conf),
+        "borderline": bool(borderline),
+        "revote_fired": False,
+        "flipped": False,
+    }
+
+
 def _process_with_gemini_cascade_window(
     window_paths: list[Path],
     device_id: str,
@@ -1288,17 +1323,21 @@ def _process_with_gemini_cascade_window(
         else config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE
     )
 
-    # Select mid-window frames at 25%/50%/75% to detect ghost events (arrive-dump-leave)
+    # Select interior ("mid") frames to detect ghost events (arrive-dump-leave). They
+    # are spread EVENLY across the window so a brief deposition burst near either end
+    # is less likely to fall between samples (legacy 25/50/75% missed early on-foot
+    # dumps — the crouch frames sat before the 25% mark). Count is configurable via
+    # GEMINI_GATE_MID_FRAMES (default 3 == legacy density).
     mid_frames: Optional[list[Path]] = None
     n = len(window_paths)
-    if n >= 5:
-        mid_frames = [
-            window_paths[n // 4],       # ~25%
-            window_paths[n // 2],       # ~50%
-            window_paths[3 * n // 4],   # ~75%
-        ]
-    elif n >= 4:
-        mid_frames = [window_paths[n // 2]]
+    mid_count = max(0, config.GEMINI_GATE_MID_FRAMES)
+    if n >= 3 and mid_count > 0:
+        # Evenly spaced interior indices, excluding endpoints (0 and n-1 = first/last).
+        step = (n - 1) / (mid_count + 1)
+        idxs = sorted({int(round(step * (i + 1))) for i in range(mid_count)})
+        idxs = [k for k in idxs if 0 < k < n - 1]
+        if idxs:
+            mid_frames = [window_paths[k] for k in idxs]
 
     # ------------------------------------------------------------------------
     # BGSUB pre-filter (added 2026-05-23 — see docs/bgsub_prefilter.md).
@@ -1435,6 +1474,71 @@ def _process_with_gemini_cascade_window(
         }
 
     gate_report = gate.report
+
+    # --- Conditional re-vote (Flash-Lite non-determinism) ---------------------
+    # A single negative call sometimes hedges a real on-foot deposit to
+    # PARKED/passing (observed 2026-06-20 10:36 & 13:31 — offline the same window
+    # triggers 3-5/5). Re-run the gate ONCE when the negative is borderline; if the
+    # re-vote triggers, adopt it (OR logic). Skips clear negatives, so cost is ~one
+    # extra flash-lite call on ambiguous events only.
+    gate_revote_info: Optional[dict[str, Any]] = None
+    # Evaluated on the FIRST gate report (before any flip) so the per-detection log
+    # records why a re-vote did/didn't run, regardless of the outcome.
+    revote_eval = _gate_revote_eval(gate_report, effective_threshold)
+    _first_trigger = (
+        bool(gate_report.new_litter_detected)
+        and int(gate_report.confidence_0_100) >= effective_threshold
+    )
+    if (
+        config.GEMINI_GATE_REVOTE_ENABLED
+        and not _first_trigger
+        and revote_eval["borderline"]
+    ):
+        revote_eval["revote_fired"] = True
+        revote_request_id = str(uuid4())
+        _register_gemini_call(agent="gate", camera=camera)
+        try:
+            revote = analyze_new_litter_with_gemini(
+                first_frame=g_first,
+                last_frame=g_last,
+                camera_context=camera_context,
+                request_id=revote_request_id,
+                prior_window_context=prior_window_context,
+                use_mosaic=config.GEMINI_MOSAIC_AGENT1,
+                mid_frames=g_mids,
+                prompt_version=config.GEMINI_PROMPT_VERSION,
+            )
+            _register_gemini_success(revote.latency_ms, revote.usage, agent="gate", camera=camera)
+            _log_gemini_call(
+                camera=camera, device_id=device_id, agent="gate", model=revote.model,
+                request_id=revote_request_id, usage=revote.usage,
+                latency_ms=revote.latency_ms, success=True,
+            )
+            rv = revote.report
+            rv_trigger = (
+                bool(rv.new_litter_detected)
+                and int(rv.confidence_0_100) >= effective_threshold
+            )
+            gate_revote_info = {
+                "revote_request_id": revote_request_id,
+                "first_scene_type": getattr(gate_report, "scene_type", None),
+                "first_confidence": int(gate_report.confidence_0_100),
+                "revote_scene_type": getattr(rv, "scene_type", None),
+                "revote_new_litter": bool(rv.new_litter_detected),
+                "revote_confidence": int(rv.confidence_0_100),
+                "flipped": bool(rv_trigger),
+            }
+            revote_eval["flipped"] = bool(rv_trigger)
+            logger.info(
+                json.dumps({"event": "gemini_gate_revote", **gate_revote_info,
+                            "original_request_id": gate_request_id}, ensure_ascii=False)
+            )
+            if rv_trigger:
+                gate = revote
+                gate_report = revote.report
+        except Exception as exc:  # noqa: BLE001
+            _register_gemini_error(str(exc), agent="gate", camera=camera)
+            logger.warning("gate_revote error request_id=%s err=%s", revote_request_id, exc)
 
     # Persist litter state and last-frame reference for next window (Correction 2)
     save_state(device_id, {
@@ -1601,6 +1705,7 @@ def _process_with_gemini_cascade_window(
                 "prior_had_litter": prior_had_litter,
                 "scene_delta_analysis": gate_report.scene_delta_analysis or "",
                 "evidence_summary": gate_report.evidence_summary,
+                "revote_eval": revote_eval,
             },
             ensure_ascii=False,
         )

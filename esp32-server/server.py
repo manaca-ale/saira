@@ -1207,6 +1207,13 @@ def set_device_config(device_id: str):
         "event_min_residual_px",
         "burst_interval_ms",
         "idle_analyze_interval_ms",
+        # Raspberry Pi field-hardening keys (deploy remoto)
+        "motion_send_pre_frame",
+        "snapshot_source",
+        "heartbeat_mode",
+        "event_batch_size",
+        "log_level",
+        "safe_mode",
     }
     cleaned: dict[str, str] = {}
     for k, v in payload.items():
@@ -1805,7 +1812,11 @@ def device_keepalive(device_id: str):
     """Keepalive leve (sem imagem): faz touch num marcador que o offline_monitor
     do backend lê para manter a câmera 'online' sem gastar 4G com um frame.
     Usado por dispositivos event-driven (Pi relay) que só sobem imagem em
-    evento real / sob demanda."""
+    evento real / sob demanda.
+
+    Se o corpo trouxer um JSON de telemetria de saúde (Pi field-hardening),
+    grava-o em <device>/.health.json (escrita atômica), legível via
+    GET /device/<id>/health. Retrocompatível: corpo vazio = só o marcador."""
     if not _sanitize_device_id(device_id):
         return {"error": "Invalid device id"}, 400
     marker = os.path.join(UPLOAD_ROOT, device_id, ".keepalive")
@@ -1816,8 +1827,88 @@ def device_keepalive(device_id: str):
     except OSError as exc:
         print(f"WARNING: keepalive marker falhou ({device_id}): {exc}", flush=True)
         return {"error": "marker write failed"}, 500
+
+    health = request.get_json(silent=True)
+    if isinstance(health, dict):
+        health["received_at"] = datetime.now(BRAZIL_TZ).isoformat()
+        hpath = os.path.join(UPLOAD_ROOT, device_id, ".health.json")
+        try:
+            tmp = hpath + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(health, f, ensure_ascii=False)
+            os.replace(tmp, hpath)
+        except (OSError, TypeError) as exc:
+            print(f"WARNING: health write falhou ({device_id}): {exc}", flush=True)
+
     _record_device_event(device_id, "keepalive", "keepalive")
     return {"status": "ok", "device_id": device_id}, 200
+
+
+@app.route("/device/<device_id>/health", methods=["GET"])
+def device_health(device_id: str):
+    """Devolve o último .health.json reportado pelo dispositivo (telemetria de
+    saúde do Pi). 404 se o dispositivo nunca reportou."""
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+    hpath = os.path.join(UPLOAD_ROOT, device_id, ".health.json")
+    if not os.path.isfile(hpath):
+        return {"error": "no health reported", "device_id": device_id}, 404
+    try:
+        with open(hpath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError) as exc:
+        return {"error": f"read failed: {exc}"}, 500
+    return data, 200, {"Cache-Control": "no-store"}
+
+
+@app.route("/device/<device_id>/logs", methods=["GET", "POST"])
+def device_logs(device_id: str):
+    """POST: recebe um arquivo de log (ou relatório de calibração) do
+    dispositivo e grava em <device>/logs/, acessível via /uploads. Permite
+    puxar o log de campo sem SSH (CMD_GET_LOGS / CMD_CALIBRATE).
+    GET: lista os arquivos de log mais recentes (mais novo primeiro) para o
+    operador/CLI baixar o último."""
+    if not _sanitize_device_id(device_id):
+        return {"error": "Invalid device id"}, 400
+
+    if request.method == "GET":
+        logs_dir = os.path.join(UPLOAD_ROOT, device_id, "logs")
+        items = []
+        try:
+            for name in os.listdir(logs_dir):
+                fp = os.path.join(logs_dir, name)
+                if os.path.isfile(fp):
+                    st = os.stat(fp)
+                    items.append({
+                        "name": name,
+                        "url": _public_image_url(os.path.join(device_id, "logs", name)),
+                        "mtime": st.st_mtime,
+                        "size": st.st_size,
+                    })
+        except OSError:
+            pass
+        items.sort(key=lambda x: x["mtime"], reverse=True)
+        return {"device_id": device_id, "logs": items}, 200, {"Cache-Control": "no-store"}
+
+    if "logFile" not in request.files:
+        return {"error": "Missing logFile"}, 400
+    file = request.files["logFile"]
+    safe_name = os.path.basename(file.filename or "")
+    safe_name = re.sub(r"[^A-Za-z0-9_.-]", "_", safe_name) or "device.log"
+    rel_path = os.path.join(device_id, "logs", safe_name)
+    save_path = os.path.join(UPLOAD_ROOT, rel_path)
+    try:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        file.save(save_path)
+    except OSError as exc:
+        return {"error": f"save failed: {exc}"}, 500
+    _record_device_event(device_id, "logs", f"logs upload: {safe_name}")
+    return {
+        "status": "ok",
+        "device_id": device_id,
+        "filename": rel_path.replace(os.sep, "/"),
+        "url": _public_image_url(rel_path),
+    }, 200
 
 
 @app.route("/status", methods=["POST"])

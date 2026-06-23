@@ -1,16 +1,24 @@
 [Unit]
 Description=SAIRA - Agente de captura (relay de camera IP)
-After=network-online.target wg-quick@wg0.service
-Wants=network-online.target
+After=network-online.target wg-quick@wg0.service time-sync.target
+Wants=network-online.target time-sync.target
+# Nunca desistir de reiniciar (deploy remoto: o agente precisa sempre voltar).
+StartLimitIntervalSec=0
 
 [Service]
-Type=simple
+# Type=notify: o agente envia READY=1 ao subir e WATCHDOG=1 periodicamente.
+# Se ate o watchdog interno travar, o systemd mata e reinicia em WatchdogSec.
+Type=notify
+NotifyAccess=main
+WatchdogSec=120
 WorkingDirectory=/opt/saira/agent
 EnvironmentFile=/opt/saira/agent/.env
-ExecStartPre=/bin/mkdir -p /var/spool/saira/frames /var/lib/saira/clips /dev/shm/saira/archive
+ExecStartPre=/bin/mkdir -p /var/spool/saira/frames /var/lib/saira/clips /dev/shm/saira/archive /var/log/saira
 ExecStart=/opt/saira/venv/bin/python /opt/saira/agent/saira_agent.py
 Restart=always
 RestartSec=5
+# Sob pressao de memoria, o kernel deve matar outra coisa antes do agente.
+OOMScoreAdjust=-500
 StandardOutput=journal
 StandardError=journal
 

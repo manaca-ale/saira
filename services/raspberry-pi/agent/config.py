@@ -22,6 +22,11 @@ MIN_CAPTURE_INTERVAL_S = 5.0
 # o que sobe é controlado por burst/heartbeat).
 MIN_ANALYZE_INTERVAL_S = 1.0
 
+# Versão do agente reportada na telemetria de saúde. Pode ser sobrescrita no
+# deploy via AGENT_VERSION (ex.: git short sha) para o operador saber o que
+# está rodando em campo sem SSH.
+AGENT_VERSION = "field-hardening-2026-06-21"
+
 
 def _load_env_file() -> None:
     """Carrega pares KEY=VALUE de um .env simples para os.environ.
@@ -163,6 +168,20 @@ class Config:
     pre_roll_seconds: int
     tail_seconds: int
 
+    # Observabilidade / auto-cura (deploy remoto)
+    agent_version: str
+    log_level: str
+    log_file: Path
+    log_max_bytes: int
+    log_backup_count: int
+    # Watchdog: se a thread X não "bater" há mais que o limiar, o processo se
+    # reinicia (os._exit -> systemd). 0 desliga aquele guard.
+    watchdog_tick_s: float
+    watchdog_capture_stall_s: float
+    watchdog_mute_restart_s: float
+    # Piso de espaço livre (MB) antes de podar agressivamente e alertar.
+    min_disk_free_mb: int
+
     # URLs derivadas
     upload_url: str = field(init=False)
     batch_upload_url: str = field(init=False)
@@ -171,6 +190,8 @@ class Config:
     poll_url: str = field(init=False)
     bulk_upload_url: str = field(init=False)
     video_url: str = field(init=False)
+    logs_url: str = field(init=False)
+    status_url: str = field(init=False)
 
     def __post_init__(self) -> None:
         base = self.ec2_base.rstrip("/")
@@ -181,6 +202,8 @@ class Config:
         object.__setattr__(self, "poll_url", f"{base}/device/{self.device_id}/poll")
         object.__setattr__(self, "bulk_upload_url", f"{base}/device/{self.device_id}/bulk-upload")
         object.__setattr__(self, "video_url", f"{base}/device/{self.device_id}/video")
+        object.__setattr__(self, "logs_url", f"{base}/device/{self.device_id}/logs")
+        object.__setattr__(self, "status_url", f"{base}/status")
 
 
 def load_config() -> Config:
@@ -238,4 +261,13 @@ def load_config() -> Config:
         clip_retention_days=_env_int("CLIP_RETENTION_DAYS", 7, minimum=1),
         pre_roll_seconds=_env_int("PRE_ROLL_SECONDS", 30, minimum=0),
         tail_seconds=_env_int("TAIL_SECONDS", 6, minimum=2),
+        agent_version=_env("AGENT_VERSION", AGENT_VERSION),
+        log_level=_env("LOG_LEVEL", "INFO").upper(),
+        log_file=Path(_env("LOG_FILE", "/var/log/saira/agent.log")),
+        log_max_bytes=_env_int("LOG_MAX_BYTES", 2 * 1024 * 1024, minimum=64 * 1024),
+        log_backup_count=_env_int("LOG_BACKUP_COUNT", 5, minimum=1),
+        watchdog_tick_s=_env_float("WATCHDOG_TICK", 15.0, minimum=2.0),
+        watchdog_capture_stall_s=_env_float("WATCHDOG_CAPTURE_STALL", 90.0, minimum=0.0),
+        watchdog_mute_restart_s=_env_float("WATCHDOG_MUTE_RESTART", 600.0, minimum=0.0),
+        min_disk_free_mb=_env_int("MIN_DISK_FREE_MB", 200, minimum=0),
     )
