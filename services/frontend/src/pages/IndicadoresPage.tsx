@@ -30,6 +30,9 @@ import type {
   DossierCompleteness,
   IdentificationQuality,
 } from "../services/indicatorService";
+import { getCameras } from "../services/cameraService";
+import type { Camera } from "../services/cameraService";
+import { FilterMultiSelect } from "../components/SharedFilters";
 import { toBrazilDateString } from "../utils/datetime";
 
 // Descrição oficial de cada indicador (Anexo II — aba INDICADORES AJUSTADO).
@@ -131,10 +134,17 @@ const Panel: React.FC<{ title: string; hint?: string; children: React.ReactNode 
   </div>
 );
 
+// Rótulo estável e único por câmera (nome + device_id desambiguam homônimos).
+const cameraLabel = (c: Camera): string =>
+  `${c.name || c.device_id || "câmera"} · ${c.device_id || c.id}`;
+
 export const IndicadoresPage: React.FC = () => {
   const [start, setStart] = useState<string>(daysAgo(29));
   const [end, setEnd] = useState<string>(daysAgo(0));
   const [loading, setLoading] = useState(false);
+
+  const [cameras, setCameras] = useState<Camera[]>([]);
+  const [selectedCameraIds, setSelectedCameraIds] = useState<number[]>([]);
 
   const [summary, setSummary] = useState<IndicatorsSummary | null>(null);
   const [i1, setI1] = useState<SurveillanceReliability | null>(null);
@@ -145,7 +155,22 @@ export const IndicadoresPage: React.FC = () => {
 
   const { isAuthenticated, loading: authLoading } = useAuth();
 
-  const range = useMemo(() => ({ start, end }), [start, end]);
+  const range = useMemo(
+    () => ({ start, end, camera_id: selectedCameraIds }),
+    [start, end, selectedCameraIds],
+  );
+
+  // Mapa rótulo <-> id, para o multi-select (que opera sobre strings).
+  const labelToId = useMemo(() => {
+    const m = new Map<string, number>();
+    cameras.forEach((c) => m.set(cameraLabel(c), c.id));
+    return m;
+  }, [cameras]);
+  const cameraOptions = useMemo(() => cameras.map(cameraLabel), [cameras]);
+  const selectedLabels = useMemo(
+    () => cameras.filter((c) => selectedCameraIds.includes(c.id)).map(cameraLabel),
+    [cameras, selectedCameraIds],
+  );
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -179,6 +204,23 @@ export const IndicadoresPage: React.FC = () => {
       cancelled = true;
     };
   }, [range, isAuthenticated]);
+
+  // Lista de câmeras ativas para o filtro (carrega uma vez após autenticar).
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    getCameras({ limit: 100, is_active: true })
+      .then((list) => {
+        if (!cancelled) setCameras(list);
+      })
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error("Erro ao carregar câmeras", e);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   const setQuickRange = (days: number) => {
     setStart(daysAgo(days - 1));
@@ -274,6 +316,22 @@ export const IndicadoresPage: React.FC = () => {
               30 dias
             </button>
           </div>
+          {cameras.length > 0 && (
+            <div className="min-w-[220px]">
+              <FilterMultiSelect
+                label="Câmeras"
+                value={selectedLabels}
+                options={cameraOptions}
+                onChange={(labels) =>
+                  setSelectedCameraIds(
+                    labels
+                      .map((l) => labelToId.get(l))
+                      .filter((id): id is number => id !== undefined),
+                  )
+                }
+              />
+            </div>
+          )}
         </div>
 
         {/* KPI cards */}

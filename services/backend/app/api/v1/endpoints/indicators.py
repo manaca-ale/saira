@@ -5,7 +5,7 @@ plataforma, no período pedido. Ver app/schemas/indicators.py para o mapeamento
 indicador → fonte. I6 (ações/detecções) fica de fora (ação externa do fiscal).
 """
 from datetime import datetime, date, time, timedelta
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func, and_, cast, Integer
@@ -63,6 +63,18 @@ def _pct(num: int, den: int) -> Optional[float]:
     return round(100.0 * num / den, 1)
 
 
+def _parse_camera_ids(camera_id: Optional[str]) -> Optional[List[int]]:
+    """CSV "1,2,3" -> [1,2,3]; None/"" -> None (= todas as câmeras)."""
+    if not camera_id:
+        return None
+    ids = []
+    for tok in camera_id.split(","):
+        tok = tok.strip()
+        if tok.isdigit():
+            ids.append(int(tok))
+    return ids or None
+
+
 # ---------------------------------------------------------------------------
 # I1 — Confiabilidade da vigilância (%)
 # ---------------------------------------------------------------------------
@@ -70,6 +82,7 @@ def _pct(num: int, den: int) -> Optional[float]:
 async def surveillance_reliability(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    camera_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -78,10 +91,15 @@ async def surveillance_reliability(
     Reporta a média dos pontos e o pior ponto do período.
     """
     start_dt, end_excl, period = _resolve_range(start, end, default_days=7)
+    camera_ids = _parse_camera_ids(camera_id)
 
     # Agregação por câmera: online_checks via SUM(CAST(is_online AS INT))
     online_expr = func.sum(cast(CameraHeartbeat.is_online, Integer))
     total_expr = func.count(CameraHeartbeat.id)
+
+    where_conds = [Camera.is_active.is_(True)]
+    if camera_ids is not None:
+        where_conds.append(Camera.id.in_(camera_ids))
 
     result = await db.execute(
         select(
@@ -102,7 +120,7 @@ async def surveillance_reliability(
             ),
             isouter=True,
         )
-        .where(Camera.is_active.is_(True))
+        .where(and_(*where_conds))
         .group_by(Camera.id, Camera.name, Camera.device_id, Camera.bairro)
         .order_by(Camera.id)
     )
@@ -144,8 +162,15 @@ async def surveillance_reliability(
 # ---------------------------------------------------------------------------
 # I2 — Velocidade do alerta (s)
 # ---------------------------------------------------------------------------
-async def _alert_speed(db: AsyncSession, start_dt: datetime, end_excl: datetime) -> Tuple[LatencyStat, LatencyStat]:
+async def _alert_speed(
+    db: AsyncSession,
+    start_dt: datetime,
+    end_excl: datetime,
+    camera_ids: Optional[List[int]] = None,
+) -> Tuple[LatencyStat, LatencyStat]:
     """Retorna (latência até registro, latência até notificação)."""
+    cam_filter = [Detection.camera_id.in_(camera_ids)] if camera_ids is not None else []
+
     # --- até registro: created_at - timestamp ---
     reg_latency = func.extract("epoch", Detection.created_at - Detection.timestamp)
     reg = await db.execute(
@@ -158,6 +183,7 @@ async def _alert_speed(db: AsyncSession, start_dt: datetime, end_excl: datetime)
             Detection.timestamp < end_excl,
             Detection.created_at.isnot(None),
             Detection.created_at >= Detection.timestamp,
+            *cam_filter,
         )
     )
     rp50, rp95, rn = reg.one()
@@ -191,6 +217,7 @@ async def _alert_speed(db: AsyncSession, start_dt: datetime, end_excl: datetime)
             Detection.timestamp >= start_dt,
             Detection.timestamp < end_excl,
             notif_sub.c.first_notif >= Detection.timestamp,
+            *cam_filter,
         )
     )
     np50, np95, nn = notif.one()
@@ -207,12 +234,13 @@ async def _alert_speed(db: AsyncSession, start_dt: datetime, end_excl: datetime)
 async def alert_speed(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    camera_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """I2: segundos entre o flagrante (timestamp do frame) e o alerta. p50 e p95."""
     start_dt, end_excl, period = _resolve_range(start, end, default_days=7)
-    reg_stat, notif_stat = await _alert_speed(db, start_dt, end_excl)
+    reg_stat, notif_stat = await _alert_speed(db, start_dt, end_excl, _parse_camera_ids(camera_id))
     # Primário = notificação se houver amostra; senão registro.
     primary = notif_stat if notif_stat.sample_size > 0 else reg_stat
     return AlertSpeed(period=period, primary=primary, breakdown=[reg_stat, notif_stat])
@@ -225,19 +253,24 @@ async def alert_speed(
 async def identification_quality(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    camera_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """I3: entre as ocorrências confirmadas com infrator presente no frame,
     fração em que o sistema extraiu o recorte (crop) do infrator."""
     start_dt, end_excl, period = _resolve_range(start, end, default_days=30)
+    camera_ids = _parse_camera_ids(camera_id)
 
-    base = and_(
+    conds = [
         CascadeDecision.evaluated_at >= start_dt,
         CascadeDecision.evaluated_at < end_excl,
         CascadeDecision.agent2_disposal.is_(True),       # ocorrência confirmada
         CascadeDecision.offender_present.is_(True),      # infrator presente no frame
-    )
+    ]
+    if camera_ids is not None:
+        conds.append(CascadeDecision.camera_id.in_(camera_ids))
+    base = and_(*conds)
     present_res = await db.execute(select(func.count()).where(base))
     present = int(present_res.scalar_one() or 0)
 
@@ -258,12 +291,20 @@ async def identification_quality(
 # ---------------------------------------------------------------------------
 # I4 — Assertividade das detecções (%) — modelo + humano
 # ---------------------------------------------------------------------------
-async def _accuracy_model(db: AsyncSession, start_dt: datetime, end_excl: datetime) -> AccuracyReading:
-    base = and_(
+async def _accuracy_model(
+    db: AsyncSession,
+    start_dt: datetime,
+    end_excl: datetime,
+    camera_ids: Optional[List[int]] = None,
+) -> AccuracyReading:
+    conds = [
         CascadeDecision.evaluated_at >= start_dt,
         CascadeDecision.evaluated_at < end_excl,
         CascadeDecision.agent2_success.is_(True),
-    )
+    ]
+    if camera_ids is not None:
+        conds.append(CascadeDecision.camera_id.in_(camera_ids))
+    base = and_(*conds)
     confirmed_res = await db.execute(
         select(func.count()).where(and_(base, CascadeDecision.agent2_disposal.is_(True)))
     )
@@ -282,11 +323,19 @@ async def _accuracy_model(db: AsyncSession, start_dt: datetime, end_excl: dateti
     )
 
 
-async def _accuracy_human(db: AsyncSession, start_dt: datetime, end_excl: datetime) -> AccuracyReading:
-    base = and_(
+async def _accuracy_human(
+    db: AsyncSession,
+    start_dt: datetime,
+    end_excl: datetime,
+    camera_ids: Optional[List[int]] = None,
+) -> AccuracyReading:
+    conds = [
         Detection.timestamp >= start_dt,
         Detection.timestamp < end_excl,
-    )
+    ]
+    if camera_ids is not None:
+        conds.append(Detection.camera_id.in_(camera_ids))
+    base = and_(*conds)
     confirmed_res = await db.execute(
         select(func.count()).where(and_(base, Detection.status == DetectionStatus.CONFIRMADO))
     )
@@ -309,21 +358,28 @@ async def _accuracy_human(db: AsyncSession, start_dt: datetime, end_excl: dateti
 async def detection_accuracy(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    camera_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """I4: assertividade do modelo (cascata Agent-1+Agent-2) e taxa de
     confirmação humana (fiscal)."""
     start_dt, end_excl, period = _resolve_range(start, end, default_days=30)
-    model = await _accuracy_model(db, start_dt, end_excl)
-    human = await _accuracy_human(db, start_dt, end_excl)
+    camera_ids = _parse_camera_ids(camera_id)
+    model = await _accuracy_model(db, start_dt, end_excl, camera_ids)
+    human = await _accuracy_human(db, start_dt, end_excl, camera_ids)
     return DetectionAccuracy(period=period, model=model, human=human)
 
 
 # ---------------------------------------------------------------------------
 # I5 — Completude do dossiê (%)
 # ---------------------------------------------------------------------------
-async def _dossier(db: AsyncSession, start_dt: datetime, end_excl: datetime) -> DossierCompleteness:
+async def _dossier(
+    db: AsyncSession,
+    start_dt: datetime,
+    end_excl: datetime,
+    camera_ids: Optional[List[int]] = None,
+) -> DossierCompleteness:
     # Universo: ocorrências confirmadas (validadas como descarte real).
     has_photo = Detection.image_url.isnot(None)
     has_location = Detection.bairro.isnot(None) | (
@@ -333,11 +389,14 @@ async def _dossier(db: AsyncSession, start_dt: datetime, end_excl: datetime) -> 
     has_type = Detection.waste_type.isnot(None)
     has_volume = Detection.volume_m3.isnot(None)
 
-    base = and_(
+    conds = [
         Detection.timestamp >= start_dt,
         Detection.timestamp < end_excl,
         Detection.status == DetectionStatus.CONFIRMADO,
-    )
+    ]
+    if camera_ids is not None:
+        conds.append(Detection.camera_id.in_(camera_ids))
+    base = and_(*conds)
 
     def _count_int(expr):
         return func.sum(cast(expr, Integer))
@@ -374,13 +433,14 @@ async def _dossier(db: AsyncSession, start_dt: datetime, end_excl: datetime) -> 
 async def dossier_completeness(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    camera_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """I5: % das ocorrências confirmadas com todos os campos do dossiê
     (foto, local, data/hora, tipo, volume)."""
     start_dt, end_excl, period = _resolve_range(start, end, default_days=30)
-    out = await _dossier(db, start_dt, end_excl)
+    out = await _dossier(db, start_dt, end_excl, _parse_camera_ids(camera_id))
     out.period = period
     return out
 
@@ -392,24 +452,30 @@ async def dossier_completeness(
 async def indicators_summary(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    camera_id: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Snapshot dos 6 indicadores para os cards do painel."""
     start_dt, end_excl, period = _resolve_range(start, end, default_days=30)
+    camera_ids = _parse_camera_ids(camera_id)
 
     # I1
-    i1 = await surveillance_reliability(start=period.start, end=period.end, db=db, current_user=current_user)
+    i1 = await surveillance_reliability(
+        start=period.start, end=period.end, camera_id=camera_id, db=db, current_user=current_user
+    )
     # I2
-    reg_stat, notif_stat = await _alert_speed(db, start_dt, end_excl)
+    reg_stat, notif_stat = await _alert_speed(db, start_dt, end_excl, camera_ids)
     i2_primary = notif_stat if notif_stat.sample_size > 0 else reg_stat
     # I3
-    i3 = await identification_quality(start=period.start, end=period.end, db=db, current_user=current_user)
+    i3 = await identification_quality(
+        start=period.start, end=period.end, camera_id=camera_id, db=db, current_user=current_user
+    )
     # I4
-    model = await _accuracy_model(db, start_dt, end_excl)
-    human = await _accuracy_human(db, start_dt, end_excl)
+    model = await _accuracy_model(db, start_dt, end_excl, camera_ids)
+    human = await _accuracy_human(db, start_dt, end_excl, camera_ids)
     # I5
-    i5 = await _dossier(db, start_dt, end_excl)
+    i5 = await _dossier(db, start_dt, end_excl, camera_ids)
 
     cards = [
         IndicatorCard(
