@@ -91,8 +91,14 @@ export interface DossierCompleteness {
   has_data: boolean;
 }
 
-type Range = { start?: string; end?: string };
-const params = (r: Range) => ({ params: { start: r.start, end: r.end } });
+type Range = { start?: string; end?: string; camera_id?: number[] };
+const params = (r: Range) => ({
+  params: {
+    start: r.start,
+    end: r.end,
+    camera_id: r.camera_id && r.camera_id.length ? r.camera_id.join(",") : undefined,
+  },
+});
 
 export const getIndicatorsSummary = (r: Range = {}) =>
   api.get<IndicatorsSummary>('/indicators/summary', params(r)).then((res) => res.data);
