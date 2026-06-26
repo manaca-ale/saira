@@ -4,3 +4,6 @@ gunicorn[gevent]
 # image has no C toolchain to build libev from source.
 gevent==24.2.1
 requests
+# Image orientation fix on ingest (e.g. esp32_004 mounted upside-down).
+# Ships a cp39 manylinux wheel — no C toolchain needed on the slim image.
+Pillow
