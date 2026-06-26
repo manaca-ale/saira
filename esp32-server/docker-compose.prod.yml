@@ -22,6 +22,8 @@ services:
       - GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
       - UPLOAD_LOG_EVERY=${UPLOAD_LOG_EVERY:-20}
       - UPLOAD_EVENT_PRINT_EVERY=${UPLOAD_EVENT_PRINT_EVERY:-0}
+      # Devices mounted upside-down: frames rotated 180° at ingest (e.g. esp32_004).
+      - ROTATE_180_DEVICES=${ROTATE_180_DEVICES:-}
     volumes:
       - ./uploads:/app/uploads
       - ./ota:/app/ota

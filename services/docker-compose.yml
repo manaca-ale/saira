@@ -185,6 +185,8 @@
       - GUNICORN_WORKERS=2
       - GUNICORN_THREADS=4
       - TZ=America/Sao_Paulo
+      # Devices mounted upside-down: frames are rotated 180° at ingest.
+      - ROTATE_180_DEVICES=${ROTATE_180_DEVICES:-}
     volumes:
       - esp32_uploads:/app/uploads
       - ../esp32-server/config:/app/config

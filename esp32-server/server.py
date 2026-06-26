@@ -53,6 +53,23 @@ DEVICE_ACTIVE_WINDOW_SECONDS = _int_env("DEVICE_ACTIVE_WINDOW_SECONDS", 60, mini
 DASHBOARD_RECENT_DAYS = _int_env("DASHBOARD_RECENT_DAYS", 2, minimum=1)
 DASHBOARD_RECENT_IMAGES_CAP = _int_env("DASHBOARD_RECENT_IMAGES_CAP", 180, minimum=40)
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+def _device_set_env(name: str) -> set:
+    # Comma-separated device-id set (lower-cased), mirroring the worker's
+    # per-device feature-flag sets (e.g. CROP_TO_ZONE_DEVICES).
+    return {
+        d.strip().lower()
+        for d in os.getenv(name, "").split(",")
+        if d.strip()
+    }
+
+
+# Devices whose frames arrive rotated 180° (camera mounted upside-down, e.g.
+# esp32_004). The image is corrected at ingest — before it hits disk and any
+# downstream consumer (worker, dashboard, exports, polygons). Default empty →
+# no change for legacy devices.
+ROTATE_180_DEVICES = _device_set_env("ROTATE_180_DEVICES")
 BRAZIL_TZ = ZoneInfo(os.getenv("APP_TIMEZONE", "America/Sao_Paulo"))
 CAPTURE_FILENAME_TZ = ZoneInfo(os.getenv("CAPTURE_FILENAME_TZ", "America/Sao_Paulo"))
 UNKNOWN_DEVICE_IDS = {"unknown", "unknown_device", "unknow", "unknow_device"}
@@ -1655,6 +1672,40 @@ def upload_ota_firmware():
     # Return the updated manifest for convenience
     return get_ota_manifest()
 
+def _maybe_rotate_180(save_path: str, device_id: str) -> bool:
+    """Rotate an already-saved frame 180° in place for devices mounted upside-down.
+
+    Applied at ingest so every downstream consumer (worker, dashboard, exports,
+    polygons) sees the corrected orientation. Returns True if rotated. Any failure
+    (corrupt frame, missing Pillow) is logged and swallowed — the upload must never
+    500 because of orientation correction; the original file is left untouched.
+    """
+    if not device_id or device_id.lower() not in ROTATE_180_DEVICES:
+        return False
+    try:
+        from PIL import Image
+
+        with Image.open(save_path) as img:
+            src_format = img.format or "JPEG"
+            # Capture the source quantization tables BEFORE transpose: the
+            # rotated image is a fresh object that drops the JPEG-specific
+            # attributes (so quality="keep" would raise). Re-encoding with the
+            # original tables keeps the 180° round-trip near-lossless.
+            qtables = getattr(img, "quantization", None)
+            rotated = img.transpose(Image.ROTATE_180)
+            if src_format == "JPEG" and qtables:
+                rotated.save(save_path, format="JPEG", qtables=qtables)
+            else:
+                rotated.save(save_path, format=src_format, quality=95)
+        return True
+    except Exception as exc:  # noqa: BLE001 — never break ingest on a bad frame
+        print(
+            f"WARNING: 180° rotation failed for {device_id} ({save_path}): {exc}",
+            flush=True,
+        )
+        return False
+
+
 @app.route("/upload", methods=["POST"])
 def upload_file():
     global _upload_ok_count
@@ -1715,6 +1766,7 @@ def upload_file():
     save_path = os.path.join(UPLOAD_ROOT, rel_path)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file.save(save_path)
+    _maybe_rotate_180(save_path, device_id)
 
     if event_id:
         try:
@@ -1778,6 +1830,7 @@ def upload_batch():
         save_path = os.path.join(UPLOAD_ROOT, rel_path)
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         file.save(save_path)
+        _maybe_rotate_180(save_path, device_id)
         saved.append(rel_path.replace(os.sep, "/"))
 
     if event_id and saved:
