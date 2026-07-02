@@ -134,19 +134,25 @@ export const HistoryPage: React.FC = () => {
   const [activePopover, setActivePopover] = useState<
     "period" | "volumetry" | null
   >(null);
-  const [filters, setFilters] = useState<FilterState>({
-    dateStart: "",
-    dateEnd: "",
-    startTime: "",
-    endTime: "",
-    status: ["Confirmado"],
-    logradouro: "",
-    bairro: "",
-    rpa: [],
-    tipoResiduo: [],
-    volMin: "",
-    volMax: "",
-    infratores: [],
+  // Período padrão explícito (últimos 30 dias) — populado no estado inicial para
+  // que o chip "Período" reflita a janela realmente aplicada, em vez de parecer
+  // sem filtro enquanto os dados ficam silenciosamente limitados a 30 dias.
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const defaultRange = getDefault30DayRange();
+    return {
+      dateStart: defaultRange.start,
+      dateEnd: defaultRange.end,
+      startTime: "",
+      endTime: "",
+      status: ["Confirmado"],
+      logradouro: "",
+      bairro: "",
+      rpa: [],
+      tipoResiduo: [],
+      volMin: "",
+      volMax: "",
+      infratores: [],
+    };
   });
   const [bairroOptions, setBairroOptions] = useState<string[]>([]);
   const [logradouroOptions, setLogradouroOptions] = useState<string[]>([]);
@@ -465,15 +471,18 @@ export const HistoryPage: React.FC = () => {
                       filters.endTime
                     )
                   }
-                  onClear={() =>
+                  onClear={() => {
+                    // "Limpar" volta ao período padrão (30 dias), não a vazio,
+                    // para o chip nunca ficar em branco com dados filtrados.
+                    const d = getDefault30DayRange();
                     setFilters((p) => ({
                       ...p,
-                      dateStart: "",
-                      dateEnd: "",
+                      dateStart: d.start,
+                      dateEnd: d.end,
                       startTime: "",
                       endTime: "",
-                    }))
-                  }
+                    }));
+                  }}
                   onClick={() =>
                     setActivePopover((p) => (p === "period" ? null : "period"))
                   }
