@@ -272,6 +272,10 @@ services:
       - STRUCTURAL_FILTER_MODE=${STRUCTURAL_FILTER_MODE:-off}
       - STRUCTURAL_DEVICES=${STRUCTURAL_DEVICES:-esp32_002}
       - STRUCTURAL_NTILES_THR=${STRUCTURAL_NTILES_THR:-2}
+      # Structural-delta RECOVERY of gate-rejected windows (2026-07-02); off|shadow|enforce
+      - STRUCTURAL_RECOVERY_MODE=${STRUCTURAL_RECOVERY_MODE:-off}
+      - STRUCTURAL_RECOVERY_DEVICES=${STRUCTURAL_RECOVERY_DEVICES:-esp32_002}
+      - STRUCTURAL_RECOVERY_NTILES_THR=${STRUCTURAL_RECOVERY_NTILES_THR:-8}
       # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
       - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
       # Car-stopped shadow detector (parallel to Gemini, audit only)
