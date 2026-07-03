@@ -437,6 +437,28 @@ STRUCTURAL_MIN_TILE_COVER = int(os.getenv("STRUCTURAL_MIN_TILE_COVER", "24"))
 # 86% TP e suprime 63% dos B3 (ponto de operação do piso de recall).
 STRUCTURAL_NTILES_THR = int(os.getenv("STRUCTURAL_NTILES_THR", "2"))
 
+# --- Structural-delta RECOVERY de janelas gate-REJEITADAS (Camp 41 follow-up 2026-07-02) ---
+# Quando o gate flash-lite REJEITA uma janela mas o delta census-tile mostra estrutura
+# NOVA forte na pile-zone (volumoso funde na pilha crônica ⇒ gate confabula "caçamba
+# existente"), escala a janela REJEITADA para o Agent-2 (os pile-crops hi-res resolvem a
+# confabulação — validado 2026-07-02: sofá gate=REJ conf50, structural=15 tiles, Agent-2
+# CONF 95%). Ortogonal ao veto STRUCTURAL_FILTER_MODE, que só rejeita CONs (direção oposta).
+#   off (default) | shadow (só loga/persiste o que recuperaria) | enforce (roda o Agent-2).
+# Default OFF preserva o comportamento legado em prod.
+STRUCTURAL_RECOVERY_MODE = os.getenv("STRUCTURAL_RECOVERY_MODE", "off").strip().lower()
+if STRUCTURAL_RECOVERY_MODE not in ("off", "shadow", "enforce"):
+    STRUCTURAL_RECOVERY_MODE = "off"
+STRUCTURAL_RECOVERY_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("STRUCTURAL_RECOVERY_DEVICES", "esp32_002").split(",")
+    if d.strip()
+}
+# Barra de recuperação (census_ntiles_t32). MAIOR que o veto (STRUCTURAL_NTILES_THR=2)
+# porque recuperar ESCALA (custa uma chamada de Agent-2) — só estrutura NOVA forte deve
+# reabrir uma rejeição do gate. Backtest 2026-07-02: FN do sofá=15; FP de sombra diurna≈11
+# (o Agent-2 filtra o resíduo de sombra). Default 8.
+STRUCTURAL_RECOVERY_NTILES_THR = int(os.getenv("STRUCTURAL_RECOVERY_NTILES_THR", "8"))
+
 # Mosaic mode — compose frames into a single image before sending to Gemini.
 # GEMINI_MOSAIC_AGENT1: "true"/"false" — 2x1 side-by-side for the gate.
 # GEMINI_MOSAIC_AGENT2: "off" | "4x3" | "3x2split" — grid layout for detail agent.
