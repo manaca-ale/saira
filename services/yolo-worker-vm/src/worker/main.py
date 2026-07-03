@@ -1225,6 +1225,71 @@ def _make_pile_crops(
     return crops
 
 
+def _structural_recovery(
+    *,
+    window_paths: list[Path],
+    device_id: str,
+    camera,
+    gate_request_id: str,
+) -> Optional[dict[str, Any]]:
+    """Recuperação de janela gate-REJEITADA via structural-delta (Camp 41 follow-up).
+
+    O gate flash-lite pode rejeitar um descarte volumoso real que funde com a pilha
+    crônica (confabula "caçamba existente" — visto 2026-07-02). Quando o delta
+    census-tile determinístico na pile-zone mostra estrutura NOVA forte
+    (n_tiles_changed >= STRUCTURAL_RECOVERY_NTILES_THR), a janela é candidata a
+    recuperação → escalar para o Agent-2, que vê pile-crops hi-res e resolve a
+    confabulação (validado: sofá gate=REJ conf50, structural=15, Agent-2 CONF 95%).
+
+    shadow  → só loga/persiste o que recuperaria (o caller NÃO escala).
+    enforce → o caller escala para o Agent-2.
+    Retorna None quando desabilitado / câmera não-alvo / sem polígono. Fail-open:
+    qualquer erro no cálculo ⇒ recovered=False (mantém a rejeição do gate).
+    """
+    if config.STRUCTURAL_RECOVERY_MODE == "off":
+        return None
+    if device_id not in config.STRUCTURAL_RECOVERY_DEVICES:
+        return None
+    pile_poly = getattr(camera, "pile_zone_polygon", None)
+    if not pile_poly:
+        return None
+
+    res = detector_structural.score_window(window_paths, pile_poly)
+    thr = int(config.STRUCTURAL_RECOVERY_NTILES_THR)
+    n = int(res.n_tiles_changed)
+    recovered = res.reason == "scored" and n >= thr
+    info = {
+        "gate_request_id": gate_request_id,
+        "device_id": device_id,
+        "n_tiles_changed": n,
+        "threshold": thr,
+        "recovered": bool(recovered),
+        "mode": config.STRUCTURAL_RECOVERY_MODE,
+        "reason": res.reason,
+    }
+    logger.info(
+        json.dumps(
+            {
+                "event": "structural_recovery_would_recover"
+                if config.STRUCTURAL_RECOVERY_MODE == "shadow"
+                else "structural_recovery_enforce",
+                **info,
+            },
+            ensure_ascii=False,
+        )
+    )
+    detector_structural.record_recovery_decision(
+        request_id=gate_request_id,
+        device_id=device_id,
+        n_tiles_changed=n,
+        threshold=thr,
+        recovered=bool(recovered),
+        mode=config.STRUCTURAL_RECOVERY_MODE,
+        reason=res.reason,
+    )
+    return info
+
+
 def _gate_revote_eval(report, effective_threshold: int) -> dict[str, Any]:
     """Per-detection breakdown of the conditional re-vote criteria (Flash-Lite
     non-determinism, see config). Logged on EVERY gate decision so a negative
@@ -1743,25 +1808,84 @@ def _process_with_gemini_cascade_window(
             "created_at": datetime.now(BRASILIA).isoformat(),
         }
 
+    struct_recovery: Optional[dict[str, Any]] = None
     if not gate_trigger:
-        car_payload = (
-            _run_car_shadow_for_window(window_paths, device_id, camera, gemini_disposal=False)
-            if config.CAR_SHADOW_ENABLED
-            else None
+        # Structural-delta recovery: reabre uma rejeição do gate quando a pile-zone
+        # ganhou estrutura NOVA forte (volumoso que o gate confabulou como caçamba).
+        # shadow só loga; enforce cai para o Agent-2 abaixo (não retorna aqui).
+        struct_recovery = _structural_recovery(
+            window_paths=window_paths,
+            device_id=device_id,
+            camera=camera,
+            gate_request_id=gate_request_id,
         )
-        _append_cascade_audit(device_id, _audit_record(
-            agent2_ran=False, agent2_payload_obj=None, disposal_value=False,
-        ))
-        return False, {
-            "provider": "gemini_cascade",
-            "success": True,
-            "window_size": len(window_paths),
-            "window_frames": [p.name for p in window_paths],
-            "disposal": False,
-            "agent1_result": gate_payload,
-            "agent2_result": None,
-            "car_shadow_result": car_payload,
-        }
+        recovered = bool(struct_recovery and struct_recovery.get("recovered"))
+        escalate = recovered and config.STRUCTURAL_RECOVERY_MODE == "enforce"
+        if not escalate:
+            if recovered and config.STRUCTURAL_RECOVERY_MODE == "shadow":
+                # Shadow: roda o Agent-2 SEM persistir, só para registrar o veredito
+                # que a recuperação obteria (mede recuperação real vs. custo de Agent-2
+                # antes do enforce). NÃO altera o resultado — a janela segue rejeitada.
+                try:
+                    would_disposal, would_payload = _process_with_gemini(
+                        jpg=last_frame,
+                        device_id=device_id,
+                        camera=camera,
+                        sequence_paths=window_paths,
+                        persist=False,
+                        prior_window_context=prior_window_context,
+                        agent1_request_id=gate_request_id,
+                        agent1_confidence=int(gate_report.confidence_0_100),
+                        inference_paths=g_inference,
+                    )
+                    wp = would_payload or {}
+                    struct_recovery["shadow_agent2_disposal"] = bool(would_disposal)
+                    struct_recovery["shadow_agent2_success"] = bool(wp.get("success"))
+                    logger.info(json.dumps({
+                        "event": "structural_recovery_shadow_agent2",
+                        "device_id": device_id,
+                        "gate_request_id": gate_request_id,
+                        "n_tiles_changed": struct_recovery.get("n_tiles_changed"),
+                        "would_disposal": bool(would_disposal),
+                        "agent2_request_id": wp.get("request_id"),
+                        "waste_type": wp.get("waste_type"),
+                        "evidence_summary": wp.get("evidence_summary"),
+                    }, ensure_ascii=False))
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "structural_recovery shadow Agent-2 failed device=%s: %s",
+                        device_id, exc,
+                    )
+            car_payload = (
+                _run_car_shadow_for_window(window_paths, device_id, camera, gemini_disposal=False)
+                if config.CAR_SHADOW_ENABLED
+                else None
+            )
+            _append_cascade_audit(device_id, _audit_record(
+                agent2_ran=False, agent2_payload_obj=None, disposal_value=False,
+            ))
+            return False, {
+                "provider": "gemini_cascade",
+                "success": True,
+                "window_size": len(window_paths),
+                "window_frames": [p.name for p in window_paths],
+                "disposal": False,
+                "agent1_result": gate_payload,
+                "agent2_result": None,
+                "car_shadow_result": car_payload,
+                "structural_recovery": struct_recovery,
+            }
+        # enforce + recovered: o gate rejeitou (gate_trigger/agent1_triggered=False no
+        # log e no audit), mas a recuperação estrutural escala para o Agent-2 abaixo.
+        logger.info(
+            json.dumps({
+                "event": "structural_recovery_escalated_to_agent2",
+                "device_id": device_id,
+                "gate_request_id": gate_request_id,
+                "n_tiles_changed": struct_recovery.get("n_tiles_changed"),
+                "threshold": struct_recovery.get("threshold"),
+            }, ensure_ascii=False)
+        )
 
     disposal, agent2_payload = _process_with_gemini(
         jpg=last_frame,
@@ -1829,6 +1953,7 @@ def _process_with_gemini_cascade_window(
         "agent1_result": gate_payload,
         "agent2_result": agent2_payload,
         "car_shadow_result": car_payload,
+        "structural_recovery": struct_recovery,
     }
 
 

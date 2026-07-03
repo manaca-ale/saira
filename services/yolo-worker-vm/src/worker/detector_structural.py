@@ -45,6 +45,8 @@ logger = logging.getLogger(__name__)
 
 # Persistent shadow-decision ledger (mesma lógica do DINOv2 — sobrevive a recreate).
 SHADOW_LEDGER_NAME = "structural_decisions.jsonl"
+# Ledger durável das decisões de RECUPERAÇÃO (gate-rejeitado → structural → Agent-2).
+RECOVERY_LEDGER_NAME = "structural_recovery_decisions.jsonl"
 
 
 @dataclass
@@ -173,21 +175,19 @@ def record_shadow_decision(
         logger.warning("structural: failed to record shadow decision: %s", exc)
 
 
-def evaluate(
+def score_window(
     sequence_paths: list[Path],
-    device_id: str,
     pile_zone_polygon: Any,
-    camera: Any = None,  # noqa: ARG001 — simetria de API com detector_dinov2
 ) -> StructFilterResult:
-    """Re-julga um CON do pipeline. should_reject=True quando n_tiles_changed < threshold.
+    """Núcleo determinístico do sinal (SEM gating de modo/câmera): nº de tiles
+    census-changed na pile-zone entre o 1º e o último frame LEGÍVEL da janela
+    (before/after, validação Camp 41).
 
-    Compara o 1º e o último frame da janela (before/after, igual à validação Camp 41)
-    dentro do pile_zone_polygon. Qualquer falha → should_reject=False (fail-open).
+    reason="scored" + n_tiles_changed no sucesso; senão um reason de skip/erro com
+    n_tiles_changed=-1 (fail-open). Compartilhado por evaluate() (veto de FP de CONs)
+    e pelo caminho de RECUPERAÇÃO de janela gate-rejeitada (main._structural_recovery),
+    que usam limiares distintos sobre o mesmo n_tiles_changed.
     """
-    if config.STRUCTURAL_FILTER_MODE == "off":
-        return StructFilterResult(should_reject=False, reason="skipped_disabled")
-    if device_id not in config.STRUCTURAL_DEVICES:
-        return StructFilterResult(should_reject=False, reason="skipped_not_targeted")
     if not sequence_paths or len(sequence_paths) < 2:
         return StructFilterResult(should_reject=False, reason="skipped_no_frames")
     if not pile_zone_polygon:
@@ -228,17 +228,75 @@ def evaluate(
         gray_pre = cv2.cvtColor(before, cv2.COLOR_BGR2GRAY)
         gray_post = cv2.cvtColor(after, cv2.COLOR_BGR2GRAY)
         n_changed = _count_changed_tiles(gray_pre, gray_post, mask)
-        thr = int(config.STRUCTURAL_NTILES_THR)
-        should_reject = n_changed < thr
         return StructFilterResult(
-            should_reject=should_reject,
-            reason="rejected" if should_reject else "passed",
+            should_reject=False,
+            reason="scored",
             n_tiles_changed=int(n_changed),
-            threshold=thr,
             n_frames_used=2,
             latency_ms=(time.time() - t0) * 1000.0,
         )
     except Exception as exc:  # noqa: BLE001
-        logger.warning("structural: evaluate failed for %s: %s", device_id, exc, exc_info=True)
+        logger.warning("structural: score_window failed: %s", exc, exc_info=True)
         return StructFilterResult(should_reject=False, reason="error",
                                   latency_ms=(time.time() - t0) * 1000.0)
+
+
+def evaluate(
+    sequence_paths: list[Path],
+    device_id: str,
+    pile_zone_polygon: Any,
+    camera: Any = None,  # noqa: ARG001 — simetria de API com detector_dinov2
+) -> StructFilterResult:
+    """Re-julga um CON do pipeline. should_reject=True quando n_tiles_changed < threshold.
+
+    Compara o 1º e o último frame da janela (before/after, igual à validação Camp 41)
+    dentro do pile_zone_polygon. Qualquer falha → should_reject=False (fail-open).
+    """
+    if config.STRUCTURAL_FILTER_MODE == "off":
+        return StructFilterResult(should_reject=False, reason="skipped_disabled")
+    if device_id not in config.STRUCTURAL_DEVICES:
+        return StructFilterResult(should_reject=False, reason="skipped_not_targeted")
+
+    res = score_window(sequence_paths, pile_zone_polygon)
+    if res.reason != "scored":
+        return res  # skip/erro — fail-open, preserva o reason exato para o ledger
+    thr = int(config.STRUCTURAL_NTILES_THR)
+    res.should_reject = res.n_tiles_changed < thr
+    res.threshold = thr
+    res.reason = "rejected" if res.should_reject else "passed"
+    return res
+
+
+def record_recovery_decision(
+    *,
+    request_id: str,
+    device_id: str,
+    n_tiles_changed: int,
+    threshold: int,
+    recovered: bool,
+    mode: str,
+    reason: str,
+    models_dir: Optional[str] = None,
+) -> None:
+    """Append durável de uma decisão de RECUPERAÇÃO (gate-rejeitado → structural).
+
+    Sobrevive a recreate do container (o stdout não) — base para medir a taxa real de
+    recuperação vs. custo de Agent-2 antes de sair do shadow. Fail-safe (nunca levanta).
+    """
+    try:
+        d = models_dir or config.STRUCTURAL_LEDGER_DIR
+        Path(d).mkdir(parents=True, exist_ok=True)
+        rec = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+            "device_id": device_id,
+            "mode": mode,
+            "n_tiles_changed": int(n_tiles_changed),
+            "threshold": int(threshold),
+            "recovered": bool(recovered),
+            "reason": reason,
+        }
+        with open(Path(d) / RECOVERY_LEDGER_NAME, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("structural: failed to record recovery decision: %s", exc)
