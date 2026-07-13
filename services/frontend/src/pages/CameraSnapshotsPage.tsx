@@ -4,11 +4,13 @@ import {
   CalendarClock,
   ImageOff,
   MapPin,
+  Maximize2,
   RefreshCw,
   Search,
 } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { CameraDetailsModal } from "../components/CameraDetailsModal";
+import { CameraImageLightbox } from "../components/CameraImageLightbox";
 import {
   cameraSupportsRemoteControl,
   getCameras,
@@ -17,12 +19,15 @@ import {
   type Camera as CameraEntity,
   type CameraLatestImage,
 } from "../services/cameraService";
-import { formatDateTimeBrazil } from "../utils/datetime";
+import { formatDateTimeBrazil, formatRelativeSeconds } from "../utils/datetime";
 
 // Câmeras event-driven (Pi): imagem sob demanda — request-snapshot ao abrir e no
 // "Atualizar agora". Câmeras esp32 (sobem no timer, sem comando remoto): seguem no
 // auto-poll de 30s (só GET da última imagem; não custa 4G da câmera).
 const POLLING_INTERVAL_MS = 30_000;
+// Com o lightbox aberto, a câmera ampliada ganha um poll mais rápido (só GET,
+// endpoint barato) para acompanhamento quase em tempo real durante operações.
+const LIGHTBOX_POLLING_INTERVAL_MS = 10_000;
 const SNAPSHOT_WAIT_MS = 3_500;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -34,17 +39,6 @@ const formatTimestamp = (value?: string | null): string => {
     timeStyle: "short",
   });
   return formatted === "—" ? "Sem registro" : formatted;
-};
-
-const formatRelativeSeconds = (seconds: number): string => {
-  if (seconds < 5) return "agora há pouco";
-  if (seconds < 60) return `há ${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes === 1) return "há 1 min";
-  if (minutes < 60) return `há ${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  if (hours === 1) return "há 1 h";
-  return `há ${hours} h`;
 };
 
 const uniqueSorted = (values: (string | null | undefined)[]): string[] => {
@@ -72,6 +66,9 @@ export const CameraSnapshotsPage: React.FC = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDetailsModalClosing, setIsDetailsModalClosing] = useState(false);
   const [detailsCamera, setDetailsCamera] = useState<CameraEntity | null>(null);
+
+  const [lightboxCamera, setLightboxCamera] = useState<CameraEntity | null>(null);
+  const [isLightboxRefreshing, setIsLightboxRefreshing] = useState(false);
 
   const camerasRef = useRef<CameraEntity[]>([]);
   camerasRef.current = cameras;
@@ -125,6 +122,41 @@ export const CameraSnapshotsPage: React.FC = () => {
     }
   };
 
+  const fetchSingleSnapshot = async (camera: CameraEntity): Promise<void> => {
+    try {
+      const latest = await getLatestCameraImageFromFolder(camera.id);
+      setSnapshots((prev) => ({ ...prev, [camera.id]: latest }));
+      setBrokenImages((prev) => {
+        if (!prev.has(camera.id)) return prev;
+        const next = new Set(prev);
+        next.delete(camera.id);
+        return next;
+      });
+    } catch (error) {
+      console.error(`Failed to load snapshot for camera ${camera.id}:`, error);
+    }
+  };
+
+  const refreshLightboxSnapshot = async (camera: CameraEntity): Promise<void> => {
+    setIsLightboxRefreshing(true);
+    try {
+      if (cameraSupportsRemoteControl(camera.device_id)) {
+        await requestCameraSnapshot(camera.id);
+        await sleep(SNAPSHOT_WAIT_MS);
+      }
+      await fetchSingleSnapshot(camera);
+    } finally {
+      setIsLightboxRefreshing(false);
+    }
+  };
+
+  const openLightbox = (camera: CameraEntity) => {
+    setLightboxCamera(camera);
+    void refreshLightboxSnapshot(camera);
+  };
+
+  const closeLightbox = () => setLightboxCamera(null);
+
   useEffect(() => {
     let cancelled = false;
     const bootstrap = async () => {
@@ -162,6 +194,15 @@ export const CameraSnapshotsPage: React.FC = () => {
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInitialLoading]);
+
+  // Poll rápido enquanto o lightbox está aberto — só a câmera ampliada.
+  useEffect(() => {
+    if (!lightboxCamera) return;
+    const id = window.setInterval(() => {
+      void fetchSingleSnapshot(lightboxCamera);
+    }, LIGHTBOX_POLLING_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [lightboxCamera]);
 
   useEffect(() => {
     const tick = window.setInterval(() => setNow(new Date()), 1000);
@@ -383,13 +424,24 @@ export const CameraSnapshotsPage: React.FC = () => {
               const capturedAt = snapshot?.captured_at || null;
 
               return (
-                <button
-                  type="button"
+                <div
                   key={camera.id}
-                  onClick={() => openDetailsModal(camera)}
                   className="text-left bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-gray-200 transition-all group"
                 >
-                  <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      imageUrl ? openLightbox(camera) : openDetailsModal(camera)
+                    }
+                    aria-label={
+                      imageUrl
+                        ? `Ampliar imagem da câmera ${camera.name} em tela cheia`
+                        : `Ver detalhes da câmera ${camera.name}`
+                    }
+                    className={`block w-full aspect-video bg-gray-100 relative overflow-hidden ${
+                      imageUrl ? "cursor-zoom-in" : ""
+                    }`}
+                  >
                     {imageUrl ? (
                       <img
                         src={imageUrl}
@@ -413,6 +465,11 @@ export const CameraSnapshotsPage: React.FC = () => {
                         </span>
                       </div>
                     )}
+                    {imageUrl ? (
+                      <span className="absolute top-2 left-2 inline-flex items-center justify-center h-7 w-7 rounded-full bg-black/50 text-white backdrop-blur-sm opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <Maximize2 size={14} />
+                      </span>
+                    ) : null}
                     <span
                       className={`absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold backdrop-blur-sm ${
                         camera.is_active
@@ -423,9 +480,13 @@ export const CameraSnapshotsPage: React.FC = () => {
                       <Activity size={10} />
                       {camera.is_active ? "Ativa" : "Inativa"}
                     </span>
-                  </div>
+                  </button>
 
-                  <div className="p-4">
+                  <button
+                    type="button"
+                    onClick={() => openDetailsModal(camera)}
+                    aria-label={`Ver detalhes da câmera ${camera.name}`}
+                    className="block w-full text-left p-4 hover:bg-gray-50 transition-colors">
                     <h3 className="text-sm font-bold text-[#1a1a1a] truncate">
                       {camera.name}
                     </h3>
@@ -459,8 +520,8 @@ export const CameraSnapshotsPage: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -473,6 +534,17 @@ export const CameraSnapshotsPage: React.FC = () => {
             isLoadingLatest={false}
             isClosing={isDetailsModalClosing}
             onClose={closeDetailsModal}
+            onExpandImage={() => openLightbox(detailsCamera)}
+          />
+        ) : null}
+
+        {lightboxCamera ? (
+          <CameraImageLightbox
+            camera={lightboxCamera}
+            latestImage={snapshots[lightboxCamera.id] || null}
+            isRefreshing={isLightboxRefreshing}
+            onRefresh={() => void refreshLightboxSnapshot(lightboxCamera)}
+            onClose={closeLightbox}
           />
         ) : null}
       </main>

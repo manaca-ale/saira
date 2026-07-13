@@ -38,3 +38,14 @@ export function toBrazilTimeString(value?: string | Date | null): string {
     minute: "2-digit",
   });
 }
+
+export function formatRelativeSeconds(seconds: number): string {
+  if (seconds < 5) return "agora há pouco";
+  if (seconds < 60) return `há ${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes === 1) return "há 1 min";
+  if (minutes < 60) return `há ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours === 1) return "há 1 h";
+  return `há ${hours} h`;
+}

@@ -1,5 +1,14 @@
 import React from "react";
-import { Activity, CalendarClock, Camera, ImageOff, MapPin, Radio, X } from "lucide-react";
+import {
+  Activity,
+  CalendarClock,
+  Camera,
+  ImageOff,
+  MapPin,
+  Maximize2,
+  Radio,
+  X,
+} from "lucide-react";
 import type { Camera as CameraEntity, CameraLatestImage } from "../services/cameraService";
 import { formatDateTimeBrazil } from "../utils/datetime";
 
@@ -9,6 +18,7 @@ interface CameraDetailsModalProps {
   isLoadingLatest: boolean;
   isClosing: boolean;
   onClose: () => void;
+  onExpandImage?: () => void;
 }
 
 const formatDateTime = (value?: string | null): string => {
@@ -25,6 +35,7 @@ export const CameraDetailsModal: React.FC<CameraDetailsModalProps> = ({
   isLoadingLatest,
   isClosing,
   onClose,
+  onExpandImage,
 }) => {
   const lastCommunication =
     camera.last_capture_at || latestCameraImage?.captured_at || camera.updated_at;
@@ -68,11 +79,29 @@ export const CameraDetailsModal: React.FC<CameraDetailsModalProps> = ({
                 Carregando última imagem...
               </div>
             ) : latestCameraImage?.image_url ? (
-              <img
-                src={latestCameraImage.image_url}
-                alt={`Última foto da câmera ${camera.name}`}
-                className="w-full h-full min-h-[280px] object-cover"
-              />
+              onExpandImage ? (
+                <button
+                  type="button"
+                  onClick={onExpandImage}
+                  aria-label="Ampliar imagem em tela cheia"
+                  className="relative block w-full h-full min-h-[280px] group cursor-zoom-in"
+                >
+                  <img
+                    src={latestCameraImage.image_url}
+                    alt={`Última foto da câmera ${camera.name}`}
+                    className="w-full h-full min-h-[280px] object-cover"
+                  />
+                  <span className="absolute top-2 left-2 inline-flex items-center justify-center h-7 w-7 rounded-full bg-black/50 text-white backdrop-blur-sm opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <Maximize2 size={14} />
+                  </span>
+                </button>
+              ) : (
+                <img
+                  src={latestCameraImage.image_url}
+                  alt={`Última foto da câmera ${camera.name}`}
+                  className="w-full h-full min-h-[280px] object-cover"
+                />
+              )
             ) : (
               <div className="w-full h-full min-h-[280px] flex flex-col items-center justify-center text-gray-500 gap-2">
                 <ImageOff size={22} />
