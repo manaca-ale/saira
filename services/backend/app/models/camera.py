@@ -11,6 +11,11 @@ class Camera(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     device_id = Column(String(64), unique=True, index=True, nullable=True)
+    # Família do hardware: 'esp32' | 'pi' | 'unknown'. Fonte da verdade das
+    # capacidades (comando remoto, modo ao vivo). NULL = tipo desconhecido; ver
+    # r9s0t1u2v3w4_add_camera_type.py para a semântica de fallback de cada
+    # consumidor (remote-control faz fail-open, live faz fail-closed).
+    camera_type = Column(String(32), nullable=True)
     logradouro = Column(String(255))
     bairro = Column(String(100))
     rpa = Column(String(10), index=True)
