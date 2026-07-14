@@ -250,6 +250,114 @@ def test_snapshot_uses_fresh_local_when_available(agent, monkeypatch):
     assert sent == [_VALID_JPEG]
 
 
+# ------------------------------------------------------- modo ao vivo (CMD_LIVE)
+@pytest.fixture
+def live_agent(agent, monkeypatch):
+    """Agente com o /status stubado (o handler do CMD_LIVE reporta rejeição)."""
+    monkeypatch.setattr(agent, "_post_status", lambda *a, **k: None)
+    return agent
+
+
+def test_live_cmd_clamps_arg(live_agent):
+    live_agent._handle_live_cmd("9999")
+    remaining = live_agent._live_until - time.time()
+    assert 0 < remaining <= sa.LIVE_MAX_SECONDS
+    assert live_agent._live_active() is True
+
+
+def test_live_cmd_zero_stops(live_agent):
+    live_agent._handle_live_cmd("60")
+    assert live_agent._live_active() is True
+    live_agent._handle_live_cmd("0")
+    assert live_agent._live_until == 0.0
+    assert live_agent._live_active() is False
+
+
+def test_live_cmd_garbage_arg(live_agent):
+    for bad in ("abc", "", "None", "60s"):
+        live_agent._handle_live_cmd(bad)  # não deve levantar
+        assert live_agent._live_active() is False
+
+
+def test_live_rejected_in_safe_mode(live_agent):
+    live_agent._safe_mode = True
+    live_agent._handle_live_cmd("60")
+    # kill-switch tem que segurar o live: comandos não passam por _apply_runtime_keys
+    assert live_agent._live_active() is False
+
+
+def test_live_expires(live_agent, monkeypatch):
+    live_agent._handle_live_cmd("60")
+    assert live_agent._live_active() is True
+    monkeypatch.setattr(sa.time, "time", lambda: live_agent._live_until + 1)
+    assert live_agent._live_active() is False
+
+
+def test_health_reports_live(live_agent):
+    snap = live_agent._health_snapshot()
+    assert snap["live_active"] is False
+    assert snap["live_remaining_s"] is None
+    live_agent._handle_live_cmd("60")
+    snap = live_agent._health_snapshot()
+    assert snap["live_active"] is True
+    assert 0 < snap["live_remaining_s"] <= 60
+
+
+def test_live_skips_stale_snapshot(live_agent, monkeypatch):
+    """Buffer RTSP travado (latest.jpg velho) não pode virar frame 'ao vivo'."""
+    p = live_agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    old = time.time() - (live_agent.cfg.snapshot_max_age_s + 5)
+    os.utime(p, (old, old))
+    sent: list[bytes] = []
+    monkeypatch.setattr(live_agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    live_agent._handle_live_cmd("60")
+    live_agent._live_capture_once()
+    assert sent == []
+
+
+def test_live_dedups_by_mtime(live_agent, monkeypatch):
+    """Sem keyframe novo, não sobe o mesmo JPEG de novo (4G à toa)."""
+    p = live_agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    sent: list[bytes] = []
+    monkeypatch.setattr(live_agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    live_agent._handle_live_cmd("60")
+    live_agent._live_capture_once()
+    live_agent._live_capture_once()  # mesmo mtime -> skip
+    assert sent == [_VALID_JPEG]
+    # keyframe novo -> sobe de novo
+    newer = time.time() + 1
+    os.utime(p, (newer, newer))
+    live_agent._live_capture_once()
+    assert len(sent) == 2
+
+
+def test_live_does_not_change_capture_cadence(live_agent):
+    """INVARIANTE: o modo ao vivo não pode tocar a cadência de captura.
+
+    O gate conta FRAMES (consec_start) e aprende POR FRAME (lr_idle). Se ligar o
+    live acelerasse o capture_loop, o gate ficaria mais sensível e a adaptação do
+    fundo mudaria — gerando evento falso (e custo de Gemini) justo enquanto o
+    técnico se mexe na frente da lente durante a instalação.
+    """
+    before = live_agent._capture_cadence()
+    live_agent._handle_live_cmd("60")
+    assert live_agent._live_active() is True
+    assert live_agent._capture_cadence() == before
+
+
+def test_live_interval_config_clamps(live_agent):
+    live_agent._apply_config("live_interval_ms=100\n")   # abaixo do piso -> clampa
+    assert live_agent._live_interval == 0.5
+    live_agent._apply_config("live_interval_ms=999999\n")  # acima do teto -> clampa
+    assert live_agent._live_interval == 10.0
+    live_agent._apply_config("live_interval_ms=2000\n")
+    assert live_agent._live_interval == 2.0
+
+
 # ------------------------------------------------------------- calibração
 def test_calibration_probe():
     import numpy as np

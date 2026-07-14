@@ -67,6 +67,11 @@ UPLOADED_SUFFIX = ".uploaded"
 SYNTHETIC_EVENT_SECONDS = 10.0
 WARMUP_UPLOAD_INTERVAL_S = 5.0  # warm-up sobe menos denso que burst de evento
 MAINTENANCE_INTERVAL_S = 6 * 3600
+# Teto DURO da janela ao vivo, POR COMANDO. A plataforma renova um lease curto
+# enquanto o operador estiver presente; se ela (ou a rede) morrer, o dispositivo
+# se apaga sozinho em no máximo isto. É o último backstop de consumo de 4G, e o
+# único que não depende de nada mais estar vivo.
+LIVE_MAX_SECONDS = 120.0
 # Referência em que os polígonos são desenhados (igual ao motion_gate).
 POLYGON_REF_W = 1280
 POLYGON_REF_H = 720
@@ -207,6 +212,20 @@ class Agent:
         self._synthetic_until = 0.0
         self._synthetic_start_sent = False
 
+        # Modo ao vivo (CMD_LIVE) — janela temporal para instalação em campo.
+        # Vive na live_loop, uma thread PRÓPRIA: o upload ao vivo não passa pelo
+        # capture_loop de propósito. O gate raciocina em FRAMES (consec_start) e
+        # aprende POR FRAME (lr_idle), então acelerar a captura durante o live o
+        # deixaria mais sensível e mudaria a adaptação do fundo — justo quando o
+        # técnico está se mexendo na frente da lente. Isso abriria eventos falsos
+        # com event_id e custaria Gemini durante a instalação.
+        self._live_until = 0.0
+        # mtime PRÓPRIO. Não reusar _last_snapshot_mtime: ele é da thread de
+        # captura (sentinela _SAME_FRAME). Duas threads escrevendo nele criam uma
+        # race onde o live "consome" o frame e o gate para de receber dados.
+        self._live_last_mtime = 0.0
+        self._live_interval = 1.0
+
         # Ref_pré: ring dos últimos frames de IDLE (sem evento). Congela no
         # instante da intrusão (não atualiza durante evento), então ring[0] é a
         # cena ANTES do ator. No início do evento sobe esse "antes" como primeiro
@@ -303,6 +322,7 @@ class Agent:
             threading.Thread(target=self.command_loop, name="command", daemon=True),
             threading.Thread(target=self.telemetry_loop, name="telemetry", daemon=True),
             threading.Thread(target=self.maintenance_loop, name="maint", daemon=True),
+            threading.Thread(target=self.live_loop, name="live", daemon=True),
         ]
         now = time.monotonic()
         for name in ("capture", "config", "command", "telemetry"):
@@ -330,6 +350,80 @@ class Agent:
             except Exception:  # noqa: BLE001
                 log.exception("Falha na manutenção de clipes")
             self._stop.wait(MAINTENANCE_INTERVAL_S)
+
+    # ----- modo ao vivo --------------------------------------------------
+    def _live_active(self, now: Optional[float] = None) -> bool:
+        return (now if now is not None else time.time()) < self._live_until
+
+    def live_loop(self) -> None:
+        """Sobe frames a ~1 fps enquanto a janela do CMD_LIVE estiver aberta.
+
+        Isolada do capture_loop de propósito (ver _live_until em __init__): não
+        toca o gate, não muda _capture_cadence(), não interage com a lógica de
+        movimento. O flagrante segue intacto enquanto o técnico olha a câmera.
+
+        Teto de fps: o cam-rtsp-buffer só regrava o latest.jpg a partir de
+        KEYFRAMES (-skip_frame nokey), ~1 a cada 1-2s. Pedir menos que isso não
+        traz frame novo — daí o dedup por mtime em vez de subir o mesmo JPEG.
+        """
+        while not self._stop.is_set():
+            self._beat("live")
+            if not self._live_active():
+                # Tick fino: um CMD_LIVE:0 tem que parar na hora, não no fim
+                # do intervalo ao vivo.
+                self._stop.wait(0.5)
+                continue
+            try:
+                self._live_capture_once()
+            except Exception:  # noqa: BLE001 - loop nunca pode morrer
+                log.exception("Falha inesperada no ciclo ao vivo")
+            self._stop.wait(max(0.5, self._live_interval))
+
+    def _live_capture_once(self) -> None:
+        # Evento real tem prioridade: os frames do evento já sobem com event_id
+        # pelo capture_loop e o painel os mostra como "última imagem" (o servidor
+        # varre a subárvore inteira do device). Subir aqui também dobraria o 4G
+        # exatamente durante um evento.
+        if self._gate is not None and self._gate.state in ("event", "warmup"):
+            return
+        try:
+            mtime = self.cfg.snapshot_jpg.stat().st_mtime
+        except OSError:
+            return
+        if not mtime or mtime == self._live_last_mtime:
+            return  # sem keyframe novo — nada a subir
+        data = self._fresh_local_snapshot()  # guard de idade embutido
+        if not data:
+            return
+        self._live_last_mtime = mtime
+        self._spool_and_upload(data)  # SEM event_id -> só "última imagem" do painel
+
+    def _handle_live_cmd(self, arg: str) -> None:
+        """CMD_LIVE:<segundos> — abre/renova a janela ao vivo. CMD_LIVE:0 para.
+
+        O deadline é SUBSTITUÍDO, não somado: renovar move o prazo, não acumula.
+        """
+        # safe_mode precisa ser checado AQUI: comandos não passam por
+        # _apply_runtime_keys, que é o único ponto onde o kill-switch age. Sem
+        # este guard, o safe_mode não seguraria o live.
+        with self._lock:
+            if self._safe_mode:
+                log.warning("CMD_LIVE ignorado: safe_mode ativo")
+                self._post_status("live_rejected_safe_mode")
+                return
+        try:
+            secs = float(arg)
+        except (TypeError, ValueError):
+            log.warning("CMD_LIVE com argumento inválido: %r", arg)
+            return
+        secs = max(0.0, min(LIVE_MAX_SECONDS, secs))
+        if secs <= 0:
+            self._live_until = 0.0
+            log.info("CMD_LIVE: modo ao vivo encerrado")
+            return
+        self._live_until = time.time() + secs
+        log.info("CMD_LIVE: modo ao vivo por %.0fs (cadência %.1fs)",
+                 secs, self._live_interval)
 
     # ----- captura -------------------------------------------------------
     def _capture_cadence(self) -> float:
@@ -801,6 +895,13 @@ class Agent:
             "clock_synced": self._clock_synced(),
             "motion_mode": self._motion_mode,
             "safe_mode": self._safe_mode,
+            "live_active": self._live_active(now),
+            # RELATIVO, nunca o epoch absoluto do deadline: o relógio da Pi
+            # derrapa (é por isso que este mesmo health reporta clock_synced), e
+            # um epoch cru viraria ruído indebugável no painel.
+            "live_remaining_s": round(max(0.0, self._live_until - now), 1)
+            if self._live_active(now)
+            else None,
             "gate_state": self._gate.state if self._gate is not None else "off",
             "config_version": self._config_version,
             "rejected_config_keys": sorted(self._rejected_config.keys()),
@@ -1352,6 +1453,12 @@ class Agent:
             v = _cfg_clamp(kv, rej, "heartbeat_interval_ms", 10.0, 3600.0, int, 0.001)
             if v is not None:
                 self._heartbeat_interval = v
+        if "live_interval_ms" in kv:
+            # Piso de 0,5s é teórico: o latest.jpg só muda por keyframe (~1-2s),
+            # então pedir menos não traz frame novo — só gasta CPU no stat().
+            v = _cfg_clamp(kv, rej, "live_interval_ms", 0.5, 10.0, int, 0.001)
+            if v is not None:
+                self._live_interval = v
         if "event_min_residual_px" in kv:
             v = _cfg_num(kv, rej, "event_min_residual_px", 0, 1_000_000, int)
             if v is not None:
@@ -1457,6 +1564,8 @@ class Agent:
             self._bulk_upload_spool()
         elif name == "CMD_SNAPSHOT":
             self._upload_snapshot_now()
+        elif name == "CMD_LIVE":
+            self._handle_live_cmd(arg)
         elif name == "CMD_ZOOM" and arg:
             self._handle_zoom_cmd(arg)
         elif name == "CMD_AUTOFOCUS":
