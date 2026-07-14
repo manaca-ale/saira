@@ -409,7 +409,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
           />
 
           {cameraId != null &&
-          cameraSupportsRemoteControl(initialData?.device_id) ? (
+          cameraSupportsRemoteControl(initialData) ? (
             <div className="rounded-2xl border border-gray-200 p-5">
               <div className="flex items-center gap-2 mb-1">
                 <ZoomIn size={18} className="text-gray-700" />
