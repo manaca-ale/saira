@@ -396,7 +396,38 @@ class Agent:
         if not data:
             return
         self._live_last_mtime = mtime
-        self._spool_and_upload(data)  # SEM event_id -> só "última imagem" do painel
+        self._upload_live_frame(data)  # SEM event_id e SEM spool (ver docstring)
+
+    def _upload_live_frame(self, data: bytes) -> bool:
+        """Sobe UM frame ao vivo DIRETO, sem passar pelo spool.
+
+        Não usar _spool_and_upload aqui é a correção de um bug real observado em
+        campo: o spool é compartilhado com a thread de captura, e as duas drenam
+        o mesmo backlog (_drain_backlog). Como o `.uploaded` só é marcado DEPOIS
+        do POST, a captura lia a lista de pendentes antes da marca e reenviava o
+        frame que o live acabara de subir — o mesmo arquivo ia 2× para a EC2,
+        dobrando o 4G, que é exatamente o que o modo ao vivo existe para conter.
+
+        Frames ao vivo são efêmeros: se um POST falhar, não há o que recuperar —
+        o próximo keyframe vem em ~1s. Resiliência offline é requisito dos frames
+        de EVENTO (que viram ocorrência), não da visualização em campo.
+        """
+        files = {"imageFile": ("snapshot.jpg", data, "image/jpeg")}
+        t0 = time.monotonic()
+        try:
+            resp = self._ec2_session.post(
+                self.cfg.upload_url, files=files, timeout=self.cfg.upload_timeout_s,
+            )
+        except requests.RequestException as exc:
+            log.warning("Upload ao vivo falhou (frame descartado): %s", exc)
+            return False
+        if resp.status_code == 200:
+            self._last_upload_at = time.time()
+            log.info("Live OK (%d bytes, %dms)", len(data),
+                     int((time.monotonic() - t0) * 1000))
+            return True
+        log.warning("Upload ao vivo HTTP %s", resp.status_code)
+        return False
 
     def _handle_live_cmd(self, arg: str) -> None:
         """CMD_LIVE:<segundos> — abre/renova a janela ao vivo. CMD_LIVE:0 para.

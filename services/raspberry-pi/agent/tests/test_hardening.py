@@ -310,8 +310,8 @@ def test_live_skips_stale_snapshot(live_agent, monkeypatch):
     old = time.time() - (live_agent.cfg.snapshot_max_age_s + 5)
     os.utime(p, (old, old))
     sent: list[bytes] = []
-    monkeypatch.setattr(live_agent, "_spool_and_upload",
-                        lambda data, **k: sent.append(data))
+    monkeypatch.setattr(live_agent, "_upload_live_frame",
+                        lambda data: sent.append(data) or True)
     live_agent._handle_live_cmd("60")
     live_agent._live_capture_once()
     assert sent == []
@@ -322,8 +322,8 @@ def test_live_dedups_by_mtime(live_agent, monkeypatch):
     p = live_agent.cfg.snapshot_jpg
     p.write_bytes(_VALID_JPEG)
     sent: list[bytes] = []
-    monkeypatch.setattr(live_agent, "_spool_and_upload",
-                        lambda data, **k: sent.append(data))
+    monkeypatch.setattr(live_agent, "_upload_live_frame",
+                        lambda data: sent.append(data) or True)
     live_agent._handle_live_cmd("60")
     live_agent._live_capture_once()
     live_agent._live_capture_once()  # mesmo mtime -> skip
@@ -333,6 +333,46 @@ def test_live_dedups_by_mtime(live_agent, monkeypatch):
     os.utime(p, (newer, newer))
     live_agent._live_capture_once()
     assert len(sent) == 2
+
+
+def test_live_upload_bypasses_spool(live_agent, monkeypatch):
+    """REGRESSÃO (bug de campo 14/07): o frame ao vivo NÃO pode entrar no spool.
+
+    O spool é compartilhado com a thread de captura, que drena o backlog. Como o
+    `.uploaded` só é marcado depois do POST, a captura lia os pendentes antes da
+    marca e reenviava o frame que o live acabara de subir — 2× o mesmo arquivo,
+    dobrando o 4G (medido em prod: 41 uploads para 21 arquivos distintos).
+    """
+    p = live_agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+
+    class _Resp:
+        status_code = 200
+
+    posted: list = []
+    monkeypatch.setattr(
+        live_agent._ec2_session, "post",
+        lambda *a, **k: (posted.append(k.get("files")), _Resp())[1],
+    )
+    live_agent._handle_live_cmd("60")
+    live_agent._live_capture_once()
+
+    assert len(posted) == 1                                    # subiu uma vez
+    assert list(live_agent.cfg.spool_dir.glob("*.jpg")) == []  # nada p/ a captura re-enviar
+
+
+def test_live_upload_failure_is_silent(live_agent, monkeypatch):
+    """POST falhou: descarta e segue. Frame ao vivo é efêmero — o próximo vem em ~1s."""
+    p = live_agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+
+    def _boom(*a, **k):
+        raise sa.requests.RequestException("rede caiu")
+
+    monkeypatch.setattr(live_agent._ec2_session, "post", _boom)
+    live_agent._handle_live_cmd("60")
+    live_agent._live_capture_once()  # não deve levantar
+    assert list(live_agent.cfg.spool_dir.glob("*.jpg")) == []
 
 
 def test_live_does_not_change_capture_cadence(live_agent):
