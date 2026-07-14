@@ -965,19 +965,30 @@ class Agent:
         logging.shutdown()
         os._exit(1)
 
+    def _fresh_local_snapshot(self) -> bytes | None:
+        """latest.jpg do RTSP se estiver FRESCO (mtime ≤ snapshot_max_age_s) e for
+        JPEG válido; senão None. O guard de idade é essencial: sem ele, um
+        cam-rtsp-buffer travado faz o leitor reenviar o mesmo frame congelado
+        indefinidamente — o painel "ao vivo" fica preso numa cena velha. Com o
+        guard, quando o buffer para, o chamador cai para o snapshot HTTP (a câmera
+        em geral ainda responde por HTTP mesmo com o RTSP fora)."""
+        path = self.cfg.snapshot_jpg
+        try:
+            if time.time() - path.stat().st_mtime > self.cfg.snapshot_max_age_s:
+                return None
+            raw = path.read_bytes()
+        except OSError:
+            return None
+        if len(raw) >= 500 and raw[:2] == b"\xff\xd8":
+            return raw
+        return None
+
     def _upload_snapshot_now(self) -> None:
         """CMD_SNAPSHOT: sobe UM frame atual sob demanda (abrir painel / "atualizar
         agora"). Sem event_id → vira a "última imagem" do painel, não dispara o
-        worker. Lê o latest.jpg do RTSP (≈1s fresco); cai para o snapshot HTTP."""
-        data: bytes | None = None
-        try:
-            raw = self.cfg.snapshot_jpg.read_bytes()
-            if len(raw) >= 500 and raw[:2] == b"\xff\xd8":
-                data = raw
-        except OSError:
-            pass
-        if data is None:
-            data = self._fetch_snapshot_http()
+        worker. Prefere o latest.jpg do RTSP se estiver fresco; se o buffer travou
+        (frame velho), cai para o snapshot HTTP para não servir cena congelada."""
+        data = self._fresh_local_snapshot() or self._fetch_snapshot_http()
         if data:
             self._spool_and_upload(data)
             log.info("CMD_SNAPSHOT: frame enviado (%d bytes)", len(data))
@@ -1093,14 +1104,10 @@ class Agent:
 
     # ----- modo calibração ----------------------------------------------
     def _fetch_calib_frame(self) -> Optional[bytes]:
-        """Frame para calibração: latest.jpg do RTSP, caindo p/ snapshot HTTP."""
-        try:
-            raw = self.cfg.snapshot_jpg.read_bytes()
-            if len(raw) >= 500 and raw[:2] == b"\xff\xd8":
-                return raw
-        except OSError:
-            pass
-        return self._fetch_snapshot_http()
+        """Frame para calibração: latest.jpg do RTSP se fresco, caindo p/ snapshot
+        HTTP (mesmo guard de idade do CMD_SNAPSHOT — evita calibrar sobre um frame
+        congelado por buffer travado)."""
+        return self._fresh_local_snapshot() or self._fetch_snapshot_http()
 
     def _run_calibration(self, arg: str) -> None:
         """CMD_CALIBRATE[:s] — por S segundos mede fg/delta com uma sonda

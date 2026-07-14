@@ -5,7 +5,9 @@ rejeição, clamps, safe_mode, guard de polígono), telemetria de saúde, descar
 de frame corrompido, degradação de spool, lógica do watchdog e a sonda de
 calibração. O fluxo end-to-end na Pi real é validado à parte.
 """
+import os
 import shutil
+import time
 import types
 
 import pytest
@@ -197,6 +199,55 @@ def test_watchdog_overdue(agent):
 def test_sd_notify_noop_without_socket(monkeypatch):
     monkeypatch.delenv("NOTIFY_SOCKET", raising=False)
     sa.sd_notify("WATCHDOG=1")  # não deve levantar
+
+
+# ------------------------------------------------- CMD_SNAPSHOT / frescor
+_VALID_JPEG = b"\xff\xd8" + b"x" * 600  # SOI válido + corpo > 500 bytes
+
+
+def test_fresh_local_snapshot_age_guard(agent):
+    p = agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    # fresco -> devolve os bytes do latest.jpg
+    assert agent._fresh_local_snapshot() == _VALID_JPEG
+    # velho (mtime além do teto) -> None: buffer congelado NÃO vaza como "ao vivo"
+    old = time.time() - (agent.cfg.snapshot_max_age_s + 5)
+    os.utime(p, (old, old))
+    assert agent._fresh_local_snapshot() is None
+    # corrompido/curto -> None
+    p.write_bytes(b"nao-jpeg")
+    assert agent._fresh_local_snapshot() is None
+    # inexistente -> None
+    p.unlink()
+    assert agent._fresh_local_snapshot() is None
+
+
+def test_snapshot_falls_back_to_http_when_buffer_stale(agent, monkeypatch):
+    """CMD_SNAPSHOT: com o latest.jpg velho (cam-rtsp-buffer travado), deve subir o
+    snapshot HTTP fresco, não o frame congelado."""
+    p = agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    old = time.time() - (agent.cfg.snapshot_max_age_s + 5)
+    os.utime(p, (old, old))
+    http_frame = b"\xff\xd8HTTP" + b"y" * 600
+    monkeypatch.setattr(agent, "_fetch_snapshot_http", lambda: http_frame)
+    sent: list[bytes] = []
+    monkeypatch.setattr(agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    agent._upload_snapshot_now()
+    assert sent == [http_frame]  # usou o HTTP, não o frame congelado
+
+
+def test_snapshot_uses_fresh_local_when_available(agent, monkeypatch):
+    p = agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)  # recém-escrito = fresco
+    monkeypatch.setattr(agent, "_fetch_snapshot_http",
+                        lambda: pytest.fail("não deveria cair no HTTP com latest fresco"))
+    sent: list[bytes] = []
+    monkeypatch.setattr(agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    agent._upload_snapshot_now()
+    assert sent == [_VALID_JPEG]
 
 
 # ------------------------------------------------------------- calibração
