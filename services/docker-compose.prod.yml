@@ -299,6 +299,14 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      # Event-driven devices (Pi relay): process motion-event manifests
+      # immediately instead of fixed 120s windows; heartbeats GC'd w/o Gemini.
+      # Ausente aqui até 14/07/2026: no cutover da pi-cam-001 para prod (24/06) a
+      # var ficou só no compose de teste, então o worker de prod caía no caminho
+      # legado (main.py: `device_id in config.EVENT_DRIVEN_DEVICES`) e os
+      # manifests de evento nunca eram lidos — a Pi rendia ZERO detecções em prod
+      # enquanto funcionava em test. Manter em sincronia com docker-compose.test.yml.
+      - EVENT_DRIVEN_DEVICES=${EVENT_DRIVEN_DEVICES:-pi-cam-001}
     volumes:
       - esp32_uploads_prod:/app/uploads
       - yolo_state_prod:/app/state
