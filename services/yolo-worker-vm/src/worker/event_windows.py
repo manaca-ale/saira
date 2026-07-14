@@ -152,3 +152,35 @@ def subsample_frames(paths: list[Path], max_frames: int) -> list[Path]:
     step = (len(paths) - 1) / (max_frames - 1)
     idxs = sorted({round(i * step) for i in range(max_frames)})
     return [paths[i] for i in idxs]
+
+
+def fit_frames_to_payload(paths: list[Path], max_bytes: int) -> list[Path]:
+    """Encolhe a janela até caber em max_bytes, preservando primeiro/último.
+
+    subsample_frames capa por CONTAGEM; o Gemini recusa por BYTES
+    (GEMINI_MAX_PAYLOAD_BYTES) e detector_gemini levanta RuntimeError — perdendo
+    o evento inteiro, sem retentativa útil (o payload não encolhe sozinho).
+
+    Isso não é hipotético: com frames grandes (Raspberry Pi ~240 KB contra os
+    ~30 KB de uma ESP32) uma janela de 48 dá ~11,5 MB e estoura o teto de 8 MB
+    SEMPRE. O tamanho do frame é uma propriedade do dispositivo, então um teto
+    fixo em contagem não é portável entre câmeras — daí capar por orçamento de
+    bytes aqui, e não subir GEMINI_CASCADE_MAX_FRAMES caso a caso.
+
+    Encolher é melhor que falhar: perde-se densidade temporal, mas o evento
+    ainda é julgado (primeiro/último — de que o gate depende — são mantidos).
+    """
+    if max_bytes <= 0 or len(paths) <= 1:
+        return paths
+    while len(paths) > 1:
+        try:
+            total = sum(p.stat().st_size for p in paths)
+        except OSError:
+            return paths  # frame sumiu no meio; deixa o caller tratar
+        if total <= max_bytes:
+            return paths
+        # Alvo proporcional ao excesso, mas sempre com progresso (-1 no mínimo)
+        # para não travar quando um único frame já é grande demais.
+        target = min(len(paths) - 1, max(1, int(len(paths) * max_bytes // total)))
+        paths = subsample_frames(paths, target)
+    return paths

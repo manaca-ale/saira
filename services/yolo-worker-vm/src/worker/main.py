@@ -1339,6 +1339,21 @@ def _process_with_gemini_cascade_window(
     if not window_paths:
         return False, {"provider": "gemini_cascade", "success": False, "error": "empty_window"}
 
+    # O Gemini recusa por BYTES, mas quem montou a janela capou por CONTAGEM.
+    # Sem este ajuste, dispositivos de frame grande (Pi ~240 KB × 48 = 11,5 MB)
+    # estouram GEMINI_MAX_PAYLOAD_BYTES e o evento inteiro se perde — foi o que
+    # manteve a pi-cam-001 com zero detecções em prod. Único ponto de passagem
+    # da cascata, então cobre tanto o caminho de evento quanto o legado.
+    fitted = event_windows.fit_frames_to_payload(
+        window_paths, config.GEMINI_MAX_PAYLOAD_BYTES
+    )
+    if len(fitted) < len(window_paths):
+        logger.warning(
+            "window_trimmed device=%s frames=%d->%d (payload > %d bytes)",
+            device_id, len(window_paths), len(fitted), config.GEMINI_MAX_PAYLOAD_BYTES,
+        )
+        window_paths = fitted
+
     last_frame = window_paths[-1]
     gate_request_id = str(uuid4())
     _register_gemini_call(agent="gate", camera=camera)
