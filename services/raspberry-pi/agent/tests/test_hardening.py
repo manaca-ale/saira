@@ -5,7 +5,9 @@ rejeição, clamps, safe_mode, guard de polígono), telemetria de saúde, descar
 de frame corrompido, degradação de spool, lógica do watchdog e a sonda de
 calibração. O fluxo end-to-end na Pi real é validado à parte.
 """
+import os
 import shutil
+import time
 import types
 
 import pytest
@@ -197,6 +199,163 @@ def test_watchdog_overdue(agent):
 def test_sd_notify_noop_without_socket(monkeypatch):
     monkeypatch.delenv("NOTIFY_SOCKET", raising=False)
     sa.sd_notify("WATCHDOG=1")  # não deve levantar
+
+
+# ------------------------------------------------- CMD_SNAPSHOT / frescor
+_VALID_JPEG = b"\xff\xd8" + b"x" * 600  # SOI válido + corpo > 500 bytes
+
+
+def test_fresh_local_snapshot_age_guard(agent):
+    p = agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    # fresco -> devolve os bytes do latest.jpg
+    assert agent._fresh_local_snapshot() == _VALID_JPEG
+    # velho (mtime além do teto) -> None: buffer congelado NÃO vaza como "ao vivo"
+    old = time.time() - (agent.cfg.snapshot_max_age_s + 5)
+    os.utime(p, (old, old))
+    assert agent._fresh_local_snapshot() is None
+    # corrompido/curto -> None
+    p.write_bytes(b"nao-jpeg")
+    assert agent._fresh_local_snapshot() is None
+    # inexistente -> None
+    p.unlink()
+    assert agent._fresh_local_snapshot() is None
+
+
+def test_snapshot_falls_back_to_http_when_buffer_stale(agent, monkeypatch):
+    """CMD_SNAPSHOT: com o latest.jpg velho (cam-rtsp-buffer travado), deve subir o
+    snapshot HTTP fresco, não o frame congelado."""
+    p = agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    old = time.time() - (agent.cfg.snapshot_max_age_s + 5)
+    os.utime(p, (old, old))
+    http_frame = b"\xff\xd8HTTP" + b"y" * 600
+    monkeypatch.setattr(agent, "_fetch_snapshot_http", lambda: http_frame)
+    sent: list[bytes] = []
+    monkeypatch.setattr(agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    agent._upload_snapshot_now()
+    assert sent == [http_frame]  # usou o HTTP, não o frame congelado
+
+
+def test_snapshot_uses_fresh_local_when_available(agent, monkeypatch):
+    p = agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)  # recém-escrito = fresco
+    monkeypatch.setattr(agent, "_fetch_snapshot_http",
+                        lambda: pytest.fail("não deveria cair no HTTP com latest fresco"))
+    sent: list[bytes] = []
+    monkeypatch.setattr(agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    agent._upload_snapshot_now()
+    assert sent == [_VALID_JPEG]
+
+
+# ------------------------------------------------------- modo ao vivo (CMD_LIVE)
+@pytest.fixture
+def live_agent(agent, monkeypatch):
+    """Agente com o /status stubado (o handler do CMD_LIVE reporta rejeição)."""
+    monkeypatch.setattr(agent, "_post_status", lambda *a, **k: None)
+    return agent
+
+
+def test_live_cmd_clamps_arg(live_agent):
+    live_agent._handle_live_cmd("9999")
+    remaining = live_agent._live_until - time.time()
+    assert 0 < remaining <= sa.LIVE_MAX_SECONDS
+    assert live_agent._live_active() is True
+
+
+def test_live_cmd_zero_stops(live_agent):
+    live_agent._handle_live_cmd("60")
+    assert live_agent._live_active() is True
+    live_agent._handle_live_cmd("0")
+    assert live_agent._live_until == 0.0
+    assert live_agent._live_active() is False
+
+
+def test_live_cmd_garbage_arg(live_agent):
+    for bad in ("abc", "", "None", "60s"):
+        live_agent._handle_live_cmd(bad)  # não deve levantar
+        assert live_agent._live_active() is False
+
+
+def test_live_rejected_in_safe_mode(live_agent):
+    live_agent._safe_mode = True
+    live_agent._handle_live_cmd("60")
+    # kill-switch tem que segurar o live: comandos não passam por _apply_runtime_keys
+    assert live_agent._live_active() is False
+
+
+def test_live_expires(live_agent, monkeypatch):
+    live_agent._handle_live_cmd("60")
+    assert live_agent._live_active() is True
+    monkeypatch.setattr(sa.time, "time", lambda: live_agent._live_until + 1)
+    assert live_agent._live_active() is False
+
+
+def test_health_reports_live(live_agent):
+    snap = live_agent._health_snapshot()
+    assert snap["live_active"] is False
+    assert snap["live_remaining_s"] is None
+    live_agent._handle_live_cmd("60")
+    snap = live_agent._health_snapshot()
+    assert snap["live_active"] is True
+    assert 0 < snap["live_remaining_s"] <= 60
+
+
+def test_live_skips_stale_snapshot(live_agent, monkeypatch):
+    """Buffer RTSP travado (latest.jpg velho) não pode virar frame 'ao vivo'."""
+    p = live_agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    old = time.time() - (live_agent.cfg.snapshot_max_age_s + 5)
+    os.utime(p, (old, old))
+    sent: list[bytes] = []
+    monkeypatch.setattr(live_agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    live_agent._handle_live_cmd("60")
+    live_agent._live_capture_once()
+    assert sent == []
+
+
+def test_live_dedups_by_mtime(live_agent, monkeypatch):
+    """Sem keyframe novo, não sobe o mesmo JPEG de novo (4G à toa)."""
+    p = live_agent.cfg.snapshot_jpg
+    p.write_bytes(_VALID_JPEG)
+    sent: list[bytes] = []
+    monkeypatch.setattr(live_agent, "_spool_and_upload",
+                        lambda data, **k: sent.append(data))
+    live_agent._handle_live_cmd("60")
+    live_agent._live_capture_once()
+    live_agent._live_capture_once()  # mesmo mtime -> skip
+    assert sent == [_VALID_JPEG]
+    # keyframe novo -> sobe de novo
+    newer = time.time() + 1
+    os.utime(p, (newer, newer))
+    live_agent._live_capture_once()
+    assert len(sent) == 2
+
+
+def test_live_does_not_change_capture_cadence(live_agent):
+    """INVARIANTE: o modo ao vivo não pode tocar a cadência de captura.
+
+    O gate conta FRAMES (consec_start) e aprende POR FRAME (lr_idle). Se ligar o
+    live acelerasse o capture_loop, o gate ficaria mais sensível e a adaptação do
+    fundo mudaria — gerando evento falso (e custo de Gemini) justo enquanto o
+    técnico se mexe na frente da lente durante a instalação.
+    """
+    before = live_agent._capture_cadence()
+    live_agent._handle_live_cmd("60")
+    assert live_agent._live_active() is True
+    assert live_agent._capture_cadence() == before
+
+
+def test_live_interval_config_clamps(live_agent):
+    live_agent._apply_config("live_interval_ms=100\n")   # abaixo do piso -> clampa
+    assert live_agent._live_interval == 0.5
+    live_agent._apply_config("live_interval_ms=999999\n")  # acima do teto -> clampa
+    assert live_agent._live_interval == 10.0
+    live_agent._apply_config("live_interval_ms=2000\n")
+    assert live_agent._live_interval == 2.0
 
 
 # ------------------------------------------------------------- calibração

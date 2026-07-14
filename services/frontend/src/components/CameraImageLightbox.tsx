@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { ImageOff, RefreshCw, X } from "lucide-react";
+import { ImageOff, RefreshCw, Radio, X } from "lucide-react";
 import type { Camera as CameraEntity, CameraLatestImage } from "../services/cameraService";
+import type { LiveState } from "../hooks/useLiveSession";
 import {
   formatDateTimeBrazil,
   formatRelativeSeconds,
@@ -13,7 +14,21 @@ interface CameraImageLightboxProps {
   isRefreshing: boolean;
   onRefresh: () => void;
   onClose: () => void;
+  /** Modo ao vivo — só câmeras tipadas como 'pi'. */
+  canLive?: boolean;
+  liveState?: LiveState;
+  /** Segundos até o teto duro da sessão. */
+  liveRemainingS?: number;
+  onLiveStart?: () => void;
+  onLiveStop?: () => void;
 }
+
+const formatMmSs = (totalSeconds: number): string => {
+  const s = Math.max(0, totalSeconds);
+  const mm = Math.floor(s / 60);
+  const ss = s % 60;
+  return `${mm}:${String(ss).padStart(2, "0")}`;
+};
 
 export const CameraImageLightbox: React.FC<CameraImageLightboxProps> = ({
   camera,
@@ -21,6 +36,11 @@ export const CameraImageLightbox: React.FC<CameraImageLightboxProps> = ({
   isRefreshing,
   onRefresh,
   onClose,
+  canLive = false,
+  liveState = "idle",
+  liveRemainingS = 0,
+  onLiveStart,
+  onLiveStop,
 }) => {
   // Anti-flicker: pré-carrega a URL nova fora da tela e só troca o src quando
   // ela decodificar — o frame anterior fica visível até lá (e sobrevive a 404).
@@ -78,6 +98,10 @@ export const CameraImageLightbox: React.FC<CameraImageLightboxProps> = ({
           Math.max(0, Math.floor((now.getTime() - capturedDate.getTime()) / 1000)),
         )
       : null;
+
+  // "prompting" ainda é sessão viva (o diálogo de inatividade está por cima),
+  // então o botão segue mostrando AO VIVO com o countdown.
+  const liveIsOn = liveState === "live" || liveState === "prompting";
 
   return (
     <div
@@ -140,15 +164,47 @@ export const CameraImageLightbox: React.FC<CameraImageLightboxProps> = ({
             "Sem captura registrada"
           )}
         </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors disabled:opacity-60 pointer-events-auto"
-        >
-          <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
-          {isRefreshing ? "Atualizando..." : "Atualizar agora"}
-        </button>
+        <div className="shrink-0 flex items-center gap-2 pointer-events-auto">
+          {canLive ? (
+            liveIsOn ? (
+              <button
+                type="button"
+                onClick={onLiveStop}
+                title="Encerrar o modo ao vivo (economiza dados móveis da câmera)"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-red-500/90 hover:bg-red-500 text-white text-xs font-semibold transition-colors"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                </span>
+                AO VIVO
+                <span className="tabular-nums text-white/80">
+                  {formatMmSs(liveRemainingS)}
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onLiveStart}
+                disabled={liveState === "starting"}
+                title="Ver ao vivo (~1 fps). Consome dados móveis da câmera; encerra sozinho."
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors disabled:opacity-60"
+              >
+                <Radio size={14} className={liveState === "starting" ? "animate-pulse" : ""} />
+                {liveState === "starting" ? "Iniciando..." : "Ao vivo"}
+              </button>
+            )
+          ) : null}
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isRefreshing || liveIsOn}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors disabled:opacity-60"
+          >
+            <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+            {isRefreshing ? "Atualizando..." : "Atualizar agora"}
+          </button>
+        </div>
       </div>
     </div>
   );

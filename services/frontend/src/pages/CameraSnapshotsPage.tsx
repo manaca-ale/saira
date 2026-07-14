@@ -11,7 +11,11 @@ import {
 import { Sidebar } from "../components/Sidebar";
 import { CameraDetailsModal } from "../components/CameraDetailsModal";
 import { CameraImageLightbox } from "../components/CameraImageLightbox";
+import { LiveStillHereModal } from "../components/LiveStillHereModal";
+import { useLiveSession } from "../hooks/useLiveSession";
+import { usePresence } from "../hooks/usePresence";
 import {
+  cameraSupportsLive,
   cameraSupportsRemoteControl,
   getCameras,
   getLatestCameraImageFromFolder,
@@ -25,9 +29,20 @@ import { formatDateTimeBrazil, formatRelativeSeconds } from "../utils/datetime";
 // "Atualizar agora". Câmeras esp32 (sobem no timer, sem comando remoto): seguem no
 // auto-poll de 30s (só GET da última imagem; não custa 4G da câmera).
 const POLLING_INTERVAL_MS = 30_000;
-// Com o lightbox aberto, a câmera ampliada ganha um poll mais rápido (só GET,
-// endpoint barato) para acompanhamento quase em tempo real durante operações.
-const LIGHTBOX_POLLING_INTERVAL_MS = 10_000;
+// Com o lightbox aberto, a câmera ampliada entra em modo "quase ao vivo": a cada
+// tick pede uma captura fresca (câmeras com comando remoto, ex. Pi) e faz o GET da
+// última imagem — atualizando o painel a cada ~5s durante operações de campo
+// (ajuste de enquadramento/foco). 5s é mais estável que 1s no 4G. CMD_SNAPSHOT não
+// leva event_id → não dispara worker/Gemini.
+const LIGHTBOX_POLLING_INTERVAL_MS = 5_000;
+// Este poll CUSTA 4G do dispositivo (manda CMD_SNAPSHOT), então ele não pode
+// depender do operador lembrar de fechar o lightbox: sem interação por este tempo
+// (ou com a aba oculta) ele se desliga sozinho e só volta com atividade real.
+const LIGHTBOX_IDLE_STOP_MS = 300_000;
+// Durante o modo ao vivo o dispositivo já empurra frames sozinho — o frontend
+// vira leitor puro e não manda comando nenhum. Não descer abaixo disto: o
+// /latest-image faz os.walk da subárvore inteira do device a cada chamada.
+const LIVE_FETCH_INTERVAL_MS = 2_000;
 const SNAPSHOT_WAIT_MS = 3_500;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -73,6 +88,14 @@ export const CameraSnapshotsPage: React.FC = () => {
   const camerasRef = useRef<CameraEntity[]>([]);
   camerasRef.current = cameras;
 
+  const live = useLiveSession(lightboxCamera);
+  // Presença para o poll de 5s (o caminho que NÃO é o modo ao vivo). O modo ao
+  // vivo tem a própria sessão/AFK dentro do useLiveSession.
+  const lightboxPresence = usePresence(
+    !!lightboxCamera && !live.isActive,
+    LIGHTBOX_IDLE_STOP_MS,
+  );
+
   const fetchSnapshots = async (list: CameraEntity[]): Promise<SnapshotMap> => {
     const entries = await Promise.all(
       list.map(async (camera): Promise<[number, CameraLatestImage | null]> => {
@@ -91,7 +114,7 @@ export const CameraSnapshotsPage: React.FC = () => {
   // Pede frame fresco sob demanda — SÓ p/ dispositivos que aceitam comando remoto
   // (Pi event-driven). As esp32 não pollam comandos, então pular evita chamada inútil.
   const requestSnapshots = async (list: CameraEntity[]): Promise<void> => {
-    const remote = list.filter((c) => cameraSupportsRemoteControl(c.device_id));
+    const remote = list.filter((c) => cameraSupportsRemoteControl(c));
     if (remote.length === 0) return;
     await Promise.allSettled(remote.map((c) => requestCameraSnapshot(c.id)));
   };
@@ -140,7 +163,7 @@ export const CameraSnapshotsPage: React.FC = () => {
   const refreshLightboxSnapshot = async (camera: CameraEntity): Promise<void> => {
     setIsLightboxRefreshing(true);
     try {
-      if (cameraSupportsRemoteControl(camera.device_id)) {
+      if (cameraSupportsRemoteControl(camera)) {
         await requestCameraSnapshot(camera.id);
         await sleep(SNAPSHOT_WAIT_MS);
       }
@@ -195,14 +218,40 @@ export const CameraSnapshotsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInitialLoading]);
 
-  // Poll rápido enquanto o lightbox está aberto — só a câmera ampliada.
+  // Poll rápido enquanto o lightbox está aberto — só a câmera ampliada. Em câmeras
+  // com comando remoto (Pi), pede uma captura fresca a cada tick (fire-and-forget)
+  // para o dispositivo continuar subindo frames novos; o GET seguinte mostra o mais
+  // recente. Sem isso, a 5s só re-buscaríamos a mesma "última imagem" (parada).
+  //
+  // Desliga em três situações, porque este tick CUSTA 4G do dispositivo:
+  //   - modo ao vivo ligado: o device já empurra sozinho; mandar CMD_SNAPSHOT
+  //     junto dobraria o consumo;
+  //   - aba oculta: ninguém está olhando;
+  //   - operador inativo: é exatamente o caso "esqueceu a tela aberta".
   useEffect(() => {
-    if (!lightboxCamera) return;
+    if (!lightboxCamera || live.isActive) return;
+    if (lightboxPresence.isHidden || lightboxPresence.isIdle) return;
+    const cam = lightboxCamera;
+    const remote = cameraSupportsRemoteControl(cam);
     const id = window.setInterval(() => {
-      void fetchSingleSnapshot(lightboxCamera);
+      if (remote) void requestCameraSnapshot(cam.id);
+      void fetchSingleSnapshot(cam);
     }, LIGHTBOX_POLLING_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [lightboxCamera]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxCamera, live.isActive, lightboxPresence.isHidden, lightboxPresence.isIdle]);
+
+  // Modo ao vivo: leitor puro. O dispositivo já está subindo frames a ~1 fps por
+  // conta do lease do CMD_LIVE, então daqui NÃO sai comando nenhum — só o GET.
+  useEffect(() => {
+    if (!lightboxCamera || !live.isActive) return;
+    const cam = lightboxCamera;
+    const id = window.setInterval(() => {
+      void fetchSingleSnapshot(cam);
+    }, LIVE_FETCH_INTERVAL_MS);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxCamera, live.isActive]);
 
   useEffect(() => {
     const tick = window.setInterval(() => setNow(new Date()), 1000);
@@ -545,6 +594,19 @@ export const CameraSnapshotsPage: React.FC = () => {
             isRefreshing={isLightboxRefreshing}
             onRefresh={() => void refreshLightboxSnapshot(lightboxCamera)}
             onClose={closeLightbox}
+            canLive={cameraSupportsLive(lightboxCamera)}
+            liveState={live.state}
+            liveRemainingS={live.remainingS}
+            onLiveStart={() => void live.start()}
+            onLiveStop={() => void live.stop()}
+          />
+        ) : null}
+
+        {live.state === "prompting" ? (
+          <LiveStillHereModal
+            graceS={live.promptRemainingS}
+            onConfirm={live.confirmStillHere}
+            onStop={() => void live.stop()}
           />
         ) : null}
       </main>
