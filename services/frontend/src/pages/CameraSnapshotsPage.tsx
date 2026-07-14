@@ -25,9 +25,13 @@ import { formatDateTimeBrazil, formatRelativeSeconds } from "../utils/datetime";
 // "Atualizar agora". Câmeras esp32 (sobem no timer, sem comando remoto): seguem no
 // auto-poll de 30s (só GET da última imagem; não custa 4G da câmera).
 const POLLING_INTERVAL_MS = 30_000;
-// Com o lightbox aberto, a câmera ampliada ganha um poll mais rápido (só GET,
-// endpoint barato) para acompanhamento quase em tempo real durante operações.
-const LIGHTBOX_POLLING_INTERVAL_MS = 10_000;
+// Com o lightbox aberto, a câmera ampliada entra em modo "quase ao vivo": a cada
+// tick pede uma captura fresca (câmeras com comando remoto, ex. Pi) e faz o GET da
+// última imagem — atualizando o painel a cada ~5s durante operações de campo
+// (ajuste de enquadramento/foco). 5s é mais estável que 1s no 4G. CMD_SNAPSHOT não
+// leva event_id → não dispara worker/Gemini; o custo é só 4G do frame enquanto o
+// lightbox está aberto (bounded pela sessão).
+const LIGHTBOX_POLLING_INTERVAL_MS = 5_000;
 const SNAPSHOT_WAIT_MS = 3_500;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -195,11 +199,17 @@ export const CameraSnapshotsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInitialLoading]);
 
-  // Poll rápido enquanto o lightbox está aberto — só a câmera ampliada.
+  // Poll rápido enquanto o lightbox está aberto — só a câmera ampliada. Em câmeras
+  // com comando remoto (Pi), pede uma captura fresca a cada tick (fire-and-forget)
+  // para o dispositivo continuar subindo frames novos; o GET seguinte mostra o mais
+  // recente. Sem isso, a 1s só re-buscaríamos a mesma "última imagem" (parada).
   useEffect(() => {
     if (!lightboxCamera) return;
+    const cam = lightboxCamera;
+    const remote = cameraSupportsRemoteControl(cam.device_id);
     const id = window.setInterval(() => {
-      void fetchSingleSnapshot(lightboxCamera);
+      if (remote) void requestCameraSnapshot(cam.id);
+      void fetchSingleSnapshot(cam);
     }, LIGHTBOX_POLLING_INTERVAL_MS);
     return () => window.clearInterval(id);
   }, [lightboxCamera]);
