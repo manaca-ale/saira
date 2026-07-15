@@ -5,6 +5,7 @@ rejeição, clamps, safe_mode, guard de polígono), telemetria de saúde, descar
 de frame corrompido, degradação de spool, lógica do watchdog e a sonda de
 calibração. O fluxo end-to-end na Pi real é validado à parte.
 """
+import json
 import os
 import shutil
 import time
@@ -418,3 +419,158 @@ def test_calibration_probe():
     ann = probe.annotate(j1, ["linha 1", "linha 2"])
     assert ann is not None and ann[:2] == b"\xff\xd8"
     assert probe.measure(b"lixo") is None
+
+
+def test_percentile():
+    assert sa._percentile([], 0.95) == 0
+    assert sa._percentile([7], 0.95) == 7
+    assert sa._percentile([5, 1, 3], 0.5) == 3  # nearest-rank sobre ordenado
+    vals = list(range(101))  # 0..100
+    assert sa._percentile(vals, 0.0) == 0
+    assert sa._percentile(vals, 0.95) == 95
+    assert sa._percentile(vals, 1.0) == 100
+
+
+def test_calibration_probe_cold_start_is_whole_zone():
+    """O MOG2 da sonda nasce vazio: o 1º frame acusa a zona INTEIRA como
+    foreground, e só ele. É a origem do min_px_active=93462 sugerido em campo."""
+    import numpy as np
+    import cv2
+    from motion_gate import CalibrationProbe
+
+    frame = np.full((720, 1280, 3), 60, np.uint8)
+    cv2.rectangle(frame, (300, 200), (900, 500), (140, 140, 140), -1)
+    jpg = cv2.imencode(".jpg", frame)[1].tobytes()
+
+    probe = CalibrationProbe(polygon_json="")
+    # Cena 100% estática: o ruído verdadeiro é ZERO.
+    fgs = [probe.measure(jpg)[0] for _ in range(sa._CALIB_SETTLE_FRAMES + 10)]
+
+    zone_px = 360 * 640  # polígono vazio => frame inteiro, em 360p
+    assert fgs[0] == zone_px, "1º frame deveria acusar a zona inteira"
+    assert all(v == 0 for v in fgs[1:]), "cena estática não deveria gerar fg"
+
+    # A fórmula ANTIGA (max da janela inteira) herdava o cold-start...
+    assert int(max(fgs) * 1.5) + 50 > zone_px  # sugestão maior que a zona (!)
+    # ...a nova, com descarte + p95, mede o ruído real (zero).
+    settled = fgs[sa._CALIB_SETTLE_FRAMES:]
+    assert int(sa._percentile(settled, 0.95) * 1.5) + 50 == 50
+
+
+def test_calibration_report_uses_p95_and_discards_settling(agent, monkeypatch):
+    """CMD_CALIBRATE: descarta a convergência, sugere por p95 (não por max) e
+    avisa que a janela não cobre a noite."""
+    import cv2
+    import numpy as np
+
+    posted: dict = {}
+
+    frame = np.full((720, 1280, 3), 60, np.uint8)
+    jpg = cv2.imencode(".jpg", frame)[1].tobytes()
+    monkeypatch.setattr(agent, "_fetch_calib_frame", lambda: jpg)
+    monkeypatch.setattr(agent, "_spool_and_upload", lambda *a, **k: None)
+    monkeypatch.setattr(agent, "_post_status", lambda *a, **k: None)
+
+    # Sonda determinística: 10 frames de convergência (valores absurdos, como o
+    # cold-start real) e depois ruído baixo com UM pico isolado (um farol).
+    seq = [60000] * 10 + [10] * 40 + [9000] + [10] * 9
+
+    class _FakeProbe:
+        def __init__(self, **kw):
+            self._i = 0
+
+        def measure(self, _jpeg):
+            v = seq[self._i] if self._i < len(seq) else 10
+            self._i += 1
+            return (v, v)
+
+        def annotate(self, _jpeg, _lines):
+            return b"\xff\xd8fake"
+
+    monkeypatch.setattr("motion_gate.CalibrationProbe", _FakeProbe)
+
+    # Encerra o loop após consumir a sequência (sem mexer no relógio): wait() é
+    # no-op, então as iterações passam sem dormir.
+    ticks = {"n": 0}
+
+    def _is_set():
+        ticks["n"] += 1
+        return ticks["n"] > len(seq)
+
+    monkeypatch.setattr(agent, "_stop", types.SimpleNamespace(
+        is_set=_is_set, wait=lambda _s: None))
+
+    def _fake_post(url, files=None, timeout=None):
+        posted["report"] = json.loads(files["logFile"][1].decode("utf-8"))
+        return types.SimpleNamespace(status_code=200)
+
+    monkeypatch.setattr(agent._ec2_session, "post", _fake_post)
+
+    agent._run_calibration("60")
+
+    rep = posted["report"]
+    assert rep["frames_discarded"] == sa._CALIB_SETTLE_FRAMES
+    assert 60000 not in (rep["fg_px"]["max"], rep["fg_px"]["p95"])  # cold-start fora
+    # O pico isolado (9000) sobrevive no max mas NÃO dita a sugestão.
+    assert rep["fg_px"]["max"] == 9000
+    assert rep["fg_px"]["p95"] == 10
+    assert rep["suggested"]["min_px_active"] == 65  # 10*1.5+50
+    assert rep["suggested"]["delta_start_px"] == 65
+    assert "p95" in rep["suggestion_basis"]
+    # Acentos pt-BR sobrevivem ao round-trip UTF-8 do relatório (ensure_ascii=False).
+    assert "convergência" in rep["suggestion_basis"]
+    assert "iluminação" in rep["horizon_warning"]
+    assert "noite" in rep["horizon_warning"]
+
+
+def test_calibration_short_window_refuses_to_suggest(agent, monkeypatch):
+    """Janela curta demais para descartar a convergência: reporta a medição mas
+    NÃO sugere threshold — um número contaminado pelo cold-start é pior que
+    nenhum (é a origem do 93462)."""
+    import cv2
+    import numpy as np
+
+    posted: dict = {}
+    jpg = cv2.imencode(".jpg", np.full((720, 1280, 3), 60, np.uint8))[1].tobytes()
+    monkeypatch.setattr(agent, "_fetch_calib_frame", lambda: jpg)
+    monkeypatch.setattr(agent, "_spool_and_upload", lambda *a, **k: None)
+    monkeypatch.setattr(agent, "_post_status", lambda *a, **k: None)
+
+    seq = [62275, 10, 10]  # cold-start + 2 frames: menos que o descarte
+
+    class _FakeProbe:
+        def __init__(self, **kw):
+            self._i = 0
+
+        def measure(self, _jpeg):
+            v = seq[self._i] if self._i < len(seq) else 10
+            self._i += 1
+            return (v, v)
+
+        def annotate(self, _jpeg, _lines):
+            return b"\xff\xd8fake"
+
+    monkeypatch.setattr("motion_gate.CalibrationProbe", _FakeProbe)
+    ticks = {"n": 0}
+
+    def _is_set():
+        ticks["n"] += 1
+        return ticks["n"] > len(seq)
+
+    monkeypatch.setattr(agent, "_stop", types.SimpleNamespace(
+        is_set=_is_set, wait=lambda _s: None))
+
+    def _fake_post(url, files=None, timeout=None):
+        posted["report"] = json.loads(files["logFile"][1].decode("utf-8"))
+        return types.SimpleNamespace(status_code=200)
+
+    monkeypatch.setattr(agent._ec2_session, "post", _fake_post)
+
+    agent._run_calibration("3")
+
+    rep = posted["report"]
+    assert rep["suggested"] is None, "não pode sugerir a partir do cold-start"
+    assert rep["frames_discarded"] == 0
+    assert "janela maior" in rep["suggestion_basis"]
+    # A medição crua continua visível — o operador vê o cold-start pelo que é.
+    assert rep["fg_px"]["max"] == 62275
