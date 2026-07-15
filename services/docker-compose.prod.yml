@@ -39,6 +39,13 @@ services:
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
+      # Vídeo sob demanda (dispositivos event-driven / Pi relay). Sem isto o
+      # backend cai no default vazio de detections.py e o POST /request-video
+      # devolve 503 — o botão "Solicitar vídeo" morre em produção. Estava só no
+      # yolo-worker (que não atende o endpoint) e no backend do compose de TESTE,
+      # que é por onde a feature passou.
+      - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      - VIDEO_REQUEST_TIMEOUT_S=${VIDEO_REQUEST_TIMEOUT_S:-600}
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
       - CONECTA_ENV=${CONECTA_ENV:-prod}
