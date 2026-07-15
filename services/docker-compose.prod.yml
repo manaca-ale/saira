@@ -165,6 +165,13 @@ services:
       - TZ=America/Sao_Paulo
       # Devices mounted upside-down: frames are rotated 180° at ingest.
       - ROTATE_180_DEVICES=${ROTATE_180_DEVICES:-}
+      # Fila de comandos compartilhada entre os workers gunicorn. Sem isto cada
+      # worker tem a sua fila em memória e o comando pode cair no worker que não
+      # atende o long-poll do dispositivo. Ausente/fora do ar => cai em memória.
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - COMMAND_QUEUE_DEPTH=${COMMAND_QUEUE_DEPTH:-16}
+    depends_on:
+      - redis
     volumes:
       - esp32_uploads_prod:/app/uploads
       - ../esp32-server/config:/app/config
