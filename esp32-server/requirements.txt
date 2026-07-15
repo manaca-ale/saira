@@ -7,3 +7,6 @@ requests
 # Image orientation fix on ingest (e.g. esp32_004 mounted upside-down).
 # Ships a cp39 manylinux wheel — no C toolchain needed on the slim image.
 Pillow
+# Fila de comandos compartilhada entre workers gunicorn (REDIS_URL). Sem ela o
+# servidor cai na fila em memória por processo. Pure-python, sem toolchain.
+redis
