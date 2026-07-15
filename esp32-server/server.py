@@ -1295,13 +1295,86 @@ VIDEO_ROOT = os.path.join(
 MAX_VIDEO_BYTES = _int_env("MAX_VIDEO_BYTES", 200 * 1024 * 1024, minimum=1024 * 1024)
 
 
-COMMAND_QUEUE_DEPTH = _int_env("COMMAND_QUEUE_DEPTH", 4, minimum=1)
-# Pending command strings per device, used to collapse identical duplicates
-# (keeps the reconnect-flood protection that maxsize=1 used to provide) while
-# letting distinct commands (e.g. CMD_BULK_UPLOAD + CMD_PERSIST_CLIP:<id>)
-# coexist in the queue. NOTE: queue + dedup set are in-memory, so command
-# delivery requires GUNICORN_WORKERS=1 (already the deployed configuration).
+# Distinct commands pending per device. 4 was too shallow: a device only polls
+# BETWEEN commands (the agent runs _dispatch_command synchronously), so while it
+# is busy — CMD_CALIBRATE takes up to 120s, a clip upload minutes — an operator's
+# burst piles up here. Measured with the real image: device busy 8s, 10 distinct
+# commands sent -> exactly COMMAND_QUEUE_DEPTH arrived, the rest were dropped.
+# That is the true source of the field report "10 sent / 4 arrived": the 4 was
+# this depth, NOT the gunicorn worker split (reproduced identically with
+# GUNICORN_WORKERS=1).
+COMMAND_QUEUE_DEPTH = _int_env("COMMAND_QUEUE_DEPTH", 16, minimum=1)
+# Keys of devices that never come back must not leak in Redis.
+COMMAND_QUEUE_TTL_S = _int_env("COMMAND_QUEUE_TTL_S", 3600, minimum=60)
+
+PUSH_QUEUED = "queued"
+PUSH_DUPLICATE = "duplicate"
+PUSH_FULL = "full"
+
+# Pending command strings per device (in-memory fallback only).
 _sse_pending: dict[str, set] = {}
+
+# Redis holds the queue when REDIS_URL is set, so a command survives landing on
+# a different gunicorn worker than the one serving the device's long-poll (and
+# survives a worker recycle). Falls back to per-process memory when Redis is
+# absent (local dev, tests) or unreachable — degraded, never dead.
+REDIS_URL = os.getenv("REDIS_URL", "").strip()
+# Teto do bloqueio do BLPOP. O socket_timeout do cliente TEM de ser maior que o
+# tempo que o BLPOP fica bloqueado, senão todo poll VAZIO estoura como "Timeout
+# reading from socket", cai no except e degrada mudo para a fila em memória —
+# desligando o Redis na prática. O device faz long-poll de 25s (SSE: 30s), bem
+# abaixo deste teto.
+REDIS_BLOCK_MAX_S = _int_env("REDIS_BLOCK_MAX_S", 60, minimum=10)
+_redis_client = None
+_redis_failed = False
+
+# Atomic dedup + depth check + push. Doing this in Lua keeps the three steps
+# indivisible across workers; LRANGE+RPUSH from Python would race.
+_LUA_PUSH = """
+local items = redis.call('LRANGE', KEYS[1], 0, -1)
+for _, v in ipairs(items) do
+  if v == ARGV[1] then return 'duplicate' end
+end
+if #items >= tonumber(ARGV[2]) then return 'full' end
+redis.call('RPUSH', KEYS[1], ARGV[1])
+redis.call('EXPIRE', KEYS[1], tonumber(ARGV[3]))
+return 'queued'
+"""
+_lua_push_sha = None
+
+
+def _get_redis():
+    """Redis client, or None when unset/unreachable (falls back to memory)."""
+    global _redis_client, _redis_failed, _lua_push_sha
+    if not REDIS_URL or _redis_failed:
+        return None
+    if _redis_client is not None:
+        return _redis_client
+    try:
+        import redis as _redis_mod
+
+        client = _redis_mod.Redis.from_url(
+            REDIS_URL,
+            socket_timeout=REDIS_BLOCK_MAX_S + 10,  # > que qualquer BLPOP nosso
+            socket_connect_timeout=3,               # mas falha rápido se caiu
+            decode_responses=True, health_check_interval=30,
+        )
+        client.ping()
+        _lua_push_sha = client.script_load(_LUA_PUSH)
+        _redis_client = client
+        app.logger.info("Command queue: Redis em %s", REDIS_URL)
+        return client
+    except Exception as exc:  # noqa: BLE001 — qualquer falha -> memória
+        _redis_failed = True
+        app.logger.warning(
+            "Command queue: Redis indisponível (%s) — usando memória por processo "
+            "(comandos podem cair no worker errado)", exc,
+        )
+        return None
+
+
+def _cmd_key(device_id: str) -> str:
+    return f"saira:cmd:q:{device_id}"
 
 
 def _get_or_create_sse_queue(device_id: str):
@@ -1313,17 +1386,36 @@ def _get_or_create_sse_queue(device_id: str):
         return _sse_queues[device_id]
 
 
-def _push_sse_cmd(device_id: str, cmd: str) -> None:
+def _push_sse_cmd(device_id: str, cmd: str) -> str:
+    """Enfileira um comando. Retorna queued | duplicate | full.
+
+    NUNCA descarta em silêncio: 'full' sobe para o chamador como 429. Antes esta
+    função dava `return` mudo no QueueFull e o /trigger respondia 200 "queued"
+    de qualquer forma — o operador clicava, a API dizia OK e o comando morria.
+    """
+    r = _get_redis()
+    if r is not None:
+        try:
+            return str(
+                r.evalsha(
+                    _lua_push_sha, 1, _cmd_key(device_id),
+                    cmd, COMMAND_QUEUE_DEPTH, COMMAND_QUEUE_TTL_S,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001 — Redis caiu no meio
+            app.logger.warning("Command queue: push via Redis falhou (%s)", exc)
+
     q = _get_or_create_sse_queue(device_id)
     with _sse_lock:
         pending = _sse_pending.setdefault(device_id, set())
         if cmd in pending:
-            return  # identical command already queued — collapse duplicate
+            return PUSH_DUPLICATE
         try:
             q.put_nowait(cmd)
         except _QueueFull:
-            return
+            return PUSH_FULL
         pending.add(cmd)
+        return PUSH_QUEUED
 
 
 def _pop_sse_cmd(device_id: str, timeout: float) -> str:
@@ -1331,6 +1423,22 @@ def _pop_sse_cmd(device_id: str, timeout: float) -> str:
 
     Raises _QueueEmpty on timeout (same contract as queue.get).
     """
+    r = _get_redis()
+    if r is not None:
+        try:
+            # BLPOP é cooperativo sob gevent (monkey.patch_all no topo do módulo
+            # troca o socket), então não trava o worker. O clamp garante que o
+            # bloqueio nunca ultrapasse o socket_timeout do cliente.
+            block_s = min(int(max(1, timeout)), REDIS_BLOCK_MAX_S)
+            got = r.blpop(_cmd_key(device_id), timeout=block_s)
+            if got is None:
+                raise _QueueEmpty()
+            return got[1]
+        except _QueueEmpty:
+            raise
+        except Exception as exc:  # noqa: BLE001 — Redis caiu no meio
+            app.logger.warning("Command queue: pop via Redis falhou (%s)", exc)
+
     q = _get_or_create_sse_queue(device_id)
     cmd = q.get(timeout=timeout)
     with _sse_lock:
@@ -1451,8 +1559,17 @@ def device_trigger(device_id: str):
 
     data = request.get_json(silent=True) or {}
     cmd = str(data.get("cmd", "CMD_BULK_UPLOAD")).strip() or "CMD_BULK_UPLOAD"
-    _push_sse_cmd(device_id, cmd)
-    return {"status": "queued", "device_id": device_id, "cmd": cmd}, 200
+    status = _push_sse_cmd(device_id, cmd)
+    body = {"status": status, "device_id": device_id, "cmd": cmd}
+    if status == PUSH_FULL:
+        # 429 em vez de 200 mentiroso: o chamador (backend/operador) precisa
+        # saber que o comando NÃO foi aceito para poder repetir.
+        body["detail"] = (
+            f"fila do dispositivo cheia ({COMMAND_QUEUE_DEPTH} comandos pendentes) "
+            f"— dispositivo provavelmente ocupado; tente novamente"
+        )
+        return body, 429
+    return body, 200
 
 
 @app.route("/device/<device_id>/poll", methods=["GET"])
