@@ -100,6 +100,19 @@ class OffendersByTypeResponse(BaseModel):
     percentage: float
 
 
+class OffenderTypeCount(BaseModel):
+    type: str
+    count: int
+
+
+class OffenderTypesByCameraResponse(BaseModel):
+    camera_id: Optional[int] = None
+    camera_name: Optional[str] = None
+    device_id: Optional[str] = None
+    total: int
+    types: List[OffenderTypeCount]
+
+
 class RecidivismByTypeResponse(BaseModel):
     type: str
     recurrent_count: int

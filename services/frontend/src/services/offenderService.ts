@@ -2,7 +2,46 @@ import api from "./api";
 
 // ── Types ────────────────────────────────────────────────────────────
 
-export type OffenderType = "Carroca" | "Carro" | "Moto" | "Pessoa" | "Outro";
+export type OffenderType =
+  | "Carroca"
+  | "Carro"
+  | "Caminhao"
+  | "Moto"
+  | "Pessoa"
+  | "Outro";
+
+// Valores do banco não têm acento (labels do ENUM); a UI exibe pt-BR correto.
+export const OFFENDER_TYPE_LABELS: Record<string, string> = {
+  Pessoa: "Pessoa",
+  Carro: "Carro",
+  Caminhao: "Caminhão",
+  Moto: "Moto",
+  Carroca: "Carroça",
+  Outro: "Outro",
+};
+
+export const OFFENDER_TYPE_COLORS: Record<string, string> = {
+  Pessoa: "#84cc16",
+  Carro: "#f97316",
+  Caminhao: "#d97706",
+  Moto: "#3b82f6",
+  Carroca: "#8b5cf6",
+  Outro: "#6b7280",
+};
+
+export function offenderTypeLabel(type: string): string {
+  return OFFENDER_TYPE_LABELS[type] ?? type;
+}
+
+/** Opções de tipo para selects/botões, em ordem canônica. */
+export const OFFENDER_TYPE_OPTIONS: { value: OffenderType; label: string }[] = [
+  { value: "Pessoa", label: "Pessoa" },
+  { value: "Carro", label: "Carro" },
+  { value: "Caminhao", label: "Caminhão" },
+  { value: "Moto", label: "Moto" },
+  { value: "Carroca", label: "Carroça" },
+  { value: "Outro", label: "Outro" },
+];
 
 export interface Offender {
   id: string;
@@ -69,6 +108,19 @@ export interface WasteByOffenderType {
   waste_breakdown: WasteBreakdownItem[];
 }
 
+export interface OffenderTypeCount {
+  type: string;
+  count: number;
+}
+
+export interface OffenderTypesByCamera {
+  camera_id: number | null;
+  camera_name: string | null;
+  device_id: string | null;
+  total: number;
+  types: OffenderTypeCount[];
+}
+
 export interface TopPlate {
   plate: string;
   occurrences: number;
@@ -89,6 +141,7 @@ export interface DashboardFilters {
   logradouro?: string;
   bairro?: string;
   rpa?: string;
+  camera_id?: number;
 }
 
 // ── CRUD — Offender profiles ─────────────────────────────────────────
@@ -222,6 +275,16 @@ export async function getOffendersByType(
   const response = await api.get("/offenders/dashboard/offenders-by-type", {
     params: filters,
   });
+  return response.data;
+}
+
+export async function getOffenderTypesByCamera(
+  filters?: DashboardFilters
+): Promise<OffenderTypesByCamera[]> {
+  const response = await api.get(
+    "/offenders/dashboard/offender-types-by-camera",
+    { params: filters }
+  );
   return response.data;
 }
 

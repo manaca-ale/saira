@@ -20,6 +20,9 @@ export interface Detection {
   classified_at?: string | null;
   classified_by?: number | null;
   validity_comment?: string | null;
+  camera_name?: string | null;
+  camera_device_id?: string | null;
+  offender_types?: string[];
 }
 
 export type ClassifyStatus = "Confirmado" | "Rejeitado" | "Indeterminado";
@@ -39,6 +42,8 @@ export interface DetectionSearchParams {
   volume_min?: number;
   volume_max?: number;
   has_offender?: boolean;
+  has_manual_offender?: boolean;
+  camera_id?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }
@@ -162,6 +167,10 @@ function toFrontendFormat(d: Detection): PoiData {
     photoUrl: normalizeImageUrl(d.image_url),
     hasOffender: !!d.offenders,
     validityComment: d.validity_comment ?? undefined,
+    offenderTypes: d.offender_types ?? [],
+    cameraId: d.camera_id,
+    cameraName: d.camera_name ?? undefined,
+    cameraDeviceId: d.camera_device_id ?? undefined,
   };
 }
 
@@ -210,6 +219,8 @@ export async function searchDetections(params?: DetectionSearchParams): Promise<
     volume_min: params?.volume_min,
     volume_max: params?.volume_max,
     has_offender: params?.has_offender,
+    has_manual_offender: params?.has_manual_offender,
+    camera_id: params?.camera_id,
     sort_by: params?.sort_by,
     sort_order: params?.sort_order,
   };

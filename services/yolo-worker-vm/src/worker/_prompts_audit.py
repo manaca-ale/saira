@@ -212,6 +212,7 @@ Quando infraction_confirmed=true, inclua bounding boxes 0-1000 normalizados:
 - offender_bbox: delimitando o infrator/veiculo (quando visivel)
 
 waste_type: Entulho, Lixo domiciliar, Poda, ou Plastico.
+offender_types: lista com um ou mais valores dentre: pessoa, carro, caminhao, moto, carroca, bicicleta, outro.
 Se nao puder inferir um campo com seguranca, retorne null.
 Responda APENAS JSON valido.
 """.strip()
@@ -316,6 +317,7 @@ Quando infraction_confirmed=true, inclua bounding boxes 0-1000:
 - offender_bbox: infrator/veiculo (quando visivel)
 
 waste_type: Entulho, Lixo domiciliar, Poda, ou Plastico.
+offender_types: lista com um ou mais valores dentre: pessoa, carro, caminhao, moto, carroca, bicicleta, outro.
 Se nao puder inferir um campo com seguranca, retorne null.
 Responda APENAS JSON valido.
 """.strip()

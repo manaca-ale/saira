@@ -8,6 +8,7 @@ import {
   History,
   Bell,
   Camera as CameraIcon,
+  Tags,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -28,6 +29,7 @@ export const Sidebar: React.FC = () => {
     { icon: History, path: "/history" }, // NEW: History Page Link
     { icon: CameraIcon, path: "/cameras" },
     { icon: Cctv, path: "/detections" },
+    { icon: Tags, path: "/rotulagem" },
     { icon: Users, path: "/users" },
   ];
   const settingsPath = "/settings/cameras";

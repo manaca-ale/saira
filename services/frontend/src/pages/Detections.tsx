@@ -8,6 +8,9 @@ import {
   searchDetections,
 } from "../services/detectionService";
 import type { ClassifyStatus, PoiData } from "../services/detectionService";
+import { offenderTypeLabel } from "../services/offenderService";
+import { getCameras } from "../services/cameraService";
+import type { Camera as CameraOption } from "../services/cameraService";
 import { Sidebar } from "../components/Sidebar";
 import { formatDateTimeBrazil } from "../utils/datetime";
 
@@ -54,6 +57,7 @@ interface FilterState {
   volMin: string;
   volMax: string;
   infratores: string[];
+  camera: string[];
 }
 
 const WASTE_TYPE_OPTIONS: WasteType[] = [
@@ -93,7 +97,7 @@ const TABLE_COLUMNS = [
   { label: "Data e Hora", width: "w-40", sortKey: "timestamp" },
   { label: "Tipo de resíduo", width: "w-48", sortKey: "waste_type" },
   { label: "Volumetria", width: "w-32", sortKey: "volume_m3" },
-  { label: "Infratores", width: "w-48", sortKey: null },
+  { label: "Tipo de descarte", width: "w-56", sortKey: null },
   { label: "Status", width: "w-32", sortKey: "status" },
   { label: "Ação", width: "w-36", sortKey: null },
 ] as const;
@@ -127,6 +131,7 @@ export const Detections: React.FC = () => {
     volMin: "",
     volMax: "",
     infratores: [],
+    camera: [],
   });
   const [activePopover, setActivePopover] = useState<"period" | "volumetry" | null>(null);
   const [sortBy, setSortBy] = useState<string>("timestamp");
@@ -139,6 +144,7 @@ export const Detections: React.FC = () => {
   // subconjunto paginado carregado na tela.
   const [bairroOptions, setBairroOptions] = useState<string[]>([]);
   const [logradouroOptions, setLogradouroOptions] = useState<string[]>([]);
+  const [cameras, setCameras] = useState<CameraOption[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -150,6 +156,11 @@ export const Detections: React.FC = () => {
         }
       })
       .catch((e) => console.error("Failed to load filter options:", e));
+    getCameras({ limit: 100 })
+      .then((list) => {
+        if (isMounted) setCameras(list.filter((c) => c.device_id));
+      })
+      .catch((e) => console.error("Failed to load cameras:", e));
     return () => {
       isMounted = false;
     };
@@ -159,6 +170,17 @@ export const Detections: React.FC = () => {
   const tipoResiduoOptions = WASTE_TYPE_OPTIONS;
   const offenderOptions = ["Identificado", "Não Identificado"];
   const statusOptions = useMemo(() => [...STATUS_OPTIONS], []);
+
+  // O FilterMultiSelect trabalha com strings; a label da câmera vira id na query.
+  const cameraLabelToId = useMemo(() => {
+    const map = new Map<string, number>();
+    cameras.forEach((c) => map.set(`${c.name} (${c.device_id})`, c.id));
+    return map;
+  }, [cameras]);
+  const cameraOptions = useMemo(
+    () => Array.from(cameraLabelToId.keys()),
+    [cameraLabelToId],
+  );
 
   const queryFilters = useMemo(() => {
     const query: NonNullable<Parameters<typeof searchDetections>[0]> = {};
@@ -178,6 +200,11 @@ export const Detections: React.FC = () => {
       query.has_offender = filters.infratores[0] === "Identificado";
     }
 
+    if (filters.camera.length === 1) {
+      const cameraId = cameraLabelToId.get(filters.camera[0]);
+      if (cameraId) query.camera_id = cameraId;
+    }
+
     if (filters.dateStart) {
       const startTime = filters.startTime || "00:00";
       query.start_date = `${filters.dateStart}T${startTime}:00`;
@@ -188,7 +215,7 @@ export const Detections: React.FC = () => {
     }
 
     return query;
-  }, [filters]);
+  }, [filters, cameraLabelToId]);
 
   const handleSort = (key: string | null) => {
     if (!key) return;
@@ -352,15 +379,27 @@ export const Detections: React.FC = () => {
         rpa: getRpaForPoi(poi),
       }));
 
-      const headers = ["Data", "Local", "Tipo", "Volume", "Status", "Infrator"];
+      const headers = [
+        "Data",
+        "Local",
+        "Câmera",
+        "Tipo",
+        "Volume",
+        "Status",
+        "Tipo de descarte",
+      ];
       const rows = formattedDetections.map((item) => {
         const date = formatDateTimeBrazil(item.timestamp);
         const local = `${item.logradouro} - ${item.bairro}`;
+        const camera = item.cameraName || "";
         const tipo = item.wasteType;
         const volume = `${item.volume} m³`;
         const status = item.status;
-        const infrator = item.hasOffender ? "Identificado" : "Não identificado";
-        return [date, local, tipo, volume, status, infrator];
+        const infrator =
+          item.offenderTypes && item.offenderTypes.length > 0
+            ? item.offenderTypes.map(offenderTypeLabel).join(" / ")
+            : "Não identificado";
+        return [date, local, camera, tipo, volume, status, infrator];
       });
 
       const escapeCell = (value: string) =>
@@ -448,6 +487,8 @@ export const Detections: React.FC = () => {
         latitude: selectedItem.latitude,
         longitude: selectedItem.longitude,
         hasOffender: selectedItem.hasOffender,
+        offenderTypes: selectedItem.offenderTypes ?? [],
+        cameraName: selectedItem.cameraName,
         image_url: selectedItem.photoUrl || undefined,
         validityComment: selectedItem.validityComment,
       }
@@ -644,7 +685,17 @@ export const Detections: React.FC = () => {
                       onChange={(v) => setFilters((p) => ({ ...p, infratores: v }))}
                     />
                   </div>
-                  <div className="hidden md:block"></div>
+                  <div className="animate-in slide-in-from-top-2 duration-300">
+                    <FilterMultiSelect
+                      label="Câmera"
+                      value={filters.camera}
+                      options={cameraOptions}
+                      onChange={(v) =>
+                        // Backend filtra por 1 camera_id; manter só a última escolha.
+                        setFilters((p) => ({ ...p, camera: v.slice(-1) }))
+                      }
+                    />
+                  </div>
                   <div className="hidden md:block"></div>
                 </>
               )}
@@ -751,7 +802,20 @@ export const Detections: React.FC = () => {
                         {`${row.volume} m³`}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium">
-                        {row.hasOffender ? "Sim" : "Não"}
+                        {row.offenderTypes && row.offenderTypes.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {row.offenderTypes.map((type) => (
+                              <span
+                                key={type}
+                                className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold whitespace-nowrap"
+                              >
+                                {offenderTypeLabel(type)}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <Tooltip text={row.status}>

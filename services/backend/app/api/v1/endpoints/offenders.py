@@ -3,10 +3,11 @@ from uuid import UUID
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, literal_column, String
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, func, and_, or_, exists, literal_column, String
+from sqlalchemy.orm import selectinload, aliased
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
+from app.models.camera import Camera
 from app.models.detection import Detection, DetectionStatus
 from app.models.offender import Offender, DetectionOffender, OffenderType, OffenderSource
 from app.schemas.offender import (
@@ -15,6 +16,7 @@ from app.schemas.offender import (
     OffenderStatsResponse, OffendersByTypeResponse, RecidivismByTypeResponse,
     OffenderVolumeByTypeResponse, WasteByOffenderTypeResponse, WasteBreakdownItem,
     TopPlateResponse, VehicleColorResponse,
+    OffenderTypeCount, OffenderTypesByCameraResponse,
 )
 from app.core.config import settings
 
@@ -30,6 +32,7 @@ def _detection_filters(
     logradouro: Optional[str],
     bairro: Optional[str],
     rpa: Optional[str],
+    camera_id: Optional[int] = None,
 ):
     filters = []
     if start_date:
@@ -52,7 +55,21 @@ def _detection_filters(
         filters.append(Detection.bairro.ilike(f"%{bairro}%"))
     if rpa:
         filters.append(Detection.rpa == rpa)
+    if camera_id:
+        filters.append(Detection.camera_id == camera_id)
     return filters
+
+
+def _effective_sighting_condition():
+    """Manual-wins: quando uma detecção tem avistamento manual, só os manuais
+    contam; os da IA valem apenas na ausência de rótulo humano. Evita dupla
+    contagem quando a rotulagem cria linha manual sem apagar a linha da IA."""
+    manual = aliased(DetectionOffender)
+    has_manual = exists().where(
+        manual.detection_id == DetectionOffender.detection_id,
+        manual.source == OffenderSource.MANUAL,
+    )
+    return or_(DetectionOffender.source == OffenderSource.MANUAL, ~has_manual)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -378,10 +395,11 @@ async def get_offender_stats(
     logradouro: Optional[str] = None,
     bairro: Optional[str] = None,
     rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa)
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
 
     # Base query joining detection_offenders with detections for filtering
     base = select(DetectionOffender).join(Detection, DetectionOffender.detection_id == Detection.id)
@@ -402,6 +420,9 @@ async def get_offender_stats(
             func.count(func.distinct(DetectionOffender.detection_id)).label("detection_count"),
         )
         .join(Detection, DetectionOffender.detection_id == Detection.id)
+        # Sem manual-vence, cada rótulo manual criado na rotulagem viraria um
+        # grupo singleton extra e inflaria o KPI "Total de infratores".
+        .where(_effective_sighting_condition())
     )
     if det_filters:
         group_query = group_query.where(and_(*det_filters))
@@ -463,19 +484,24 @@ async def get_offenders_by_type(
     logradouro: Optional[str] = None,
     bairro: Optional[str] = None,
     rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa)
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
 
+    # Conta detecções (não linhas) por tipo efetivo: manual vence IA e
+    # linhas duplicadas do mesmo tipo colapsam via DISTINCT detection_id.
+    count_expr = func.count(func.distinct(DetectionOffender.detection_id))
     query = (
         select(
             DetectionOffender.offender_type.label("type"),
-            func.count(DetectionOffender.id).label("count"),
+            count_expr.label("count"),
         )
         .join(Detection, DetectionOffender.detection_id == Detection.id)
+        .where(_effective_sighting_condition())
         .group_by(DetectionOffender.offender_type)
-        .order_by(func.count(DetectionOffender.id).desc())
+        .order_by(count_expr.desc())
     )
     if det_filters:
         query = query.where(and_(*det_filters))
@@ -494,6 +520,77 @@ async def get_offenders_by_type(
     ]
 
 
+@router.get(
+    "/dashboard/offender-types-by-camera",
+    response_model=List[OffenderTypesByCameraResponse],
+)
+async def get_offender_types_by_camera(
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    status_filter: Optional[str] = Query(None, alias="status"),
+    logradouro: Optional[str] = None,
+    bairro: Optional[str] = None,
+    rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Matriz tipo de infrator × câmera (detecções únicas, manual vence IA)."""
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
+
+    count_expr = func.count(func.distinct(DetectionOffender.detection_id))
+    query = (
+        select(
+            Detection.camera_id.label("camera_id"),
+            Camera.name.label("camera_name"),
+            Camera.device_id.label("device_id"),
+            DetectionOffender.offender_type.label("type"),
+            count_expr.label("count"),
+        )
+        .join(Detection, DetectionOffender.detection_id == Detection.id)
+        .outerjoin(Camera, Camera.id == Detection.camera_id)
+        .where(_effective_sighting_condition())
+        .group_by(
+            Detection.camera_id,
+            Camera.name,
+            Camera.device_id,
+            DetectionOffender.offender_type,
+        )
+        .order_by(Detection.camera_id, count_expr.desc())
+    )
+    if det_filters:
+        query = query.where(and_(*det_filters))
+
+    result = await db.execute(query)
+    rows = result.all()
+
+    # Group by camera
+    grouped: dict = {}
+    for row in rows:
+        key = row.camera_id
+        if key not in grouped:
+            grouped[key] = {
+                "camera_id": row.camera_id,
+                "camera_name": row.camera_name,
+                "device_id": row.device_id,
+                "types": [],
+            }
+        grouped[key]["types"].append(
+            OffenderTypeCount(type=row.type, count=row.count)
+        )
+
+    return [
+        OffenderTypesByCameraResponse(
+            camera_id=item["camera_id"],
+            camera_name=item["camera_name"],
+            device_id=item["device_id"],
+            total=sum(t.count for t in item["types"]),
+            types=item["types"],
+        )
+        for item in grouped.values()
+    ]
+
+
 @router.get("/dashboard/recidivism-by-type", response_model=List[RecidivismByTypeResponse])
 async def get_recidivism_by_type(
     start_date: Optional[datetime] = None,
@@ -502,10 +599,11 @@ async def get_recidivism_by_type(
     logradouro: Optional[str] = None,
     bairro: Optional[str] = None,
     rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa)
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
 
     # Subquery: for each (offender_type, group_key), count distinct detections
     group_key = func.coalesce(
@@ -549,10 +647,11 @@ async def get_offender_volume_by_type(
     logradouro: Optional[str] = None,
     bairro: Optional[str] = None,
     rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa)
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
 
     query = (
         select(
@@ -581,10 +680,11 @@ async def get_waste_by_offender_type(
     logradouro: Optional[str] = None,
     bairro: Optional[str] = None,
     rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa)
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
 
     query = (
         select(
@@ -626,10 +726,11 @@ async def get_top_plates(
     logradouro: Optional[str] = None,
     bairro: Optional[str] = None,
     rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa)
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
 
     query = (
         select(
@@ -657,10 +758,11 @@ async def get_vehicle_colors(
     logradouro: Optional[str] = None,
     bairro: Optional[str] = None,
     rpa: Optional[str] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa)
+    det_filters = _detection_filters(start_date, end_date, status_filter, logradouro, bairro, rpa, camera_id)
 
     query = (
         select(

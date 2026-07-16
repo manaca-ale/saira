@@ -13,6 +13,7 @@ import { HistoryPage } from "./pages/HistoryPage";
 import { CamerasSettingsPage } from "./pages/CamerasSettingsPage";
 import { CameraSnapshotsPage } from "./pages/CameraSnapshotsPage";
 import { IndicadoresPage } from "./pages/IndicadoresPage";
+import { LabelingPage } from "./pages/LabelingPage";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { NotificationToastContainer } from "./components/NotificationToast";
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/indicadores" element={<IndicadoresPage />} />
           <Route path="/detections" element={<Detections />} />
+          <Route path="/rotulagem" element={<LabelingPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/cameras" element={<CameraSnapshotsPage />} />

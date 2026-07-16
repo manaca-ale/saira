@@ -13,6 +13,7 @@ from app.core.timezone import now_brazil
 class OffenderType(str, enum.Enum):
     CARROCA = "Carroca"
     CARRO = "Carro"
+    CAMINHAO = "Caminhao"
     MOTO = "Moto"
     PESSOA = "Pessoa"
     OUTRO = "Outro"

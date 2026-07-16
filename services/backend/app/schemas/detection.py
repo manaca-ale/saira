@@ -96,8 +96,20 @@ class DetectionVideoResponse(BaseModel):
     requested_at: Optional[datetime] = None
 
 
+class DetectionSearchItem(DetectionResponse):
+    """Item de /detections/search enriquecido para a listagem do frontend.
+
+    offender_types traz o tipo EFETIVO por detecção: rótulos manuais vencem
+    os da IA quando ambos existem (mesma regra dos dashboards de infratores).
+    """
+
+    camera_name: Optional[str] = None
+    camera_device_id: Optional[str] = None
+    offender_types: List[str] = []
+
+
 class DetectionListResponse(BaseModel):
-    items: List[DetectionResponse]
+    items: List[DetectionSearchItem]
     total: int
     skip: int
     limit: int

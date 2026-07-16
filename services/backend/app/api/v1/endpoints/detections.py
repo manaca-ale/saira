@@ -8,16 +8,17 @@ from uuid import UUID
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func, or_
+from sqlalchemy import select, and_, func, or_, exists
 from app.api.deps import get_db, get_current_user
 from app.core.database import AsyncSessionLocal
 from app.core.redis import get_redis
 from app.models.user import User
 from app.models.camera import Camera
 from app.models.detection import Detection, DetectionStatus
+from app.models.offender import DetectionOffender, OffenderSource
 from app.schemas.detection import (
     DetectionCreate, DetectionUpdate, DetectionResponse,
-    DetectionClassify, DetectionListResponse,
+    DetectionClassify, DetectionListResponse, DetectionSearchItem,
     DetectionAnalyzedFramesResponse, DetectionVideoResponse,
     DetectionFilterOptionsResponse,
 )
@@ -68,6 +69,42 @@ def _normalize_status_filter(value: str) -> Optional[DetectionStatus]:
     if normalized == "indeterminado":
         return DetectionStatus.INDETERMINADO
     return None
+
+
+async def _effective_offender_types(
+    db: AsyncSession, detection_ids: List[UUID]
+) -> dict:
+    """Tipos de infrator efetivos por detecção (batch, 1 query).
+
+    Manual vence IA: se a detecção tem rótulo humano, só ele conta; senão
+    valem os tipos da IA. Dedupe preservando ordem de criação. Mesma regra
+    dos dashboards de infratores (_effective_sighting_condition).
+    """
+    if not detection_ids:
+        return {}
+
+    result = await db.execute(
+        select(
+            DetectionOffender.detection_id,
+            DetectionOffender.offender_type,
+            DetectionOffender.source,
+        )
+        .where(DetectionOffender.detection_id.in_(detection_ids))
+        .order_by(DetectionOffender.created_at)
+    )
+
+    ai_types: dict = {}
+    manual_types: dict = {}
+    for det_id, offender_type, source in result.all():
+        bucket = manual_types if source == OffenderSource.MANUAL else ai_types
+        types = bucket.setdefault(det_id, [])
+        if offender_type.value not in types:
+            types.append(offender_type.value)
+
+    return {
+        det_id: manual_types.get(det_id) or ai_types.get(det_id, [])
+        for det_id in set(ai_types) | set(manual_types)
+    }
 
 
 def _expand_waste_type_aliases(values: List[str]) -> List[str]:
@@ -139,6 +176,8 @@ async def search_detections(
     logradouro: Optional[str] = None,
     waste_type: Optional[str] = None,
     has_offender: Optional[bool] = None,
+    has_manual_offender: Optional[bool] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     volume_min: Optional[float] = Query(None, ge=0),
     volume_max: Optional[float] = Query(None, ge=0),
     sort_by: Optional[str] = Query(None, description="Campo para ordenação"),
@@ -199,6 +238,17 @@ async def search_detections(
             )
         )
 
+    if has_manual_offender is not None:
+        # Rótulo humano de infrator (fila da rotulagem usa =false).
+        manual_exists = exists().where(
+            DetectionOffender.detection_id == Detection.id,
+            DetectionOffender.source == OffenderSource.MANUAL,
+        )
+        filters.append(manual_exists if has_manual_offender else ~manual_exists)
+
+    if camera_id is not None:
+        filters.append(Detection.camera_id == camera_id)
+
     if volume_min is not None:
         filters.append(Detection.volume_m3 >= volume_min)
     if volume_max is not None:
@@ -211,14 +261,28 @@ async def search_detections(
         count_query = count_query.where(filter_expression)
     total = (await db.execute(count_query)).scalar_one()
 
-    query = select(Detection)
+    query = select(Detection, Camera.name, Camera.device_id).outerjoin(
+        Camera, Detection.camera_id == Camera.id
+    )
     if filter_expression is not None:
         query = query.where(filter_expression)
     col = DETECTION_SORTABLE_FIELDS.get(sort_by or DEFAULT_SORT_FIELD, Detection.timestamp)
     order = col.asc() if sort_order == "asc" else col.desc()
     query = query.order_by(order).offset(skip).limit(limit)
     result = await db.execute(query)
-    items = result.scalars().all()
+    rows = result.all()
+
+    offender_types_map = await _effective_offender_types(
+        db, [det.id for det, _, _ in rows]
+    )
+
+    items = []
+    for det, camera_name, camera_device_id in rows:
+        item = DetectionSearchItem.model_validate(det)
+        item.camera_name = camera_name
+        item.camera_device_id = camera_device_id
+        item.offender_types = offender_types_map.get(det.id, [])
+        items.append(item)
 
     return DetectionListResponse(items=items, total=total, skip=skip, limit=limit)
 
