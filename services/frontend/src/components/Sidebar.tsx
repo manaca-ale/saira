@@ -13,6 +13,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
 import { useAuth } from "../contexts/AuthContext";
+import { labelingEnabled } from "../config/features";
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +30,8 @@ export const Sidebar: React.FC = () => {
     { icon: History, path: "/history" }, // NEW: History Page Link
     { icon: CameraIcon, path: "/cameras" },
     { icon: Cctv, path: "/detections" },
-    { icon: Tags, path: "/rotulagem" },
+    // Rotulagem: ferramenta interna, só aparece onde a flag está ligada (teste).
+    ...(labelingEnabled ? [{ icon: Tags, path: "/rotulagem" }] : []),
     { icon: Users, path: "/users" },
   ];
   const settingsPath = "/settings/cameras";

@@ -16,6 +16,7 @@ import { IndicadoresPage } from "./pages/IndicadoresPage";
 import { LabelingPage } from "./pages/LabelingPage";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { NotificationToastContainer } from "./components/NotificationToast";
+import { labelingEnabled } from "./config/features";
 
 function App() {
   return (
@@ -28,7 +29,9 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/indicadores" element={<IndicadoresPage />} />
           <Route path="/detections" element={<Detections />} />
-          <Route path="/rotulagem" element={<LabelingPage />} />
+          {labelingEnabled && (
+            <Route path="/rotulagem" element={<LabelingPage />} />
+          )}
           <Route path="/users" element={<UsersPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/cameras" element={<CameraSnapshotsPage />} />
