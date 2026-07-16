@@ -188,7 +188,6 @@ Uso correto de lixeira publica e comportamento cidadao correto — infraction_co
 Veiculos parando para embarque/desembarque de passageiros e transporte urbano normal.
 waste_type: Entulho, Lixo domiciliar, Poda, ou Plastico.
 offender_detected descreve somente a capacidade de identificar o autor/veiculo.
-offender_types: lista com um ou mais valores dentre: pessoa, carro, caminhao, moto, carroca, bicicleta, outro.
 Se um campo nao puder ser inferido com seguranca, retorne null.
 """.strip()
 

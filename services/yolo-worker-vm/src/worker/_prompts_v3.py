@@ -539,7 +539,6 @@ Uso correto de lixeira publica e comportamento cidadao correto — infraction_co
 Veiculos parando para embarque/desembarque de passageiros e transporte urbano normal.
 waste_type: Entulho, Lixo domiciliar, Poda, ou Plastico.
 offender_detected descreve somente a capacidade de identificar o autor/veiculo.
-offender_types: lista com um ou mais valores dentre: pessoa, carro, caminhao, moto, carroca, bicicleta, outro.
 Se um campo nao puder ser inferido com seguranca, retorne null.
 """.strip()
 
@@ -681,7 +680,6 @@ Quando infraction_confirmed=true, inclua bounding boxes normalizados 0-1000
 waste_type: "Lixo domiciliar" (predominante), "Poda" (frequente), "Entulho"
 (raro), "Plastico" se inequivoco.
 offender_detected: capacidade de identificar o autor.
-offender_types: lista com um ou mais valores dentre: pessoa, carro, caminhao, moto, carroca, bicicleta, outro.
 Se campo nao puder ser inferido, retorne null.
 """.strip()
 
@@ -741,7 +739,6 @@ Quando infraction_confirmed=true, inclua bounding boxes normalizados 0-1000
 [y_min, x_min, y_max, x_max]: waste_bbox (residuo) e offender_bbox (agente).
 waste_type: "Lixo domiciliar" | "Poda" | "Entulho" | "Plastico".
 offender_detected: capacidade de identificar o autor. Campo nao inferivel: null.
-offender_types: lista com um ou mais valores dentre: pessoa, carro, caminhao, moto, carroca, bicicleta, outro.
 """.strip()
 
 

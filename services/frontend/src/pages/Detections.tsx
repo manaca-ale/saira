@@ -8,7 +8,8 @@ import {
   searchDetections,
 } from "../services/detectionService";
 import type { ClassifyStatus, PoiData } from "../services/detectionService";
-import { offenderTypeLabel } from "../services/offenderService";
+import { offenderTypeLabel, addDetectionOffender } from "../services/offenderService";
+import type { OffenderType } from "../services/offenderService";
 import { getCameras } from "../services/cameraService";
 import type { Camera as CameraOption } from "../services/cameraService";
 import { Sidebar } from "../components/Sidebar";
@@ -322,16 +323,24 @@ export const Detections: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleClassify = async (validityComment?: string) => {
+  const handleClassify = async (
+    validityComment?: string,
+    offenderTypes?: OffenderType[],
+  ) => {
     if (!classifyTarget) return;
+    const detectionId = classifyTarget.detection.id;
     setIsClassifying(true);
     setClassifyError(null);
     try {
-      await classifyDetection(
-        classifyTarget.detection.id,
-        classifyTarget.action,
-        validityComment,
-      );
+      await classifyDetection(detectionId, classifyTarget.action, validityComment);
+      // Tipo de descarte indicado na confirmação → rótulo manual (source=manual).
+      if (offenderTypes && offenderTypes.length > 0) {
+        await Promise.all(
+          offenderTypes.map((offender_type) =>
+            addDetectionOffender(detectionId, { offender_type }),
+          ),
+        );
+      }
       setClassifyTarget(null);
       await loadDetectionsPage();
     } catch (e) {
