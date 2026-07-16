@@ -206,6 +206,9 @@ services:
       - GEMINI_USE_VERTEX=${GEMINI_USE_VERTEX:-false}
       - GCP_PROJECT=${GCP_PROJECT:-}
       - GCP_LOCATION=${GCP_LOCATION:-global}
+      # Regional fallback used only on 429/RESOURCE_EXHAUSTED from the primary
+      # (global DSQ congestion — incident 2026-07-16). Empty disables it.
+      - GCP_LOCATION_FALLBACK=${GCP_LOCATION_FALLBACK:-us-central1}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
       # Prometheus metrics endpoint (scraped by the prod monitoring stack on the
       # saira-prod network as yolo-worker:9108). Explicit so it's not left to defaults.

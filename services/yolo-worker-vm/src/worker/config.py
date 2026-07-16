@@ -114,6 +114,12 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 GEMINI_USE_VERTEX = os.getenv("GEMINI_USE_VERTEX", "false").strip().lower() in ("true", "1", "yes")
 GCP_PROJECT = os.getenv("GCP_PROJECT", os.getenv("GOOGLE_CLOUD_PROJECT", "")).strip()
 GCP_LOCATION = os.getenv("GCP_LOCATION", os.getenv("GOOGLE_CLOUD_LOCATION", "global")).strip()
+# Fallback Vertex region used ONLY when the primary GCP_LOCATION returns 429
+# RESOURCE_EXHAUSTED. The `global` endpoint pools capacity via Dynamic Shared
+# Quota and can throttle project-wide during congestion (incident 2026-07-16);
+# a regional endpoint has separate capacity. Empty (or == GCP_LOCATION) disables
+# the fallback. See detector_gemini._call_model.
+GCP_LOCATION_FALLBACK = os.getenv("GCP_LOCATION_FALLBACK", "us-central1").strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 GEMINI_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
 GEMINI_MAX_RETRIES = int(os.getenv("GEMINI_MAX_RETRIES", "2"))
