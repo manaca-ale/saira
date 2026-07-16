@@ -344,6 +344,37 @@ def _get_client():
     return _client
 
 
+_fallback_client = None
+
+
+def _get_fallback_client():
+    """Lazy Vertex client pinned to GCP_LOCATION_FALLBACK, used only when the
+    primary location returns 429. Returns None when disabled (not Vertex, no
+    fallback region set, or fallback == primary)."""
+    global _fallback_client
+    if genai is None or not getattr(config, "GEMINI_USE_VERTEX", False):
+        return None
+    fb_loc = (getattr(config, "GCP_LOCATION_FALLBACK", "") or "").strip()
+    if not fb_loc or fb_loc == config.GCP_LOCATION:
+        return None
+    if _fallback_client is None:
+        _fallback_client = genai.Client(
+            vertexai=True,
+            project=config.GCP_PROJECT,
+            location=fb_loc,
+        )
+    return _fallback_client
+
+
+def _is_resource_exhausted(exc: Exception) -> bool:
+    """True when a Gemini call failed with 429 / RESOURCE_EXHAUSTED (quota /
+    Dynamic Shared Quota congestion) — the case worth retrying on another region."""
+    code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+    if code == 429:
+        return True
+    return "RESOURCE_EXHAUSTED" in str(exc).upper()
+
+
 def _guess_mime(path: Path) -> str:
     guessed = mimetypes.guess_type(str(path))[0]
     return guessed or "image/jpeg"
@@ -432,8 +463,6 @@ def _call_model(
     thinking_budget: Optional[int] = None,
     seed: Optional[int] = None,
 ):
-    client = _get_client()
-
     contents: list[object] = [system_prompt, user_prompt]
     payload_size = 0
     for image_path in image_paths:
@@ -446,12 +475,27 @@ def _call_model(
             f"Gemini payload too large: {payload_size} bytes exceeds {config.GEMINI_MAX_PAYLOAD_BYTES}"
         )
 
-    return client.models.generate_content(
-        model=model_name,
-        contents=contents,
-        config=_build_generate_config(response_schema, max_output_tokens=max_output_tokens,
-                                      thinking_budget=thinking_budget, seed=seed),
+    gen_config = _build_generate_config(
+        response_schema, max_output_tokens=max_output_tokens,
+        thinking_budget=thinking_budget, seed=seed,
     )
+
+    def _invoke(client):
+        return client.models.generate_content(
+            model=model_name, contents=contents, config=gen_config,
+        )
+
+    try:
+        return _invoke(_get_client())
+    except Exception as exc:  # noqa: BLE001
+        fb = _get_fallback_client()
+        if fb is not None and _is_resource_exhausted(exc):
+            logger.warning(
+                "gemini %s exhausted (%s) — retrying on fallback region %s",
+                config.GCP_LOCATION, type(exc).__name__, config.GCP_LOCATION_FALLBACK,
+            )
+            return _invoke(fb)
+        raise
 
 
 # Preços por modelo (USD por 1M tokens) — (input, output). A taxa de output
