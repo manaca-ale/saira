@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { X, Loader2, AlertCircle, CheckCircle, XCircle, HelpCircle } from "lucide-react";
 import type { ClassifyStatus } from "../services/detectionService";
+import { OFFENDER_TYPE_OPTIONS } from "../services/offenderService";
+import type { OffenderType } from "../services/offenderService";
 
 interface ClassifyConfirmationModalProps {
   isOpen: boolean;
   action: ClassifyStatus;
   onClose: () => void;
-  onConfirm: (validityComment?: string) => void;
+  onConfirm: (validityComment?: string, offenderTypes?: OffenderType[]) => void;
   isLoading: boolean;
   errorMessage?: string | null;
 }
@@ -63,10 +65,12 @@ export const ClassifyConfirmationModal: React.FC<ClassifyConfirmationModalProps>
   errorMessage,
 }) => {
   const [comment, setComment] = useState("");
+  const [types, setTypes] = useState<OffenderType[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       setComment("");
+      setTypes([]);
     }
   }, [isOpen, action]);
 
@@ -74,10 +78,17 @@ export const ClassifyConfirmationModal: React.FC<ClassifyConfirmationModalProps>
 
   const copy = ACTION_COPY[action];
   const trimmed = comment.trim();
+  const showTypes = action === "Confirmado";
+
+  const toggleType = (t: OffenderType) =>
+    setTypes((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
 
   const handleSubmit = () => {
     if (isLoading) return;
-    onConfirm(trimmed.length > 0 ? trimmed : undefined);
+    onConfirm(
+      trimmed.length > 0 ? trimmed : undefined,
+      showTypes && types.length > 0 ? types : undefined,
+    );
   };
 
   return (
@@ -103,6 +114,38 @@ export const ClassifyConfirmationModal: React.FC<ClassifyConfirmationModalProps>
             <p className="text-sm font-semibold text-[#1a1a1a]">{copy.question}</p>
             <p className="text-xs text-gray-500 mt-1">{copy.helper}</p>
           </div>
+
+          {showTypes && (
+            <div>
+              <label className="block text-sm font-bold text-[#1a1a1a] mb-1">
+                Tipo de descarte{" "}
+                <span className="text-gray-400 font-normal">(opcional)</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Indique o que fez o descarte. Você pode marcar mais de um.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {OFFENDER_TYPE_OPTIONS.map((opt) => {
+                  const selected = types.includes(opt.value);
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => toggleType(opt.value)}
+                      disabled={isLoading}
+                      className={`px-3 py-1.5 rounded-full text-sm font-bold border transition-colors disabled:opacity-50 ${
+                        selected
+                          ? "bg-[#ccff33] border-[#ccff33] text-[#1a1a1a]"
+                          : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-bold text-[#1a1a1a] mb-1">

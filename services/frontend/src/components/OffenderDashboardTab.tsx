@@ -27,15 +27,19 @@ import { RegisterOffenderModal } from "./RegisterOffenderModal";
 import {
   getOffenderStats,
   getOffendersByType,
+  getOffenderTypesByCamera,
   getRecidivismByType,
   getOffenderVolumeByType,
   getWasteByOffenderType,
   getTopPlates,
   getVehicleColors,
+  OFFENDER_TYPE_COLORS,
+  offenderTypeLabel,
 } from "../services/offenderService";
 import type {
   OffenderStats,
   OffendersByType,
+  OffenderTypesByCamera,
   RecidivismByType,
   OffenderVolumeByType,
   WasteByOffenderType,
@@ -43,11 +47,20 @@ import type {
   VehicleColor,
   DashboardFilters,
 } from "../services/offenderService";
+import { getCameras } from "../services/cameraService";
+import type { Camera as CameraOption } from "../services/cameraService";
 
 // ── Colors ───────────────────────────────────────────────────────────
 
-const TYPE_COLORS = ["#84cc16", "#a3e635", "#d9f99d", "#f97316", "#6b7280"];
 const PIE_COLORS = ["#84cc16", "#a3e635", "#65a30d", "#d9f99d", "#ecfccb", "#f97316", "#6b7280"];
+const FALLBACK_TYPE_COLOR = "#6b7280";
+
+// Ordem canônica das pilhas/legendas nos gráficos por tipo.
+const TYPE_ORDER = ["Pessoa", "Carro", "Caminhao", "Moto", "Carroca", "Outro"];
+
+function typeColor(type: string): string {
+  return OFFENDER_TYPE_COLORS[type] ?? FALLBACK_TYPE_COLOR;
+}
 
 // ── Props ────────────────────────────────────────────────────────────
 
@@ -72,13 +85,16 @@ interface OffenderDashboardTabProps {
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function buildApiFilters(f: FilterState): DashboardFilters {
+function buildApiFilters(f: FilterState, cameraId: number | null): DashboardFilters {
   const params: DashboardFilters = {};
-  if (f.dateStart) params.start_date = f.dateStart;
-  if (f.dateEnd) params.end_date = f.dateEnd;
+  // O backend tipa start_date/end_date como datetime: enviar "2026-07-15" cru
+  // devolve 422 e zera TODOS os cards. Completar com hora, como em Detections.
+  if (f.dateStart) params.start_date = `${f.dateStart}T${f.startTime || "00:00"}:00`;
+  if (f.dateEnd) params.end_date = `${f.dateEnd}T${f.endTime || "23:59"}:59`;
   if (f.logradouro) params.logradouro = f.logradouro;
   if (f.bairro) params.bairro = f.bairro;
   if (f.rpa.length === 1) params.rpa = f.rpa[0];
+  if (cameraId) params.camera_id = cameraId;
   return params;
 }
 
@@ -90,20 +106,30 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<OffenderStats | null>(null);
   const [byType, setByType] = useState<OffendersByType[]>([]);
+  const [byCamera, setByCamera] = useState<OffenderTypesByCamera[]>([]);
   const [recidivism, setRecidivism] = useState<RecidivismByType[]>([]);
   const [volumeByType, setVolumeByType] = useState<OffenderVolumeByType[]>([]);
   const [wasteByType, setWasteByType] = useState<WasteByOffenderType[]>([]);
   const [topPlates, setTopPlates] = useState<TopPlate[]>([]);
   const [vehicleColors, setVehicleColors] = useState<VehicleColor[]>([]);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [cameras, setCameras] = useState<CameraOption[]>([]);
+  const [cameraId, setCameraId] = useState<number | null>(null);
+
+  useEffect(() => {
+    getCameras({ limit: 100 })
+      .then((list) => setCameras(list.filter((c) => c.device_id)))
+      .catch((err) => console.error("Error loading cameras:", err));
+  }, []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const apiFilters = buildApiFilters(filters);
-      const [s, bt, r, v, w, tp, vc] = await Promise.all([
+      const apiFilters = buildApiFilters(filters, cameraId);
+      const [s, bt, bc, r, v, w, tp, vc] = await Promise.all([
         getOffenderStats(apiFilters),
         getOffendersByType(apiFilters),
+        getOffenderTypesByCamera(apiFilters),
         getRecidivismByType(apiFilters),
         getOffenderVolumeByType(apiFilters),
         getWasteByOffenderType(apiFilters),
@@ -112,6 +138,7 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
       ]);
       setStats(s);
       setByType(bt);
+      setByCamera(bc);
       setRecidivism(r);
       setVolumeByType(v);
       setWasteByType(w);
@@ -122,7 +149,7 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, cameraId]);
 
   useEffect(() => {
     loadData();
@@ -135,7 +162,9 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
       item.waste_breakdown.forEach((wb) => allWasteTypes.add(wb.waste_type))
     );
     return wasteByType.map((item) => {
-      const row: Record<string, unknown> = { name: item.offender_type };
+      const row: Record<string, unknown> = {
+        name: offenderTypeLabel(item.offender_type),
+      };
       item.waste_breakdown.forEach((wb) => {
         row[wb.waste_type] = wb.count;
       });
@@ -150,6 +179,30 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
     );
     return Array.from(set);
   }, [wasteByType]);
+
+  // ── Tipos por câmera (pivô p/ barras empilhadas) ───────────────────
+  const byCameraData = React.useMemo(
+    () =>
+      byCamera.map((cam) => {
+        const row: Record<string, unknown> = {
+          name: cam.camera_name ?? cam.device_id ?? "Sem câmera",
+        };
+        cam.types.forEach((t) => {
+          row[t.type] = t.count;
+        });
+        return row;
+      }),
+    [byCamera]
+  );
+
+  const byCameraTypes = React.useMemo(() => {
+    const present = new Set<string>();
+    byCamera.forEach((cam) => cam.types.forEach((t) => present.add(t.type)));
+    return [
+      ...TYPE_ORDER.filter((t) => present.has(t)),
+      ...Array.from(present).filter((t) => !TYPE_ORDER.includes(t)),
+    ];
+  }, [byCamera]);
 
   if (loading) {
     return (
@@ -166,13 +219,30 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
         <h2 className="text-lg font-bold text-[#1a1a1a]">
           Dashboard de Infratores
         </h2>
-        <button
-          onClick={() => setIsRegisterOpen(true)}
-          className="h-10 px-4 bg-[#ccff33] hover:bg-[#bef026] text-[#1a1a1a] font-bold rounded-xl text-sm flex items-center gap-2 transition-colors"
-        >
-          <Plus size={16} />
-          Cadastrar Infrator
-        </button>
+        <div className="flex items-center gap-3">
+          <select
+            value={cameraId ?? ""}
+            onChange={(e) =>
+              setCameraId(e.target.value ? Number(e.target.value) : null)
+            }
+            className="h-10 px-3 bg-white border border-gray-200 rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-lime-400"
+            title="Filtrar por câmera"
+          >
+            <option value="">Todas as câmeras</option>
+            {cameras.map((cam) => (
+              <option key={cam.id} value={cam.id}>
+                {cam.name} ({cam.device_id})
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => setIsRegisterOpen(true)}
+            className="h-10 px-4 bg-[#ccff33] hover:bg-[#bef026] text-[#1a1a1a] font-bold rounded-xl text-sm flex items-center gap-2 transition-colors"
+          >
+            <Plus size={16} />
+            Cadastrar Infrator
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -223,7 +293,10 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
                 <Pie
-                  data={byType.map((d) => ({ name: d.type, value: d.count }))}
+                  data={byType.map((d) => ({
+                    name: offenderTypeLabel(d.type),
+                    value: d.count,
+                  }))}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -231,11 +304,8 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
                   dataKey="value"
                   paddingAngle={2}
                 >
-                  {byType.map((_, i) => (
-                    <Cell
-                      key={i}
-                      fill={TYPE_COLORS[i % TYPE_COLORS.length]}
-                    />
+                  {byType.map((d, i) => (
+                    <Cell key={i} fill={typeColor(d.type)} />
                   ))}
                 </Pie>
                 <RechartsTooltip
@@ -264,7 +334,7 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
             <ResponsiveContainer width="100%" height={240}>
               <BarChart
                 data={recidivism.map((d) => ({
-                  name: d.type,
+                  name: offenderTypeLabel(d.type),
                   val: d.recurrent_count,
                 }))}
                 barSize={24}
@@ -307,7 +377,7 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
             <ResponsiveContainer width="100%" height={240}>
               <BarChart
                 data={volumeByType.map((d) => ({
-                  name: d.type,
+                  name: offenderTypeLabel(d.type),
                   val: d.total_volume_m3,
                 }))}
                 barSize={24}
@@ -344,6 +414,61 @@ export const OffenderDashboardTab: React.FC<OffenderDashboardTabProps> = ({
           )}
         </ChartCard>
       </div>
+
+      {/* Tipos por câmera (largura total) */}
+      <ChartCard title="Tipos de descarte por câmera">
+        {byCameraData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={byCameraData} barSize={40}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#e5e5e5"
+              />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: "#666" }}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: "#666" }}
+                allowDecimals={false}
+              />
+              <RechartsTooltip
+                cursor={{ fill: "transparent" }}
+                contentStyle={{
+                  borderRadius: "8px",
+                  border: "none",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+              />
+              <Legend
+                verticalAlign="bottom"
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: 11 }}
+              />
+              {byCameraTypes.map((t, i) => (
+                <Bar
+                  key={t}
+                  dataKey={t}
+                  name={offenderTypeLabel(t)}
+                  stackId="a"
+                  fill={typeColor(t)}
+                  radius={
+                    i === byCameraTypes.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
+                  }
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <EmptyState />
+        )}
+      </ChartCard>
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

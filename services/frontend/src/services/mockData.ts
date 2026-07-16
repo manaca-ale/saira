@@ -19,6 +19,11 @@ export type PoiData = {
   photoUrl: string;
   hasOffender: boolean;
   validityComment?: string;
+  /** Tipos efetivos de infrator (manual vence IA); valores do enum sem acento. */
+  offenderTypes?: string[];
+  cameraId?: number;
+  cameraName?: string;
+  cameraDeviceId?: string;
 };
 
 type SeedLocation = {

@@ -4,7 +4,7 @@ import { X, Download, Image as ImageIcon, FileText, Loader2, MapPin, CheckCircle
 import JSZip from "jszip";
 import imgLixo from "../assets/lixo_exemplo.png";
 import imgInfrator from "../assets/infrator_exemplo.png";
-import { getDetectionOffenders, deleteDetectionOffender } from "../services/offenderService";
+import { getDetectionOffenders, deleteDetectionOffender, offenderTypeLabel } from "../services/offenderService";
 import type { DetectionOffenderLink } from "../services/offenderService";
 import {
   getDetectionAnalyzedFrames,
@@ -213,10 +213,13 @@ async function renderExportCanvas(data: any): Promise<HTMLCanvasElement> {
   ctx.lineWidth = 1;
   roundRect(ctx, p, y - 4, w - p * 2, rowH + 4, 8);
   ctx.stroke();
-  drawLabel(ctx, "Infratores", p + 10, y + 8);
+  drawLabel(ctx, "Tipo de descarte", p + 10, y + 8);
+  const offenderTypes: string[] = data?.offenderTypes ?? [];
   drawValue(
     ctx,
-    data?.hasOffender ? "Identificados: Pessoa" : "Não identificado",
+    offenderTypes.length > 0
+      ? offenderTypes.map(offenderTypeLabel).join(" / ")
+      : "Não identificado",
     p + 10, y + 24, COLORS.title,
   );
 
@@ -738,7 +741,7 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                 <span className="text-xs text-gray-400">Carregando...</span>
               ) : offenderLinks.length === 0 ? (
                 <span className="font-bold text-gray-500 text-sm">
-                  {data?.hasOffender ? "Identificados: Pessoa" : "Nenhum infrator vinculado"}
+                  Nenhum infrator vinculado
                 </span>
               ) : (
                 <div className="space-y-2">
@@ -746,9 +749,9 @@ export const OccurrenceModal: React.FC<OccurrenceModalProps> = ({
                     <div key={link.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-gray-100">
                       <div>
                         <span className="font-bold text-sm text-[#1a1a1a]">
-                          {link.offender?.name || link.offender_type}
+                          {link.offender?.name || offenderTypeLabel(link.offender_type)}
                         </span>
-                        <span className="text-xs text-gray-400 ml-2">{link.offender_type}</span>
+                        <span className="text-xs text-gray-400 ml-2">{offenderTypeLabel(link.offender_type)}</span>
                         {link.plate && <span className="text-xs text-gray-400 ml-2">{link.plate}</span>}
                         {link.source === "ai" && (
                           <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-600 rounded text-[10px] font-bold">IA</span>

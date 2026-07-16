@@ -6,6 +6,7 @@ import logging
 import mimetypes
 import re
 import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from dataclasses import dataclass
 from pathlib import Path
@@ -65,15 +66,26 @@ MATERIAL_TYPE_MAP = {
     "construction": "Construcao",
 }
 
+# Chaves SEM acento: normalize_offender_types remove diacriticos antes do lookup
+# (o modelo responde "carroça"/"caminhão" e antes disso os tokens acentuados
+# caiam fora do mapa e eram descartados em silencio).
 OFFENDER_TYPE_MAP = {
     "pessoa": "Pessoa",
+    "pessoas": "Pessoa",
     "person": "Pessoa",
+    "people": "Pessoa",
+    "pedestre": "Pessoa",
+    "pedestrian": "Pessoa",
     "carro": "Carro",
     "car": "Carro",
-    "caminhao": "Carro",
-    "truck": "Carro",
+    "van": "Carro",
+    "pickup": "Carro",
+    "caminhonete": "Carro",
     "onibus": "Carro",
     "bus": "Carro",
+    "caminhao": "Caminhao",
+    "truck": "Caminhao",
+    "cacamba": "Caminhao",
     "moto": "Moto",
     "motorcycle": "Moto",
     "bike": "Outro",
@@ -81,6 +93,10 @@ OFFENDER_TYPE_MAP = {
     "bicycle": "Outro",
     "carroca": "Carroca",
     "cart": "Carroca",
+    "handcart": "Carroca",
+    "wheelbarrow": "Carroca",
+    "carrinho": "Carroca",
+    "carrinho de mao": "Carroca",
 }
 
 SYSTEM_PROMPT = """
@@ -363,15 +379,28 @@ def normalize_material_type(value: Optional[str]) -> Optional[str]:
     return MATERIAL_TYPE_MAP.get(key, value.strip())
 
 
+def _strip_accents(value: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", value)
+    return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+
+
 def normalize_offender_types(values: Optional[list[str]]) -> list[str]:
     if not values:
         return []
     normalized: list[str] = []
+    dropped: list[str] = []
     for value in values:
-        key = str(value).strip().lower()
+        key = _strip_accents(str(value).strip().lower())
         mapped = OFFENDER_TYPE_MAP.get(key)
-        if mapped and mapped not in normalized:
-            normalized.append(mapped)
+        if mapped:
+            if mapped not in normalized:
+                normalized.append(mapped)
+        elif key:
+            dropped.append(key)
+    if dropped:
+        # Token fora do mapa vira lacuna silenciosa na taxonomia — logar para
+        # que a proxima categoria faltante apareça, em vez de sumir.
+        logger.info(json.dumps({"event": "offender_type_unmapped", "tokens": dropped}))
     return normalized
 
 

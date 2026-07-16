@@ -66,7 +66,7 @@ class OffenderRecord:
     """A detection_offenders row (one per detected person/vehicle)."""
 
     detection_id: UUID
-    offender_type: str  # Carroca | Carro | Moto | Pessoa | Outro
+    offender_type: str  # Carroca | Carro | Caminhao | Moto | Pessoa | Outro
     plate: Optional[str] = None
     vehicle_color: Optional[str] = None
     waste_type: Optional[str] = None

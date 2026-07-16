@@ -9,6 +9,11 @@ WORKDIR /app
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
+# Tela de rotulagem (/rotulagem): ferramenta interna, LIGADA só em teste.
+# Ausente/false em prod => rota e ícone escondidos.
+ARG VITE_ENABLE_LABELING
+ENV VITE_ENABLE_LABELING=${VITE_ENABLE_LABELING}
+
 # Copy package.json (lockfile may not exist in repo)
 COPY package.json ./
 

@@ -5,6 +5,8 @@ services:
       context: ./frontend
       args:
         - VITE_API_URL=/api/v1
+        # Rotulagem interna: só em teste (prod não passa este arg).
+        - VITE_ENABLE_LABELING=true
     ports:
       - "3001:80"
     container_name: saira-web-test

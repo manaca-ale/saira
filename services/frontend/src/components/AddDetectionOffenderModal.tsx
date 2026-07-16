@@ -4,17 +4,10 @@ import {
   getOffenders,
   addDetectionOffender,
   linkOffenderToDetection,
+  OFFENDER_TYPE_OPTIONS as TYPE_OPTIONS,
 } from "../services/offenderService";
 import type { Offender, OffenderType } from "../services/offenderService";
 import { RegisterOffenderModal } from "./RegisterOffenderModal";
-
-const TYPE_OPTIONS: { value: OffenderType; label: string }[] = [
-  { value: "Carroca", label: "Carroca" },
-  { value: "Carro", label: "Carro" },
-  { value: "Moto", label: "Moto" },
-  { value: "Pessoa", label: "Pessoa" },
-  { value: "Outro", label: "Outro" },
-];
 
 interface AddDetectionOffenderModalProps {
   isOpen: boolean;

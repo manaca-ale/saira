@@ -2,25 +2,27 @@ import asyncio
 import logging
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, List, Optional
 from uuid import UUID
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func, or_
+from sqlalchemy import select, and_, func, or_, exists
 from app.api.deps import get_db, get_current_user
 from app.core.database import AsyncSessionLocal
 from app.core.redis import get_redis
 from app.models.user import User
 from app.models.camera import Camera
 from app.models.detection import Detection, DetectionStatus
+from app.models.offender import DetectionOffender, OffenderSource
 from app.schemas.detection import (
     DetectionCreate, DetectionUpdate, DetectionResponse,
-    DetectionClassify, DetectionListResponse,
+    DetectionClassify, DetectionListResponse, DetectionSearchItem,
     DetectionAnalyzedFramesResponse, DetectionVideoResponse,
     DetectionFilterOptionsResponse,
 )
+from app.services import s3 as s3_service
 from app.schemas.detection import DetectionStatus as DetectionStatusSchema
 from app.services import notification_service
 from app.core.timezone import now_brazil
@@ -68,6 +70,42 @@ def _normalize_status_filter(value: str) -> Optional[DetectionStatus]:
     if normalized == "indeterminado":
         return DetectionStatus.INDETERMINADO
     return None
+
+
+async def _effective_offender_types(
+    db: AsyncSession, detection_ids: List[UUID]
+) -> dict:
+    """Tipos de infrator efetivos por detecção (batch, 1 query).
+
+    Manual vence IA: se a detecção tem rótulo humano, só ele conta; senão
+    valem os tipos da IA. Dedupe preservando ordem de criação. Mesma regra
+    dos dashboards de infratores (_effective_sighting_condition).
+    """
+    if not detection_ids:
+        return {}
+
+    result = await db.execute(
+        select(
+            DetectionOffender.detection_id,
+            DetectionOffender.offender_type,
+            DetectionOffender.source,
+        )
+        .where(DetectionOffender.detection_id.in_(detection_ids))
+        .order_by(DetectionOffender.created_at)
+    )
+
+    ai_types: dict = {}
+    manual_types: dict = {}
+    for det_id, offender_type, source in result.all():
+        bucket = manual_types if source == OffenderSource.MANUAL else ai_types
+        types = bucket.setdefault(det_id, [])
+        if offender_type.value not in types:
+            types.append(offender_type.value)
+
+    return {
+        det_id: manual_types.get(det_id) or ai_types.get(det_id, [])
+        for det_id in set(ai_types) | set(manual_types)
+    }
 
 
 def _expand_waste_type_aliases(values: List[str]) -> List[str]:
@@ -139,6 +177,8 @@ async def search_detections(
     logradouro: Optional[str] = None,
     waste_type: Optional[str] = None,
     has_offender: Optional[bool] = None,
+    has_manual_offender: Optional[bool] = None,
+    camera_id: Optional[int] = Query(None, ge=1),
     volume_min: Optional[float] = Query(None, ge=0),
     volume_max: Optional[float] = Query(None, ge=0),
     sort_by: Optional[str] = Query(None, description="Campo para ordenação"),
@@ -199,6 +239,17 @@ async def search_detections(
             )
         )
 
+    if has_manual_offender is not None:
+        # Rótulo humano de infrator (fila da rotulagem usa =false).
+        manual_exists = exists().where(
+            DetectionOffender.detection_id == Detection.id,
+            DetectionOffender.source == OffenderSource.MANUAL,
+        )
+        filters.append(manual_exists if has_manual_offender else ~manual_exists)
+
+    if camera_id is not None:
+        filters.append(Detection.camera_id == camera_id)
+
     if volume_min is not None:
         filters.append(Detection.volume_m3 >= volume_min)
     if volume_max is not None:
@@ -211,14 +262,28 @@ async def search_detections(
         count_query = count_query.where(filter_expression)
     total = (await db.execute(count_query)).scalar_one()
 
-    query = select(Detection)
+    query = select(Detection, Camera.name, Camera.device_id).outerjoin(
+        Camera, Detection.camera_id == Camera.id
+    )
     if filter_expression is not None:
         query = query.where(filter_expression)
     col = DETECTION_SORTABLE_FIELDS.get(sort_by or DEFAULT_SORT_FIELD, Detection.timestamp)
     order = col.asc() if sort_order == "asc" else col.desc()
     query = query.order_by(order).offset(skip).limit(limit)
     result = await db.execute(query)
-    items = result.scalars().all()
+    rows = result.all()
+
+    offender_types_map = await _effective_offender_types(
+        db, [det.id for det, _, _ in rows]
+    )
+
+    items = []
+    for det, camera_name, camera_device_id in rows:
+        item = DetectionSearchItem.model_validate(det)
+        item.camera_name = camera_name
+        item.camera_device_id = camera_device_id
+        item.offender_types = offender_types_map.get(det.id, [])
+        items.append(item)
 
     return DetectionListResponse(items=items, total=total, skip=skip, limit=limit)
 
@@ -357,6 +422,112 @@ async def get_detection_analyzed_frames(
         selected_name = resolved_selected_frame["frame_name"]
         for frame in frames:
             frame["is_default"] = frame["frame_name"] == selected_name
+
+    return DetectionAnalyzedFramesResponse(
+        detection_id=detection_id,
+        selected_frame_name=selected_name,
+        frames=frames,
+    )
+
+
+# Os frames de uma detecção são nomeados YYYY-MM-DD_HH-MM-SS.jpg (BRT) e vivem
+# no S3 sob ocorrencias/{device}/{data-UTC}/. A partição é por DATA UTC (BRT+3h).
+_FRAME_TS_FORMATS = ("%Y-%m-%d_%H-%M-%S", "%Y-%m-%d_%H-%M-%S-%f")
+_CONTEXT_FRAMES_CAP = 60
+
+
+def _parse_frame_ts(frame_name: str) -> Optional[datetime]:
+    stem = frame_name.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+    for fmt in _FRAME_TS_FORMATS:
+        try:
+            return datetime.strptime(stem, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def _occurrence_key_from_url(image_url: str) -> Optional[str]:
+    """Extrai a chave S3 `ocorrencias/{device}/YYYY/MM/DD/frame.jpg` de uma
+    image_url (aceita https S3, /s3-images/... ou caminho cru). None se a
+    detecção não tem frame de ocorrência no S3 (ex.: uploads locais)."""
+    if not image_url:
+        return None
+    idx = image_url.find("ocorrencias/")
+    if idx == -1:
+        return None
+    return image_url[idx:]
+
+
+@router.get("/{detection_id}/context-frames", response_model=DetectionAnalyzedFramesResponse)
+async def get_detection_context_frames(
+    detection_id: UUID,
+    window_seconds: int = Query(60, ge=5, le=600),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Frames vizinhos da MESMA câmera numa janela de ±window_seconds em torno
+    do frame da detecção — dá contexto temporal para a rotulagem julgar o tipo
+    de descarte (o analyzed-frames só traz o que a IA analisou, e as detecções
+    antigas caem em 1 frame). Ancora no timestamp do frame selecionado (BRT) e
+    lista o S3. Cai no analyzed-frames quando não há frame de ocorrência no S3."""
+    result = await db.execute(select(Detection).where(Detection.id == detection_id))
+    detection = result.scalar_one_or_none()
+    if not detection:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Detection not found")
+
+    key = _occurrence_key_from_url(str(detection.image_url or ""))
+    center = _parse_frame_ts(key.rsplit("/", 1)[-1]) if key else None
+    if not key or center is None or not s3_service.s3_enabled():
+        return await get_detection_analyzed_frames(detection_id, db, current_user)
+
+    selected_name = key.rsplit("/", 1)[-1]
+    device_id = key.split("/")[1]
+    lo = center - timedelta(seconds=window_seconds)
+    hi = center + timedelta(seconds=window_seconds)
+
+    # Partições a varrer: a do frame + as das bordas da janela (BRT->UTC = +3h),
+    # cobrindo o caso raro de a janela cruzar a meia-noite UTC (21h BRT).
+    prefixes = {key.rsplit("/", 1)[0] + "/"}
+    for edge in (lo, hi):
+        utc_day = (edge + timedelta(hours=3)).date()
+        prefixes.add(s3_service.occurrence_prefix(device_id, utc_day))
+
+    frames: list[dict] = []
+    seen: set[str] = set()
+    try:
+        client = s3_service.get_s3_client()
+        for prefix in prefixes:
+            for obj_key in s3_service.list_keys(client, prefix):
+                name = obj_key.rsplit("/", 1)[-1]
+                if name in seen or not name.lower().endswith(".jpg"):
+                    continue
+                ts = _parse_frame_ts(name)
+                if ts is None or ts < lo or ts > hi:
+                    continue
+                seen.add(name)
+                frames.append(
+                    {
+                        "frame_name": name,
+                        "image_url": f"/s3-images/{obj_key}",
+                        "is_default": name == selected_name,
+                    }
+                )
+    except Exception:
+        logger.exception("context-frames: falha ao listar S3 (%s)", detection_id)
+        return await get_detection_analyzed_frames(detection_id, db, current_user)
+
+    if not frames:
+        return await get_detection_analyzed_frames(detection_id, db, current_user)
+
+    frames.sort(key=lambda f: f["frame_name"])
+    if len(frames) > _CONTEXT_FRAMES_CAP:
+        # Mantém a janela centrada no frame selecionado se estourar o teto.
+        pivot = next((i for i, f in enumerate(frames) if f["is_default"]), len(frames) // 2)
+        half = _CONTEXT_FRAMES_CAP // 2
+        start = max(0, min(pivot - half, len(frames) - _CONTEXT_FRAMES_CAP))
+        frames = frames[start:start + _CONTEXT_FRAMES_CAP]
+    if not any(f["is_default"] for f in frames) and frames:
+        frames[0]["is_default"] = True
 
     return DetectionAnalyzedFramesResponse(
         detection_id=detection_id,

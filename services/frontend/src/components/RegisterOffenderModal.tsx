@@ -1,15 +1,10 @@
 import React, { useState } from "react";
 import { X, Loader2 } from "lucide-react";
-import { createOffender } from "../services/offenderService";
+import {
+  createOffender,
+  OFFENDER_TYPE_OPTIONS as TYPE_OPTIONS,
+} from "../services/offenderService";
 import type { OffenderType } from "../services/offenderService";
-
-const TYPE_OPTIONS: { value: OffenderType; label: string }[] = [
-  { value: "Carroca", label: "Carroca" },
-  { value: "Carro", label: "Carro" },
-  { value: "Moto", label: "Moto" },
-  { value: "Pessoa", label: "Pessoa" },
-  { value: "Outro", label: "Outro" },
-];
 
 interface RegisterOffenderModalProps {
   isOpen: boolean;
