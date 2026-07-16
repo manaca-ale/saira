@@ -23,69 +23,129 @@
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
-          }
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
-        { "expr": "sum(saira_gemini_calls_total{agent=\"gate\"})", "refId": "A" }
+        {
+          "expr": "sum(increase(saira_gemini_calls_total{agent=\"gate\", camera_id=~\"$camera\"}[$__range]))",
+          "refId": "A"
+        }
       ],
-      "title": "Gate Calls (Ag.1)",
+      "title": "Gate (Ag.1) — período",
       "type": "stat"
     },
     {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "purple", "value": null }]
-          }
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 0 },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 0
+      },
       "id": 9,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
-        { "expr": "sum(saira_gemini_calls_total{agent=\"detail\"})", "refId": "A" }
+        {
+          "expr": "sum(increase(saira_gemini_calls_total{agent=\"detail\", camera_id=~\"$camera\"}[$__range]))",
+          "refId": "A"
+        }
       ],
-      "title": "Detail Calls (Ag.2)",
+      "title": "Detail (Ag.2) — período",
       "type": "stat"
     },
     {
       "datasource": "Prometheus",
-      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
       "id": 2,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
@@ -99,19 +159,38 @@
     },
     {
       "datasource": "Prometheus",
-      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
       "id": 3,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
-        { "expr": "saira_gemini_avg_latency_ms", "refId": "A" }
+        {
+          "expr": "saira_gemini_avg_latency_ms",
+          "refId": "A"
+        }
       ],
       "title": "Avg Latency",
       "type": "stat"
@@ -121,31 +200,53 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.10 },
-              { "color": "red", "value": 0.25 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.25
+              }
             ]
           }
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
       "id": 4,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
-          "expr": "sum(rate(saira_gemini_calls_total{agent=\"detail\"}[5m])) / clamp_min(sum(rate(saira_gemini_calls_total{agent=\"gate\"}[5m])), 0.001)",
+          "expr": "sum(rate(saira_gemini_calls_total{agent=\"detail\", camera_id=~\"$camera\"}[5m])) / clamp_min(sum(rate(saira_gemini_calls_total{agent=\"gate\", camera_id=~\"$camera\"}[5m])), 0.001)",
           "refId": "A",
           "legendFormat": "gate → detail"
         }
@@ -156,12 +257,29 @@
     },
     {
       "datasource": "Prometheus",
-      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
       "id": 5,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
@@ -185,30 +303,78 @@
     },
     {
       "datasource": "Prometheus",
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
       "id": 6,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "none" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
       "targets": [
-        { "expr": "rate(saira_gemini_input_tokens_total{agent=\"gate\"}[5m])", "legendFormat": "gate input/s", "refId": "A" },
-        { "expr": "rate(saira_gemini_output_tokens_total{agent=\"gate\"}[5m])", "legendFormat": "gate output/s", "refId": "B" },
-        { "expr": "rate(saira_gemini_input_tokens_total{agent=\"detail\"}[5m])", "legendFormat": "detail input/s", "refId": "C" },
-        { "expr": "rate(saira_gemini_output_tokens_total{agent=\"detail\"}[5m])", "legendFormat": "detail output/s", "refId": "D" }
+        {
+          "expr": "rate(saira_gemini_input_tokens_total{agent=\"gate\"}[5m])",
+          "legendFormat": "gate input/s",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(saira_gemini_output_tokens_total{agent=\"gate\"}[5m])",
+          "legendFormat": "gate output/s",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(saira_gemini_input_tokens_total{agent=\"detail\"}[5m])",
+          "legendFormat": "detail input/s",
+          "refId": "C"
+        },
+        {
+          "expr": "rate(saira_gemini_output_tokens_total{agent=\"detail\"}[5m])",
+          "legendFormat": "detail output/s",
+          "refId": "D"
+        }
       ],
       "title": "Token Throughput by Agent",
       "type": "timeseries"
     },
     {
       "datasource": "Prometheus",
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
       "id": 7,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "none" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
       "targets": [
         {
@@ -237,33 +403,241 @@
     },
     {
       "datasource": "Prometheus",
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
       "id": 8,
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "none" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
       "targets": [
-        { "expr": "increase(saira_worker_images_processed_total[5m])", "legendFormat": "processed/5m", "refId": "A" },
-        { "expr": "increase(saira_gemini_calls_total{agent=\"gate\"}[5m])", "legendFormat": "gate calls/5m", "refId": "B" },
-        { "expr": "increase(saira_gemini_calls_total{agent=\"detail\"}[5m])", "legendFormat": "detail calls/5m", "refId": "C" },
-        { "expr": "increase(saira_worker_scan_errors_total[5m])", "legendFormat": "scan errors/5m", "refId": "D" }
+        {
+          "expr": "increase(saira_worker_images_processed_total[5m])",
+          "legendFormat": "processed/5m",
+          "refId": "A"
+        },
+        {
+          "expr": "increase(saira_gemini_calls_total{agent=\"gate\", camera_id=~\"$camera\"}[5m])",
+          "legendFormat": "gate calls/5m",
+          "refId": "B"
+        },
+        {
+          "expr": "increase(saira_gemini_calls_total{agent=\"detail\", camera_id=~\"$camera\"}[5m])",
+          "legendFormat": "detail calls/5m",
+          "refId": "C"
+        },
+        {
+          "expr": "increase(saira_worker_scan_errors_total[5m])",
+          "legendFormat": "scan errors/5m",
+          "refId": "D"
+        }
       ],
       "title": "Worker Throughput & Cascade Activity",
       "type": "timeseries"
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Chamadas por câmera — Gate vs Detail (período)",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "format": "table",
+          "instant": true,
+          "expr": "label_replace(label_replace(label_replace(label_replace(label_replace(label_replace(sum by (camera_id) (increase(saira_gemini_calls_total{agent=\"gate\", camera_id=~\"$camera\"}[$__range])), \"camera\", \"Via Mangue III-1\", \"camera_id\", \"10\"), \"camera\", \"Mangabeira\", \"camera_id\", \"11\"), \"camera\", \"Quarto 2 (teste)\", \"camera_id\", \"12\"), \"camera\", \"Irmã Dora\", \"camera_id\", \"13\"), \"camera\", \"Arruda\", \"camera_id\", \"14\"), \"camera\", \"Via Mangue III-2 (Pi)\", \"camera_id\", \"15\")"
+        },
+        {
+          "refId": "B",
+          "datasource": "Prometheus",
+          "format": "table",
+          "instant": true,
+          "expr": "label_replace(label_replace(label_replace(label_replace(label_replace(label_replace(sum by (camera_id) (increase(saira_gemini_calls_total{agent=\"detail\", camera_id=~\"$camera\"}[$__range])), \"camera\", \"Via Mangue III-1\", \"camera_id\", \"10\"), \"camera\", \"Mangabeira\", \"camera_id\", \"11\"), \"camera\", \"Quarto 2 (teste)\", \"camera_id\", \"12\"), \"camera\", \"Irmã Dora\", \"camera_id\", \"13\"), \"camera\", \"Arruda\", \"camera_id\", \"14\"), \"camera\", \"Via Mangue III-2 (Pi)\", \"camera_id\", \"15\")"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "camera_id": true
+            },
+            "renameByName": {
+              "camera": "Câmera",
+              "Value #A": "Gate (Ag.1)",
+              "Value #B": "Detail (Ag.2)"
+            },
+            "indexByName": {
+              "camera": 0,
+              "Value #A": 1,
+              "Value #B": 2
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Gate (Ag.1)",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Chamadas por câmera ao longo do tempo (gate+detail)",
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "legendFormat": "{{camera}}",
+          "expr": "label_replace(label_replace(label_replace(label_replace(label_replace(label_replace(sum by (camera_id) (increase(saira_gemini_calls_total{camera_id=~\"$camera\"}[$__rate_interval])), \"camera\", \"Via Mangue III-1\", \"camera_id\", \"10\"), \"camera\", \"Mangabeira\", \"camera_id\", \"11\"), \"camera\", \"Quarto 2 (teste)\", \"camera_id\", \"12\"), \"camera\", \"Irmã Dora\", \"camera_id\", \"13\"), \"camera\", \"Arruda\", \"camera_id\", \"14\"), \"camera\", \"Via Mangue III-2 (Pi)\", \"camera_id\", \"15\")"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
   "style": "dark",
-  "tags": ["saira", "worker", "gemini"],
-  "templating": { "list": [] },
-  "time": { "from": "now-6h", "to": "now" },
+  "tags": [
+    "saira",
+    "worker",
+    "gemini"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "camera",
+        "label": "Câmera",
+        "type": "custom",
+        "query": "Via Mangue III-1 : 10,Mangabeira : 11,Quarto 2 (teste) : 12,Irmã Dora : 13,Arruda : 14,Via Mangue III-2 (Pi) : 15",
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "Via Mangue III-1",
+            "value": "10",
+            "selected": false
+          },
+          {
+            "text": "Mangabeira",
+            "value": "11",
+            "selected": false
+          },
+          {
+            "text": "Quarto 2 (teste)",
+            "value": "12",
+            "selected": false
+          },
+          {
+            "text": "Irmã Dora",
+            "value": "13",
+            "selected": false
+          },
+          {
+            "text": "Arruda",
+            "value": "14",
+            "selected": false
+          },
+          {
+            "text": "Via Mangue III-2 (Pi)",
+            "value": "15",
+            "selected": false
+          }
+        ],
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "hide": 0
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
   "title": "SAIRA Worker / Gemini",
   "uid": "saira-worker-gemini",
-  "version": 2,
+  "version": 4,
   "weekStart": ""
 }
