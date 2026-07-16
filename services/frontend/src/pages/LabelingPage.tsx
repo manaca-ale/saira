@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import {
-  getDetectionAnalyzedFrames,
+  getDetectionContextFrames,
   searchDetections,
 } from "../services/detectionService";
 import type {
@@ -95,7 +95,7 @@ export const LabelingPage: React.FC = () => {
     return Promise.all(
       pending.map(async (item) => {
         const [framesResponse, links] = await Promise.all([
-          getDetectionAnalyzedFrames(item.id).catch(() => null),
+          getDetectionContextFrames(item.id).catch(() => null),
           getDetectionOffenders(item.id).catch(() => []),
         ]);
         return {

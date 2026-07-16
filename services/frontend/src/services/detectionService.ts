@@ -304,6 +304,28 @@ export async function getDetectionAnalyzedFrames(id: string): Promise<DetectionA
   };
 }
 
+/**
+ * Frames vizinhos (mesma câmera, janela de tempo em torno do frame da detecção),
+ * buscados do S3 — dá contexto temporal para a rotulagem. Cai no analyzed-frames
+ * no backend quando não há frame de ocorrência no S3.
+ */
+export async function getDetectionContextFrames(
+  id: string,
+  windowSeconds?: number,
+): Promise<DetectionAnalyzedFramesResponse> {
+  const response = await api.get<DetectionAnalyzedFramesResponse>(
+    `/detections/${id}/context-frames`,
+    { params: windowSeconds ? { window_seconds: windowSeconds } : undefined },
+  );
+  return {
+    ...response.data,
+    frames: (response.data.frames || []).map((frame) => ({
+      ...frame,
+      image_url: normalizeImageUrl(frame.image_url),
+    })),
+  };
+}
+
 export async function getDetectionVideo(id: string): Promise<DetectionVideoResponse> {
   const response = await api.get<DetectionVideoResponse>(`/detections/${id}/video`);
   return {
