@@ -72,6 +72,16 @@ MAINTENANCE_INTERVAL_S = 6 * 3600
 # se apaga sozinho em no máximo isto. É o último backstop de consumo de 4G, e o
 # único que não depende de nada mais estar vivo.
 LIVE_MAX_SECONDS = 120.0
+# Circuit-breaker do fallback HTTP (snapshot.cgi na porta 80). A porta 80 da
+# câmera flapa muito quando ela oscila/subtensão (~50% 404 na pi-cam-001); sem
+# o breaker o capture_loop martelava a porta a cada ciclo (~2s), gerando
+# centenas de erros. Após N falhas consecutivas o breaker ABRE por um cooldown
+# com backoff exponencial (base -> teto); enquanto aberto o HTTP é pulado (o
+# RTSP segue como primário). Um probe half-open no fim do cooldown fecha
+# (recupera) ou reabre com backoff maior.
+HTTP_BREAKER_FAILS = 3       # falhas consecutivas do HTTP para abrir o breaker
+HTTP_BREAKER_BASE_S = 30.0   # cooldown inicial ao abrir
+HTTP_BREAKER_MAX_S = 600.0   # teto do backoff (10 min)
 # Referência em que os polígonos são desenhados (igual ao motion_gate).
 POLYGON_REF_W = 1280
 POLYGON_REF_H = 720
@@ -205,6 +215,12 @@ class Agent:
         # Snapshot via RTSP (latest.jpg do cam-rtsp-buffer.sh).
         self._last_snapshot_mtime = 0.0
         self._stale_snapshot_warned = False
+
+        # Circuit-breaker do fallback HTTP (só o capture_loop mexe nestes campos).
+        self._http_fail_count = 0
+        self._http_breaker_until = 0.0  # monotonic; > now => porta 80 em cooldown
+        self._http_backoff_s = 0.0
+        self._http_last_error = ""
 
         # Evento sintético (SIGUSR1).
         self._synthetic_id: Optional[str] = None
@@ -679,10 +695,44 @@ class Agent:
                 return res
             if source == "rtsp":
                 return None
-        data = self._fetch_snapshot_http()
+        data = self._fetch_snapshot_http_guarded()
         if data is not None:
             self._last_capture_source = "http"
         return data
+
+    def _fetch_snapshot_http_guarded(self) -> bytes | None:
+        """Fallback HTTP com circuit-breaker (ver HTTP_BREAKER_*). Enquanto o
+        breaker está aberto NÃO toca a porta 80 (evita o martelar que gerava
+        centenas de erros); o RTSP segue como primário. Chamado só pelo
+        capture_loop — os caminhos sob demanda (CMD_SNAPSHOT/CALIBRATE) usam o
+        _fetch_snapshot_http direto de propósito (ação do operador ignora o
+        breaker: ele pode ter acabado de consertar a câmera)."""
+        now = time.monotonic()
+        if now < self._http_breaker_until:
+            return None  # breaker aberto: não martela a porta 80
+        data = self._fetch_snapshot_http()
+        if data is not None:
+            if self._http_fail_count >= HTTP_BREAKER_FAILS:
+                log.info("Fallback HTTP recuperado (%.0fs em cooldown) — breaker fechado",
+                         self._http_backoff_s)
+            self._http_fail_count = 0
+            self._http_backoff_s = 0.0
+            self._http_breaker_until = 0.0
+            return data
+        self._http_fail_count += 1
+        if self._http_fail_count >= HTTP_BREAKER_FAILS:
+            self._http_backoff_s = (
+                HTTP_BREAKER_BASE_S if self._http_backoff_s <= 0
+                else min(HTTP_BREAKER_MAX_S, self._http_backoff_s * 2)
+            )
+            self._http_breaker_until = now + self._http_backoff_s
+            # Log só na transição/reabertura (1 por episódio), não por ciclo.
+            log.warning(
+                "Fallback HTTP: %d falhas consecutivas (%s) — pausando a porta 80 "
+                "por %.0fs (RTSP continua primário)",
+                self._http_fail_count, self._http_last_error or "?", self._http_backoff_s,
+            )
+        return None
 
     def _fetch_snapshot_rtsp(self):
         """Lê o JPEG mantido pelo cam-rtsp-buffer.sh a partir dos keyframes
@@ -740,18 +790,24 @@ class Agent:
             try:
                 resp = self._cam_session.get(url, auth=auth, timeout=self.cfg.cam_timeout_s)
             except requests.RequestException as exc:
-                log.warning("Erro ao buscar snapshot (%s): %s", mode, exc)
+                # DEBUG por tentativa: o episódio é logado 1× pelo circuit-breaker
+                # (_fetch_snapshot_http_guarded) para não spammar a cada ciclo.
+                self._http_last_error = type(exc).__name__
+                log.debug("Erro ao buscar snapshot HTTP (%s): %s", mode, exc)
                 return None
             if resp.status_code == 401 and auth_mode == "auto" and mode == "basic":
                 continue  # tenta digest
             if resp.status_code != 200:
-                log.warning("Snapshot HTTP %s (%s)", resp.status_code, mode)
+                self._http_last_error = f"HTTP {resp.status_code}"
+                log.debug("Snapshot HTTP %s (%s)", resp.status_code, mode)
                 return None
             body = resp.content
             if len(body) < 500 or body[:2] != b"\xff\xd8":
-                log.warning("Snapshot inválido (%d bytes)", len(body))
+                self._http_last_error = f"corpo inválido ({len(body)}B)"
+                log.debug("Snapshot HTTP inválido (%d bytes)", len(body))
                 return None
             return body
+        self._http_last_error = "401 (auth)"
         return None
 
     # ----- upload / spool ------------------------------------------------
@@ -943,6 +999,11 @@ class Agent:
             "last_capture_age_s": round(cam_age, 1) if cam_age is not None else None,
             "camera_ok": camera_ok,
             "rtsp_buffer_ok": self._rtsp_buffer_ok(),
+            # Breaker do fallback HTTP ABERTO agora = a porta 80 está em cooldown
+            # (morta/flapando); o RTSP segura a captura. Usa o relógio do breaker
+            # (monotonic) e volta a False sozinho ao fim do cooldown — não fica
+            # preso em True após o episódio.
+            "http_fallback_breaker": time.monotonic() < self._http_breaker_until,
             "last_upload_age_s": round(up_age, 1) if up_age is not None else None,
             "last_event_id": self._last_event_id,
             "last_event_age_s": round(evt_age, 1) if evt_age is not None else None,
