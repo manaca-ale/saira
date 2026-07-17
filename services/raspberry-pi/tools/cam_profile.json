@@ -1,0 +1,19 @@
+{
+  "_comment": "Config DESEJADA da camera Intelbras VIP-3260-Z-IA (pi-cam-001). Declarativa e versionavel. O cam_config.py reconcilia a camera com este alvo: le o atual, compara, e escreve SO o que divergiu, um grupo por vez, verificando por leitura. Substitui cam_shutter.sh; e o cam_ir_saver.sh (ver lighting_enabled).",
+
+  "shutter": {
+    "_comment": "OBTURADOR (FUNCIONA por CGI). day = 1/250s (congela placa) + gain 70. night = 1/30s (junta luz) + gain 50. ExposureValue2 e write-only (auto-varia na leitura em ExposureMode=Auto); o verify e ancorado no GainMax, que persiste.",
+    "day":   { "exposure_value2": 4,     "gain_max": 70 },
+    "night": { "exposure_value2": 33.33, "gain_max": 50 }
+  },
+
+  "day_start": "06:00",
+  "night_start": "17:30",
+
+  "lighting_enabled": false,
+  "lighting": {
+    "_comment": "ILUMINADOR/IR: OPT-IN (default false). O comando esta CORRETO (rroller/dahua + dump da camera): brilho do IR = Lighting_V2[0][PERFIL][0].MiddleLight[0].Light + .Mode (indice de luz [0]=InfraredLight, PERFIL 1=noite; PercentOfMaxBrightness e READ-ONLY). POReM na VIP-3260 o write do MiddleLight retorna HTTP 200 mas NAO persiste (so .Mode gruda) - quirk de firmware (achado 2026-07-17). Ligar isto so vai gerar FALHA no log ate a Intelbras resolver o firmware, ou aplique o brilho pela UI web. Mantido aqui com os valores corretos para referencia/futuro.",
+    "night_ir_light": 40,
+    "night_whitelight_light": 0
+  }
+}

@@ -85,6 +85,21 @@ class Settings(BaseSettings):
     CAMERA_OFFLINE_REALERT_SECONDS: int = 21600        # re-alerta no máx. a cada 6h
     OFFLINE_ALERT_RECIPIENTS: str = ""                 # vazio = fallback p/ BILLING_REPORT_RECIPIENTS
 
+    # Camera DEGRADED alert (Pi event-driven) — a câmera segue online (keepalive
+    # fresco) mas a telemetria .health.json aponta problema: sem gerar imagem,
+    # RTSP travado, subtensão/brown-out, disco baixo. Complementa o alerta de
+    # câmera totalmente muda (offline). Mesmo canal Resend + debounce Redis, com
+    # episódio POR condição. Roda no mesmo ciclo do offline_monitor.
+    CAMERA_HEALTH_MONITOR_ENABLED: bool = True
+    CAMERA_HEALTH_STALE_CAPTURE_SECONDS: int = 900     # 15min sem captura = sem imagem
+    CAMERA_HEALTH_REALERT_SECONDS: int = 21600         # re-alerta no máx. a cada 6h
+    # Histerese: a condição precisa persistir por 2 ciclos antes de virar
+    # episódio/e-mail (evita tempestade em flap, ex.: subtensão no limiar).
+    CAMERA_HEALTH_DEBOUNCE_ENABLED: bool = True
+    # Opt-in (0 = desligado): câmera parada fica horas legitimamente sem evento;
+    # só alertar "sem eventos" se o operador definir uma janela esperada.
+    CAMERA_HEALTH_NO_EVENTS_HOURS: int = 0
+
     # Geocodificação
     NOMINATIM_BASE_URL: str = "https://nominatim.openstreetmap.org"
     NOMINATIM_USER_AGENT: str = "saira-dashboard/1.0 (contato@saira.com)"

@@ -356,9 +356,101 @@ def test_live_upload_bypasses_spool(live_agent, monkeypatch):
     )
     live_agent._handle_live_cmd("60")
     live_agent._live_capture_once()
-
     assert len(posted) == 1                                    # subiu uma vez
     assert list(live_agent.cfg.spool_dir.glob("*.jpg")) == []  # nada p/ a captura re-enviar
+
+
+# ------------------------------------------- circuit-breaker do fallback HTTP
+def _fake_monotonic(monkeypatch):
+    """Relógio monotônico controlável para os testes de breaker."""
+    clock = {"t": 1000.0}
+    monkeypatch.setattr(sa.time, "monotonic", lambda: clock["t"])
+    return clock
+
+
+def test_http_breaker_opens_and_stops_hammering(agent, monkeypatch):
+    """Após N falhas consecutivas o breaker abre e PARA de tocar a porta 80
+    durante o cooldown (a dor de campo: ~800 erros martelando o snapshot.cgi)."""
+    _fake_monotonic(monkeypatch)
+    calls = {"n": 0}
+
+    def fail():
+        calls["n"] += 1
+        return None
+
+    monkeypatch.setattr(agent, "_fetch_snapshot_http", fail)
+
+    for _ in range(sa.HTTP_BREAKER_FAILS):
+        assert agent._fetch_snapshot_http_guarded() is None
+    assert calls["n"] == sa.HTTP_BREAKER_FAILS
+    assert agent._http_fail_count >= sa.HTTP_BREAKER_FAILS
+    assert agent._http_backoff_s == sa.HTTP_BREAKER_BASE_S
+
+    # dentro do cooldown: NÃO chama a porta 80 (breaker segura)
+    for _ in range(10):
+        assert agent._fetch_snapshot_http_guarded() is None
+    assert calls["n"] == sa.HTTP_BREAKER_FAILS  # nenhuma chamada nova
+
+
+def test_http_breaker_half_open_probe(agent, monkeypatch):
+    """No fim do cooldown, 1 probe (half-open); se falhar, reabre com backoff 2×."""
+    clock = _fake_monotonic(monkeypatch)
+    monkeypatch.setattr(agent, "_fetch_snapshot_http", lambda: None)
+
+    for _ in range(sa.HTTP_BREAKER_FAILS):
+        agent._fetch_snapshot_http_guarded()
+    assert agent._http_backoff_s == sa.HTTP_BREAKER_BASE_S
+
+    clock["t"] += sa.HTTP_BREAKER_BASE_S + 1  # cooldown expirou
+    calls = {"n": 0}
+    monkeypatch.setattr(agent, "_fetch_snapshot_http",
+                        lambda: calls.__setitem__("n", calls["n"] + 1))
+    agent._fetch_snapshot_http_guarded()  # probe (retorna None do setitem)
+    assert calls["n"] == 1                 # tocou a porta 80 exatamente 1×
+    assert agent._http_backoff_s == sa.HTTP_BREAKER_BASE_S * 2  # backoff dobrou
+
+
+def test_http_breaker_backoff_caps(agent, monkeypatch):
+    """O backoff satura em HTTP_BREAKER_MAX_S (não cresce sem limite)."""
+    clock = _fake_monotonic(monkeypatch)
+    monkeypatch.setattr(agent, "_fetch_snapshot_http", lambda: None)
+    for _ in range(sa.HTTP_BREAKER_FAILS):
+        agent._fetch_snapshot_http_guarded()
+    for _ in range(20):  # muitas reaberturas
+        clock["t"] = agent._http_breaker_until + 1
+        agent._fetch_snapshot_http_guarded()
+    assert agent._http_backoff_s == sa.HTTP_BREAKER_MAX_S
+
+
+def test_http_breaker_closes_on_recovery(agent, monkeypatch):
+    """Sucesso do probe fecha o breaker e zera o backoff/contador."""
+    clock = _fake_monotonic(monkeypatch)
+    state = {"ok": False}
+    monkeypatch.setattr(
+        agent, "_fetch_snapshot_http",
+        lambda: (_VALID_JPEG if state["ok"] else None),
+    )
+    for _ in range(sa.HTTP_BREAKER_FAILS):
+        agent._fetch_snapshot_http_guarded()
+    assert agent._http_fail_count >= sa.HTTP_BREAKER_FAILS
+
+    clock["t"] += sa.HTTP_BREAKER_BASE_S + 1
+    state["ok"] = True
+    data = agent._fetch_snapshot_http_guarded()
+    assert data == _VALID_JPEG
+    assert agent._http_fail_count == 0
+    assert agent._http_backoff_s == 0.0
+    assert agent._http_breaker_until == 0.0
+
+
+def test_health_reports_http_breaker(agent, monkeypatch):
+    """A telemetria expõe o breaker engatado (sinal p/ o alerta do backend)."""
+    _fake_monotonic(monkeypatch)
+    assert agent._health_snapshot()["http_fallback_breaker"] is False
+    monkeypatch.setattr(agent, "_fetch_snapshot_http", lambda: None)
+    for _ in range(sa.HTTP_BREAKER_FAILS):
+        agent._fetch_snapshot_http_guarded()
+    assert agent._health_snapshot()["http_fallback_breaker"] is True
 
 
 def test_live_upload_failure_is_silent(live_agent, monkeypatch):
