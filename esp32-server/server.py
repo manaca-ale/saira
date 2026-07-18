@@ -1473,13 +1473,36 @@ def _event_manifest_path(device_id: str, event_id: str) -> str:
     return os.path.join(UPLOAD_ROOT, device_id, "events", f"{event_id}.json")
 
 
+def _parse_gate_stats():
+    """Lê os campos de gate (fg_px/delta_px/config_version) do form do upload.
+
+    Enviados pela Pi no frame de abertura do evento; ausentes em uploads
+    legados/ESP32 (retornam None)."""
+    def _int(v):
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+    return (
+        _int(request.form.get("gate_fg_px")),
+        _int(request.form.get("gate_delta_px")),
+        (request.form.get("gate_config_version") or "").strip() or None,
+    )
+
+
 def _update_event_manifest(
-    device_id: str, event_id: str, state: str, frame_rel_url: Optional[str]
+    device_id: str, event_id: str, state: str, frame_rel_url: Optional[str],
+    gate_fg_px: Optional[int] = None, gate_delta_px: Optional[int] = None,
+    gate_config_version: Optional[str] = None,
 ) -> None:
     """Create/append/close the event manifest atomically (.tmp + rename).
 
     A greenlet lock plus a per-manifest flock guard the read-modify-write so
     the file stays consistent even if gunicorn ever runs multiple workers.
+
+    gate_* carry the device motion-gate stats at event open (first-non-null
+    wins — batches label frames "active", so we can't rely on state=="start").
+    The worker copies these onto the detection row for threshold auditing.
     """
     path = _event_manifest_path(device_id, event_id)
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -1511,6 +1534,13 @@ def _update_event_manifest(
                     "frames": [],
                 }
             manifest["updated_at"] = now_iso
+            # Gate stats do disparo — grava a primeira ocorrência não-nula.
+            if gate_fg_px is not None and manifest.get("gate_fg_px") is None:
+                manifest["gate_fg_px"] = gate_fg_px
+            if gate_delta_px is not None and manifest.get("gate_delta_px") is None:
+                manifest["gate_delta_px"] = gate_delta_px
+            if gate_config_version and not manifest.get("gate_config_version"):
+                manifest["gate_config_version"] = gate_config_version
             if frame_rel_url and frame_rel_url not in manifest["frames"]:
                 manifest["frames"].append(frame_rel_url)
             if state in ("end", "end_transient") and manifest.get("state") != "closed":
@@ -1887,8 +1917,10 @@ def upload_file():
 
     if event_id:
         try:
+            g_fg, g_delta, g_ver = _parse_gate_stats()
             _update_event_manifest(
-                device_id, event_id, event_state, rel_path.replace(os.sep, "/")
+                device_id, event_id, event_state, rel_path.replace(os.sep, "/"),
+                gate_fg_px=g_fg, gate_delta_px=g_delta, gate_config_version=g_ver,
             )
         except OSError as exc:
             print(f"WARNING: event manifest update failed ({event_id}): {exc}", flush=True)
@@ -1952,9 +1984,14 @@ def upload_batch():
 
     if event_id and saved:
         try:
+            g_fg, g_delta, g_ver = _parse_gate_stats()
             # Anexa todos os frames como "active" (não fecha no meio do lote)…
+            # gate stats só "pegam" na 1a vez não-nula (first-non-null-wins).
             for rel in saved:
-                _update_event_manifest(device_id, event_id, "active", rel)
+                _update_event_manifest(
+                    device_id, event_id, "active", rel,
+                    gate_fg_px=g_fg, gate_delta_px=g_delta, gate_config_version=g_ver,
+                )
             # …e fecha uma única vez se este for o lote terminal do evento.
             if event_state in ("end", "end_transient"):
                 _update_event_manifest(device_id, event_id, event_state, None)
