@@ -210,6 +210,7 @@ class Agent:
             retention_days=cfg.clip_retention_days,
             chain_enabled=cfg.clip_chain_enabled,
             chain_gap_s=cfg.clip_chain_gap_s,
+            chain_span_s=cfg.clip_chain_span_s,
             chain_max_s=cfg.clip_chain_max_s,
             clips_max_bytes=cfg.clips_max_bytes,
             event_max_s=cfg.event_max_s,
@@ -1613,6 +1614,10 @@ class Agent:
             v = _cfg_num(kv, rej, "clip_chain_gap_s", 0, 3600, int)
             if v is not None:
                 self._clips.chain_gap_s = v
+        if "clip_chain_span_s" in kv:
+            v = _cfg_num(kv, rej, "clip_chain_span_s", 0, 7200, int)
+            if v is not None:
+                self._clips.chain_span_s = v
         if "clip_chain_max_s" in kv:
             v = _cfg_num(kv, rej, "clip_chain_max_s", 60, 3600, int)
             if v is not None:

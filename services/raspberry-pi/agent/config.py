@@ -178,6 +178,13 @@ class Config:
     # para pertencerem à mesma cadeia. Default = PI_BGSUB_RECOVER_MAX_S
     # (depois disso o gate re-ancora: ocorrência realmente separada).
     clip_chain_gap_s: int
+    # Persistência por adjacência exige um clipe CONFIRMADO pelo worker a até
+    # este span (s) do novo evento — e não "qualquer vizinho no SD": sem esse
+    # limite, em zona de tráfego contínuo a cadeia transitiva rolaria para
+    # sempre (persist-everything disfarçado; observado em campo 18/07 de
+    # manhã). Default = janela de coalescing de ocorrências da plataforma
+    # (EVENT_WINDOW_MIN, 10 min).
+    clip_chain_span_s: int
     # Teto de duração (s) do vídeo costurado no CMD_VIDEO_CLIP — limita o
     # upload 4G (cadeia de N clipes de até VIDEO_CLIP_SECONDS cada).
     clip_chain_max_s: int
@@ -281,6 +288,7 @@ def load_config() -> Config:
         clip_chain_enabled=_env("CLIP_CHAIN_ENABLED", "true").strip().lower()
         not in ("0", "false", "no", "off"),
         clip_chain_gap_s=_env_int("CLIP_CHAIN_GAP_S", 180, minimum=0),
+        clip_chain_span_s=_env_int("CLIP_CHAIN_SPAN_S", 600, minimum=0),
         clip_chain_max_s=_env_int("CLIP_CHAIN_MAX_S", 600, minimum=60),
         clips_max_bytes=_env_int("CLIPS_MAX_BYTES", 8 * 1024 * 1024 * 1024, minimum=512 * 1024 * 1024),
         agent_version=_env("AGENT_VERSION", AGENT_VERSION),

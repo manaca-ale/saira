@@ -125,6 +125,7 @@ class ClipStore:
         retention_days: int,
         chain_enabled: bool = True,
         chain_gap_s: int = 180,
+        chain_span_s: int = 600,
         chain_max_s: int = 600,
         clips_max_bytes: int = 8 * 1024 * 1024 * 1024,
         event_max_s: int = 120,
@@ -142,6 +143,7 @@ class ClipStore:
         # mesmo padrão dos knobs do MotionGate).
         self.chain_enabled = chain_enabled
         self.chain_gap_s = chain_gap_s
+        self.chain_span_s = chain_span_s
         self.chain_max_s = chain_max_s
         self.clips_max_bytes = clips_max_bytes
         self.event_max_s = event_max_s
@@ -277,10 +279,31 @@ class ClipStore:
             log.warning("Persist: evento %s não está no arquivo RAM", event_id)
         return out
 
+    def _confirmed_marker(self, event_id: str) -> Path:
+        """Marker de clipe CONFIRMADO pelo worker (âncora de CMD_PERSIST_CLIP).
+        Distingue evidência confirmada de clipes persistidos por adjacência —
+        a adjacência só ancora em confirmados e a eviction preserva-os por
+        último."""
+        return self.clips_dir / f"{event_id}.mp4.confirmed"
+
+    def confirmed_starts(self) -> dict[str, float]:
+        """{event_id: start_ts} dos clipes confirmados presentes no SD."""
+        out: dict[str, float] = {}
+        try:
+            for marker in self.clips_dir.glob("*.mp4.confirmed"):
+                stem = marker.name[: -len(".mp4.confirmed")]
+                ts = parse_event_start(stem)
+                if ts is not None and (self.clips_dir / f"{stem}.mp4").is_file():
+                    out[stem] = ts
+        except OSError:
+            pass
+        return out
+
     def promote_chain(self, event_id: str) -> list[str]:
         """CMD_PERSIST_CLIP:<id> — persiste o clipe confirmado E os membros
         da mesma cadeia ainda na RAM (ocorrência longa fatiada pelo
-        max_duration do gate). Devolve os ids com mp4 no SD ao final."""
+        max_duration do gate). Marca a ÂNCORA como confirmada (base da
+        persistência por adjacência). Devolve os ids com mp4 no SD ao final."""
         if not self.chain_enabled:
             return [event_id] if self.persist_clip(event_id) is not None else []
         done: list[str] = []
@@ -294,36 +317,45 @@ class ClipStore:
                 else:
                     log.debug("Cadeia de %s: membro %s sem clipe disponível",
                               event_id, member)
+            if (self.clips_dir / f"{event_id}.mp4").is_file():
+                try:
+                    self._confirmed_marker(event_id).touch()
+                except OSError:
+                    pass
             if done:
                 self._evict_clips_budget()
         return done
 
     def persist_if_chained(self, event_id: str) -> Optional[Path]:
         """Persistência por ADJACÊNCIA (thread do Timer, logo após o archive):
-        se o evento recém-arquivado é vizinho de cadeia de um clipe já
-        confirmado no SD, persiste na hora. Cobre os membros POSTERIORES à
-        confirmação (ex.: a saída dos infratores em 2026-07-17), que o
-        worker nunca confirma individualmente. Sem vizinho no SD: fica na
-        RAM, como sempre (pedestre não desgasta o cartão)."""
+        persiste na hora o evento recém-arquivado que fecha a até
+        chain_span_s de um clipe CONFIRMADO pelo worker. Cobre os membros
+        POSTERIORES à confirmação (ex.: a saída dos infratores em
+        2026-07-17), que o worker nunca confirma individualmente.
+
+        Exigir âncora CONFIRMADA (e não qualquer vizinho no SD) é o freio da
+        cadeia: em zona de tráfego contínuo, adjacência transitiva rolaria
+        para sempre e viraria persist-everything (observado em campo na
+        manhã de 18/07). O span default (600s) espelha a janela de
+        coalescing de ocorrências da plataforma. Sem âncora no span: fica
+        na RAM, como sempre (pedestre não desgasta o cartão)."""
         if not self.chain_enabled:
             return None
+        ts = parse_event_start(event_id)
+        if ts is None:
+            return None
         with self._persist_lock:
-            inv = self.known_events()
-            chain = chain_members(
-                event_id, {k: v[0] for k, v in inv.items()},
-                gap_s=self.chain_gap_s,
-                est_len_s=self.event_max_s + self.tail_seconds,
-            )
-            sd_neighbors = [
-                m for m in chain if m != event_id and inv.get(m, (0.0, ""))[1] == "sd"
+            anchors = [
+                cid for cid, cts in self.confirmed_starts().items()
+                if cid != event_id and abs(ts - cts) <= self.chain_span_s
             ]
-            if not sd_neighbors:
+            if not anchors:
                 return None
             out = self._concat_from_ram(event_id)
             if out is not None:
                 log.info(
-                    "Evento %s persistido por adjacência de cadeia (vizinho no SD: %s)",
-                    event_id, sd_neighbors[0],
+                    "Evento %s persistido por adjacência de cadeia (confirmado no span: %s)",
+                    event_id, anchors[0],
                 )
                 self._evict_clips_budget()
             return out
@@ -481,11 +513,18 @@ class ClipStore:
 
     # ----- 4. retenção -------------------------------------------------------
     def _evict_clips_budget(self) -> None:
-        """Teto de bytes do SD (LRU por mtime). Backstop: tempestade de FP
-        não pode encher o cartão — que também é o root fs da Pi. Caller
-        segura _persist_lock."""
+        """Teto de bytes do SD (LRU por mtime), despejando NÃO-confirmados
+        antes de confirmados — ruído de cauda nunca expulsa a evidência.
+        Backstop: tempestade de FP não pode encher o cartão — que também é
+        o root fs da Pi. Caller segura _persist_lock."""
         try:
-            clips = sorted(self.clips_dir.glob("*.mp4"), key=lambda p: p.stat().st_mtime)
+            confirmed = {
+                self.clips_dir / f"{eid}.mp4" for eid in self.confirmed_starts()
+            }
+            clips = sorted(
+                self.clips_dir.glob("*.mp4"),
+                key=lambda p: (p in confirmed, p.stat().st_mtime),
+            )
         except OSError:
             return
         sizes: dict[Path, int] = {}
@@ -500,6 +539,7 @@ class ClipStore:
             if total <= self.clips_max_bytes:
                 break
             c.unlink(missing_ok=True)
+            self._confirmed_marker(c.name[:-4]).unlink(missing_ok=True)
             total -= sizes[c]
             log.warning("Orçamento do SD estourado: clipe %s removido (%.1f MB)",
                         c.name, sizes[c] / 1e6)
@@ -513,7 +553,12 @@ class ClipStore:
                 for clip in self.clips_dir.glob("*.mp4"):
                     if clip.stat().st_mtime < cutoff:
                         clip.unlink(missing_ok=True)
+                        self._confirmed_marker(clip.name[:-4]).unlink(missing_ok=True)
                         log.info("Retenção: clipe %s removido do SD", clip.name)
+                # Marker órfão (mp4 sumiu por poda de emergência/manual).
+                for marker in self.clips_dir.glob("*.mp4.confirmed"):
+                    if not marker.with_name(marker.name[: -len(".confirmed")]).is_file():
+                        marker.unlink(missing_ok=True)
             except OSError as exc:
                 log.warning("Prune falhou: %s", exc)
             self._evict_clips_budget()

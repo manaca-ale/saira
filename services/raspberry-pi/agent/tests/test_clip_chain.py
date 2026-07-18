@@ -54,11 +54,13 @@ def _mk_store(tmp_path, **over):
     return cs.ClipStore(**kw)
 
 
-def _fake_clip(store, event_id, mtime=None, size=10):
+def _fake_clip(store, event_id, mtime=None, size=10, confirmed=False):
     p = store.clips_dir / f"{event_id}.mp4"
     p.write_bytes(b"x" * size)
     if mtime is not None:
         os.utime(p, (mtime, mtime))
+    if confirmed:
+        store._confirmed_marker(event_id).touch()
     return p
 
 
@@ -145,14 +147,30 @@ def test_known_events_tiers_and_exclusions(tmp_path):
 
 
 # ------------------------------------------------------------ persist_if_chained
-def test_persist_if_chained_with_sd_neighbor(tmp_path, monkeypatch):
+def test_persist_if_chained_with_confirmed_anchor(tmp_path, monkeypatch):
     store = _mk_store(tmp_path)
-    _fake_clip(store, EVT_A)      # head confirmado no SD
-    _fake_ram(store, EVT_B)       # a "saída" acabou de arquivar
+    _fake_clip(store, EVT_A, confirmed=True)   # head CONFIRMADO no SD
+    _fake_ram(store, EVT_B)                    # a "saída" acabou de arquivar
     created = []
     _patch_concat(store, monkeypatch, created)
     out = store.persist_if_chained(EVT_B)
     assert out is not None and created == [EVT_B]
+    # E o membro seguinte também (17/07: evt_164150, +325s da âncora ≤ 600s).
+    _fake_ram(store, EVT_C)
+    out = store.persist_if_chained(EVT_C)
+    assert out is not None and created == [EVT_B, EVT_C]
+
+
+def test_persist_if_chained_unconfirmed_neighbor_is_noop(tmp_path, monkeypatch):
+    """Freio da cadeia: vizinho no SD SEM confirmação não ancora — senão em
+    zona de tráfego contínuo a adjacência transitiva persiste tudo."""
+    store = _mk_store(tmp_path)
+    _fake_clip(store, EVT_A)      # no SD, mas NÃO confirmado (adjacência)
+    _fake_ram(store, EVT_B)
+    created = []
+    _patch_concat(store, monkeypatch, created)
+    assert store.persist_if_chained(EVT_B) is None
+    assert created == []
 
 
 def test_persist_if_chained_no_neighbor_is_noop(tmp_path, monkeypatch):
@@ -164,19 +182,24 @@ def test_persist_if_chained_no_neighbor_is_noop(tmp_path, monkeypatch):
     assert created == []          # pedestre não desgasta o cartão
 
 
-def test_persist_if_chained_far_neighbor_is_noop(tmp_path, monkeypatch):
+def test_persist_if_chained_beyond_span_is_noop(tmp_path, monkeypatch):
     store = _mk_store(tmp_path)
-    _fake_clip(store, EVT_FAR)    # confirmado, mas horas antes
+    _fake_clip(store, EVT_FAR, confirmed=True)   # confirmado, mas horas antes
     _fake_ram(store, EVT_B)
     created = []
     _patch_concat(store, monkeypatch, created)
+    assert store.persist_if_chained(EVT_B) is None
+    assert created == []
+    # Encolhendo o span abaixo do gap real (201s) também barra o vizinho.
+    _fake_clip(store, EVT_A, confirmed=True)
+    store.chain_span_s = 100
     assert store.persist_if_chained(EVT_B) is None
     assert created == []
 
 
 def test_persist_if_chained_kill_switch(tmp_path, monkeypatch):
     store = _mk_store(tmp_path, chain_enabled=False)
-    _fake_clip(store, EVT_A)
+    _fake_clip(store, EVT_A, confirmed=True)
     _fake_ram(store, EVT_B)
     created = []
     _patch_concat(store, monkeypatch, created)
@@ -196,6 +219,9 @@ def test_promote_chain_promotes_whole_chain(tmp_path, monkeypatch):
     assert done == [EVT_A, EVT_B]
     assert sorted(created) == [EVT_A, EVT_B]
     assert (store.archive_dir / EVT_FAR).is_dir()
+    # Só a ÂNCORA (confirmada pelo worker) ganha o marker.
+    assert store._confirmed_marker(EVT_A).is_file()
+    assert not store._confirmed_marker(EVT_B).is_file()
 
 
 def test_promote_chain_idempotent(tmp_path):
@@ -276,6 +302,21 @@ def test_evict_clips_budget_lru(tmp_path):
     assert (store.clips_dir / f"{EVT_C}.mp4").exists()
 
 
+def test_evict_clips_budget_confirmed_last(tmp_path):
+    """Ruído de cauda (adjacência) sai ANTES da evidência confirmada, mesmo
+    sendo o confirmado o mais antigo."""
+    store = _mk_store(tmp_path, clips_max_bytes=25)
+    now = time.time()
+    _fake_clip(store, EVT_A, mtime=now - 300, size=10, confirmed=True)
+    _fake_clip(store, EVT_B, mtime=now - 200, size=10)
+    _fake_clip(store, EVT_C, mtime=now - 100, size=10)
+    with store._persist_lock:
+        store._evict_clips_budget()
+    assert (store.clips_dir / f"{EVT_A}.mp4").exists()       # confirmado fica
+    assert not (store.clips_dir / f"{EVT_B}.mp4").exists()   # adjacência sai
+    assert (store.clips_dir / f"{EVT_C}.mp4").exists()
+
+
 def test_prune_retention_and_janitor(tmp_path):
     store = _mk_store(tmp_path)
     now = time.time()
@@ -289,12 +330,15 @@ def test_prune_retention_and_janitor(tmp_path):
     exp_old = store.exports_dir / f"{EVT_A}.export.mp4"
     exp_old.write_bytes(b"x")
     os.utime(exp_old, (now - 7200, now - 7200))
+    orphan_marker = store._confirmed_marker(EVT_FAR)   # marker sem mp4
+    orphan_marker.touch()
     store.prune()
     assert not old.exists()          # retenção
     assert fresh.exists()
     assert not part_old.exists()     # janitor
     assert part_new.exists()         # recente: pode estar em uso
     assert not exp_old.exists()      # janitor
+    assert not orphan_marker.exists()  # marker órfão limpo
 
 
 # ------------------------------------------------------------ Agent wiring
@@ -316,6 +360,7 @@ def test_config_defaults():
     cfg = cfgmod.load_config()
     assert cfg.clip_chain_enabled is True
     assert cfg.clip_chain_gap_s == 180
+    assert cfg.clip_chain_span_s == 600
     assert cfg.clip_chain_max_s == 600
     assert cfg.clips_max_bytes == 8 * 1024 ** 3
 
@@ -324,11 +369,13 @@ def test_apply_config_chain_keys(agent):
     agent._apply_config(
         "clip_chain_enabled=false\n"
         "clip_chain_gap_s=60\n"
+        "clip_chain_span_s=300\n"
         "clip_chain_max_s=240\n"
         "clips_max_mb=1024\n"
     )
     assert agent._clips.chain_enabled is False
     assert agent._clips.chain_gap_s == 60
+    assert agent._clips.chain_span_s == 300
     assert agent._clips.chain_max_s == 240
     assert agent._clips.clips_max_bytes == 1024 * 1024 * 1024
     assert agent._rejected_config == {}
@@ -429,10 +476,11 @@ def test_ffmpeg_archive_persist_and_stitch(tmp_path):
     evt_b = time.strftime("evt-%Y%m%d_%H%M%S", time.localtime(now - 16))
     assert store.archive_event(evt_a, now - 36, now - 24)
     assert store.archive_event(evt_b, now - 16, now - 6)
-    with store._persist_lock:
-        assert store._concat_from_ram(evt_a) is not None   # A confirmado
-    # B fecha vizinho de A já no SD → persiste por adjacência.
-    assert store.persist_if_chained(evt_b) is not None
+    assert store.promote_chain(evt_a)                      # A confirmado (worker)
+    assert store._confirmed_marker(evt_a).is_file()
+    # B fecha no span de A confirmado → persiste por adjacência.
+    # (promote_chain pode já ter levado B junto — ambos os caminhos valem.)
+    store.persist_if_chained(evt_b)
     assert (store.clips_dir / f"{evt_b}.mp4").is_file()
     # Costura: um mp4 único cobrindo A+B.
     path, is_temp = store.export_clip(evt_a)
