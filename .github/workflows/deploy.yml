@@ -5,6 +5,19 @@ on:
     branches:
       - main      # Producao
       - develop   # Teste
+    # Mudanças SÓ nestes caminhos não tocam o stack da EC2 (backend/frontend/
+    # worker/esp32-server): o agente da Raspberry Pi é deployado por SSH direto
+    # na Pi, o firmware ESP32 é flashado local/OTA e tools/ são utilitários
+    # locais de câmera/calibração. Se TODOS os arquivos do push caírem nestes
+    # caminhos, o deploy é pulado; se o push misturar qualquer outro arquivo
+    # (backend, frontend, worker, esp32-server, compose...), roda normal.
+    # Nota: a cópia do repo na EC2 só avança no próximo deploy não-pulado
+    # (git fetch+reset) — quem precisar dela atualizada antes disso, git pull.
+    paths-ignore:
+      - 'services/raspberry-pi/**'
+      - 'services/plate-poc/**'
+      - 'firmware/**'
+      - 'tools/**'
 
 jobs:
   # --- AMBIENTE DE TESTE ---
