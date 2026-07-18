@@ -151,10 +151,13 @@ class _ModelCache:
         # Track the mode each cached entry was built for, so we rebuild if the
         # mode changes (e.g. operator flips DUAL_RATE_ENABLED at runtime).
         self._mode: dict[str, str] = {}
-        self._masks: dict[str, np.ndarray] = {}  # full-frame polygon mask
+        # Cached per device as (polygon signature, value): when the operator edits
+        # the polygon (camera panel), the signature changes and the mask/bbox are
+        # rebuilt live — no worker restart needed.
+        self._masks: dict[str, tuple[str, np.ndarray]] = {}  # (sig, full-frame mask)
         # bbox = (x, y, w, h) of the polygon's bounding rectangle, in the
         # 1280x720 reference frame. None when polygon is missing/invalid.
-        self._bboxes: dict[str, Optional[tuple[int, int, int, int]]] = {}
+        self._bboxes: dict[str, tuple[str, Optional[tuple[int, int, int, int]]]] = {}
         # Rolling buffer of frames per camera (adaptive baseline).
         self._frame_buffer: dict[str, collections.deque] = {}
         self._updates_since_save: dict[str, int] = {}
@@ -290,9 +293,20 @@ class _ModelCache:
         return (fast, slow)
 
     def get_mask(self, device_id: str, polygon_json: Any) -> Optional[np.ndarray]:
-        """Build (and cache) a binary mask from the JSONB polygon column."""
-        if device_id in self._masks:
-            return self._masks[device_id]
+        """Build (and cache) a binary mask from the JSONB polygon column.
+
+        Cached per (device_id, polygon signature): a polygon edit (e.g. from the
+        camera panel) changes the signature and rebuilds the mask live — no worker
+        restart. The mask is purely geometric (independent of the MOG2 background
+        model), so rebuilding it mid-stream is safe.
+        """
+        try:
+            sig = json.dumps(polygon_json, sort_keys=True, default=str)
+        except (TypeError, ValueError):
+            sig = repr(polygon_json)
+        cached = self._masks.get(device_id)
+        if cached is not None and cached[0] == sig:
+            return cached[1]
         try:
             polygons = polygon_json
             if isinstance(polygons, str):
@@ -312,13 +326,14 @@ class _ModelCache:
             if all_pts:
                 concat = np.vstack(all_pts)
                 x, y, w, h = cv2.boundingRect(concat)
-                self._bboxes[device_id] = (int(x), int(y), int(w), int(h))
+                bbox: Optional[tuple[int, int, int, int]] = (int(x), int(y), int(w), int(h))
             else:
-                self._bboxes[device_id] = None
-            self._masks[device_id] = mask
+                bbox = None
+            self._bboxes[device_id] = (sig, bbox)
+            self._masks[device_id] = (sig, mask)
             logger.info(
                 "bgsub: built zone mask for %s (%d polygons, bbox=%s)",
-                device_id, len(polygons), self._bboxes[device_id],
+                device_id, len(polygons), bbox,
             )
             return mask
         except Exception as exc:  # noqa: BLE001
@@ -327,7 +342,8 @@ class _ModelCache:
 
     def get_bbox(self, device_id: str) -> Optional[tuple[int, int, int, int]]:
         """Return cached polygon bbox (call after get_mask)."""
-        return self._bboxes.get(device_id)
+        entry = self._bboxes.get(device_id)
+        return entry[1] if entry is not None else None
 
     def invalidate(self, device_id: Optional[str] = None) -> None:
         """Clear cache (used by tests or after recalibration)."""

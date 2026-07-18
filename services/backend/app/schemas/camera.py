@@ -93,6 +93,38 @@ class CameraLatestImageResponse(BaseModel):
     file_path: Optional[str] = None
 
 
+class CameraZoomResponse(BaseModel):
+    """Zoom óptico atual da lente motorizada, lido da telemetria (.health.json).
+
+    `zoom` é 0=aberto .. 1=tele; None quando o dispositivo ainda não reportou ou
+    não tem lente motorizada. `reported_at` é a marca do último health.
+    """
+
+    camera_id: int
+    device_id: Optional[str] = None
+    zoom: Optional[float] = None
+    camera_ok: Optional[bool] = None
+    reported_at: Optional[str] = None
+
+
+class CameraPolygonUpdate(BaseModel):
+    """Corpo do POST /cameras/{id}/polygon — a zona de interesse (pile_zone_polygon).
+
+    Lista de polígonos aninhada `[[[x,y],...],...]` em pixels no frame de
+    referência 1280×720. Lista vazia limpa o polígono (frame inteiro).
+    """
+
+    polygon: PileZonePolygon
+
+
+class CameraPolygonResponse(BaseModel):
+    camera_id: int
+    device_id: Optional[str] = None
+    saved: bool
+    pushed_to_device: bool
+    detail: Optional[str] = None
+
+
 class CameraLiveSessionResponse(BaseModel):
     """Estado de uma sessão de modo ao vivo (ver POST /cameras/{id}/live/start).
 

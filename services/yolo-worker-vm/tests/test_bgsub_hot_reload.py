@@ -77,3 +77,28 @@ def test_adaptive_checkpoint_does_not_self_rebuild(tmp_path, monkeypatch):
     assert bgsub_filter._cache.get_models(dev, cfg) is m1
 
     bgsub_filter.invalidate_cache(dev)
+
+
+def test_mask_rebuilds_on_polygon_change():
+    """Editar o polígono (ex.: pelo painel da câmera) muda a assinatura → get_mask
+    reconstrói máscara e bbox sem invalidate()/restart. A máscara é geométrica
+    (independe do modelo MOG2), então o rebuild ao vivo é seguro."""
+    dev = "esp32_test_polysig"
+    bgsub_filter.invalidate_cache(dev)
+    cache = bgsub_filter._cache
+
+    poly_a = [[[100, 100], [300, 100], [300, 300], [100, 300]]]
+    m_a = cache.get_mask(dev, poly_a)
+    assert m_a is not None
+    bbox_a = cache.get_bbox(dev)
+    # mesma assinatura → cache hit (mesmo objeto de máscara)
+    assert cache.get_mask(dev, poly_a) is m_a
+
+    # polígono novo → assinatura muda → reconstrói sem restart
+    poly_b = [[[500, 400], [800, 400], [800, 650], [500, 650]]]
+    m_b = cache.get_mask(dev, poly_b)
+    assert m_b is not None
+    assert m_b is not m_a
+    assert cache.get_bbox(dev) != bbox_a  # bbox acompanhou o polígono novo
+
+    bgsub_filter.invalidate_cache(dev)

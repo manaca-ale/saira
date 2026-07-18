@@ -164,6 +164,40 @@ def test_health_snapshot_shape(agent):
     assert snap["camera_ok"] is False  # nunca capturou
 
 
+def test_health_snapshot_includes_zoom(agent, monkeypatch):
+    """O zoom óptico atual é reportado na telemetria (alimenta o 'Zoom atual')."""
+    snap = agent._health_snapshot()
+    assert "zoom" in snap
+    assert snap["zoom"] is None  # ainda não lido
+
+    # Valor cacheado (ex.: após CMD_ZOOM) aparece direto no snapshot.
+    agent._last_zoom = 0.42
+    assert agent._health_snapshot()["zoom"] == 0.42
+
+
+def test_refresh_zoom_cached_throttles(agent, monkeypatch):
+    """_refresh_zoom_cached relê no máx. 1×/ZOOM_REFRESH_S e mantém o cache no None."""
+    calls = {"n": 0}
+
+    def fake_read():
+        calls["n"] += 1
+        return 0.5
+
+    monkeypatch.setattr(agent, "_read_zoom", fake_read)
+    agent._refresh_zoom_cached()
+    assert agent._last_zoom == 0.5
+    assert calls["n"] == 1
+    # Dentro da janela: não relê de novo.
+    agent._refresh_zoom_cached()
+    assert calls["n"] == 1
+
+    # Leitura None não sobrescreve o cache anterior.
+    agent._last_zoom_read_at = 0.0  # força passar do throttle
+    monkeypatch.setattr(agent, "_read_zoom", lambda: None)
+    agent._refresh_zoom_cached()
+    assert agent._last_zoom == 0.5
+
+
 # -------------------------------------------------------- frame corrompido
 def test_upload_frame_drops_corrupt(agent):
     p = agent.cfg.spool_dir / "x.jpg"
