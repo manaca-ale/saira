@@ -292,6 +292,9 @@ class Agent:
         self._events_today_date = time.strftime("%Y-%m-%d")
         # Config: versão aplicada + chaves rejeitadas (vão p/ a telemetria).
         self._config_version = "0"
+        # fg/delta/config_version do gate no disparo, por event_id — enviados
+        # como form fields no upload do evento p/ o worker auditar o threshold.
+        self._gate_stats_pending: dict[str, dict] = {}
         self._rejected_config: dict[str, str] = {}
         self._last_good_polygon = cfg.pile_zone_polygon
         # Watchdog: cada thread "bate" no topo da iteração.
@@ -566,6 +569,12 @@ class Agent:
         if decision.action == "start" and not decision.is_warmup:
             self._event_start_ts[decision.event_id] = now
             self._note_event(decision.event_id, now)
+            # Guarda os stats do disparo p/ anexar ao upload do evento.
+            self._gate_stats_pending[decision.event_id] = {
+                "gate_fg_px": str(decision.fg_px),
+                "gate_delta_px": str(decision.delta_px),
+                "gate_config_version": self._config_version,
+            }
         if decision.action in ("start", "end"):
             log.info(
                 "[gate:%s] %s %s fg_px=%d delta_px=%d reason=%s",
@@ -918,6 +927,10 @@ class Agent:
             for i, (d, _eid, _st) in enumerate(batch)
         ]
         form = {"event_id": event_id, "event_state": batch_state}
+        # Anexa os stats do gate (server faz first-non-null-wins). Libera no fim.
+        form.update(self._gate_stats_pending.get(event_id, {}))
+        if batch_state in ("end", "end_transient"):
+            self._gate_stats_pending.pop(event_id, None)
         try:
             resp = self._ec2_session.post(
                 self.cfg.batch_upload_url, files=files, data=form,
@@ -959,6 +972,10 @@ class Agent:
         form = {}
         if event_id:
             form = {"event_id": event_id, "event_state": event_state}
+            # Fallback (spool por-frame): anexa os stats do gate ao evento.
+            form.update(self._gate_stats_pending.get(event_id, {}))
+            if event_state in ("end", "end_transient"):
+                self._gate_stats_pending.pop(event_id, None)
         t0 = time.monotonic()
         try:
             resp = self._ec2_session.post(

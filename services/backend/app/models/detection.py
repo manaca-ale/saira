@@ -42,5 +42,11 @@ class Detection(Base):
     event_ref = Column(String(64), nullable=True, index=True)
     video_status = Column(String(16), nullable=True)  # requested | available | unavailable
     video_requested_at = Column(DateTime(timezone=True), nullable=True)
+    # Estatísticas do gate de movimento no dispositivo no disparo do evento
+    # (auditoria de threshold vs detecção). Preenchidas pelo worker via UPDATE
+    # pós-insert, a partir do manifest do evento. Nullable: legado/não-event = NULL.
+    gate_fg_px = Column(Integer, nullable=True)
+    gate_delta_px = Column(Integer, nullable=True)
+    gate_config_version = Column(String(32), nullable=True)
     created_at = Column(DateTime(timezone=True), default=now_brazil)
     updated_at = Column(DateTime(timezone=True), default=now_brazil, onupdate=now_brazil)

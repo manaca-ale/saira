@@ -161,6 +161,42 @@ def update_detection_event_ref(detection_id: str, event_ref: str) -> None:
     finally:
         _put_conn(conn)
 
+def update_detection_gate_stats(
+    detection_id: str,
+    gate_fg_px: Optional[int],
+    gate_delta_px: Optional[int],
+    gate_config_version: Optional[str],
+) -> None:
+    """Stamp the device motion-gate stats (at event open) onto the detection.
+
+    Auditoria de threshold: guarda com que fg_px/delta_px o evento disparou e
+    sob qual config_version. First-wins (AND gate_fg_px IS NULL), como o
+    event_ref, para detecções coalescidas manterem o primeiro evento.
+    No-op se não houver nada a gravar (evento sem gate stats)."""
+    if gate_fg_px is None and gate_delta_px is None and not gate_config_version:
+        return
+    conn = _get_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE detections
+               SET gate_fg_px = %s, gate_delta_px = %s,
+                   gate_config_version = %s, updated_at = NOW()
+             WHERE id = %s AND gate_fg_px IS NULL
+            """,
+            (gate_fg_px, gate_delta_px, gate_config_version, detection_id),
+        )
+        conn.commit()
+        cur.close()
+    except Exception:
+        conn.rollback()
+        logger.exception(
+            "Error updating gate stats for detection_id=%s", detection_id
+        )
+    finally:
+        _put_conn(conn)
+
 def insert_detection(det: DetectionRecord) -> bool:
     """Insert a detection record. Returns True on success."""
     conn = _get_conn()

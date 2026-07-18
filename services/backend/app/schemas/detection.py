@@ -71,6 +71,9 @@ class DetectionResponse(DetectionBase):
     validity_comment: Optional[str] = None
     event_ref: Optional[str] = None
     video_status: Optional[str] = None
+    gate_fg_px: Optional[int] = None
+    gate_delta_px: Optional[int] = None
+    gate_config_version: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

@@ -37,6 +37,11 @@ class EventManifest:
     closed_reason: Optional[str]
     frames: list[str]  # rel paths under UPLOAD_DIR (as written by esp32-server)
     updated_at: Optional[datetime]
+    # Estatísticas do gate de movimento no dispositivo no disparo (auditoria de
+    # threshold). Ausentes em eventos antigos/ESP32 -> None.
+    gate_fg_px: Optional[int] = None
+    gate_delta_px: Optional[int] = None
+    gate_config_version: Optional[str] = None
 
     @property
     def is_warmup(self) -> bool:
@@ -61,6 +66,13 @@ def _load_manifest(path: Path) -> Optional[EventManifest]:
     except (OSError, ValueError):
         return None
     event_id = str(data.get("event_id") or path.stem)
+
+    def _to_int(v):
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+
     return EventManifest(
         path=path,
         event_id=event_id,
@@ -69,6 +81,10 @@ def _load_manifest(path: Path) -> Optional[EventManifest]:
         closed_reason=data.get("closed_reason"),
         frames=[str(f) for f in (data.get("frames") or [])],
         updated_at=_parse_iso(data.get("updated_at")),
+        gate_fg_px=_to_int(data.get("gate_fg_px")),
+        gate_delta_px=_to_int(data.get("gate_delta_px")),
+        gate_config_version=(str(data["gate_config_version"])
+                             if data.get("gate_config_version") else None),
     )
 
 
