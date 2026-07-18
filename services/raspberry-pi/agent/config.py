@@ -25,7 +25,7 @@ MIN_ANALYZE_INTERVAL_S = 1.0
 # Versão do agente reportada na telemetria de saúde. Pode ser sobrescrita no
 # deploy via AGENT_VERSION (ex.: git short sha) para o operador saber o que
 # está rodando em campo sem SSH.
-AGENT_VERSION = "field-hardening-2026-06-21"
+AGENT_VERSION = "clip-chain-2026-07"
 
 
 def _load_env_file() -> None:
@@ -167,6 +167,23 @@ class Config:
     clip_retention_days: int
     pre_roll_seconds: int
     tail_seconds: int
+    # Cadeia de clipes: uma ocorrência longa é fatiada pelo gate em eventos
+    # consecutivos (close:max_duration -> reopen com event_id NOVO). Sem a
+    # cadeia, só o evento confirmado pelo worker persiste no SD e os demais
+    # pedaços (ex.: a saída dos infratores) morrem na eviction da RAM — o
+    # vídeo da ocorrência fica incompleto (incidente de 2026-07-17).
+    # clip_chain_enabled=false volta ao comportamento antigo exato.
+    clip_chain_enabled: bool
+    # Gap máximo (s) entre o fim ESTIMADO de um evento e o início do próximo
+    # para pertencerem à mesma cadeia. Default = PI_BGSUB_RECOVER_MAX_S
+    # (depois disso o gate re-ancora: ocorrência realmente separada).
+    clip_chain_gap_s: int
+    # Teto de duração (s) do vídeo costurado no CMD_VIDEO_CLIP — limita o
+    # upload 4G (cadeia de N clipes de até VIDEO_CLIP_SECONDS cada).
+    clip_chain_max_s: int
+    # Teto de bytes do diretório de clipes no SD (LRU). Backstop: tempestade
+    # de FP não pode encher o cartão, que também é o root fs da Pi.
+    clips_max_bytes: int
 
     # Observabilidade / auto-cura (deploy remoto)
     agent_version: str
@@ -261,6 +278,11 @@ def load_config() -> Config:
         clip_retention_days=_env_int("CLIP_RETENTION_DAYS", 7, minimum=1),
         pre_roll_seconds=_env_int("PRE_ROLL_SECONDS", 30, minimum=0),
         tail_seconds=_env_int("TAIL_SECONDS", 6, minimum=2),
+        clip_chain_enabled=_env("CLIP_CHAIN_ENABLED", "true").strip().lower()
+        not in ("0", "false", "no", "off"),
+        clip_chain_gap_s=_env_int("CLIP_CHAIN_GAP_S", 180, minimum=0),
+        clip_chain_max_s=_env_int("CLIP_CHAIN_MAX_S", 600, minimum=60),
+        clips_max_bytes=_env_int("CLIPS_MAX_BYTES", 8 * 1024 * 1024 * 1024, minimum=512 * 1024 * 1024),
         agent_version=_env("AGENT_VERSION", AGENT_VERSION),
         log_level=_env("LOG_LEVEL", "INFO").upper(),
         log_file=Path(_env("LOG_FILE", "/var/log/saira/agent.log")),
