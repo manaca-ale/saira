@@ -21,13 +21,15 @@ Threads:
   - command_loop   : long-poll de /device/<id>/poll; comandos com argumento
                      usam a convenção "CMD_NAME:<arg>":
                        CMD_VIDEO_CLIP            -> exporta o ring recente
-                       CMD_VIDEO_CLIP:<event_id> -> sobe o clipe do evento
-                       CMD_PERSIST_CLIP:<event_id> -> RAM -> SD
+                       CMD_VIDEO_CLIP:<event_id> -> sobe o clipe da CADEIA do
+                                                    evento (costurado)
+                       CMD_PERSIST_CLIP:<event_id> -> cadeia RAM -> SD
                        CMD_BULK_UPLOAD           -> envia o spool como TLV
-  - maintenance    : retenção dos clipes no SD (ClipStore.prune).
+  - maintenance    : retenção/orçamento dos clipes no SD (ClipStore.prune).
 
-Clipes de evento: ver clip_store.py (RAM-first; SD só após confirmação do
-worker; upload só quando a plataforma requisita).
+Clipes de evento: ver clip_store.py (RAM-first; SD quando o worker confirma
+UM membro da cadeia — os vizinhos vão junto — ou quando um evento fecha
+vizinho de clipe já confirmado; upload só quando a plataforma requisita).
 
 Hook de teste: SIGUSR1 injeta um evento sintético (~10s de burst + arquivo
 de clipe), útil para validar o pipeline sem movimento real.
@@ -211,6 +213,12 @@ class Agent:
             pre_roll_seconds=cfg.pre_roll_seconds,
             tail_seconds=cfg.tail_seconds,
             retention_days=cfg.clip_retention_days,
+            chain_enabled=cfg.clip_chain_enabled,
+            chain_gap_s=cfg.clip_chain_gap_s,
+            chain_span_s=cfg.clip_chain_span_s,
+            chain_max_s=cfg.clip_chain_max_s,
+            clips_max_bytes=cfg.clips_max_bytes,
+            event_max_s=cfg.event_max_s,
         )
 
         # Rastreio de eventos correntes (para timestamps do clipe).
@@ -686,10 +694,31 @@ class Agent:
             start_ts = self._event_start_ts.pop(event_id, end_ts - 30.0)
         delay = self.cfg.tail_seconds + self.cfg.video_seg_seconds
         timer = threading.Timer(
-            delay, self._clips.archive_event, args=(event_id, start_ts, end_ts)
+            delay, self._archive_and_persist, args=(event_id, start_ts, end_ts)
         )
         timer.daemon = True
         timer.start()
+
+    def _archive_and_persist(self, event_id: str, start_ts: float, end_ts: float) -> None:
+        """Corpo do Timer pós-evento: arquiva o ring em RAM e, se o evento
+        for vizinho de cadeia de um clipe já confirmado no SD, persiste na
+        hora (persist_if_chained) — o worker nunca confirma individualmente
+        os membros posteriores de uma ocorrência longa (foi assim que a
+        saída de 17/07 se perdeu). Nunca levanta: a thread do Timer não tem
+        handler."""
+        try:
+            if not self._clips.archive_event(event_id, start_ts, end_ts):
+                return
+            free = self._disk_free_mb(self.cfg.clips_dir)
+            if free is not None and free < self.cfg.min_disk_free_mb:
+                log.warning(
+                    "Disco baixo (%s MB) — persistência por adjacência pulada (%s)",
+                    free, event_id,
+                )
+                return
+            self._clips.persist_if_chained(event_id)
+        except Exception:  # noqa: BLE001
+            log.exception("Falha no archive/persist do evento %s", event_id)
 
     # Sentinela: o keyframe do RTSP ainda é o mesmo do ciclo anterior —
     # pula o ciclo SEM cair para o snapshot HTTP (que é flaky).
@@ -980,8 +1009,18 @@ class Agent:
                 log.exception("Falha no ciclo de telemetria")
             self._stop.wait(max(10.0, float(self._heartbeat_interval)))
 
+    def _clips_stats(self) -> tuple[Optional[int], Optional[int]]:
+        """(quantidade, MB) dos clipes confirmados no SD — visibilidade do
+        orçamento da cadeia na telemetria."""
+        try:
+            sizes = [f.stat().st_size for f in self.cfg.clips_dir.glob("*.mp4")]
+        except OSError:
+            return None, None
+        return len(sizes), int(sum(sizes) / (1024 * 1024))
+
     def _health_snapshot(self) -> dict:
         now = time.time()
+        clips_count, clips_mb = self._clips_stats()
         cam_age = (now - self._last_capture_ok_at) if self._last_capture_ok_at else None
         camera_ok = cam_age is not None and cam_age < max(30.0, 2 * self._heartbeat_interval)
         up_age = (now - self._last_upload_at) if self._last_upload_at else None
@@ -1027,6 +1066,8 @@ class Agent:
             "delta_px": self._last_delta_px,
             "spool_depth": self._spool_depth(),
             "backlog_depth": len(self._pending_frames()),
+            "clips_count": clips_count,
+            "clips_mb": clips_mb,
             "disk_free_mb": self._disk_free_mb(self.cfg.clips_dir),
             "spool_free_mb": self._disk_free_mb(self.cfg.spool_dir),
             "disk_low": self._disk_low,
@@ -1137,7 +1178,11 @@ class Agent:
         return {
             "capture": self.cfg.watchdog_capture_stall_s,
             "config": max(0.0, self.cfg.config_poll_interval_s * 3.0),
-            "command": max(0.0, self.cfg.command_poll_timeout_s * 3.0 + 30.0),
+            # +1200s de folga: um dispatch pode conter export (ffmpeg ≤120s) +
+            # upload de cadeia costurada (timeout ≤900s) — operações BOUNDED.
+            # O watchdog continua pegando hang de verdade, só que com teto
+            # de ~21 min na thread de comando.
+            "command": max(0.0, self.cfg.command_poll_timeout_s * 3.0 + 30.0 + 1200.0),
             "telemetry": max(0.0, self._heartbeat_interval * 3.0 + 30.0),
         }
 
@@ -1594,6 +1639,26 @@ class Agent:
                 self._event_batch_size = v
         if "motion_send_pre_frame" in kv:
             self._send_pre_frame = self._as_bool(kv["motion_send_pre_frame"])
+        # Cadeia de clipes (atributos do ClipStore: escrita atômica de
+        # int/bool sob o GIL, mesmo padrão dos knobs do gate).
+        if "clip_chain_enabled" in kv:
+            self._clips.chain_enabled = self._as_bool(kv["clip_chain_enabled"])
+        if "clip_chain_gap_s" in kv:
+            v = _cfg_num(kv, rej, "clip_chain_gap_s", 0, 3600, int)
+            if v is not None:
+                self._clips.chain_gap_s = v
+        if "clip_chain_span_s" in kv:
+            v = _cfg_num(kv, rej, "clip_chain_span_s", 0, 7200, int)
+            if v is not None:
+                self._clips.chain_span_s = v
+        if "clip_chain_max_s" in kv:
+            v = _cfg_num(kv, rej, "clip_chain_max_s", 60, 3600, int)
+            if v is not None:
+                self._clips.chain_max_s = v
+        if "clips_max_mb" in kv:
+            v = _cfg_num(kv, rej, "clips_max_mb", 512, 65536, int)
+            if v is not None:
+                self._clips.clips_max_bytes = v * 1024 * 1024
         if "snapshot_source" in kv:
             src = kv["snapshot_source"].strip().lower()
             if src in ("auto", "rtsp", "http"):
@@ -1648,6 +1713,9 @@ class Agent:
                 rej[key] = kv[key]
                 continue
             setattr(self._gate, attr, val)
+            if key == "event_max_s":
+                # A estimativa de adjacência da cadeia acompanha o gate vivo.
+                self._clips.event_max_s = val
 
     # ----- comandos sob demanda -----------------------------------------
     def command_loop(self) -> None:
@@ -1684,7 +1752,9 @@ class Agent:
         elif name == "CMD_VIDEO_CLIP":
             self._export_and_upload_ring()
         elif name == "CMD_PERSIST_CLIP" and arg:
-            self._clips.persist_clip(arg)
+            promoted = self._clips.promote_chain(arg)
+            log.info("CMD_PERSIST_CLIP:%s — no SD: %s",
+                     arg, ",".join(promoted) or "nenhum")
         elif name == "CMD_BULK_UPLOAD":
             self._bulk_upload_spool()
         elif name == "CMD_SNAPSHOT":
@@ -1729,13 +1799,23 @@ class Agent:
             log.warning("CMD_RESTART_BUFFER falhou: %s", exc)
             self._post_status(f"restart_buffer fail: {exc}")
 
+    def _clip_upload_timeout(self, size_bytes: int) -> int:
+        """Timeout escalado pelo tamanho: a costura de uma cadeia pode chegar
+        a centenas de MB e o 4G real sustenta ~50 KB/s no pior caso. Teto de
+        900s para o watchdog continuar pegando hang de verdade."""
+        return max(self.cfg.upload_timeout_s * 4, min(900, int(size_bytes / 50_000)))
+
     def _upload_event_clip(self, event_id: str) -> None:
-        """CMD_VIDEO_CLIP:<event_id> — sobe o clipe arquivado do evento."""
+        """CMD_VIDEO_CLIP:<event_id> — sobe o clipe (cadeia costurada) do evento."""
         path, is_temp = self._clips.export_clip(event_id)
         if path is None:
             log.warning("Clipe do evento %s indisponível (evicted/nunca arquivado)", event_id)
             self._post_status(f"video_unavailable:{event_id}")
             return
+        try:
+            size = path.stat().st_size
+        except OSError:
+            size = 0
         try:
             with path.open("rb") as fh:
                 resp = self._ec2_session.post(
@@ -1743,9 +1823,10 @@ class Agent:
                     params={"event_id": event_id},
                     data=fh,
                     headers={"Content-Type": "video/mp4"},
-                    timeout=self.cfg.upload_timeout_s * 4,
+                    timeout=self._clip_upload_timeout(size),
                 )
-            log.info("Clipe %s enviado HTTP %s", event_id, resp.status_code)
+            log.info("Clipe %s enviado (%.1f MB) HTTP %s",
+                     event_id, size / 1e6, resp.status_code)
         except requests.RequestException as exc:
             log.warning("Upload do clipe %s falhou: %s", event_id, exc)
         finally:
