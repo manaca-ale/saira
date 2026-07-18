@@ -14,14 +14,22 @@ from app.api.deps import get_db, get_current_user
 from app.core.redis import get_redis, init_redis
 from app.models.user import User
 from app.models.camera import Camera
-from app.utils.uploads import UPLOADS_ROOT, IMAGE_EXTENSIONS, find_latest_image_for_device
+from app.utils.uploads import (
+    UPLOADS_ROOT,
+    IMAGE_EXTENSIONS,
+    find_latest_image_for_device,
+    find_health_for_device,
+)
 from app.schemas.camera import (
     CameraBgsubConfigUpdate,
     CameraCreate,
     CameraLatestImageResponse,
     CameraLiveSessionResponse,
+    CameraPolygonResponse,
+    CameraPolygonUpdate,
     CameraResponse,
     CameraUpdate,
+    CameraZoomResponse,
 )
 
 router = APIRouter()
@@ -41,6 +49,14 @@ UPLOAD_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("
 # esp32-server base URL — usado para enfileirar CMD_SNAPSHOT (imagem sob demanda)
 # no poll do dispositivo (Pi event-driven, que não manda mais heartbeat-imagem).
 ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "http://esp32-server:5000").rstrip("/")
+# Token admin para o esp32-server /device/<id>/config (push do polígono ao vivo).
+# Vazio nesta implantação (o esp32-server só exige o header se ele mesmo tiver um
+# token configurado — ver server.py set_device_config).
+ESP32_ADMIN_TOKEN = os.getenv("ESP32_ADMIN_TOKEN", "")
+# Frame de referência em que a zona de interesse (pile_zone_polygon) é desenhada
+# (igual ao worker BGSUB e ao motion_gate do Pi). Coordenadas em pixels absolutos.
+POLYGON_REF_W = 1280
+POLYGON_REF_H = 720
 
 # ----- modo ao vivo (instalação em campo) --------------------------------------
 # Teto DURO da sessão, ancorado no start e nunca renovado.
@@ -257,6 +273,135 @@ async def camera_autofocus(
     """Dispara o autofoco da lente motorizada (best-effort)."""
     device_id = await _enqueue_device_cmd(camera_id, db, "CMD_AUTOFOCUS")
     return {"status": "requested", "camera_id": camera_id, "device_id": device_id}
+
+
+@router.get("/{camera_id}/zoom", response_model=CameraZoomResponse)
+async def get_camera_zoom(
+    camera_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Zoom óptico ATUAL da lente, lido da telemetria de saúde que o Pi reporta
+    (`.health.json` no volume compartilhado — não chama a câmera). `zoom` é None
+    quando o dispositivo ainda não reportou ou não tem lente motorizada."""
+    result = await db.execute(select(Camera).where(Camera.id == camera_id))
+    camera = result.scalar_one_or_none()
+    if not camera:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Camera not found")
+
+    device_id = (camera.device_id or "").strip() or None
+    zoom = None
+    camera_ok = None
+    reported_at = None
+    if device_id:
+        health = find_health_for_device(device_id)
+        if health:
+            raw = health.get("zoom")
+            if raw is not None:
+                try:
+                    zoom = float(raw)
+                except (TypeError, ValueError):
+                    zoom = None
+            camera_ok = health.get("camera_ok")
+            reported_at = health.get("received_at") or health.get("ts")
+    return CameraZoomResponse(
+        camera_id=camera_id,
+        device_id=device_id,
+        zoom=zoom,
+        camera_ok=camera_ok,
+        reported_at=reported_at,
+    )
+
+
+def _camera_is_remote_lens(camera: Camera) -> bool:
+    """Espelha o cameraSupportsRemoteControl do frontend: True para câmeras com
+    lente/agente remoto (Pi/Intelbras). Decide se empurramos o polígono pro
+    esp32-server (hot-reload no Pi); câmeras esp32 aplicam via worker (DB)."""
+    t = (camera.camera_type or "").strip().lower()
+    if t:
+        return t != "esp32"
+    d = (camera.device_id or "").strip().lower()
+    return bool(d) and not d.startswith("esp32")
+
+
+def _validate_polygon(polygon: Any) -> Optional[str]:
+    """Valida a zona de interesse (pile_zone_polygon). Retorna a mensagem de erro
+    ou None. Espelha o motion_gate do Pi: aninhamento triplo, cada polígono com
+    >= 3 pontos [x, y] dentro do frame de referência. Lista vazia = limpar."""
+    if not isinstance(polygon, list):
+        return "polygon deve ser uma lista de polígonos"
+    for poly in polygon:
+        if not isinstance(poly, list) or len(poly) < 3:
+            return "cada polígono precisa de pelo menos 3 pontos [x, y]"
+        for pt in poly:
+            if not isinstance(pt, (list, tuple)) or len(pt) != 2:
+                return "cada ponto deve ser [x, y]"
+            x, y = pt
+            if not (0 <= x <= POLYGON_REF_W and 0 <= y <= POLYGON_REF_H):
+                return (
+                    f"ponto fora do frame de referência "
+                    f"{POLYGON_REF_W}x{POLYGON_REF_H}: {pt}"
+                )
+    return None
+
+
+async def _push_polygon_to_device(device_id: str, polygon: list) -> tuple[bool, Optional[str]]:
+    """Empurra o pile_zone_polygon pro esp32-server (POST /device/<id>/config) para
+    o Pi recarregar por poll (~60s). Best-effort: retorna (ok, detail). Polígono
+    vazio => value vazio, que o esp32-server interpreta como remover a chave."""
+    import httpx
+
+    url = f"{ESP32_SERVER_URL}/device/{device_id}/config"
+    headers = {}
+    if ESP32_ADMIN_TOKEN:
+        headers["X-Admin-Token"] = ESP32_ADMIN_TOKEN
+    value = json.dumps(polygon, separators=(",", ":")) if polygon else ""
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.post(url, json={"pile_zone_polygon": value}, headers=headers)
+            resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        return False, f"esp32-server indisponível: {exc}"
+    return True, None
+
+
+@router.post("/{camera_id}/polygon", response_model=CameraPolygonResponse)
+async def set_camera_polygon(
+    camera_id: int,
+    payload: CameraPolygonUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Grava a zona de interesse (pile_zone_polygon) no banco e a aplica AO VIVO:
+    empurra pro esp32-server para o Pi recarregar por poll; câmeras esp32 aplicam
+    pelo worker BGSUB (relê a máscara por assinatura, sem restart). Ref 1280x720."""
+    polygon = payload.polygon
+    err = _validate_polygon(polygon)
+    if err:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=err)
+
+    result = await db.execute(select(Camera).where(Camera.id == camera_id))
+    camera = result.scalar_one_or_none()
+    if not camera:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Camera not found")
+
+    camera.pile_zone_polygon = polygon or None
+    await db.commit()
+
+    device_id = (camera.device_id or "").strip() or None
+    pushed = False
+    if device_id and _camera_is_remote_lens(camera):
+        pushed, push_err = await _push_polygon_to_device(device_id, polygon)
+        detail = "aplicado no dispositivo (recarrega em ~60s)" if pushed else push_err
+    else:
+        detail = "salvo — o worker de detecção aplica na próxima detecção"
+    return CameraPolygonResponse(
+        camera_id=camera_id,
+        device_id=device_id,
+        saved=True,
+        pushed_to_device=pushed,
+        detail=detail,
+    )
 
 
 # ----- modo ao vivo -----------------------------------------------------------

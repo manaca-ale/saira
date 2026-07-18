@@ -17,6 +17,9 @@ export interface Camera {
   rtsp_url?: string | null;
   capture_interval_seconds: number;
   is_active: boolean;
+  /** Zona de interesse (pile_zone_polygon): lista de polígonos, cada um uma lista
+   *  de pontos [x,y] em pixels no frame de referência 1280×720. null = frame todo. */
+  pile_zone_polygon?: number[][][] | null;
   last_capture_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -180,4 +183,41 @@ export async function setCameraZoom(cameraId: number, zoom: number): Promise<voi
 /** Dispara o autofoco da lente motorizada. */
 export async function cameraAutofocus(cameraId: number): Promise<void> {
   await api.post(`/cameras/${cameraId}/autofocus`);
+}
+
+/** Zoom óptico ATUAL da lente, lido da telemetria (não chama a câmera).
+ *  `zoom` null = desconhecido (dispositivo não reportou / sem lente motorizada). */
+export interface CameraZoom {
+  camera_id: number;
+  device_id?: string | null;
+  zoom?: number | null;
+  camera_ok?: boolean | null;
+  reported_at?: string | null;
+}
+
+export async function getCameraZoom(cameraId: number): Promise<CameraZoom | null> {
+  const response = await api.get<CameraZoom>(`/cameras/${cameraId}/zoom`);
+  return response.data ?? null;
+}
+
+/** Resultado de salvar a zona de interesse (pile_zone_polygon). */
+export interface CameraPolygonResult {
+  camera_id: number;
+  device_id?: string | null;
+  saved: boolean;
+  pushed_to_device: boolean;
+  detail?: string | null;
+}
+
+/** Grava a zona de interesse e aplica ao vivo (Pi por poll; esp32 pelo worker).
+ *  `polygon` = lista de polígonos [x,y] em 1280×720; lista vazia limpa. */
+export async function saveCameraPolygon(
+  cameraId: number,
+  polygon: number[][][],
+): Promise<CameraPolygonResult> {
+  const response = await api.post<CameraPolygonResult>(
+    `/cameras/${cameraId}/polygon`,
+    { polygon },
+  );
+  return response.data;
 }

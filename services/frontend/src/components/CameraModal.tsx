@@ -4,24 +4,29 @@ import {
   Camera,
   Clock3,
   Focus,
+  Hexagon,
   ImageOff,
   MapPin,
   Radio,
   RefreshCw,
+  Save,
   X,
   ZoomIn,
 } from "lucide-react";
 import {
   cameraAutofocus,
   cameraSupportsRemoteControl,
+  getCameraZoom,
   getLatestCameraImageFromFolder,
   requestCameraSnapshot,
+  saveCameraPolygon,
   setCameraZoom,
   type Camera as CameraEntity,
 } from "../services/cameraService";
 import type { GeocodingResult } from "../types/geocoding";
 import { AddressSearch } from "./AddressSearch";
 import { CameraMapPicker } from "./CameraMapPicker";
+import PolygonEditor from "./PolygonEditor";
 
 interface CameraModalProps {
   onClose: () => void;
@@ -110,6 +115,15 @@ export const CameraModal: React.FC<CameraModalProps> = ({
   >("idle");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageBusy, setImageBusy] = useState(false);
+  // Zoom ATUAL da lente, lido da telemetria (null = desconhecido).
+  const [currentZoom, setCurrentZoom] = useState<number | null>(null);
+
+  // Editor da zona de interesse (pile_zone_polygon) — disponível p/ toda câmera salva.
+  const [polygon, setPolygon] = useState<number[][][]>([]);
+  const [polygonStatus, setPolygonStatus] = useState<
+    "idle" | "saving" | "done" | "error"
+  >("idle");
+  const [polygonDetail, setPolygonDetail] = useState<string | null>(null);
 
   // Busca a última imagem (cache-bust por timestamp p/ refletir frames novos).
   const fetchImage = async () => {
@@ -125,10 +139,28 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     }
   };
 
+  // Zoom atual da lente (telemetria): semeia o slider e o rótulo "Zoom atual".
+  const fetchZoom = async () => {
+    if (cameraId == null) return;
+    try {
+      const z = await getCameraZoom(cameraId);
+      if (z?.zoom != null) {
+        setCurrentZoom(z.zoom);
+        setZoom(z.zoom);
+      } else {
+        setCurrentZoom(null);
+      }
+    } catch {
+      /* mantém o valor atual */
+    }
+  };
+
   // A Pi sobe um snapshot ~10-15s após aplicar zoom/autofoco; rebusca algumas vezes.
+  // O zoom reportado só atualiza no próximo keepalive, então relemos um pouco depois.
   const scheduleImageRefresh = () => {
     window.setTimeout(fetchImage, 8000);
     window.setTimeout(fetchImage, 15000);
+    window.setTimeout(fetchZoom, 16000);
   };
 
   // Botão "atualizar": pede um frame fresco sob demanda e rebusca.
@@ -168,11 +200,34 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     }
   };
 
-  // Carrega a imagem ao abrir o modal de edição.
+  // Salva a zona de interesse e aplica ao vivo (Pi por poll; esp32 pelo worker).
+  const savePolygon = async () => {
+    if (cameraId == null) return;
+    setPolygonStatus("saving");
+    setPolygonDetail(null);
+    try {
+      const res = await saveCameraPolygon(cameraId, polygon);
+      setPolygonStatus("done");
+      setPolygonDetail(res.detail ?? null);
+    } catch {
+      setPolygonStatus("error");
+    }
+  };
+
+  // Carrega imagem, zoom atual e o polígono salvo ao abrir o modal de edição.
   useEffect(() => {
     setImageUrl(null);
+    setCurrentZoom(null);
+    setPolygonStatus("idle");
+    setPolygonDetail(null);
+    setPolygon(
+      Array.isArray(initialData?.pile_zone_polygon)
+        ? (initialData.pile_zone_polygon as number[][][])
+        : [],
+    );
     if (cameraId != null) {
       void fetchImage();
+      if (cameraSupportsRemoteControl(initialData)) void fetchZoom();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraId]);
@@ -469,6 +524,15 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                   {Math.round(zoom * 100)}%
                 </span>
               </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Zoom atual da lente:{" "}
+                <span className="font-mono font-semibold text-gray-700">
+                  {currentZoom != null ? `${Math.round(currentZoom * 100)}%` : "—"}
+                </span>
+                {currentZoom == null && (
+                  <span className="text-gray-400"> (aguardando telemetria)</span>
+                )}
+              </p>
               <div className="flex items-center justify-between mt-4">
                 <button
                   type="button"
@@ -486,6 +550,47 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                     </span>
                   ) : zoomStatus === "error" ? (
                     <span className="text-red-600">Falha ao enviar o comando.</span>
+                  ) : null}
+                </span>
+              </div>
+            </div>
+          ) : null}
+
+          {cameraId != null ? (
+            <div className="rounded-2xl border border-gray-200 p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <Hexagon size={18} className="text-gray-700" />
+                <span className="text-sm font-bold text-gray-700">
+                  Zona de interesse (detecção)
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">
+                Desenhe sobre a imagem a área onde ocorre o descarte. Clique para
+                adicionar vértices, arraste para ajustar, clique no 1º ponto (ou
+                Enter) para fechar. Ao salvar, aplica ao vivo: câmeras Pi recarregam
+                em ~60s; câmeras esp32 valem na próxima detecção.
+              </p>
+
+              <PolygonEditor imageUrl={imageUrl} value={polygon} onChange={setPolygon} />
+
+              <div className="flex items-center justify-between mt-4">
+                <button
+                  type="button"
+                  onClick={savePolygon}
+                  disabled={polygonStatus === "saving"}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition-colors disabled:opacity-60"
+                >
+                  <Save size={16} /> Salvar polígono
+                </button>
+                <span className="text-xs">
+                  {polygonStatus === "saving" ? (
+                    <span className="text-gray-500">Salvando…</span>
+                  ) : polygonStatus === "done" ? (
+                    <span className="text-emerald-600">
+                      {polygonDetail || "Polígono salvo."}
+                    </span>
+                  ) : polygonStatus === "error" ? (
+                    <span className="text-red-600">Falha ao salvar o polígono.</span>
                   ) : null}
                 </span>
               </div>

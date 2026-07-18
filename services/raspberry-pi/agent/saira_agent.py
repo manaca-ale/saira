@@ -67,6 +67,11 @@ UPLOADED_SUFFIX = ".uploaded"
 SYNTHETIC_EVENT_SECONDS = 10.0
 WARMUP_UPLOAD_INTERVAL_S = 5.0  # warm-up sobe menos denso que burst de evento
 MAINTENANCE_INTERVAL_S = 6 * 3600
+# Intervalo mínimo entre leituras do zoom óptico para a telemetria. O zoom só
+# muda por comando (atualizamos o cache de graça no CMD_ZOOM), mas a câmera pode
+# resetar num power-cycle, então relemos de tempos em tempos. Espaçado de
+# propósito: o httpd da câmera (porta 80) colapsa sob RAJADA, não sob 1 GET/min.
+ZOOM_REFRESH_S = 60.0
 # Teto DURO da janela ao vivo, POR COMANDO. A plataforma renova um lease curto
 # enquanto o operador estiver presente; se ela (ou a rede) morrer, o dispositivo
 # se apaga sozinho em no máximo isto. É o último backstop de consumo de 4G, e o
@@ -264,6 +269,12 @@ class Agent:
         self._last_capture_ok_at = 0.0
         self._last_capture_source = "none"
         self._camera_ok = False
+        # Zoom óptico atual (lente motorizada Intelbras), reportado na telemetria
+        # para o painel exibir a posição REAL da lente. Lido da câmera com throttle
+        # (ver ZOOM_REFRESH_S) para não martelar o httpd dela; atualizado de graça
+        # após cada CMD_ZOOM. None = ainda não lido / câmera sem lente motorizada.
+        self._last_zoom: Optional[float] = None
+        self._last_zoom_read_at = 0.0
         self._last_fg_px = 0
         self._last_delta_px = 0
         # Eventos do dia (reseta na virada de data BRT-naive local).
@@ -963,6 +974,7 @@ class Agent:
             self._beat("telemetry")
             try:
                 self._disk_guard()
+                self._refresh_zoom_cached()
                 self._post_keepalive()
             except Exception:  # noqa: BLE001
                 log.exception("Falha no ciclo de telemetria")
@@ -998,6 +1010,9 @@ class Agent:
             "last_capture_source": self._last_capture_source,
             "last_capture_age_s": round(cam_age, 1) if cam_age is not None else None,
             "camera_ok": camera_ok,
+            # Posição atual da lente motorizada (0=aberto, 1=tele); None se não
+            # lida / câmera sem zoom óptico. Alimenta o "Zoom atual" no painel.
+            "zoom": self._last_zoom,
             "rtsp_buffer_ok": self._rtsp_buffer_ok(),
             # Breaker do fallback HTTP ABERTO agora = a porta 80 está em cooldown
             # (morta/flapando); o RTSP segura a captura. Usa o relógio do breaker
@@ -1217,6 +1232,20 @@ class Agent:
             pass
         return None
 
+    def _refresh_zoom_cached(self) -> None:
+        """Relê o zoom da câmera para a telemetria, no MÁXIMO 1×/ZOOM_REFRESH_S.
+        Chamado no ciclo de telemetria. Só um GET espaçado (nunca rajada) — o
+        httpd da câmera colapsa sob rajada. A janela vale mesmo quando a leitura
+        falha (câmera fora), pra não martelar getFocusStatus a cada heartbeat;
+        uma leitura None mantém o último zoom conhecido."""
+        now = time.monotonic()
+        if self._last_zoom_read_at > 0 and (now - self._last_zoom_read_at) < ZOOM_REFRESH_S:
+            return
+        z = self._read_zoom()
+        self._last_zoom_read_at = now
+        if z is not None:
+            self._last_zoom = z
+
     def _handle_zoom_cmd(self, arg: str) -> None:
         """CMD_ZOOM:<0-1> — zoom óptico absoluto (0=aberto, 1=tele). Reenvia o
         adjustFocus até convergir (a lente ignora comando durante autofoco),
@@ -1237,7 +1266,11 @@ class Agent:
         except requests.RequestException as exc:
             log.warning("CMD_ZOOM falhou: %s", exc)
             return
-        log.info("CMD_ZOOM: zoom=%.2f aplicado (lido=%s)", target, self._read_zoom())
+        applied = self._read_zoom()
+        if applied is not None:  # atualiza o cache da telemetria de graça
+            self._last_zoom = applied
+            self._last_zoom_read_at = time.monotonic()
+        log.info("CMD_ZOOM: zoom=%.2f aplicado (lido=%s)", target, applied)
         # Enquadramento mudou -> baseline do gate inválido: re-anchor.
         self._recalibrate_requested = True
         self._upload_snapshot_now()
