@@ -33,6 +33,7 @@ from .db import (
     resolve_camera,
     update_camera_last_capture,
     update_detection_event_ref,
+    update_detection_gate_stats,
     update_detection_on_merge,
 )
 from .detector_gemini import (
@@ -2588,6 +2589,14 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
             detection_id = agent2_result.get("detection_id")
             if detection_id:
                 update_detection_event_ref(detection_id, manifest.event_id)
+                # Auditoria de threshold: grava fg_px/delta_px/config_version do
+                # gate no disparo (do manifest) sobre a detecção. No-op se ausentes.
+                update_detection_gate_stats(
+                    detection_id,
+                    manifest.gate_fg_px,
+                    manifest.gate_delta_px,
+                    manifest.gate_config_version,
+                )
                 _persist_detection_frame_index(
                     detection_id=detection_id,
                     device_id=device_id,
