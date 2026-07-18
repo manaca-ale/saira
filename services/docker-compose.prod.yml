@@ -170,6 +170,10 @@ services:
       # atende o long-poll do dispositivo. Ausente/fora do ar => cai em memória.
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - COMMAND_QUEUE_DEPTH=${COMMAND_QUEUE_DEPTH:-16}
+      # Teto do clipe de vídeo (mp4) que a Pi sobe sob CMD_VIDEO_CLIP. 300 MB
+      # cobre cadeias longas de clip-chain 1080p (o default de 200 MB rejeitava
+      # com 413 clipes de ~233 MB). Ver server.py MAX_VIDEO_BYTES.
+      - MAX_VIDEO_BYTES=${MAX_VIDEO_BYTES:-314572800}
     depends_on:
       - redis
     volumes:

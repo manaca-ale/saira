@@ -15,6 +15,8 @@ services:
       - DEFAULT_CONFIG_FILE=${DEFAULT_CONFIG_FILE:-default.txt}
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      # Teto do clipe de vídeo (mp4) sob CMD_VIDEO_CLIP — 300 MB (paridade c/ prod).
+      - MAX_VIDEO_BYTES=${MAX_VIDEO_BYTES:-314572800}
       # 1 gevent worker: required for in-process queue to work correctly for
       # long-polling (/device/<id>/poll). With multiple workers each process
       # has its own queue; trigger → worker A but poll → worker B = missed CMD.
