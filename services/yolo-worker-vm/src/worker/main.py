@@ -37,10 +37,12 @@ from .db import (
     update_detection_on_merge,
 )
 from .detector_gemini import (
+    ModelOverride,
     analyze_new_litter_with_gemini,
     analyze_with_gemini,
     normalize_offender_types,
 )
+from . import detector_gemini as _detector_gemini
 from .metrics import (
     classify_gemini_error,
     observe_bgsub_adaptive_update,
@@ -2110,6 +2112,124 @@ def _shadow_detail(window: list[Path], device_id: str, camera, prior_had: bool,
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
+def _append_shadow_model_audit(device_id: str, record: dict[str, Any]) -> None:
+    try:
+        day = datetime.now(BRASILIA).strftime("%Y-%m-%d")
+        day_dir = Path(config.STATE_DIR) / "shadow_model_audit" / day
+        day_dir.mkdir(parents=True, exist_ok=True)
+        with (day_dir / f"{device_id}.jsonl").open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        logger.exception("shadow_model: failed to append audit device=%s", device_id)
+
+
+def _shadow_gate_mids(win: list[Path]) -> Optional[list[Path]]:
+    """1º + N mids even-spaced + último — igual à prod (GEMINI_GATE_MID_FRAMES)."""
+    n = len(win)
+    mid_count = max(0, config.GEMINI_GATE_MID_FRAMES)
+    if n < 3 or mid_count == 0:
+        return None
+    step = (n - 1) / (mid_count + 1)
+    ks = sorted({int(round(step * (i + 1))) for i in range(mid_count)})
+    ks = [k for k in ks if 0 < k < n - 1]
+    return [win[k] for k in ks] or None
+
+
+def _run_shadow_model(window_paths: list[Path], device_id: str, camera, manifest,
+                      prod_disposal: bool, prod_detection_id: Optional[str]) -> None:
+    """SHADOW de modelo (Camp 47): cascade Gemini-3.1-lite PARALELO, log-only.
+    Reconstrói a MESMA janela da prod (subsample já feito -> byte-fit), roda gate+detail
+    com prompt g3 / media_resolution=low / thinking=high no CLIENTE DEDICADO (custo isolado),
+    e grava tudo em shadow_model_audit + gemini_call_log. NUNCA cria detecção. Nunca quebra prod."""
+    if not config.SHADOW_MODEL_ENABLED or device_id not in config.SHADOW_MODEL_DEVICES:
+        return
+    try:
+        client = _detector_gemini._get_shadow_client()
+        if client is None:
+            logger.warning("shadow_model: sem cliente dedicado (defina SHADOW_GEMINI_API_KEY) — pulando")
+            return
+        win = event_windows.fit_frames_to_payload(list(window_paths), config.GEMINI_MAX_PAYLOAD_BYTES)
+        if len(win) < 2:
+            return
+        cam_ctx = _shadow_camera_context(camera, device_id, win[-1].name)
+        common = dict(thinking_level=config.SHADOW_MODEL_THINKING,
+                      media_resolution=config.SHADOW_MODEL_MEDIA_RES,
+                      max_output_tokens=config.SHADOW_MODEL_MAX_OUTPUT_TOKENS, client=client)
+        gate_ov = ModelOverride(model=config.SHADOW_MODEL_GATE, **common)
+        detail_ov = ModelOverride(model=config.SHADOW_MODEL_DETAIL, **common)
+
+        rec: dict[str, Any] = {
+            "event_ref": manifest.event_id, "ts": datetime.now(BRASILIA).isoformat(),
+            "device_id": device_id, "window_first": win[0].name, "window_last": win[-1].name,
+            "window_size": len(win), "media_resolution": config.SHADOW_MODEL_MEDIA_RES,
+            "thinking_level": config.SHADOW_MODEL_THINKING, "prompt": config.SHADOW_MODEL_PROMPT,
+            "prod_created_detection": bool(prod_disposal), "prod_detection_id": prod_detection_id,
+        }
+
+        gid = str(uuid4())
+        gate = analyze_new_litter_with_gemini(
+            first_frame=win[0], last_frame=win[-1], camera_context=cam_ctx, request_id=gid,
+            prior_window_context=None, use_mosaic=config.GEMINI_MOSAIC_AGENT1,
+            mid_frames=_shadow_gate_mids(win), prompt_version=config.SHADOW_MODEL_PROMPT,
+            override=gate_ov)
+        gr = gate.report
+        trigger = (bool(gr.new_litter_detected)
+                   and int(gr.confidence_0_100) >= config.GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE)
+        rec.update({
+            "gate_model": gate.model, "gate_new_litter": bool(gr.new_litter_detected),
+            "gate_confidence": int(gr.confidence_0_100), "gate_scene": getattr(gr, "scene_type", None),
+            "gate_waste_type": getattr(gr, "waste_type", None), "gate_triggered": trigger,
+            "gate_evidence": (getattr(gr, "evidence_summary", "") or "")[:1000],
+            "gate_input_tokens": gate.usage.input_tokens, "gate_output_tokens": gate.usage.output_tokens,
+            "gate_thinking_tokens": gate.usage.thinking_tokens,
+            "gate_cost_usd": float(gate.usage.estimated_cost_usd or 0.0),
+            "gate_latency_ms": gate.latency_ms,
+        })
+        _log_gemini_call(camera=camera, device_id=device_id, agent="shadow_gate",
+                         model=gate.model, request_id=gid, usage=gate.usage,
+                         latency_ms=gate.latency_ms, success=True)
+
+        would_confirm = False
+        if trigger:
+            did = str(uuid4())
+            detail = analyze_with_gemini(
+                image_paths=win, camera_context=cam_ctx, request_id=did,
+                mosaic_mode=config.GEMINI_MOSAIC_AGENT2, prior_window_context=None,
+                prompt_version=config.SHADOW_MODEL_PROMPT, override=detail_ov)
+            dr = detail.report
+            would_confirm = bool(dr.infraction_confirmed)
+            rec.update({
+                "detail_ran": True, "detail_model": detail.model,
+                "detail_confirmed": would_confirm,
+                "detail_confidence": int(getattr(dr, "confidence_0_100", 0) or 0),
+                "detail_waste_type": getattr(dr, "waste_type", None),
+                "detail_offender": getattr(dr, "offender_detected", None),
+                "detail_evidence": (getattr(dr, "evidence_summary", "") or "")[:2000],
+                "detail_input_tokens": detail.usage.input_tokens,
+                "detail_output_tokens": detail.usage.output_tokens,
+                "detail_thinking_tokens": detail.usage.thinking_tokens,
+                "detail_cost_usd": float(detail.usage.estimated_cost_usd or 0.0),
+                "detail_latency_ms": detail.latency_ms,
+            })
+            _log_gemini_call(camera=camera, device_id=device_id, agent="shadow_detail",
+                             model=detail.model, request_id=did, usage=detail.usage,
+                             latency_ms=detail.latency_ms, success=True)
+        else:
+            rec["detail_ran"] = False
+
+        rec["would_confirm_model"] = bool(would_confirm)
+        rec["total_cost_usd"] = round(
+            rec.get("gate_cost_usd", 0.0) + rec.get("detail_cost_usd", 0.0), 8)
+        _append_shadow_model_audit(device_id, rec)
+        logger.info(json.dumps({"event": "shadow_model", "device_id": device_id,
+                                "event_ref": manifest.event_id, "would_confirm": would_confirm,
+                                "prod_disposal": bool(prod_disposal),
+                                "cost_usd": rec["total_cost_usd"]}, ensure_ascii=False))
+    except Exception:
+        logger.exception("shadow_model failed device=%s event=%s",
+                         device_id, getattr(manifest, "event_id", "?"))
+
+
 def _run_sliding_shadow(device_dir: Path, device_id: str, camera) -> None:
     """Evaluate overlapping sliding windows in SHADOW (log-only). Runs AFTER the live
     fixed pipeline so it never delays prod; uses its own state + audit. BGSUB-gated cost."""
@@ -2577,6 +2697,16 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
             continue
 
         final_disposal = bool(disposal)
+
+        # SHADOW de modelo (Camp 47): roda o cascade 3.1-lite PARALELO, log-only, ANTES
+        # de mover os frames (window_paths ainda existe). Nunca cria detecção nem quebra prod.
+        if config.SHADOW_MODEL_ENABLED and device_id in config.SHADOW_MODEL_DEVICES:
+            _run_shadow_model(
+                window_paths, device_id, camera, manifest,
+                prod_disposal=final_disposal,
+                prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
+            )
+
         moved_frames: list[Path] = []
         for frame in frames:
             moved = mark_processed(frame, device_dir, final_disposal)
