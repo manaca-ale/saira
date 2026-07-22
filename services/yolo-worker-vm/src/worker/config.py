@@ -227,6 +227,32 @@ GEMINI_SLIDING_MAX_FRAMES = int(os.getenv("GEMINI_SLIDING_MAX_FRAMES", "24"))
 # Coalescing window for operator-facing FP counting (mirrors EVENT_WINDOW_MIN).
 GEMINI_SLIDING_COALESCE_SECONDS = int(os.getenv("GEMINI_SLIDING_COALESCE_SECONDS", "600"))
 
+# -----------------------------------------------------------------------------
+# SHADOW de MODELO (Camp 47, 2026-07-22). Roda um cascade Gemini-3.1-flash-lite
+# PARALELO (gate+detail, prompt g3 recall-first, media_resolution=low,
+# thinking_level=high) alongside a prod, SÓ LOGA a decisão (persist=False) — nunca
+# cria detecção/notificação. Objetivo: comparar 2.5 (prod) vs 3.1 em recall/FP/custo
+# na pi-cam-001 antes da migração (2.5 desliga 16/out/2026). Custo isolado num
+# projeto GCP dedicado via SHADOW_GEMINI_API_KEY. Audit em
+# STATE_DIR/shadow_model_audit/{date}/{device}.jsonl. Default OFF.
+SHADOW_MODEL_ENABLED = os.getenv("SHADOW_MODEL_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+SHADOW_MODEL_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("SHADOW_MODEL_DEVICES", "").split(",")
+    if d.strip()
+}
+SHADOW_MODEL_GATE = os.getenv("SHADOW_MODEL_GATE", "gemini-3.1-flash-lite").strip()
+SHADOW_MODEL_DETAIL = os.getenv("SHADOW_MODEL_DETAIL", "gemini-3.1-flash-lite").strip()
+SHADOW_MODEL_MEDIA_RES = os.getenv("SHADOW_MODEL_MEDIA_RES", "low").strip()
+SHADOW_MODEL_THINKING = os.getenv("SHADOW_MODEL_THINKING", "high").strip()
+SHADOW_MODEL_PROMPT = os.getenv("SHADOW_MODEL_PROMPT", "g3").strip()
+SHADOW_MODEL_MAX_OUTPUT_TOKENS = int(os.getenv("SHADOW_MODEL_MAX_OUTPUT_TOKENS", "8192"))
+# Cliente dedicado (isolamento de custo): chave de API do PROJETO DEDICADO do shadow,
+# ou Vertex no SHADOW_GCP_PROJECT. NUNCA a chave/projeto de produção.
+SHADOW_GEMINI_API_KEY = os.getenv("SHADOW_GEMINI_API_KEY", "").strip()
+SHADOW_GCP_PROJECT = os.getenv("SHADOW_GCP_PROJECT", "").strip()
+SHADOW_GCP_LOCATION = os.getenv("SHADOW_GCP_LOCATION", "global").strip()
+
 # Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.
