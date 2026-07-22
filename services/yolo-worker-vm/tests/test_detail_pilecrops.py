@@ -115,7 +115,8 @@ def test_analyze_with_gemini_accepts_new_prompt_version():
 
     def _fake_call_model(send_paths, system_prompt, user_prompt, model_name,
                          response_schema, max_output_tokens=None,
-                         thinking_budget=None, seed=None):
+                         thinking_budget=None, seed=None, thinking_level=None,
+                         media_resolution=None, client=None):
         captured["system_prompt"] = system_prompt
         captured["user_prompt"] = user_prompt
         captured["n_paths"] = len(send_paths)

@@ -22,7 +22,7 @@ except Exception:  # pragma: no cover - optional dependency while running YOLO-o
 from pydantic import ValidationError
 
 from . import config
-from . import _prompts_audit, _prompts_v2, _prompts_v3
+from . import _prompts_audit, _prompts_g3, _prompts_v2, _prompts_v3
 from .models import GeminiUsage
 from .mosaic import build_mosaic_2x1, build_mosaic_3x2_pair, build_mosaic_4x3
 from .schemas_gemini import GeminiInfractionReport, GeminiNewLitterReport
@@ -318,6 +318,18 @@ class GeminiNewLitterInferenceResult:
     prompt_version: str = "current"
 
 
+@dataclass
+class ModelOverride:
+    """Overrides por-chamada (usado só pelo shadow — prod passa None e nada muda).
+    Roteia a chamada para um modelo/cliente/config diferentes, mantendo TODO o
+    pós-processamento dos wrappers (paridade com o benchmark)."""
+    model: Optional[str] = None
+    thinking_level: Optional[str] = None          # Gemini-3: "low"|"medium"|"high"
+    media_resolution: Optional[str] = None        # "low"|"medium"|"high"
+    max_output_tokens: Optional[int] = None
+    client: object = None                          # cliente genai dedicado
+
+
 _client = None
 
 
@@ -364,6 +376,30 @@ def _get_fallback_client():
             location=fb_loc,
         )
     return _fallback_client
+
+
+_shadow_client = None
+
+
+def _get_shadow_client():
+    """Cliente DEDICADO do shadow (projeto GCP próprio) para isolar o custo/quota.
+    Prioridade: SHADOW_GEMINI_API_KEY (AI Studio) → Vertex no SHADOW_GCP_PROJECT.
+    Retorna None se nada configurado (o caller deve pular o shadow)."""
+    global _shadow_client
+    if genai is None:
+        return None
+    if _shadow_client is None:
+        key = (getattr(config, "SHADOW_GEMINI_API_KEY", "") or "").strip()
+        proj = (getattr(config, "SHADOW_GCP_PROJECT", "") or "").strip()
+        if key:
+            _shadow_client = genai.Client(api_key=key)
+        elif proj:
+            _shadow_client = genai.Client(
+                vertexai=True, project=proj,
+                location=(getattr(config, "SHADOW_GCP_LOCATION", "") or "global"))
+        else:
+            return None
+    return _shadow_client
 
 
 def _is_resource_exhausted(exc: Exception) -> bool:
@@ -436,14 +472,20 @@ def normalize_offender_types(values: Optional[list[str]]) -> list[str]:
 
 
 def _build_generate_config(schema: dict, max_output_tokens: Optional[int] = None,
-                           thinking_budget: Optional[int] = None, seed: Optional[int] = None):
+                           thinking_budget: Optional[int] = None, seed: Optional[int] = None,
+                           thinking_level: Optional[str] = None,
+                           media_resolution: Optional[str] = None):
     # The SDK supports response_schema for structured outputs.
     if types is None:
         raise RuntimeError("google-genai types are unavailable")
+    # thinking_level (Gemini-3 nativo: "low"|"medium"|"high") tem precedência sobre o
+    # thinking_budget (estilo 2.5); só um é enviado.
     thinking_config = None
-    if thinking_budget is not None:
+    if thinking_level:
+        thinking_config = types.ThinkingConfig(thinking_level=thinking_level)
+    elif thinking_budget is not None:
         thinking_config = types.ThinkingConfig(thinking_budget=thinking_budget)
-    return types.GenerateContentConfig(
+    cfg = types.GenerateContentConfig(
         temperature=config.GEMINI_TEMPERATURE,
         max_output_tokens=max_output_tokens or config.GEMINI_MAX_OUTPUT_TOKENS,
         response_mime_type="application/json",
@@ -451,6 +493,10 @@ def _build_generate_config(schema: dict, max_output_tokens: Optional[int] = None
         thinking_config=thinking_config,
         seed=seed,
     )
+    if media_resolution:
+        cfg.media_resolution = getattr(
+            types.MediaResolution, f"MEDIA_RESOLUTION_{media_resolution.upper()}")
+    return cfg
 
 
 def _call_model(
@@ -462,6 +508,9 @@ def _call_model(
     max_output_tokens: Optional[int] = None,
     thinking_budget: Optional[int] = None,
     seed: Optional[int] = None,
+    thinking_level: Optional[str] = None,
+    media_resolution: Optional[str] = None,
+    client=None,
 ):
     contents: list[object] = [system_prompt, user_prompt]
     payload_size = 0
@@ -478,12 +527,18 @@ def _call_model(
     gen_config = _build_generate_config(
         response_schema, max_output_tokens=max_output_tokens,
         thinking_budget=thinking_budget, seed=seed,
+        thinking_level=thinking_level, media_resolution=media_resolution,
     )
 
-    def _invoke(client):
-        return client.models.generate_content(
+    def _invoke(cl):
+        return cl.models.generate_content(
             model=model_name, contents=contents, config=gen_config,
         )
+
+    # `client` explícito (ex.: cliente dedicado do shadow) NÃO usa o fallback de região
+    # de prod — mantém o custo/quota 100% no projeto do shadow.
+    if client is not None:
+        return _invoke(client)
 
     try:
         return _invoke(_get_client())
@@ -503,6 +558,7 @@ def _call_model(
 _MODEL_PRICES = {
     "gemini-2.5-flash-lite": (0.10, 0.40),
     "gemini-2.5-flash": (0.30, 2.50),
+    "gemini-3.1-flash-lite": (0.125, 0.75),
 }
 
 
@@ -510,6 +566,9 @@ def _price_key(model_name: str) -> str:
     """Normaliza nomes versionados (ex.: gemini-2.5-flash-002) para a chave de preço."""
     m = (model_name or "").strip().lower()
     if "flash-lite" in m:
+        # Gemini-3.x flash-lite tem preço próprio; senão cai no 2.5.
+        if "gemini-3" in m or "-3." in m or "3.1" in m:
+            return "gemini-3.1-flash-lite"
         return "gemini-2.5-flash-lite"
     if "flash" in m:
         return "gemini-2.5-flash"
@@ -723,6 +782,7 @@ def analyze_with_gemini(
     prior_window_context: Optional[str] = None,
     prompt_version: str = "current",
     pile_crops: Optional[list[Path]] = None,
+    override: "Optional[ModelOverride]" = None,
 ) -> GeminiInferenceResult:
     """Run Gemini inference with retry/timeout and strict schema validation.
 
@@ -754,7 +814,12 @@ def analyze_with_gemini(
     use_audit = prompt_version == "audit"
     use_v3 = prompt_version == "v3"
     use_v2 = prompt_version == "v2"
-    if use_mangabeira_crops:
+    use_g3 = prompt_version == "g3"
+    if use_g3:
+        # Gemini-3 recall-first (campanha 47); mesmo schema/pós-proc do "current".
+        system_prompt = _prompts_g3.G3_DETAIL_PROMPT
+        schema_cls = GeminiInfractionReport
+    elif use_mangabeira_crops:
         # Per-camera detail prompt selected by device_id; crops mandatory.
         system_prompt = _prompts_v3.detail_system_prompt_for_camera(
             camera_context, has_pilecrops=True,
@@ -842,14 +907,21 @@ def analyze_with_gemini(
                         mosaic_mode=mosaic_mode, prior_window_context=prior_window_context,
                     )
 
+                _detail_model = (override.model if override and override.model
+                                 else config.GEMINI_MODEL)
                 with ThreadPoolExecutor(max_workers=1) as pool:
                     fut = pool.submit(
                         _call_model,
                         send_paths,
                         system_prompt,
                         user_prompt_text,
-                        config.GEMINI_MODEL,
+                        _detail_model,
                         schema_cls.model_json_schema(),
+                        (override.max_output_tokens if override and override.max_output_tokens
+                         else None),
+                        thinking_level=(override.thinking_level if override else None),
+                        media_resolution=(override.media_resolution if override else None),
+                        client=(override.client if override else None),
                     )
                     response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
 
@@ -861,7 +933,7 @@ def analyze_with_gemini(
                 elif use_audit:
                     report = _prompts_audit.apply_audit_consistency(report, request_id=request_id)
 
-                usage = _extract_usage(response, config.GEMINI_MODEL)
+                usage = _extract_usage(response, _detail_model)
                 latency_ms = int((time.monotonic() - started) * 1000)
 
                 logger.info(
@@ -869,7 +941,7 @@ def analyze_with_gemini(
                         {
                             "event": "gemini_inference_ok",
                             "request_id": request_id,
-                            "model": config.GEMINI_MODEL,
+                            "model": _detail_model,
                             "latency_ms": latency_ms,
                             "input_tokens": usage.input_tokens,
                             "output_tokens": usage.output_tokens,
@@ -884,7 +956,7 @@ def analyze_with_gemini(
                     report=report,
                     usage=usage,
                     latency_ms=latency_ms,
-                    model=config.GEMINI_MODEL,
+                    model=_detail_model,
                     raw_json=raw_text,
                 )
 
@@ -928,6 +1000,7 @@ def analyze_new_litter_with_gemini(
     use_mosaic: bool = False,
     mid_frames: Optional[list[Path]] = None,
     prompt_version: str = "current",
+    override: "Optional[ModelOverride]" = None,
 ) -> GeminiNewLitterInferenceResult:
     """Stage-1 gate: compare first and last frame for new litter appearance.
 
@@ -936,25 +1009,34 @@ def analyze_new_litter_with_gemini(
         mid_frames: optional list of mid-window frames (e.g. at 25%/50%/75%) to detect
             ghost events (arrive-dump-leave within window).
         prompt_version: "current" (V1), "v2" (behavioral discriminators, _prompts_v2.py),
-            or "v3" (posture-first signals, _prompts_v3.py).
+            "v3" (posture-first signals, _prompts_v3.py), or "g3" (Gemini-3 recall-first,
+            _prompts_g3.py; usa o schema/pós-processamento V1).
+        override: ModelOverride (só shadow) — modelo/cliente/media_resolution/thinking_level
+            alternativos; None = comportamento de prod.
     """
     attempts = max(0, config.GEMINI_MAX_RETRIES) + 1
     last_error: Optional[Exception] = None
-    model_name = config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL
+    model_name = (override.model if override and override.model
+                  else (config.GEMINI_AGENT1_MODEL or config.GEMINI_MODEL))
     timeout_s = max(1, config.GEMINI_AGENT1_TIMEOUT_SECONDS)
 
     camera_device_id = ""
     if camera_context:
         camera_device_id = str(camera_context.get("device_id") or "").strip().lower()
-    use_camera_v3_gate = camera_device_id in ("esp32_002", "esp32_001")
-    use_v3 = prompt_version == "v3" or use_camera_v3_gate
-    use_v2 = prompt_version == "v2"
+    # g3 NÃO usa o gate V3 per-câmera (é Gemini-3 com prompt próprio + pós-proc V1).
+    use_g3 = prompt_version == "g3"
+    use_camera_v3_gate = (not use_g3) and camera_device_id in ("esp32_002", "esp32_001")
+    use_v3 = (not use_g3) and (prompt_version == "v3" or use_camera_v3_gate)
+    use_v2 = (not use_g3) and prompt_version == "v2"
     if use_v3:
         system_prompt = _prompts_v3.gate_system_prompt_for_camera(camera_context)
         schema_cls = _prompts_v3.GeminiNewLitterReportV3
     elif use_v2:
         system_prompt = _prompts_v2.NEW_LITTER_SYSTEM_PROMPT_V2
         schema_cls = _prompts_v2.GeminiNewLitterReportV2
+    elif use_g3:
+        system_prompt = _prompts_g3.G3_GATE_PROMPT
+        schema_cls = GeminiNewLitterReport
     else:
         system_prompt = NEW_LITTER_SYSTEM_PROMPT
         schema_cls = GeminiNewLitterReport
@@ -1002,9 +1084,14 @@ def analyze_new_litter_with_gemini(
                         user_prompt_text,
                         model_name,
                         schema_cls.model_json_schema(),
-                        config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS,
-                        thinking_budget=config.GEMINI_AGENT1_THINKING_BUDGET,
+                        (override.max_output_tokens if override and override.max_output_tokens
+                         else config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS),
+                        thinking_budget=(None if override and override.thinking_level
+                                         else config.GEMINI_AGENT1_THINKING_BUDGET),
                         seed=42,
+                        thinking_level=(override.thinking_level if override else None),
+                        media_resolution=(override.media_resolution if override else None),
+                        client=(override.client if override else None),
                     )
                     response = fut.result(timeout=timeout_s)
 
