@@ -54,3 +54,48 @@ groups:
         annotations:
           summary: "Métricas do worker prod inacessíveis (:9108)"
           description: "Prometheus não consegue raspar o worker prod — container fora ou metrics off."
+
+  # ── Throughput / backlog (item G5, incidente 2026-07-23) ──────────────────
+  # Um throttle do Gemini virou backlog silencioso de 8h. WorkerNoScanCycles
+  # (acima) pega o ciclo TRAVADO em tempo real; estas regras pegam a degradação
+  # LENTA (ciclos fechando mas devagar, fila crescendo) e o breaker ativo.
+  - name: saira-worker-throughput
+    rules:
+      - alert: WorkerCameraBacklogHigh
+        # Fila de frames não processados de uma câmera cresceu muito — o worker
+        # não está acompanhando a chegada (~720/h/câmera). Atualiza a cada scan
+        # da câmera; complementa (não substitui) WorkerNoScanCycles.
+        expr: saira_worker_device_pending_frames > 800
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Backlog alto na câmera {{ $labels.device_id }} ({{ $value }} frames)"
+          description: >-
+            saira_worker_device_pending_frames{device_id={{ $labels.device_id }}} passou
+            de 800 por 15min — worker atrasado nessa câmera. Ver 429 do Gemini, breaker
+            aberto, ou considerar MAX_FRAME_AGE_SECONDS/escala.
+
+      - alert: WorkerScanCycleSlow
+        # Último ciclo COMPLETO demorou demais (saudável = minutos). Uma maratona
+        # como a de 23/07 (~8h45) dispararia assim que fechasse.
+        expr: saira_worker_last_cycle_seconds > 600
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ciclo de scan do worker levou {{ $value }}s (>10min)"
+          description: "saira_worker_last_cycle_seconds indica ciclo lento — backlog e/ou throttle do Gemini."
+
+      - alert: GeminiBreakerOpen
+        # Circuit breaker 429 ativo suprimindo chamadas por tempo sustentado —
+        # sinal de que o endpoint Gemini está saturado (checar GCP_LOCATION/quota).
+        expr: saira_gemini_breaker_open == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker do Gemini ABERTO há 5min"
+          description: >-
+            saira_gemini_breaker_open=1 — o worker está suprimindo chamadas por 429
+            sustentado. Checar GCP_LOCATION (global satura), quota regional e billing.

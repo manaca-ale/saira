@@ -40,6 +40,8 @@ from .detector_gemini import (
     ModelOverride,
     analyze_new_litter_with_gemini,
     analyze_with_gemini,
+    breaker_is_open,
+    breaker_opens_total,
     normalize_offender_types,
 )
 from . import detector_gemini as _detector_gemini
@@ -51,12 +53,15 @@ from .metrics import (
     observe_car_shadow_error,
     observe_car_shadow_events,
     observe_car_shadow_window,
+    observe_cycle_duration,
+    observe_device_backlog,
     observe_gemini_call,
     observe_gemini_error,
     observe_gemini_success,
     observe_scan_cycle,
     observe_scan_error,
     set_gemini_avg_latency_ms,
+    set_gemini_breaker_state,
     start_metrics_server,
 )
 from .models import DetectionRecord, GeminiUsage, OffenderRecord
@@ -602,6 +607,44 @@ def _collect_time_windows(images: list[Path]) -> list[list[Path]]:
         windows.append(current)
 
     return windows
+
+
+def _split_stale_frames(
+    images: list[Path],
+    max_age_s: int,
+    now: float,
+    mtime_fn=None,
+) -> tuple[list[Path], list[Path]]:
+    """Partition frames into (fresh, stale) by file mtime (G4 freshness).
+
+    Stale = older than ``max_age_s`` seconds relative to ``now`` (a time.time()
+    epoch). ``max_age_s <= 0`` disables the split (everything is fresh). Missing
+    files are dropped from both lists. ``mtime_fn`` is overridable for tests.
+    """
+    if max_age_s <= 0:
+        return images, []
+    mtime = mtime_fn or (lambda p: p.stat().st_mtime)
+    cutoff = now - max_age_s
+    fresh: list[Path] = []
+    stale: list[Path] = []
+    for p in images:
+        try:
+            (stale if mtime(p) < cutoff else fresh).append(p)
+        except FileNotFoundError:
+            continue
+    return fresh, stale
+
+
+def _cap_newest_windows(windows: list, max_per_cycle: int) -> tuple[list, int]:
+    """Keep only the newest ``max_per_cycle`` windows (G3 fairness).
+
+    Windows arrive chronologically ascending, so the newest are at the tail.
+    Returns (kept_windows, deferred_count). ``max_per_cycle <= 0`` disables the
+    cap (keep every window).
+    """
+    if max_per_cycle > 0 and len(windows) > max_per_cycle:
+        return windows[-max_per_cycle:], len(windows) - max_per_cycle
+    return windows, 0
 
 
 def _record_detection(
@@ -2589,6 +2632,7 @@ def _log_gemini_metrics_snapshot() -> None:
     calls = GEMINI_METRICS["gemini_calls_total"]
     avg_latency = round(GEMINI_METRICS["gemini_latency_ms_total"] / calls, 2) if calls else 0.0
     set_gemini_avg_latency_ms(avg_latency)
+    set_gemini_breaker_state(is_open=breaker_is_open(), opens_total=breaker_opens_total())
     logger.info(
         json.dumps(
             {
@@ -2789,6 +2833,29 @@ def scan_and_process() -> int:
             key=lambda p: (parse_timestamp(p.name), p.name),
         )
 
+        # G5 observability: publish the per-camera pending backlog (before any
+        # freshness/fairness shaping) so a growing queue can be alerted on.
+        observe_device_backlog(device_id, len(images))
+
+        # G4 freshness: frames older than the age limit are marked seen (moved to
+        # sem_ocorrencia, NO Gemini call) so a throttle-induced backlog is never
+        # reprocessed forever. "Flagrante em tempo real" — a frame from hours ago
+        # has no operational value. Disabled when MAX_FRAME_AGE_SECONDS == 0.
+        if config.MAX_FRAME_AGE_SECONDS > 0 and images:
+            images, stale_frames = _split_stale_frames(
+                images, config.MAX_FRAME_AGE_SECONDS, time.time()
+            )
+            for jpg in stale_frames:
+                try:
+                    mark_processed(jpg, device_dir, False)
+                except FileNotFoundError:
+                    continue
+            if stale_frames:
+                logger.info(
+                    "freshness: device=%s skipped %d stale frame(s) (older than %ds)",
+                    device_id, len(stale_frames), config.MAX_FRAME_AGE_SECONDS,
+                )
+
         if not images:
             continue
 
@@ -2798,6 +2865,20 @@ def scan_and_process() -> int:
             windows = _collect_time_windows(images)
             if not windows:
                 continue
+
+            # G3 fairness: cap windows processed per camera per cycle (newest
+            # first) so a backlogged camera cannot monopolise the single-threaded
+            # loop and starve the others (esp32_002 starved esp32_003 on
+            # 2026-07-23). Deferred windows are picked up next cycle; combined
+            # with the freshness policy they never pile up unbounded. 0 disables.
+            windows, deferred = _cap_newest_windows(
+                windows, config.MAX_WINDOWS_PER_DEVICE_PER_CYCLE
+            )
+            if deferred:
+                logger.info(
+                    "fairness: device=%s capped to %d newest windows this cycle (%d deferred)",
+                    device_id, config.MAX_WINDOWS_PER_DEVICE_PER_CYCLE, deferred,
+                )
 
             for window_paths in windows:
                 try:
@@ -3065,7 +3146,9 @@ def main() -> None:
 
     while True:
         try:
+            _cycle_started = time.monotonic()
             n = scan_and_process()
+            observe_cycle_duration(time.monotonic() - _cycle_started)
             observe_scan_cycle(n)
             if n:
                 logger.info("Cycle complete: %d images processed", n)

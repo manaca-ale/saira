@@ -5,8 +5,10 @@ import json
 import logging
 import mimetypes
 import re
+import threading
 import time
 import unicodedata
+from collections import deque
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from dataclasses import dataclass
 from pathlib import Path
@@ -409,6 +411,122 @@ def _is_resource_exhausted(exc: Exception) -> bool:
     if code == 429:
         return True
     return "RESOURCE_EXHAUSTED" in str(exc).upper()
+
+
+class GeminiBreakerOpen(RuntimeError):
+    """Raised instead of calling Gemini while the 429 circuit breaker is open.
+
+    Callers (the cascade gate/detail wrappers) already turn any exception into a
+    graceful ``success=False`` ("keep window for retry"), so an open breaker just
+    means the window fails fast — no network requests, no blocking backoff."""
+
+
+class _GeminiCircuitBreaker:
+    """Trips after N RESOURCE_EXHAUSTED failures within a sliding window and
+    short-circuits Gemini calls for a cooldown. A single half-open probe after
+    the cooldown decides whether to close (recovered) or reopen (still throttled).
+
+    Thread-safe: recording happens on the caller thread while the actual model
+    call runs in a max_workers=1 pool thread, but a lock keeps state consistent
+    and future-proofs against concurrency."""
+
+    def __init__(self) -> None:
+        self._state = "closed"          # closed | open | half_open
+        self._open_until = 0.0
+        self._fail_times: deque[float] = deque()
+        self._probe_in_flight = False
+        self._opens_total = 0
+        self._lock = threading.Lock()
+
+    def before_call(self) -> None:
+        """Raise GeminiBreakerOpen if calls are currently suppressed. Transitions
+        open→half_open (letting exactly one probe through) once the cooldown ends."""
+        if not config.GEMINI_BREAKER_ENABLED:
+            return
+        now = time.monotonic()
+        with self._lock:
+            if self._state == "open":
+                if now >= self._open_until:
+                    self._state = "half_open"
+                    self._probe_in_flight = True
+                    return  # this call is the probe
+                raise GeminiBreakerOpen("gemini circuit breaker open")
+            if self._state == "half_open" and self._probe_in_flight:
+                raise GeminiBreakerOpen("gemini circuit breaker half-open (probe in flight)")
+
+    def record_success(self) -> None:
+        if not config.GEMINI_BREAKER_ENABLED:
+            return
+        with self._lock:
+            was_recovering = self._state != "closed"
+            self._state = "closed"
+            self._fail_times.clear()
+            self._probe_in_flight = False
+        if was_recovering:
+            logger.info("gemini circuit breaker CLOSED (recovered)")
+
+    def record_exhausted(self) -> None:
+        """Record a 429/RESOURCE_EXHAUSTED failure; may open (or reopen) the breaker."""
+        if not config.GEMINI_BREAKER_ENABLED:
+            return
+        now = time.monotonic()
+        opened = False
+        with self._lock:
+            if self._state == "half_open":
+                # Probe failed → still throttled, reopen for another cooldown.
+                self._state = "open"
+                self._open_until = now + config.GEMINI_BREAKER_COOLDOWN_SECONDS
+                self._probe_in_flight = False
+                self._fail_times.clear()
+                self._opens_total += 1
+                opened = True
+            else:
+                self._fail_times.append(now)
+                cutoff = now - config.GEMINI_BREAKER_WINDOW_SECONDS
+                while self._fail_times and self._fail_times[0] < cutoff:
+                    self._fail_times.popleft()
+                if len(self._fail_times) >= config.GEMINI_BREAKER_THRESHOLD:
+                    self._state = "open"
+                    self._open_until = now + config.GEMINI_BREAKER_COOLDOWN_SECONDS
+                    self._fail_times.clear()
+                    self._opens_total += 1
+                    opened = True
+        if opened:
+            logger.warning(
+                "gemini circuit breaker OPEN for %ds after RESOURCE_EXHAUSTED storm",
+                config.GEMINI_BREAKER_COOLDOWN_SECONDS,
+            )
+
+    def record_other_failure(self) -> None:
+        """A non-429 failure during a half-open probe is inconclusive about the
+        quota outage — close so normal ret/error handling resumes."""
+        if not config.GEMINI_BREAKER_ENABLED:
+            return
+        with self._lock:
+            if self._state == "half_open":
+                self._state = "closed"
+                self._fail_times.clear()
+                self._probe_in_flight = False
+
+    def is_open(self) -> bool:
+        with self._lock:
+            return self._state == "open" and time.monotonic() < self._open_until
+
+    def opens_total(self) -> int:
+        with self._lock:
+            return self._opens_total
+
+
+_breaker = _GeminiCircuitBreaker()
+
+
+def breaker_is_open() -> bool:
+    """Public accessor for metrics/observability (published by the main loop)."""
+    return _breaker.is_open()
+
+
+def breaker_opens_total() -> int:
+    return _breaker.opens_total()
 
 
 def _guess_mime(path: Path) -> str:
@@ -871,6 +989,7 @@ def analyze_with_gemini(
     last_error: Optional[Exception] = None
 
     try:
+        _breaker.before_call()
         for attempt in range(1, attempts + 1):
             started = time.monotonic()
             try:
@@ -952,6 +1071,7 @@ def analyze_with_gemini(
                     )
                 )
 
+                _breaker.record_success()
                 return GeminiInferenceResult(
                     report=report,
                     usage=usage,
@@ -962,6 +1082,7 @@ def analyze_with_gemini(
 
             except FutureTimeoutError as exc:
                 last_error = TimeoutError(f"Gemini timeout after {config.GEMINI_TIMEOUT_SECONDS}s")
+                _breaker.record_other_failure()
                 logger.warning(
                     "gemini timeout request_id=%s attempt=%d/%d",
                     request_id,
@@ -977,6 +1098,13 @@ def analyze_with_gemini(
                     attempts,
                     exc,
                 )
+                if _is_resource_exhausted(exc):
+                    # Under a 429 storm, stop burning the remaining attempts +
+                    # backoff on this thread; trip the breaker so later windows
+                    # fail fast instead of hammering the saturated endpoint.
+                    _breaker.record_exhausted()
+                    break
+                _breaker.record_other_failure()
 
             if attempt < attempts:
                 backoff_s = min(2 ** (attempt - 1), 10)
@@ -1073,6 +1201,7 @@ def analyze_new_litter_with_gemini(
         )
 
     try:
+        _breaker.before_call()
         for attempt in range(1, attempts + 1):
             started = time.monotonic()
             try:
@@ -1165,6 +1294,7 @@ def analyze_new_litter_with_gemini(
                         ensure_ascii=False,
                     )
                 )
+                _breaker.record_success()
                 return GeminiNewLitterInferenceResult(
                     report=report,
                     usage=usage,
@@ -1176,6 +1306,7 @@ def analyze_new_litter_with_gemini(
                 )
             except FutureTimeoutError:
                 last_error = TimeoutError(f"Gemini gate timeout after {timeout_s}s")
+                _breaker.record_other_failure()
                 logger.warning(
                     "gemini gate timeout request_id=%s attempt=%d/%d",
                     request_id,
@@ -1191,6 +1322,10 @@ def analyze_new_litter_with_gemini(
                     attempts,
                     exc,
                 )
+                if _is_resource_exhausted(exc):
+                    _breaker.record_exhausted()
+                    break
+                _breaker.record_other_failure()
             if attempt < attempts:
                 backoff_s = min(2 ** (attempt - 1), 10)
                 time.sleep(backoff_s)

@@ -31,6 +31,30 @@ WORKER_LAST_CYCLE_IMAGES = Gauge(
     "Number of images processed in the last completed cycle.",
 )
 
+# Resilience observability (G5) — surface the two failure modes that turned the
+# 2026-07-23 throttle into an 8h silent backlog: a cycle that runs far too long,
+# and a per-camera queue that keeps growing. Alert on either.
+WORKER_LAST_CYCLE_SECONDS = Gauge(
+    "saira_worker_last_cycle_seconds",
+    "Wall-clock duration of the last completed scan cycle, in seconds.",
+)
+
+WORKER_DEVICE_PENDING_FRAMES = Gauge(
+    "saira_worker_device_pending_frames",
+    "Unprocessed frames pending for a device at the start of its last scan.",
+    ["device_id"],
+)
+
+GEMINI_BREAKER_OPEN = Gauge(
+    "saira_gemini_breaker_open",
+    "1 when the Gemini 429 circuit breaker is open (suppressing calls), else 0.",
+)
+
+GEMINI_BREAKER_OPENS = Gauge(
+    "saira_gemini_breaker_opens_total",
+    "Cumulative number of times the Gemini 429 circuit breaker has opened.",
+)
+
 # agent label values: "gate" (Agent-1 cascade gate) or "detail" (Agent-2 / direct Gemini call)
 # camera_id is stringified camera.id (or "unknown" when camera cannot be resolved).
 GEMINI_CALLS_TOTAL = Counter(
@@ -158,6 +182,19 @@ def observe_scan_cycle(processed_images: int) -> None:
     WORKER_LAST_CYCLE_IMAGES.set(max(0, int(processed_images)))
     if processed_images > 0:
         WORKER_IMAGES_PROCESSED_TOTAL.inc(int(processed_images))
+
+
+def observe_cycle_duration(seconds: float) -> None:
+    WORKER_LAST_CYCLE_SECONDS.set(max(0.0, float(seconds)))
+
+
+def observe_device_backlog(device_id: str, pending: int) -> None:
+    WORKER_DEVICE_PENDING_FRAMES.labels(device_id=device_id).set(max(0, int(pending)))
+
+
+def set_gemini_breaker_state(*, is_open: bool, opens_total: int) -> None:
+    GEMINI_BREAKER_OPEN.set(1 if is_open else 0)
+    GEMINI_BREAKER_OPENS.set(max(0, int(opens_total)))
 
 
 def observe_scan_error() -> None:
