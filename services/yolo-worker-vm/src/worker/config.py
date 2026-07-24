@@ -140,6 +140,31 @@ GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
 
+# --- Gemini circuit breaker (G2, resilience) --------------------------------
+# During a 429/RESOURCE_EXHAUSTED storm each window otherwise pays up to
+# 3 attempts x 2 regions of blocking requests + backoff sleeps on the single
+# processing thread, which is what turned the 2026-07-23 throttle into an ~8h
+# backlog. The breaker trips after GEMINI_BREAKER_THRESHOLD exhausted failures
+# within GEMINI_BREAKER_WINDOW_SECONDS and short-circuits Gemini calls for
+# GEMINI_BREAKER_COOLDOWN_SECONDS (fail-fast → window kept for retry, no
+# hammering). After cooldown a single probe call decides close vs reopen.
+GEMINI_BREAKER_ENABLED = os.getenv("GEMINI_BREAKER_ENABLED", "true").strip().lower() in ("true", "1", "yes")
+GEMINI_BREAKER_THRESHOLD = int(os.getenv("GEMINI_BREAKER_THRESHOLD", "5"))
+GEMINI_BREAKER_WINDOW_SECONDS = int(os.getenv("GEMINI_BREAKER_WINDOW_SECONDS", "60"))
+GEMINI_BREAKER_COOLDOWN_SECONDS = int(os.getenv("GEMINI_BREAKER_COOLDOWN_SECONDS", "60"))
+
+# --- Scan-cycle fairness & freshness (G3/G4, resilience) --------------------
+# Fairness: cap how many windows a single camera may process per scan cycle so a
+# backlogged camera cannot monopolise the single-threaded loop and starve the
+# others (esp32_002 starved esp32_003 for hours on 2026-07-23). Newest windows
+# are processed first. 0 disables the cap (process every pending window).
+MAX_WINDOWS_PER_DEVICE_PER_CYCLE = int(os.getenv("MAX_WINDOWS_PER_DEVICE_PER_CYCLE", "30"))
+# Freshness: frames older than this are marked seen (moved to sem_ocorrencia)
+# WITHOUT a Gemini call, so a throttle-induced backlog does not get reprocessed
+# forever. "Flagrante em tempo real" — a frame from hours ago has no operational
+# value. 0 disables (keep the legacy behaviour of processing all ages).
+MAX_FRAME_AGE_SECONDS = int(os.getenv("MAX_FRAME_AGE_SECONDS", "0"))
+
 # Number of interior ("mid") frames sent to the Agent-1 gate, evenly spaced across
 # the window (in addition to first + last). Brief on-foot dumps (arrive-deposit-leave
 # within one motion burst) are easily missed by sparse sampling: the deposition act
