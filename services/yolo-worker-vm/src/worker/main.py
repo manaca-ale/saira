@@ -19,9 +19,12 @@ import requests
 
 from . import config
 from . import bgsub_filter
+from . import detector_bedrock
 from . import detector_dinov2
 from . import detector_structural
 from . import event_windows
+from ._prompts_v4picam import V4_DETAIL_PROMPT
+from .schemas_gemini import GeminiInfractionReport
 from .db import (
     find_recent_detection_for_camera,
     init_connections,
@@ -2273,6 +2276,113 @@ def _run_shadow_model(window_paths: list[Path], device_id: str, camera, manifest
                          device_id, getattr(manifest, "event_id", "?"))
 
 
+def _append_shadow_bedrock_audit(device_id: str, record: dict[str, Any]) -> None:
+    try:
+        day = datetime.now(BRASILIA).strftime("%Y-%m-%d")
+        day_dir = Path(config.STATE_DIR) / "shadow_bedrock_audit" / day
+        day_dir.mkdir(parents=True, exist_ok=True)
+        with (day_dir / f"{device_id}.jsonl").open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        logger.exception("shadow_bedrock: failed to append audit device=%s", device_id)
+
+
+# Breaker local do shadow Bedrock: [falhas consecutivas, epoch em que reabre].
+_SHADOW_BEDROCK_BREAKER = {"fails": 0, "open_until": 0.0}
+
+
+def _shadow_bedrock_breaker_open() -> bool:
+    return time.time() < _SHADOW_BEDROCK_BREAKER["open_until"]
+
+
+def _shadow_bedrock_breaker_note(ok: bool) -> None:
+    st = _SHADOW_BEDROCK_BREAKER
+    if ok:
+        st["fails"] = 0
+        return
+    st["fails"] += 1
+    if st["fails"] >= config.SHADOW_BEDROCK_BREAKER_FAILS:
+        st["open_until"] = time.time() + config.SHADOW_BEDROCK_BREAKER_COOLDOWN_S
+        st["fails"] = 0
+        logger.warning("shadow_bedrock: breaker ABERTO por %ds após falhas consecutivas",
+                       config.SHADOW_BEDROCK_BREAKER_COOLDOWN_S)
+
+
+def _run_shadow_bedrock(window_paths: list[Path], device_id: str, camera, manifest,
+                        prod_disposal: bool, prod_detection_id: Optional[str]) -> None:
+    """SHADOW Bedrock (Camp 49): `kimi-k2.5` em CHAMADA ÚNICA, log-only.
+
+    IRMÃO de `_run_shadow_model`, não uma generalização dela: aquele é o caminho de
+    produção, e mexer nele para acomodar um shadow arriscaria o que já funciona.
+
+    Reconstrói a MESMA janela da prod (subsample já feito -> byte-fit), reduz para
+    640px q70 (o Bedrock corta em corpo de 4 MB, 3x menos que o Gemini) e manda tudo
+    direto ao detail com o prompt V4 — sem gate, que é a configuração eleita no bench.
+    NUNCA cria detecção. Nunca quebra prod.
+    """
+    if not config.SHADOW_BEDROCK_ENABLED or device_id not in config.SHADOW_BEDROCK_DEVICES:
+        return
+    if _shadow_bedrock_breaker_open():
+        return
+    try:
+        win = event_windows.fit_frames_to_payload(list(window_paths), config.GEMINI_MAX_PAYLOAD_BYTES)
+        if len(win) < 2:
+            return
+        alias = config.SHADOW_BEDROCK_ALIAS
+        pay = detector_bedrock.prepare_images(win, mode="low")
+        # Se o teto do Bedrock cortou frames, os nomes permitidos têm que refletir o que
+        # foi REALMENTE enviado — senão o modelo devolve um event_frame_name inexistente.
+        names = [p.name for p in win]
+        if pay.n_dropped:
+            names = [p.name for p in detector_bedrock._even_drop(win, pay.n_images)]
+        cam_ctx = _shadow_camera_context(camera, device_id, win[-1].name)
+        user = _detector_gemini._user_prompt(
+            camera_context=cam_ctx, frame_names=names,
+            mosaic_mode="off", prior_window_context=None)
+
+        res = detector_bedrock.converse(
+            alias, V4_DETAIL_PROMPT, user, pay.blobs, GeminiInfractionReport,
+            max_tokens=config.SHADOW_BEDROCK_MAX_OUTPUT_TOKENS,
+            # o kimi aceita toolConfig e o ignora; forçar texto evita a chamada de descoberta
+            force_mode="text")
+        _shadow_bedrock_breaker_note(ok=not res.error)
+
+        rep = res.report
+        would_confirm = bool(getattr(rep, "infraction_confirmed", False)) if rep else False
+        rec: dict[str, Any] = {
+            "event_ref": manifest.event_id, "ts": datetime.now(BRASILIA).isoformat(),
+            "device_id": device_id, "window_first": win[0].name, "window_last": win[-1].name,
+            "window_size": len(win), "alias": alias,
+            "model": detector_bedrock.MODELS[alias].model_id if alias in detector_bedrock.MODELS else alias,
+            "prompt": "v4picam", "img_width": config.SHADOW_BEDROCK_IMG_WIDTH,
+            "img_quality": config.SHADOW_BEDROCK_IMG_QUALITY,
+            "n_images": pay.n_images, "n_dropped": pay.n_dropped,
+            "payload_mb": round(pay.raw_bytes / 1e6, 3),
+            "json_mode": res.json_mode, "json_valid": bool(res.json_valid),
+            "would_confirm": would_confirm,
+            "detail_conf": int(getattr(rep, "confidence_0_100", 0) or 0) if rep else None,
+            "waste_type": getattr(rep, "waste_type", None) if rep else None,
+            "offender_detected": bool(getattr(rep, "offender_detected", False)) if rep else None,
+            "evidence_summary": ((getattr(rep, "evidence_summary", "") or "")[:2000] if rep else ""),
+            "tok_in": res.tok_in, "tok_out": res.tok_out,
+            "cost_usd": round(res.cost_usd, 8), "latency_ms": res.latency_ms,
+            "stop_reason": res.stop_reason, "error": res.error,
+            "prod_created_detection": bool(prod_disposal), "prod_detection_id": prod_detection_id,
+        }
+        _append_shadow_bedrock_audit(device_id, rec)
+        logger.info(json.dumps({"event": "shadow_bedrock", "device_id": device_id,
+                                "event_ref": manifest.event_id, "alias": alias,
+                                "would_confirm": would_confirm,
+                                "prod_disposal": bool(prod_disposal),
+                                "n_images": pay.n_images, "payload_mb": rec["payload_mb"],
+                                "cost_usd": rec["cost_usd"], "latency_ms": res.latency_ms,
+                                "error": res.error}, ensure_ascii=False))
+    except Exception:
+        _shadow_bedrock_breaker_note(ok=False)
+        logger.exception("shadow_bedrock failed device=%s event=%s",
+                         device_id, getattr(manifest, "event_id", "?"))
+
+
 def _run_sliding_shadow(device_dir: Path, device_id: str, camera) -> None:
     """Evaluate overlapping sliding windows in SHADOW (log-only). Runs AFTER the live
     fixed pipeline so it never delays prod; uses its own state + audit. BGSUB-gated cost."""
@@ -2746,6 +2856,15 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
         # de mover os frames (window_paths ainda existe). Nunca cria detecção nem quebra prod.
         if config.SHADOW_MODEL_ENABLED and device_id in config.SHADOW_MODEL_DEVICES:
             _run_shadow_model(
+                window_paths, device_id, camera, manifest,
+                prod_disposal=final_disposal,
+                prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
+            )
+
+        # SHADOW Bedrock (Camp 49): kimi-k2.5 em chamada única, log-only. Mesmo ponto,
+        # mesmo contrato, ledger próprio — independente do shadow Gemini acima.
+        if config.SHADOW_BEDROCK_ENABLED and device_id in config.SHADOW_BEDROCK_DEVICES:
+            _run_shadow_bedrock(
                 window_paths, device_id, camera, manifest,
                 prod_disposal=final_disposal,
                 prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
