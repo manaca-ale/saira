@@ -278,6 +278,37 @@ SHADOW_GEMINI_API_KEY = os.getenv("SHADOW_GEMINI_API_KEY", "").strip()
 SHADOW_GCP_PROJECT = os.getenv("SHADOW_GCP_PROJECT", "").strip()
 SHADOW_GCP_LOCATION = os.getenv("SHADOW_GCP_LOCATION", "global").strip()
 
+# -----------------------------------------------------------------------------
+# SHADOW BEDROCK (Camp 49, 2026-07-31). Roda o candidato open-weight vencedor —
+# `kimi-k2.5` em CHAMADA ÚNICA (sem gate), janela cheia a 640px q70, prompt V4
+# flagrante+catador — alongside a prod, SÓ LOGA a decisão. Nunca cria detecção.
+# Objetivo: verificar em tráfego real os 19/19 de recall a -9% de custo medidos no
+# bench, antes da decisão de migração de 16/out/2026. Billing na conta AWS
+# `codex-ops`, NÃO na GCP da Prefeitura. Audit em
+# STATE_DIR/shadow_bedrock_audit/{date}/{device}.jsonl. Default OFF.
+SHADOW_BEDROCK_ENABLED = os.getenv("SHADOW_BEDROCK_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+SHADOW_BEDROCK_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("SHADOW_BEDROCK_DEVICES", "").split(",")
+    if d.strip()
+}
+# Alias do registro em detector_bedrock.MODELS (NÃO o modelId cru do Bedrock).
+SHADOW_BEDROCK_ALIAS = os.getenv("SHADOW_BEDROCK_ALIAS", "kimi-k2.5").strip()
+SHADOW_BEDROCK_REGION = os.getenv("SHADOW_BEDROCK_REGION", "us-east-1").strip()
+SHADOW_BEDROCK_IMG_WIDTH = int(os.getenv("SHADOW_BEDROCK_IMG_WIDTH", "640"))
+SHADOW_BEDROCK_IMG_QUALITY = int(os.getenv("SHADOW_BEDROCK_IMG_QUALITY", "70"))
+SHADOW_BEDROCK_MAX_OUTPUT_TOKENS = int(os.getenv("SHADOW_BEDROCK_MAX_OUTPUT_TOKENS", "8192"))
+# Guardrails de latência: o shadow roda INLINE na thread serial do pipeline, e o
+# incidente de 23/07 (guardrails G2-G5) foi backlog por chamada lenta. Tentativas
+# poucas, backoff com teto e um deadline absoluto para a chamada inteira.
+SHADOW_BEDROCK_TIMEOUT_TRIES = int(os.getenv("SHADOW_BEDROCK_TIMEOUT_TRIES", "2"))
+SHADOW_BEDROCK_BACKOFF_CAP_S = int(os.getenv("SHADOW_BEDROCK_BACKOFF_CAP_S", "8"))
+SHADOW_BEDROCK_DEADLINE_S = int(os.getenv("SHADOW_BEDROCK_DEADLINE_S", "60"))
+# Breaker local: após N falhas consecutivas, pula o shadow por um cooldown (mesma
+# intenção do G2 do Gemini, sem tocar naquele caminho).
+SHADOW_BEDROCK_BREAKER_FAILS = int(os.getenv("SHADOW_BEDROCK_BREAKER_FAILS", "5"))
+SHADOW_BEDROCK_BREAKER_COOLDOWN_S = int(os.getenv("SHADOW_BEDROCK_BREAKER_COOLDOWN_S", "900"))
+
 # Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.
