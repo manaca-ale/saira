@@ -23,6 +23,7 @@ from . import detector_bedrock
 from . import detector_dinov2
 from . import detector_structural
 from . import event_windows
+from . import _shadow_gate51
 from ._prompts_v4picam import V4_DETAIL_PROMPT
 from .schemas_gemini import GeminiInfractionReport
 from .db import (
@@ -2868,6 +2869,17 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
                 window_paths, device_id, camera, manifest,
                 prod_disposal=final_disposal,
                 prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
+            )
+
+        # SHADOW Camp 51 Fase B: dois gates candidatos (Gemini-3.1 e magistral) sobre os
+        # MESMOS bytes + kimi no detail. Mede a taxa de passagem absoluta em tráfego real,
+        # que é o que falta para dimensionar o custo da migração de out/2026. Log-only.
+        if config.SHADOW_C51_ENABLED and device_id in config.SHADOW_C51_DEVICES:
+            _shadow_gate51.run(
+                window_paths, device_id, camera, manifest,
+                prod_disposal=final_disposal,
+                prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
+                log_call=_log_gemini_call,
             )
 
         moved_frames: list[Path] = []
