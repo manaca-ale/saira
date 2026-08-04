@@ -309,6 +309,30 @@ SHADOW_BEDROCK_DEADLINE_S = int(os.getenv("SHADOW_BEDROCK_DEADLINE_S", "60"))
 SHADOW_BEDROCK_BREAKER_FAILS = int(os.getenv("SHADOW_BEDROCK_BREAKER_FAILS", "5"))
 SHADOW_BEDROCK_BREAKER_COOLDOWN_S = int(os.getenv("SHADOW_BEDROCK_BREAKER_COOLDOWN_S", "900"))
 
+# ── SHADOW Camp 51 Fase B (gate candidato + kimi no detail) ───────────────────
+# Mede a taxa de passagem ABSOLUTA de dois gates candidatos em tráfego real — o
+# número que faltava para dimensionar o custo da migração de out/2026, já que cada
+# evento que passa custa uma chamada de detail ~25x mais cara que o gate.
+# Audit em STATE_DIR/shadow_c51_audit/{date}/{device}.jsonl. Default OFF.
+SHADOW_C51_ENABLED = os.getenv("SHADOW_C51_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+SHADOW_C51_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("SHADOW_C51_DEVICES", "").split(",")
+    if d.strip()
+}
+# Braço A = modelo Gemini (cliente shadow dedicado). Braço B = alias de
+# detector_bedrock.MODELS. Ambos com o MESMO prompt e os MESMOS bytes.
+SHADOW_C51_GATE_A = os.getenv("SHADOW_C51_GATE_A", "gemini-3.1-flash-lite").strip()
+SHADOW_C51_GATE_B = os.getenv("SHADOW_C51_GATE_B", "magistral-small").strip()
+# g3 é obrigatório aqui: no magistral, V1=93% / g3=100% / V4=26% de recall de gate.
+SHADOW_C51_GATE_PROMPT = os.getenv("SHADOW_C51_GATE_PROMPT", "g3").strip()
+SHADOW_C51_DETAIL_ALIAS = os.getenv("SHADOW_C51_DETAIL_ALIAS", "kimi-k2.5").strip()
+SHADOW_C51_GATE_MIDS = int(os.getenv("SHADOW_C51_GATE_MIDS", "3"))
+SHADOW_C51_TRIGGER_THR = int(os.getenv("SHADOW_C51_TRIGGER_THR", "85"))
+# Teto de gasto por dia (US$). Ao estourar, o shadow se cala e LOGA o corte — um
+# corte silencioso faria os dados parecerem completos quando não estão.
+SHADOW_C51_DAILY_BUDGET_USD = float(os.getenv("SHADOW_C51_DAILY_BUDGET_USD", "3.50"))
+
 # Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.
