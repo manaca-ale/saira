@@ -363,6 +363,18 @@ services:
       - SHADOW_BEDROCK_DEADLINE_S=${SHADOW_BEDROCK_DEADLINE_S:-60}
       - SHADOW_BEDROCK_BREAKER_FAILS=${SHADOW_BEDROCK_BREAKER_FAILS:-5}
       - SHADOW_BEDROCK_BREAKER_COOLDOWN_S=${SHADOW_BEDROCK_BREAKER_COOLDOWN_S:-900}
+      # SHADOW Camp 51 Fase B: dois gates candidatos + kimi no detail, log-only.
+      # Mede a taxa de passagem ABSOLUTA em tráfego real (o que falta para dimensionar
+      # o custo da migração de out/2026). Manter em sincronia com docker-compose.test.yml.
+      - SHADOW_C51_ENABLED=${SHADOW_C51_ENABLED:-false}
+      - SHADOW_C51_DEVICES=${SHADOW_C51_DEVICES:-}
+      - SHADOW_C51_GATE_A=${SHADOW_C51_GATE_A:-gemini-3.1-flash-lite}
+      - SHADOW_C51_GATE_B=${SHADOW_C51_GATE_B:-magistral-small}
+      - SHADOW_C51_GATE_PROMPT=${SHADOW_C51_GATE_PROMPT:-g3}
+      - SHADOW_C51_DETAIL_ALIAS=${SHADOW_C51_DETAIL_ALIAS:-kimi-k2.5}
+      - SHADOW_C51_GATE_MIDS=${SHADOW_C51_GATE_MIDS:-3}
+      - SHADOW_C51_TRIGGER_THR=${SHADOW_C51_TRIGGER_THR:-85}
+      - SHADOW_C51_DAILY_BUDGET_USD=${SHADOW_C51_DAILY_BUDGET_USD:-3.50}
     volumes:
       - esp32_uploads_prod:/app/uploads
       - yolo_state_prod:/app/state

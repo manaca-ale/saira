@@ -323,6 +323,18 @@ services:
       - SHADOW_BEDROCK_DEADLINE_S=${SHADOW_BEDROCK_DEADLINE_S:-60}
       - SHADOW_BEDROCK_BREAKER_FAILS=${SHADOW_BEDROCK_BREAKER_FAILS:-5}
       - SHADOW_BEDROCK_BREAKER_COOLDOWN_S=${SHADOW_BEDROCK_BREAKER_COOLDOWN_S:-900}
+      # SHADOW Camp 51 Fase B. ⚠️ As DUAS flags de acionamento usam a indireção TEST_
+      # (o .env do servidor é COMPARTILHADO entre test e prod — sem isso, armar o test
+      # armaria o prod junto). Manter o resto em sincronia com docker-compose.prod.yml.
+      - SHADOW_C51_ENABLED=${TEST_SHADOW_C51_ENABLED:-false}
+      - SHADOW_C51_DEVICES=${TEST_SHADOW_C51_DEVICES:-}
+      - SHADOW_C51_GATE_A=${SHADOW_C51_GATE_A:-gemini-3.1-flash-lite}
+      - SHADOW_C51_GATE_B=${SHADOW_C51_GATE_B:-magistral-small}
+      - SHADOW_C51_GATE_PROMPT=${SHADOW_C51_GATE_PROMPT:-g3}
+      - SHADOW_C51_DETAIL_ALIAS=${SHADOW_C51_DETAIL_ALIAS:-kimi-k2.5}
+      - SHADOW_C51_GATE_MIDS=${SHADOW_C51_GATE_MIDS:-3}
+      - SHADOW_C51_TRIGGER_THR=${SHADOW_C51_TRIGGER_THR:-85}
+      - SHADOW_C51_DAILY_BUDGET_USD=${SHADOW_C51_DAILY_BUDGET_USD:-3.50}
       - ORPHAN_GRACE_SECONDS=${ORPHAN_GRACE_SECONDS:-300}
     volumes:
       - ../esp32-server/uploads:/app/uploads
