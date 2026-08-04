@@ -8,6 +8,24 @@ Run inside the backend container, for example:
   python -m app.scripts.import_missed_occurrences \
     --manifest /tmp/missed_manifest.json \
     --frames-root /tmp/missed_frames
+
+IMPORTANTE — o índice de frames e o volume read-only:
+
+Em produção o backend monta `WORKER_STATE_DIR` (/app/yolo_state) como READ-ONLY; quem
+escreve nele é o worker. Como o índice `detection_frames/{id}.json` é o que alimenta
+`/analyzed-frames`, sem ele a ocorrência aparece com um único frame.
+
+Por isso o script agora VALIDA a gravabilidade do state dir ANTES de subir qualquer coisa
+ao S3 (04/08/2026: a versão anterior subia os 38 frames, falhava ao gravar o índice e
+deixava os objetos órfãos no bucket, com o banco em rollback).
+
+No prod, aponte para um diretório gravável e depois publique o índice pelo worker, que
+monta o mesmo volume em modo escrita:
+
+  docker exec -e WORKER_STATE_DIR=/tmp/state saira-backend-prod \\
+    python -m app.scripts.import_missed_occurrences --manifest ... --frames-root ...
+  docker cp saira-backend-prod:/tmp/state/detection_frames/<id>.json /tmp/
+  docker cp /tmp/<id>.json saira-yolo-worker-prod:/app/state/detection_frames/<id>.json
 """
 from __future__ import annotations
 
@@ -66,7 +84,40 @@ def _parse_args() -> argparse.Namespace:
         default="ocorrencias",
         help="Root S3 prefix. Defaults to the same prefix used by worker uploads.",
     )
+    parser.add_argument(
+        "--state-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Onde gravar o índice detection_frames/. Default: WORKER_STATE_DIR. "
+            "Em prod esse volume é read-only no backend — use um path gravável e "
+            "publique o índice pelo worker (ver docstring)."
+        ),
+    )
     return parser.parse_args()
+
+
+def _ensure_state_dir_writable(state_dir: Path) -> Path:
+    """Falha ANTES de qualquer upload se o índice não puder ser gravado.
+
+    O índice é o que faz `/analyzed-frames` devolver a sequência inteira; sem ele a
+    ocorrência aparece com um frame só. Descobrir isso depois do upload deixa objetos
+    órfãos no S3 (o banco faz rollback, o bucket não).
+    """
+    frames_dir = state_dir / "detection_frames"
+    try:
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        probe = frames_dir / ".write_probe"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink()
+    except OSError as exc:
+        raise RuntimeError(
+            f"não é possível gravar o índice em {frames_dir} ({exc.strerror}). "
+            "Em produção o backend monta WORKER_STATE_DIR read-only: rode com "
+            "-e WORKER_STATE_DIR=/tmp/state (ou --state-dir /tmp/state) e depois copie "
+            "o JSON para o worker, que monta o volume em modo escrita."
+        ) from exc
+    return frames_dir
 
 
 def _load_manifest(path: Path) -> list[dict[str, Any]]:
@@ -183,6 +234,7 @@ async def _import_event(
     s3_prefix: str,
     status: DetectionStatus,
     dry_run: bool,
+    frames_index_dir: Path,
 ) -> ImportedEvent:
     event_id = str(event["event_id"]).strip()
     event_ts = _parse_datetime(str(event["timestamp"]))
@@ -283,9 +335,7 @@ async def _import_event(
         }
 
         if not dry_run:
-            state_dir = Path(settings.WORKER_STATE_DIR) / "detection_frames"
-            state_dir.mkdir(parents=True, exist_ok=True)
-            (state_dir / f"{detection_id}.json").write_text(
+            (frames_index_dir / f"{detection_id}.json").write_text(
                 json.dumps(index, ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
@@ -309,6 +359,11 @@ async def _main() -> None:
         raise RuntimeError("S3_BUCKET_NAME is required")
 
     events = _load_manifest(args.manifest)
+    # ANTES do S3: se o índice não puder ser gravado, falhar aqui evita subir frames que
+    # ficariam órfãos no bucket (o banco faz rollback, o S3 não).
+    state_dir = args.state_dir or Path(settings.WORKER_STATE_DIR)
+    frames_index_dir = _ensure_state_dir_writable(state_dir)
+
     s3_client = get_s3_client()
     status = DetectionStatus[args.status]
     imported: list[ImportedEvent] = []
@@ -321,6 +376,7 @@ async def _main() -> None:
                 s3_prefix=args.s3_prefix,
                 status=status,
                 dry_run=args.dry_run,
+                frames_index_dir=frames_index_dir,
             )
         )
 
