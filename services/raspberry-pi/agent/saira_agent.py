@@ -93,6 +93,20 @@ HTTP_BREAKER_MAX_S = 600.0   # teto do backoff (10 min)
 POLYGON_REF_W = 1280
 POLYGON_REF_H = 720
 _LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
+# Frames que o CMD_CALIBRATE joga fora antes de medir: o MOG2 da sonda nasce
+# vazio e acusa a zona inteira como foreground até convergir. Medido com frames
+# reais da pi-cam-001: frame 0 = 100% da zona, frames 1-3 assentando, 4+ = 0.
+# 10 dá folga sobre isso sem comer a janela (20s @1Hz ainda deixa 10 amostras).
+_CALIB_SETTLE_FRAMES = 10
+
+
+def _percentile(vals: list[int], p: float) -> int:
+    """Percentil p (0..1) por nearest-rank. Lista vazia -> 0."""
+    if not vals:
+        return 0
+    ordered = sorted(vals)
+    idx = int(round(p * (len(ordered) - 1)))
+    return ordered[idx]
 
 
 def _cfg_parse(kv: dict, rej: dict, key: str, cast, scale: float = 1.0):
@@ -1403,10 +1417,12 @@ class Agent:
         heatmap de foreground + painel) para /upload e (2) um relatório JSON
         para /device/<id>/logs. Modo calibração remoto: desenhar a zona e achar
         o enquadramento sem ir ao local."""
+        # Default 60s (era 20): a 1 Hz, 20s deixava só 10 amostras depois do
+        # descarte de convergência — p95 de 10 amostras é o próprio max.
         try:
-            secs = max(3, min(120, int(arg))) if arg else 20
+            secs = max(3, min(120, int(arg))) if arg else 60
         except ValueError:
-            secs = 20
+            secs = 60
         log.info("CMD_CALIBRATE: amostrando por %ds", secs)
         polygon = self._last_good_polygon
         try:
@@ -1439,36 +1455,88 @@ class Agent:
             self._post_status("calibrate no-frames")
             return
 
-        fgs = [s[0] for s in samples]
-        deltas = [s[1] for s in samples]
+        # O MOG2 da sonda nasce vazio: no 1º frame a zona INTEIRA é foreground
+        # (medido: fg_px=62275 = 100% da zona, e 0 no frame seguinte). Descartar
+        # a convergência é obrigatório — sem isso o max() herda esse outlier e a
+        # sugestão vira maior que a própria zona (bug de campo: 93462).
+        # Janela curta demais para descartar a convergência: ainda reportamos a
+        # distribuição medida, mas NÃO sugerimos threshold — um número
+        # contaminado pelo cold-start é pior que nenhum (foi assim que nasceu o
+        # 93462, maior que a própria zona).
+        settled_ok = len(samples) > _CALIB_SETTLE_FRAMES
+        settled = samples[_CALIB_SETTLE_FRAMES:] if settled_ok else samples
+        discarded = _CALIB_SETTLE_FRAMES if settled_ok else 0
+
+        fgs = [s[0] for s in settled]
+        deltas = [s[1] for s in settled]
         cur_min_active = self._gate.min_px_active if self._gate else self.cfg.pi_bgsub_min_px_active
         cur_delta_start = self._gate.delta_start_px if self._gate else self.cfg.pi_bgsub_delta_start_px
+
+        def _stats(vals: list[int]) -> dict:
+            return {
+                "min": min(vals), "max": max(vals),
+                "mean": round(sum(vals) / len(vals), 1),
+                "p50": _percentile(vals, 0.50),
+                "p95": _percentile(vals, 0.95),
+                "p99": _percentile(vals, 0.99),
+            }
+
+        fg_stats, delta_stats = _stats(fgs), _stats(deltas)
         report = {
             "device_id": self.cfg.device_id,
             "ts": datetime.now().isoformat(timespec="seconds"),
             "seconds": secs,
-            "frames": len(samples),
-            "fg_px": {"min": min(fgs), "max": max(fgs), "mean": round(sum(fgs) / len(fgs), 1)},
-            "delta_px": {"min": min(deltas), "max": max(deltas), "mean": round(sum(deltas) / len(deltas), 1)},
+            "frames": len(settled),
+            "frames_discarded": discarded,
+            "fg_px": fg_stats,
+            "delta_px": delta_stats,
             "current": {
                 "pile_zone_polygon": polygon,
                 "min_px_active": cur_min_active,
                 "delta_start_px": cur_delta_start,
             },
-            # Sugestão: piso acima do ruído observado na cena (folga 1,5×+50).
+            # Piso acima do ruído observado (folga 1,5×+50) sobre o p95, não o
+            # max: uma única passagem de carro/farol durante a janela não pode
+            # ditar o threshold.
             "suggested": {
-                "min_px_active": int(max(fgs) * 1.5) + 50,
-                "delta_start_px": int(max(deltas) * 1.5) + 50,
-            },
+                "min_px_active": int(fg_stats["p95"] * 1.5) + 50,
+                "delta_start_px": int(delta_stats["p95"] * 1.5) + 50,
+            } if settled_ok else None,
+            "suggestion_basis": (
+                f"p95 ×1,5 +50, após descartar {discarded} frames de "
+                f"convergência do MOG2"
+            ) if settled_ok else (
+                f"sem sugestão: {len(samples)} frames não bastam para descartar "
+                f"os {_CALIB_SETTLE_FRAMES} de convergência do MOG2 — "
+                f"repita com uma janela maior"
+            ),
+            # A janela é curta por construção (bloqueia a thread de comandos).
+            # Sem este aviso o operador lê a sugestão como verdade do dia todo —
+            # foi o que aconteceu em 14/07: uma janela noturna curta sugeriu 8×
+            # de folga, e a madrugada real chegou a 28× o medido.
+            "horizon_warning": (
+                f"janela de {secs}s num único instante: NÃO cobre variação de "
+                f"iluminação (farol, amanhecer, chuva). Para thresholds de "
+                f"produção, medir ao menos 1 noite inteira."
+            ),
         }
         last_fg, last_delta = samples[-1]
+        # ASCII de propósito: o painel é desenhado com cv2.putText (fonte
+        # Hershey), que não tem glifo para acento — "NÃO" sairia "N??O".
+        # O relatório JSON acima leva o texto acentuado de verdade.
         lines = [
             f"CALIB {self.cfg.device_id} {report['ts']}",
-            f"fg_px now={last_fg} min={min(fgs)} max={max(fgs)} mean={report['fg_px']['mean']}",
-            f"delta_px now={last_delta} min={min(deltas)} max={max(deltas)} mean={report['delta_px']['mean']}",
+            f"fg_px now={last_fg} p50={fg_stats['p50']} p95={fg_stats['p95']} max={fg_stats['max']}",
+            f"delta_px now={last_delta} p50={delta_stats['p50']} p95={delta_stats['p95']} max={delta_stats['max']}",
             f"atual: min_px_active={cur_min_active} delta_start_px={cur_delta_start}",
-            f"sugerido: min_px_active>={report['suggested']['min_px_active']} "
-            f"delta_start_px>={report['suggested']['delta_start_px']}",
+            (
+                f"sugerido: min_px_active>={report['suggested']['min_px_active']} "
+                f"delta_start_px>={report['suggested']['delta_start_px']}"
+                if settled_ok
+                else f"sem sugestao: janela curta demais ({len(samples)} frames)"
+            ),
+            f"({len(settled)} frames, {discarded} descartados; "
+            f"janela {secs}s NAO cobre a noite)",
         ]
         annotated = probe.annotate(last_frame, lines)
         self._spool_and_upload(annotated if annotated else last_frame)
