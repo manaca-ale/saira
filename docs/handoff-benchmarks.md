@@ -134,7 +134,7 @@ Resumo do que já foi decidido — **antes de propor um experimento, verificar a
 
 | Data | Pendência |
 |---|---|
-| **11/08** | Revisar shadow C51 (pi-cam-001): comparar gates candidatos vs operador, decidir gate da migração |
+| ~~11/08~~ ✅ | Revisão do shadow C51 feita em 11/08 — [SHADOW_C51_REVIEW_2026-08-11.md](../benchmarks/campaigns/51-cheap-gate-recall-2026-07-31/SHADOW_C51_REVIEW_2026-08-11.md). Recall 3/3 nos dois gates; recomendação: manter gate A (3.1-flash-lite), desligar/amostrar gate B (magistral). **Decisões pendentes**: desligar o B? rotular amostra dos 197 candidatos a FN |
 | ~16/08 | Revisar efeito acumulado BGSUB-enforce + recall Mangabeira (camp 52 achou 60% no melhor braço) |
 | antes de 16/10 | Shadow + deploy do prompt V4; decidir modelo pós-Gemini-2.5 (fluxo: V4 sobre `unified_low_2s` do G3) |
 | — | esp32_004 sem frames desde 23/07 (visita de campo pendente) |
