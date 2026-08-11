@@ -29,6 +29,26 @@ Dos **22 REJEITADO**: A disparou em 11 (50%), B em 17 (77%) — mas o pipeline s
 
 ⚠️ **Não tratar como 197 FNs reais**: ~25 candidatos/dia é implausível (prod cria ~3-4 detecções/dia e o recall de bench do pipeline é 80-87%); contra os rótulos conhecidos o kimi passa 27% dos REJEITADO. A maioria provável é FP do kimi (revira/coleta) — mas o padrão dos FNs conhecidos de 01/08 (13:03 e 21:09) diz que existem FNs reais no meio. **Próximo passo obrigatório: rotular uma amostra (~20) com os frames** antes de citar qualquer número de FN.
 
+## Rotulagem da amostra (feita em 11/08, mesma data)
+
+20 dos 197 candidatos rotulados visualmente com os frames das janelas (8 frames/evento, estratificado: 10 alcançados pelo A, 10 só-via-B). Frames: zips `descartadas/` no S3 + uploads locais; amostra com `seed=51` (`sample20_labels.json`).
+
+| Rótulo | Total | Nos 10 do gate A | Nos 10 só-via-B |
+|---|---|---|---|
+| **TP (descarte real)** | 2 | **2** | **0** |
+| Indeterminado | 3 | 2 | 1 |
+| FP do kimi | 15 | 6 | 9 |
+
+- Os 2 TPs: `evt-20260806_192004` (saco preto novo no chão, 19:18→19:20) e `evt-20260809_085047` (homem leva saco branco à pilha e volta sem ele, 08:50) — **ambos disparados pelo gate A e perdidos pelo gate de prod**, confirmando em campo o achado da Fase A (3.1-flash-lite recupera FNs do 2.5-flash-lite).
+- **O braço B não trouxe nenhum TP exclusivo** na amostra (9 FP + 1 IND) — reforça o desligamento.
+- Precisão do kimi nos shadow-only ≈ **10%** (2/20; até 25% contando IND). Extrapolação para os 197: ~**20 FNs reais na semana (~2-3/dia)**, mas o IC binomial de n=20 é largo ([1,2%, 31,7%] → 2 a 62/semana) — tratar como ordem de grandeza. Padrões de FP do kimi: catador/revira/coleta (maioria), limpeza municipal, transeuntes com objetos, trânsito noturno.
+- Implicação: o FN real de prod na pi-cam-001 não é desprezível (~2-3/dia vs 3-4 detecções/dia criadas) — mais um argumento para trocar o modelo do gate na migração, e um lembrete de que o kimi NÃO serve de árbitro sozinho (90% de FP nos confirms extras).
+
+## Decisão executada (11/08)
+
+- **Gate B (magistral) DESLIGADO em prod** no mesmo dia: PR #84 (switch `SHADOW_C51_GATE_B=off`, develop) + PR #85 (release → main, deploy CI verde), `SHADOW_C51_GATE_B=off` no `.env` (backup `.env.bak-c51armBoff-20260811`), worker recriado 10:57 BRT. Primeiro registro do ledger com `arm_b: disabled` confirmado; custo da janela caiu de ~$0,0049 para ~$0,0010.
+- Shadow segue ativo só com gate A + kimi.
+
 ## Recomendação
 
 1. **Gate A (`gemini-3.1-flash-lite`) segue como candidato a gate da migração** — confirma o achado da Fase A da camp 51 (recupera os TPs que o gate de prod perde) agora com 7 dias de prod: recall 3/3 nos confirmados, fire rate 7,7%, 5 erros em 4.401 janelas.
