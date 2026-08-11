@@ -1,0 +1,47 @@
+{
+  "qwen3-vl-235b:v4_casc": {
+    "n": 119,
+    "n_errors": 3,
+    "json_valid_rate": 97.5,
+    "tp_recall_det": 31.6,
+    "tp_det": "6/19",
+    "fp_rate_det": 0.0,
+    "fp_det": "0/25",
+    "baseline_fire_rate": 0.0,
+    "baseline": "0/38",
+    "cost_per_event_usd": 0.003651,
+    "total_cost_usd": 0.4344,
+    "latency_p50_ms": 12112,
+    "img_mode": "low"
+  },
+  "qwen3-vl-235b:v4_casc_5f": {
+    "n": 116,
+    "n_errors": 6,
+    "json_valid_rate": 95.1,
+    "tp_recall_det": 31.6,
+    "tp_det": "6/19",
+    "fp_rate_det": 0.0,
+    "fp_det": "0/25",
+    "baseline_fire_rate": 0.0,
+    "baseline": "0/36",
+    "cost_per_event_usd": 0.002696,
+    "total_cost_usd": 0.3128,
+    "latency_p50_ms": 8389,
+    "img_mode": "low"
+  },
+  "qwen3-vl-235b:v4_single": {
+    "n": 115,
+    "n_errors": 7,
+    "json_valid_rate": 94.3,
+    "tp_recall_det": 36.8,
+    "tp_det": "7/19",
+    "fp_rate_det": 0.0,
+    "fp_det": "0/25",
+    "baseline_fire_rate": 0.0,
+    "baseline": "0/35",
+    "cost_per_event_usd": 0.004655,
+    "total_cost_usd": 0.5354,
+    "latency_p50_ms": 16382,
+    "img_mode": "low"
+  }
+}

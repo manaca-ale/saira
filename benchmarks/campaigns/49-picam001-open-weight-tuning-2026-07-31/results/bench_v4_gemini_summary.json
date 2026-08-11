@@ -1,0 +1,21 @@
+{
+  "current_v4": {
+    "n": 122,
+    "n_errors": 0,
+    "json_valid_rate": 100.0,
+    "json_mode": "native",
+    "tp_recall_det": 94.7,
+    "tp_det": "18/19",
+    "fp_rate_det": 32.0,
+    "fp_det": "8/25",
+    "tp_recall_evt": 85.7,
+    "tp_evt": "30/35",
+    "fp_rate_evt": 34.4,
+    "fp_evt": "11/32",
+    "baseline_fire_rate": 0.0,
+    "baseline": "0/40",
+    "cost_per_event_usd": 0.006011,
+    "total_cost_usd": 0.7334,
+    "latency_p50_ms": 15539
+  }
+}

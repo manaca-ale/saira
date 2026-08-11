@@ -1,0 +1,18 @@
+{
+  "unified_low": {
+    "n": 1,
+    "tp_recall_det": 100.0,
+    "tp_det": "1/1",
+    "fp_rate_det": null,
+    "fp_det": "0/0",
+    "tp_recall_evt": 100.0,
+    "tp_evt": "1/1",
+    "fp_rate_evt": null,
+    "fp_evt": "0/0",
+    "baseline_fire_rate": null,
+    "baseline": "0/0",
+    "cost_per_event_usd": 0.001798,
+    "total_cost_usd": 0.0018,
+    "latency_p50_ms": 10282
+  }
+}

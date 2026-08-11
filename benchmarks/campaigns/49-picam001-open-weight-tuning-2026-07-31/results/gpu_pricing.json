@@ -1,0 +1,86 @@
+{
+  "g5.xlarge": {
+    "od": 1.006,
+    "gpu": "1x A10G 24GB",
+    "vcpu": "4",
+    "mem": "16 GiB",
+    "ri": 0.63378
+  },
+  "g5.2xlarge": {
+    "od": 1.212,
+    "gpu": "1x A10G 24GB",
+    "vcpu": "8",
+    "mem": "32 GiB",
+    "ri": 0.76356
+  },
+  "g5.12xlarge": {
+    "od": 5.672,
+    "gpu": "4x A10G 96GB",
+    "vcpu": "48",
+    "mem": "192 GiB",
+    "ri": 3.57336
+  },
+  "g5.48xlarge": {
+    "od": 16.288,
+    "gpu": "8x A10G 192GB",
+    "vcpu": "192",
+    "mem": "768 GiB",
+    "ri": 10.26144
+  },
+  "g6.xlarge": {
+    "od": 0.8048,
+    "gpu": "1x L4 24GB",
+    "vcpu": "4",
+    "mem": "16 GiB",
+    "ri": 0.52392
+  },
+  "g6e.xlarge": {
+    "od": 1.861,
+    "gpu": "1x L40S 48GB",
+    "vcpu": "4",
+    "mem": "32 GiB",
+    "ri": 1.17243
+  },
+  "g6e.2xlarge": {
+    "od": 2.24208,
+    "gpu": "1x L40S 48GB",
+    "vcpu": "8",
+    "mem": "64 GiB",
+    "ri": 1.41251
+  },
+  "g6e.4xlarge": {
+    "od": 3.00424,
+    "gpu": "1x L40S 48GB",
+    "vcpu": "16",
+    "mem": "128 GiB",
+    "ri": 1.89267
+  },
+  "g6e.12xlarge": {
+    "od": 10.49264,
+    "gpu": "4x L40S 192GB",
+    "vcpu": "48",
+    "mem": "384 GiB",
+    "ri": 6.61036
+  },
+  "g6e.48xlarge": {
+    "od": 30.13118,
+    "gpu": "8x L40S 384GB",
+    "vcpu": "192",
+    "mem": "1536 GiB",
+    "ri": 18.98264
+  },
+  "p4d.24xlarge": {
+    "od": 21.957642,
+    "gpu": "8x A100 320GB",
+    "vcpu": "96",
+    "mem": "1152 GiB",
+    "ri": 13.9210936
+  },
+  "p5.48xlarge": {
+    "od": 55.04,
+    "gpu": "8x H100 640GB",
+    "vcpu": "192",
+    "mem": "2048 GiB",
+    "ri": null
+  }
+}

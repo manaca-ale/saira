@@ -1,0 +1,18 @@
+{
+  "g3_new": {
+    "n": 2,
+    "tp_recall_det": 0.0,
+    "tp_det": "0/2",
+    "fp_rate_det": null,
+    "fp_det": "0/0",
+    "tp_recall_evt": 0.0,
+    "tp_evt": "0/2",
+    "fp_rate_evt": null,
+    "fp_evt": "0/0",
+    "baseline_fire_rate": null,
+    "baseline": "0/0",
+    "cost_per_event_usd": 0.00102,
+    "total_cost_usd": 0.002,
+    "latency_p50_ms": 11748
+  }
+}
