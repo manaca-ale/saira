@@ -307,12 +307,14 @@ def run(window_paths: list[Path], device_id: str, camera, manifest,
         gem_frames = _blobs_as_named_files(pay.blobs, [p.name for p in gframes], tmpdir)
 
         # Os dois gates em paralelo: o worker é sequencial e somar latências viraria
-        # backlog na fila de eventos.
+        # backlog na fila de eventos. SHADOW_C51_GATE_B vazio/"off" desliga só o braço B
+        # (revisão de 11/08: o magistral dispara 3,4x mais que o A e paga 74% do detail).
+        b_off = config.SHADOW_C51_GATE_B.strip().lower() in ("", "off", "none", "disabled")
         with ThreadPoolExecutor(max_workers=2) as pool:
             fa = pool.submit(_arm_gemini, gem_frames, cam_ctx, camera, device_id, log_call)
-            fb = pool.submit(_arm_bedrock, pay.blobs, guser)
+            fb = None if b_off else pool.submit(_arm_bedrock, pay.blobs, guser)
             arm_a = _safe(fa, "a")
-            arm_b = _safe(fb, "b")
+            arm_b = _ARM_B_DISABLED if fb is None else _safe(fb, "b")
 
         triggered_by = [k for k, a in (("a", arm_a), ("b", arm_b)) if a.get("fire_v1")]
 
@@ -377,6 +379,13 @@ def run(window_paths: list[Path], device_id: str, camera, manifest,
     finally:
         if tmpdir is not None:
             shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+# Registro imutável do braço B desligado: mantém o schema do ledger (fire_v1 False
+# nunca dispara o detail) e o custo zerado fora da soma do orçamento diário.
+_ARM_B_DISABLED = {"model": "disabled", "prompt": "", "json_valid": True, "error": "",
+                   "fire_raw": False, "fire_v1": False, "disabled": True,
+                   "tok_in": 0, "tok_out": 0, "cost_usd": 0.0, "latency_ms": 0}
 
 
 def _safe(future, tag: str) -> dict[str, Any]:
