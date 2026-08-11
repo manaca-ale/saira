@@ -155,7 +155,7 @@ Resumo do que já foi decidido — **antes de propor um experimento, verificar a
 O git guarda relatórios, runners, configs e resultados (~50 MB). Frames, modelos MOG2 (`.npz`) e corpora pesados (~6,5 GB) ficam fora:
 
 - **Original**: máquina do Alexandre — `c:\saira\benchmarks\campaigns\` (pastas pesadas: camps 19, 33, 36, 39, 40, 44, 45) e `D:\saira\data\datasets\official\`.
-- **Backup / transferência**: Google Drive, pasta **"SAÍRA — Benchmarks Handoff"**:
+- **Backup / transferência**: Google Drive, pasta **["SAÍRA — Benchmarks Handoff"](https://drive.google.com/drive/folders/1sFun9soYbV_8322nBrt9vb2ra00n51DI)** (dono: contato@manaca.tech; upload 11/08/2026, MD5 verificado pós-upload):
   - `benchmarks-campaigns-20260811.tar.gz` — árvore completa de `campaigns/` (sem arquivos `.env*`).
   - `dataset-official-20260811.tar.gz` — `data/datasets/official/` completo.
   - `SHA256SUMS.txt` — conferir integridade após download (`sha256sum -c SHA256SUMS.txt`).
