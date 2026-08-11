@@ -1,0 +1,221 @@
+{
+  "summary": {
+    "device": "esp32_001",
+    "n_total": 25,
+    "REJEITADO_FP": {
+      "n": 13,
+      "would_reject": 13,
+      "fp_catch_rate": 1.0
+    },
+    "CONFIRMADO_TP": {
+      "n": 1,
+      "would_reject(false_reject)": 1
+    },
+    "INDETERMINADO": {
+      "n": 9,
+      "would_reject": 9
+    }
+  },
+  "results": [
+    {
+      "id8": "6deb0722",
+      "ts": "06-01 07:38",
+      "status": "REJEITADO",
+      "p_con": 0.0067,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "623d5772",
+      "ts": "06-01 08:13",
+      "status": "REJEITADO",
+      "p_con": 0.0007,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "d3c93c6c",
+      "ts": "06-01 08:29",
+      "status": "REJEITADO",
+      "p_con": 0.005,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "c6ed3a96",
+      "ts": "06-01 18:18",
+      "status": "INDETERMINADO",
+      "p_con": 0.0095,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "bf273a55",
+      "ts": "06-01 20:00",
+      "status": "REJEITADO",
+      "p_con": 0.0012,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "872e9ad5",
+      "ts": "06-01 21:04",
+      "status": "REJEITADO",
+      "p_con": 0.0366,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "2acfec10",
+      "ts": "06-01 22:14",
+      "status": "REJEITADO",
+      "p_con": 0.0219,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "7b8b03f9",
+      "ts": "06-01 22:27",
+      "status": "INDETERMINADO",
+      "p_con": 0.0012,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "9edc6c01",
+      "ts": "06-02 11:10",
+      "status": "INDETERMINADO",
+      "p_con": 0.0044,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "a23fdfae",
+      "ts": "06-02 11:38",
+      "status": "INDETERMINADO",
+      "p_con": 0.0006,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "cd8734a5",
+      "ts": "06-02 12:01",
+      "status": "INDETERMINADO",
+      "p_con": 0.0262,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "806355e6",
+      "ts": "06-02 13:54",
+      "status": "INDETERMINADO",
+      "p_con": 0.0009,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "c7ecb7df",
+      "ts": "06-02 16:41",
+      "status": "INDETERMINADO",
+      "p_con": 0.0042,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "d6770e5d",
+      "ts": "06-02 17:23",
+      "status": "REJEITADO",
+      "p_con": 0.0106,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "cc21c8fc",
+      "ts": "06-02 22:55",
+      "status": "REJEITADO",
+      "p_con": 0.0002,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "eb1ecfa7",
+      "ts": "06-03 07:04",
+      "status": "REJEITADO",
+      "p_con": 0.0012,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "374fae67",
+      "ts": "06-03 12:23",
+      "status": "INDETERMINADO",
+      "p_con": 0.0066,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "2e089ea2",
+      "ts": "06-03 16:01",
+      "status": "REJEITADO",
+      "p_con": 0.0117,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "0c08d1bc",
+      "ts": "06-03 16:49",
+      "status": "REJEITADO",
+      "p_con": 0.006,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "c9c2c83e",
+      "ts": "06-03 19:33",
+      "status": "CONFIRMADO",
+      "p_con": 0.0161,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "3ab5f12a",
+      "ts": "06-03 22:24",
+      "status": "INDETERMINADO",
+      "p_con": 0.0085,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "18771019",
+      "ts": "06-03 23:27",
+      "status": "REJEITADO",
+      "p_con": 0.026,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "e0d0c244",
+      "ts": "06-03 23:46",
+      "status": "REJEITADO",
+      "p_con": 0.0567,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "68b4ab07",
+      "ts": "06-04 16:58",
+      "status": "PENDENTE",
+      "p_con": 0.031,
+      "would_reject": true,
+      "reason": "rejected"
+    },
+    {
+      "id8": "f7f0cc93",
+      "ts": "06-05 01:17",
+      "status": "PENDENTE",
+      "p_con": 0.002,
+      "would_reject": true,
+      "reason": "rejected"
+    }
+  ]
+}

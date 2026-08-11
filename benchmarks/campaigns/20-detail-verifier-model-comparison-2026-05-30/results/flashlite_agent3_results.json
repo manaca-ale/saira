@@ -1,0 +1,127 @@
+{
+  "model": "gemini-2.5-flash-lite",
+  "accuracy": "4/8",
+  "total_cost_usd": 0.003337,
+  "results": [
+    {
+      "label": "E1",
+      "id": "9e90cc61-5d0d-4d42-b5a2-52a1e92eaa25",
+      "gt": "REJ",
+      "descr": "14:43 cam10",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "A pessoa deposita dois itens na pilha de lixo, um grande e um menor, aumentando visivelmente o volume. O descarte é claro."
+      },
+      "latency_ms": 1375,
+      "in_tok": 3874,
+      "out_tok": 76
+    },
+    {
+      "label": "E2",
+      "id": "2900d8ea-77ee-41a5-894d-1b3863801919",
+      "gt": "REJ",
+      "descr": "11:23 cam10",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "A pessoa de camiseta vermelha claramente deposita um objeto escuro na pilha de lixo, aumentando seu volume. O ato é visível e não se trata de coleta ou passagem."
+      },
+      "latency_ms": 1467,
+      "in_tok": 3875,
+      "out_tok": 82
+    },
+    {
+      "label": "E3",
+      "id": "90c05405-10a3-4d14-923b-3ce8b683eded",
+      "gt": "REJ",
+      "descr": "13:41 cam11",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "A pessoa se aproxima da pilha, deposita um saco branco e se afasta. O volume da pilha aumenta visivelmente."
+      },
+      "latency_ms": 1328,
+      "in_tok": 3845,
+      "out_tok": 72
+    },
+    {
+      "label": "E4",
+      "id": "c4224caf-6cb9-48df-846d-b7ad0ea7d141",
+      "gt": "REJ",
+      "descr": "13:14 cam11",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "A pessoa se aproxima da pilha, deposita um objeto e se afasta. O objeto nao estava presente antes e a pilha aumenta de volume."
+      },
+      "latency_ms": 1329,
+      "in_tok": 3863,
+      "out_tok": 75
+    },
+    {
+      "label": "E5",
+      "id": "8bfe0a1f-da31-4ddd-9455-de0d6a5ef652",
+      "gt": "CON",
+      "descr": "18:45 cam10 (S3)",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "A pessoa se aproxima da pilha e, apos sua saida, o volume da pilha aumenta visivelmente. Ha evidencia clara de descarte."
+      },
+      "latency_ms": 1431,
+      "in_tok": 3863,
+      "out_tok": 75
+    },
+    {
+      "label": "E6",
+      "id": "a447ff19-068a-4460-855c-3f6d02937860",
+      "gt": "CON",
+      "descr": "02:46 cam10 (S3)",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "A pessoa descarrega ativamente material de um carrinho de mão, aumentando visivelmente o volume da pilha de lixo existente."
+      },
+      "latency_ms": 1266,
+      "in_tok": 3861,
+      "out_tok": 79
+    },
+    {
+      "label": "E7",
+      "id": "8367f372-247b-42fd-886d-61bfc600b303",
+      "gt": "CON",
+      "descr": "12:46 cam11",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "A pessoa com o carrinho de mão claramente deposita material na pilha, aumentando seu volume. O painel branco é um item novo e visível."
+      },
+      "latency_ms": 1588,
+      "in_tok": 3845,
+      "out_tok": 92
+    },
+    {
+      "label": "E8",
+      "id": "ae3d87cb-189c-4d80-b56e-d202d92b4e59",
+      "gt": "CON",
+      "descr": "12:03 cam11",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "Pessoa com saco branco se aproxima da pilha e deposita o saco, aumentando o volume. Confirmação clara de descarte."
+      },
+      "latency_ms": 1009,
+      "in_tok": 3843,
+      "out_tok": 73
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+[
+ {
+  "event_ref": "evt-20260806_014611",
+  "arm": "A",
+  "label": "FP",
+  "why": "pessoa pega/carrega objeto e sai com ele (coleta/transporte), sem material novo"
+ },
+ {
+  "event_ref": "evt-20260806_192004",
+  "arm": "A",
+  "label": "TP",
+  "why": "saco preto novo no chão entre 19:18 e 19:20, persiste ate o fim"
+ },
+ {
+  "event_ref": "evt-20260806_203938",
+  "arm": "A",
+  "label": "FP",
+  "why": "catador com carroca, pessoa curvada = revira"
+ },
+ {
+  "event_ref": "evt-20260806_204152",
+  "arm": "A",
+  "label": "FP",
+  "why": "catador coleta da pilha e sai com a carroca carregada"
+ },
+ {
+  "event_ref": "evt-20260808_112152",
+  "arm": "A",
+  "label": "FP",
+  "why": "catadores triagem de volumosos, material SAI da cena"
+ },
+ {
+  "event_ref": "evt-20260808_171254",
+  "arm": "A",
+  "label": "IND",
+  "why": "dupla com bike mexe em saco escuro na borda da pilha"
+ },
+ {
+  "event_ref": "evt-20260809_085047",
+  "arm": "A",
+  "label": "TP",
+  "why": "homem leva saco branco a pilha 08:50:45-49 e volta sem ele"
+ },
+ {
+  "event_ref": "evt-20260809_185618",
+  "arm": "A",
+  "label": "FP",
+  "why": "ciclista e pedestres a noite"
+ },
+ {
+  "event_ref": "evt-20260810_203043",
+  "arm": "A",
+  "label": "FP",
+  "why": "moto e pessoa transitando a noite"
+ },
+ {
+  "event_ref": "evt-20260811_074215",
+  "arm": "A",
+  "label": "IND",
+  "why": "pickup parada na borda da pilha, pessoa mexe na cacamba"
+ },
+ {
+  "event_ref": "evt-20260806_195035",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "transeunte atravessa com objeto, sem deposito"
+ },
+ {
+  "event_ref": "evt-20260807_092919",
+  "arm": "B-only",
+  "label": "IND",
+  "why": "caminhoes manobrando junto a pilha, sem delta visivel"
+ },
+ {
+  "event_ref": "evt-20260807_180936",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "cena limpa, transeuntes e motos"
+ },
+ {
+  "event_ref": "evt-20260807_190440",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "carroca de cavalo transitando, sem material persistente"
+ },
+ {
+  "event_ref": "evt-20260807_200812",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "garis de colete refletivo = limpeza municipal"
+ },
+ {
+  "event_ref": "evt-20260808_190644",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "movimento noturno carros/pessoas"
+ },
+ {
+  "event_ref": "evt-20260808_225536",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "transito noturno"
+ },
+ {
+  "event_ref": "evt-20260809_123938",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "carro estaciona e sai, passantes"
+ },
+ {
+  "event_ref": "evt-20260809_200815",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "transito e passantes noturnos"
+ },
+ {
+  "event_ref": "evt-20260810_053657",
+  "arm": "B-only",
+  "label": "FP",
+  "why": "carro e pedestre na madrugada"
+ }
+]

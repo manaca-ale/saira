@@ -1,0 +1,43 @@
+campaign: 47-picam001-model-migration
+date: 2026-07-22
+type: model-selection
+hypothesis: >
+  Os modelos de produção (gate gemini-2.5-flash-lite, detail gemini-2.5-flash) serão
+  desligados em 16/out/2026. Comparar recall/FP/custo/latência dos modelos atuais vs
+  os substitutos recomendados (gate gemini-3.1-flash-lite; detail gemini-3.6-flash) e
+  um candidato de detail mais barato (gemini-3.5-flash-lite), SOMENTE na câmera
+  pi-cam-001 (event-driven), reproduzindo fielmente a janela de produção.
+
+dataset:
+  camera: cam_picam001
+  device_id: pi-cam-001
+  path: data/datasets/official/cam_picam001
+  n_events: 122        # 30 tp + 37 fp + 15 indefinido + 40 baseline
+  categories: [tp, fp, indefinido, baseline]
+  fidelity:
+    unit: event-manifest        # 1 folder = 1 cascade window (coalesced dets split by event_ref)
+    window: subsample_frames(48) -> fit_frames_to_payload(8_000_000)
+    gate_frames: first + 3 mids + last
+    prompt: V1 (GEMINI_PROMPT_VERSION=current)
+    crops: none (pi-cam-001 not in CROP_TO_ZONE/PILECROP/DINOV2/STRUCTURAL)
+
+arms:
+  current: {gate: gemini-2.5-flash-lite, detail: gemini-2.5-flash}
+  repl:    {gate: gemini-3.1-flash-lite, detail: gemini-3.6-flash}
+  cheap:   {gate: gemini-3.1-flash-lite, detail: gemini-3.5-flash-lite}
+
+vertex:
+  project: saira-tests-260520      # billing = "Saira - Testes", ADC keyless
+  location: global
+
+success_criteria:
+  # A substitute arm is a viable migration if, vs current:
+  tp_recall_min_delta: -3.0        # recall não cai mais que 3pp
+  fp_rate_max_delta: +3.0          # FP não sobe mais que 3pp
+  baseline_fire_rate_max: 10.0     # não dispara em >10% dos negativos verdadeiros
+  # cost/latency são informativos (esperado: repl ~10x custo de detail)
+
+caveats:
+  - gate first_frame usa win[0] (estado de janela anterior não reproduzível do DB)
+  - prior_window_context=None -> effective_threshold=85
+  - coalescência: eventos de uma detecção CONFIRMADO herdam label tp (ruído possível)

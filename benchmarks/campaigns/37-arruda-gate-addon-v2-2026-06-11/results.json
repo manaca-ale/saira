@@ -1,0 +1,667 @@
+{
+  "summary": {
+    "camera": "esp32_005/Arruda/cam_14",
+    "model": "gemini-2.5-flash-lite",
+    "by_gate": {
+      "v1": {
+        "tp_missed_recall": {
+          "n": 1,
+          "hits": 1,
+          "recall": 1.0,
+          "fn": []
+        },
+        "tp_conf_recall": {
+          "n": 6,
+          "hits": 1,
+          "recall": 0.167,
+          "fn": [
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528"
+          ]
+        },
+        "tp_all_recall": {
+          "n": 7,
+          "hits": 2,
+          "recall": 0.286,
+          "fn": [
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528"
+          ]
+        },
+        "neg_fp": {
+          "n": 8,
+          "fp": 1,
+          "fp_rate": 0.125,
+          "fp_ids": [
+            "w06"
+          ]
+        }
+      },
+      "v3b3": {
+        "tp_missed_recall": {
+          "n": 1,
+          "hits": 0,
+          "recall": 0.0,
+          "fn": [
+            "id24_lixo_1242"
+          ]
+        },
+        "tp_conf_recall": {
+          "n": 6,
+          "hits": 0,
+          "recall": 0.0,
+          "fn": [
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528",
+            "c0604_1541"
+          ]
+        },
+        "tp_all_recall": {
+          "n": 7,
+          "hits": 0,
+          "recall": 0.0,
+          "fn": [
+            "id24_lixo_1242",
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528",
+            "c0604_1541"
+          ]
+        },
+        "neg_fp": {
+          "n": 8,
+          "fp": 2,
+          "fp_rate": 0.25,
+          "fp_ids": [
+            "w03",
+            "w07"
+          ]
+        }
+      },
+      "v3v2": {
+        "tp_missed_recall": {
+          "n": 1,
+          "hits": 0,
+          "recall": 0.0,
+          "fn": [
+            "id24_lixo_1242"
+          ]
+        },
+        "tp_conf_recall": {
+          "n": 6,
+          "hits": 1,
+          "recall": 0.167,
+          "fn": [
+            "c0529_1043",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528",
+            "c0604_1541"
+          ]
+        },
+        "tp_all_recall": {
+          "n": 7,
+          "hits": 1,
+          "recall": 0.143,
+          "fn": [
+            "id24_lixo_1242",
+            "c0529_1043",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528",
+            "c0604_1541"
+          ]
+        },
+        "neg_fp": {
+          "n": 8,
+          "fp": 3,
+          "fp_rate": 0.375,
+          "fp_ids": [
+            "w02",
+            "w03",
+            "w07"
+          ]
+        }
+      }
+    },
+    "total_cost_usd": 0.058013
+  },
+  "results": [
+    {
+      "event_id": "id24_lixo_1242",
+      "cohort": "tp_missed",
+      "positive": true,
+      "n_frames": 30,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 95,
+          "scene_type": "DUMPING",
+          "evidence_summary": "A green truck is stopped, and two individuals are actively using shovels near a debris pile, indicating material handling and potential dumping.",
+          "cost_usd": 0.0010909
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "COLLECTION_OR_MAINTENANCE",
+          "evidence_summary": "Two workers in blue uniforms are collecting debris from a pile using shovels and brooms, loading it into a stationary green dump truck. This indicates collection activity.",
+          "cost_usd": 0.0014621
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "COLLECTION_OR_MAINTENANCE",
+          "evidence_summary": "Two workers in blue uniforms are operating a dump truck and shoveling material near a pre-existing pile. The truck bed is full. This suggests collection activity.",
+          "cost_usd": 0.0014994
+        }
+      }
+    },
+    {
+      "event_id": "c0529_1043",
+      "cohort": "tp_conf",
+      "positive": true,
+      "n_frames": 1,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "PARKED",
+          "evidence_summary": "The initial and final frames are identical. No new material or dumping activity is observed. The scene shows a pre-existing pile of debris and a parked vehicle.",
+          "cost_usd": 0.0009911
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "PARKED",
+          "evidence_summary": "Pre-existing waste pile visible on the right. Several vehicles are parked, and people are present on the left side of the street. No activity observed at the waste pile.",
+          "cost_usd": 0.0013639
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "PARKED",
+          "evidence_summary": "Single frame shows a pre-existing waste pile on the right side of the street. No person or vehicle is observed actively interacting with the pile for dumping or collection. Some vehicles are parked, and people are present on the left side of the street, away from the pile.",
+          "cost_usd": 0.0013992
+        }
+      }
+    },
+    {
+      "event_id": "c0529_1108",
+      "cohort": "tp_conf",
+      "positive": true,
+      "n_frames": 1,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows a street with traffic and a pre-existing pile of debris. No active dumping behavior is observed.",
+          "cost_usd": 0.0009147
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "PARKED",
+          "evidence_summary": "A person is standing near a pre-existing pile of waste. No dumping activity is observed. A car is parked nearby.",
+          "cost_usd": 0.0013619
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 90,
+          "scene_type": "DUMPING",
+          "evidence_summary": "Person bent down at pile with wheelbarrow, suggesting material deposit. Camera context prioritizes recall for dumping.",
+          "cost_usd": 0.0014072
+        }
+      }
+    },
+    {
+      "event_id": "c0529_1145",
+      "cohort": "tp_conf",
+      "positive": true,
+      "n_frames": 1,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene displays a street with ongoing traffic, including vehicles and pedestrians. A pre-existing pile of debris is present on the right side, but no active material deposition is observed.",
+          "cost_usd": 0.0008551
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Person standing near a pre-existing waste pile on the right side of a street with traffic. A vehicle is parked nearby. No active dumping or collection observed.",
+          "cost_usd": 0.0013635
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "A person is walking along the road near a pre-existing waste pile. A white SUV is parked. No active dumping or collection is observed.",
+          "cost_usd": 0.0013784
+        }
+      }
+    },
+    {
+      "event_id": "c0530_0933",
+      "cohort": "tp_conf",
+      "positive": true,
+      "n_frames": 1,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "PARKED",
+          "evidence_summary": "The initial and final frames are identical, showing no change in the scene. There is a pre-existing pile of debris visible.",
+          "cost_usd": 0.0008983
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Pedestrian and vehicles passing on the street. Pre-existing waste pile visible on the right. No dumping or collection activity observed.",
+          "cost_usd": 0.0012547
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "A person is walking on the sidewalk, vehicles are present on the road, and a pre-existing waste pile is visible on the right. No active dumping or collection is observed.",
+          "cost_usd": 0.0013824
+        }
+      }
+    },
+    {
+      "event_id": "c0604_1528",
+      "cohort": "tp_conf",
+      "positive": true,
+      "n_frames": 1,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "PARKED",
+          "evidence_summary": "The initial and final frames are identical. No changes in vehicles, people, or ground material were detected between the two frames.",
+          "cost_usd": 0.0010275
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Single frame shows a person standing near a pre-existing waste pile. White car parked nearby. Other vehicles and pedestrians in motion. No clear dumping or collection activity observed.",
+          "cost_usd": 0.0013651
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "PARKED",
+          "evidence_summary": "A person is standing near the waste pile, and a vehicle is stopped nearby. No active dumping or collection activity is observed.",
+          "cost_usd": 0.00139
+        }
+      }
+    },
+    {
+      "event_id": "c0604_1541",
+      "cohort": "tp_conf",
+      "positive": true,
+      "n_frames": 1,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 95,
+          "scene_type": "DUMPING",
+          "evidence_summary": "A white vehicle is stopped next to a pile of debris, and a person is standing nearby, appearing to handle material. The scene is a known dumping spot.",
+          "cost_usd": 0.0008495
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 60,
+          "scene_type": "PARKED",
+          "evidence_summary": "White car parked near chronic dumping pile. Person standing nearby. Trunk is open, but no active unloading or material transfer is visible. Pre-existing pile is unchanged.",
+          "cost_usd": 0.0013795
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "PARKED",
+          "evidence_summary": "A white car is parked near a pre-existing waste pile. A person is standing next to the car, interacting with debris on the ground. No clear dumping or collection activity is observed. The person's posture is not depositing or collecting.",
+          "cost_usd": 0.0014104
+        }
+      }
+    },
+    {
+      "event_id": "w01",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows people walking and vehicles moving on the road. A pre-existing pile of waste is visible on the right side of the road, but no active dumping behavior is observed.",
+          "cost_usd": 0.0011213
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Two pedestrians and a car are observed moving through the scene. They are on the opposite side of the street from the pre-existing waste pile and do not interact with it. No material is being deposited or collected.",
+          "cost_usd": 0.0013981
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Pedestrians and vehicles moving through the scene on the left side. No interaction with the waste pile on the right side.",
+          "cost_usd": 0.0014674
+        }
+      }
+    },
+    {
+      "event_id": "w02",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows vehicles and pedestrians moving through the area. A pre-existing pile of waste is visible on the right, but no active material deposition is observed.",
+          "cost_usd": 0.0011173
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Person on bicycle near existing trash pile. No dumping or collection activity observed. Traffic passing by.",
+          "cost_usd": 0.0014565
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 90,
+          "scene_type": "DUMPING",
+          "evidence_summary": "Person carrying an object approached the pile, bent down, and left empty-handed, indicating illegal dumping.",
+          "cost_usd": 0.0014706
+        }
+      }
+    },
+    {
+      "event_id": "w03",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows vehicles and a pedestrian moving along a road. A significant pile of pre-existing litter is present on the right side, but no new material is being deposited by any individuals or vehicles.",
+          "cost_usd": 0.0010677
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 90,
+          "scene_type": "DUMPING",
+          "evidence_summary": "Person carrying an object towards the pile and then leaving the area without the object.",
+          "cost_usd": 0.0014517
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 90,
+          "scene_type": "DUMPING",
+          "evidence_summary": "Person carrying object approached pile, bent down, and left empty-handed. Clear dumping.",
+          "cost_usd": 0.0014666
+        }
+      }
+    },
+    {
+      "event_id": "w04",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows vehicles and pedestrians moving along a road. A pre-existing pile of debris is visible on the side, but no active dumping behavior or new material deposition is observed during the analyzed time window.",
+          "cost_usd": 0.0009785
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 30,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Vehicles and a person are passing through the scene. No interaction with the waste pile on the right side is observed.",
+          "cost_usd": 0.0014565
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Traffic scene with vehicles moving. A person is visible on the sidewalk, passing by, not interacting with the pre-existing pile on the right. No dumping or collection activity observed.",
+          "cost_usd": 0.0014746
+        }
+      }
+    },
+    {
+      "event_id": "w05",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows ongoing traffic with vehicles and pedestrians moving along the road. A pre-existing pile of debris is visible on the right side, but no active dumping or material handling is observed.",
+          "cost_usd": 0.0009465
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Car parked near pile, pedestrians passing by on road. No interaction with waste pile.",
+          "cost_usd": 0.0014485
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Two individuals walk past the pre-existing trash pile on the right side of the street, carrying umbrellas. No interaction with the pile is observed. Vehicles are present, some parked.",
+          "cost_usd": 0.0014766
+        }
+      }
+    },
+    {
+      "event_id": "w06",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 90,
+          "scene_type": "DUMPING",
+          "evidence_summary": "A white car is stationary near a debris pile. Two individuals on a scooter are also stopped adjacent to the pile, facing it, indicating active material deposition.",
+          "cost_usd": 0.0011189
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "PARKED",
+          "evidence_summary": "A white car and a scooter with two people stop near the pre-existing trash pile. No material transfer or dumping activity is observed. The pile does not appear to grow.",
+          "cost_usd": 0.0014665
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Scooter approaches and slows near pre-existing trash pile. No deposit or collection activity observed. Traffic present.",
+          "cost_usd": 0.0014698
+        }
+      }
+    },
+    {
+      "event_id": "w07",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows ongoing traffic with vehicles and pedestrians. A pre-existing pile of debris is visible on the right side of the road, but no active dumping behavior is observed.",
+          "cost_usd": 0.0011109
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 90,
+          "scene_type": "DUMPING",
+          "evidence_summary": "Person carrying bag approaches pile, bends down, and appears to deposit material. Later seen walking away empty-handed. Clear dumping event.",
+          "cost_usd": 0.0014761
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 90,
+          "scene_type": "DUMPING",
+          "evidence_summary": "Person carrying bag approaches pile, bends down, and leaves empty-handed, indicating dumping.",
+          "cost_usd": 0.0014878
+        }
+      }
+    },
+    {
+      "event_id": "w08",
+      "cohort": "neg",
+      "positive": false,
+      "n_frames": 6,
+      "gates": {
+        "v1": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "The scene shows vehicles moving along the road, indicating ongoing traffic. A pre-existing pile of debris is visible on the right side, but no new material is being deposited.",
+          "cost_usd": 0.0011125
+        },
+        "v3b3": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Motorcycle rider passing by the pile. A pickup truck is stopped near the pile. No material deposition or collection observed. Pile appears unchanged.",
+          "cost_usd": 0.0014545
+        },
+        "v3v2": {
+          "ok": true,
+          "triggered": false,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "scene_type": "TRAFFIC",
+          "evidence_summary": "Motorcycle rider passes by the chronic dumping pile. No clear deposit or removal activity observed. Pickup truck and car are present.",
+          "cost_usd": 0.0014726
+        }
+      }
+    }
+  ]
+}

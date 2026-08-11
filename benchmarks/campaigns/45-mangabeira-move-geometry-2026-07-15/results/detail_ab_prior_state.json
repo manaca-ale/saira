@@ -1,0 +1,767 @@
+{
+  "7b4ccb2a-61ab-400e-a169-b3817df9d54c": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "c92e5a7d-191f-4538-933d-ff3d013933f5": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "7ebaa738-9391-476d-9516-0a0d2e02374c": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2e3bdad0-8f0e-46ed-a6ef-46bcfa0741f4": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "c9e2c4e6-1f06-4b24-8bb3-beb457f523bb": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b5fa81c8-393f-47b8-b346-4fa9f37c004c": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "403ce088-399c-459e-98d1-7ef4b6ec8356": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "7331d67a-9bc6-4aa2-a8c4-2ab82cca3b54": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "21915400-bbe9-4401-bfea-e1ddbc15f230": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a40d1f13-e66e-4863-a291-e8457e1e0f3f": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "92be45e4-08f1-44d9-8ac6-a2de9ff62404": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2a066678-bdc0-4f4d-ad16-d3cb97adce69": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2946c75b-0a3e-4ac6-bfbd-944fad286731": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "59d9359f-92cf-4d81-bdba-e14d29b1b163": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "8c5ad8ae-e825-46b1-846e-b53d01b321bf": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "8fff8942-20be-4366-95a1-e61ac372b3c0": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b7c8522b-3226-418c-9125-f6979ec9fa06": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "5bca09e4-0ed6-4359-ad3b-c6dd17e336ae": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "9ca3978f-4aa6-4b5f-87e7-142ea9a4af0c": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ec7a2806-2d20-4e7d-96e5-5c792b18ca6f": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ce977ed8-8081-4f54-aa26-7157360436a8": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f944a140-4d49-4d42-a626-95651f803085": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "3a98eead-b8b2-472e-b385-e81e14066785": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "4b08641a-bb60-406b-811d-471a988a0b88": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "38147289-56bf-41c8-922c-ab6593712aec": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "eb3861e2-8991-4a3f-98d1-3ccd9dc4ca26": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "bd35875e-4e2c-4c4b-9878-0827a356bb60": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b6b835ba-93e9-48d2-a9a7-7269a6010ac6": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2ea73a7b-16b9-4228-b065-4cb590e51896": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ea45cf85-4df3-4db8-807f-9653677d6290": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "24a26c9d-f0d2-476e-93bc-7d2470bcf8f4": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "e8831dc6-efa5-41a7-be2d-d8a8a9e21099": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "71a64297-1a12-4a79-9263-a38168221f16": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ad565769-a905-4e91-92a8-3911ce80e9b5": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "997b5812-bedd-49f2-a2a4-a37b00af0951": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "561aa614-7290-44b0-8b41-bf629c0590f6": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a56927a6-7557-4827-b689-3c2e6c92a782": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f9ea4cd9-6129-416a-a0ed-496144d9e413": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "1f31abfe-6703-42b0-ac46-6d73dcceb92c": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ba42073e-97eb-409a-9921-b3fd63c2157a": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "15c2e9fd-8eaa-479c-a2c2-946990ba95af": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ee73f786-add7-43ec-a935-351949beb412": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "fdbabb71-b50c-4c2b-ae43-5d2fcdeb1b08": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b7c21efc-102d-4784-b0db-256dc95b96ec": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b64726b9-72d2-4e89-b2bd-0b00713a038f": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "d603147b-9861-49ac-99d4-f199466269cf": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "86495e4c-24c4-4c89-a994-399005236ea8": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "d9039820-8a07-4a96-bebb-10aa9a9d8f54": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b0dce1e9-c06e-496a-a4cc-4efef4ce7087": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f9390c7c-96b9-4782-85ef-715ea2e26634": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "8ee9086f-af0b-4ed2-9373-94703dbbcb1a": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f7ddee97-5443-4374-9364-6f71b46fc0a3": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "7e1dbdc8-cc73-4b0e-b78a-ac8fc45f5f29": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ce643803-d1a2-41bd-a865-6b2063286057": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "566e4054-8761-4d38-bb72-b4a24a36c880": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "71e0ffa1-fd36-49cf-80e0-06663c74988c": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "5adee46e-55b0-4045-b9c1-e1b7586bce33": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "5c329c15-d022-4921-838f-a9f7a83fbf5b": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a2786f61-e990-4fa1-b472-40d22fcf7f4e": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2bdee945-4b19-40da-b752-6d75f7462436": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "d6079719-cdc4-4227-b028-f3dbcaef5841": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f7c03ea0-3e8e-4582-bed1-29a1ba1750dc": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b02eefab-89e0-4538-b0a2-6bc58c8fa61b": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "c3b2e3c0-f8a9-4b88-afb3-34c8c581f59e": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "8fb504c0-7e75-41c2-9221-eb398968b974": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f7b9a563-b81f-42f5-9a01-39322c2e62f4": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ea757821-3b37-4ac0-a538-d8017252d8cb": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "8aacffb8-78f6-472f-88e7-4aad5701937d": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "197f8d9b-855d-4181-b2c2-cd9a0cfcf0a8": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "783adad4-b57d-485f-a885-ae817085ee07": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b0676dd3-c93f-48d6-a7ce-5a5288294dd4": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "d219a86c-fb0e-4441-b5ca-95d874a376e2": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "94d61673-f079-46ad-880f-0088c30f1c70": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "86d790ec-4399-43ff-afda-bf1ee5370e60": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a1356968-4f9a-4647-a1a9-380e0edcb045": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "df4fa727-fcf9-495e-9ae3-51bead55dec2": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "e90b66ff-a44b-4216-9761-342c6f1de992": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "436065e9-4be1-4a5e-a46e-4ec2f03eaa0e": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "382c88b3-654c-4a21-9646-dc9f979f735f": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "16ad32c1-3ec3-44a8-9f95-a73957848710": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "99512b57-7856-47b3-b5f7-8a676513e777": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "3e7136e9-cd04-4efb-bd27-ee806323625c": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "5f74feb3-8d56-4b12-926e-3d19833a2d90": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "35cf4f02-a908-4e60-8ea8-0a0eebd6feeb": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "3b2b7987-7a0b-4b25-970d-bb08f1b52e2d": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "dfecf6ce-8745-4cd9-933b-48da1eb0214a": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "4523dc48-1572-4fba-a378-d715456b3050": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "89880b6e-73bc-464d-906c-4351fbfe40e4": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "6e4e24e2-a019-4db7-a543-755e43a33900": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "59341cca-399d-4ffa-b450-40c43a8cea40": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "56f33a82-e426-4fb0-9072-c41f3da6304f": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "6ce140cb-1965-4df8-a12a-9f4c5cecb71e": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "dc6b5aca-9f45-41da-9e6f-0fb82f8fed1d": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "28563a74-5629-42f8-b8b0-929ddc4f2171": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "e2d7ce1c-74c0-4379-9c31-72e9d27a0edb": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "158675ad-99fc-4655-afc8-9dc8e327f2a1": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "dd45ea3c-de1b-46dd-8868-81fca24452fb": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "173f9e6e-c387-4bd8-b0a0-11416ac0ff84": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "487c0d82-a90e-41fa-9aff-cc01e295b9fc": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "80579f40-188b-4f6c-8155-be15da5f8e6a": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "571766ce-4cd1-4831-99d5-924b54f40931": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "6cb018b5-0e6b-4311-b817-0760f970d68c": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "956dd88f-0688-4bf8-9f03-8c421d16ffe3": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2a8d59c7-fe06-44cd-a12d-5bd597898acb": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "5044b602-d61f-4ea7-8df4-50d284ca010a": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "335c220f-55af-48e1-8e1b-98931c35bdcb": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2b0e4828-b9fe-451e-ac7a-df0e5d61579f": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f6b1b553-6bd4-4e1f-93c8-ca3dc9e28cc2": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "3a883e4b-48af-43a4-a709-99dbd753897a": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "bb4f9a28-6668-4b65-8f4c-a6ef28942033": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "86c5c2dd-abc6-4994-bfdf-9ae00204d9ca": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "82571876-36d4-434e-946f-684c566647ab": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "0d172364-a2fa-458a-8a35-016e525d44f5": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "7441d538-8dfd-4c0a-9712-ecd388a5e377": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "e8b5437f-fb79-4e55-a3d1-675c94eecc20": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "91d962cf-aadb-4552-94ed-5b95894484ea": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "37bf9f5e-bc4a-4d9a-acfe-2275c2bc2bbd": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b0c6da69-b6da-4d43-ad58-3b1e97fd3f8c": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "56db5e7d-ad0d-4707-a138-c2b1279cd149": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "5723bb77-ab06-4f14-b5d4-28a4969a0a85": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "03a84358-0b32-475e-88f6-8f4c71e3484c": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a98e1d8c-185f-42fd-88e0-43b74efd4b75": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "023d30ce-2a78-416d-90a9-4ed2335f206b": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "4417f8b2-f8c0-449e-80e4-080e1324e7a1": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "e85ad15a-230d-47d2-aa7c-daa3313b853d": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "48b45715-c7db-4368-9a08-d64fd34dc55c": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "44d20213-0ffc-4f88-91bb-97cd9bc2dabe": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a677b305-7e6c-4642-9a99-735444ee7c74": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "2be1b13f-14e0-4284-b6b4-931822489d3b": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "cf51b285-90f6-4c43-87ed-bdae9a299447": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "c1f6dabc-73ce-402d-85ab-b2eb101eefe1": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "3666fc4c-c613-4067-9b1f-868944cb727e": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b1474933-34c6-4fc9-b650-eb3870390479": {
+    "had": true,
+    "waste": "Entulho",
+    "src": "gate_probe"
+  },
+  "026651c3-370f-4e5a-991c-ac42db81f571": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "16175aee-8472-4fb0-83d6-e7ad27030fc3": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "7d9d2b20-1a80-41d4-bde9-bdfc3e472cc0": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "517a23d3-09e4-4149-852b-bd8d4ee829b6": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a643de22-8d6e-49f7-a47e-1e9ac0621eee": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "073e4ef7-688f-480b-b95a-6620165ca3f6": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "b6192965-83b7-4727-9798-85dda9b84c05": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "1b4691b0-15a7-4666-a7ad-40c601b299bf": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "e6e98bed-aae1-48f5-9a65-1fd0f1a6bae9": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "f7a4a868-3e91-4f67-8684-23bfc8a1d4f1": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ea33f09e-9231-4545-a72b-4b49c6c49744": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "8e84a239-558e-457b-8d6c-d22eae266260": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "07fe9a8f-70d8-423c-b679-1dbd441b1a3a": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "ec15562a-c577-4b5d-b578-1023cfb58b15": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "be43a47a-1a25-4b80-832d-c1965e289ae9": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "1932fdaa-0ae0-4443-9577-d0af6daec4ed": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "6a66ef85-084f-40ee-9c06-3bf866ddd98b": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "5f487bc3-5f6e-4156-af36-87f5267dafb8": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "a52b1889-d310-48e7-bdd2-eff792724a35": {
+    "had": true,
+    "waste": null,
+    "src": "gate_probe"
+  },
+  "fca27342-79da-4eb0-811f-996df6a531b7": {
+    "had": false,
+    "waste": null,
+    "src": "gate_probe"
+  }
+}

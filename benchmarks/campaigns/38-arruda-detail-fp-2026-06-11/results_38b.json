@@ -1,0 +1,946 @@
+[
+  {
+    "id": "01c9e4c7",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "01e54259",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "098d3182",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "0c4976c0",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a string at line 10 colu"
+      },
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a string at line 10 colu"
+      }
+    ]
+  },
+  {
+    "id": "0cb3394b",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "0e865565",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "0f2e9b60",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "278a25cd",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "3435b0a8",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "3af136cd",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "3d245b0d",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "3ee3f599",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "40ee3a04",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "435d39f1",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "47ef561c",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "4d51d0a1",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "4d8b8659",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "5066ab54",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "50c32313",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a value at line 17 colum"
+      },
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a value at line 17 colum"
+      }
+    ]
+  },
+  {
+    "id": "5ecd9bed",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "6328e4e6",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a string at line 18 colu"
+      },
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a string at line 10 colu"
+      }
+    ]
+  },
+  {
+    "id": "66187ce6",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "6834dad7",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "6a126950",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "6e2e95ce",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "709008ea",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "711dd084",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "71d9f186",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "7ab5880b",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "7aefa8da",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "7d78bc0b",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "7dd7fc21",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "7f70fb50",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "8657dafd",
+    "status": "COLETA",
+    "runs": [
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. S"
+      },
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: Gemini timeout after 30s"
+      }
+    ]
+  },
+  {
+    "id": "8f208f36",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. S"
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "9085ad0e",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "95dd7824",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "9734831a",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "9d6d4ede",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "9d71a737",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "9e112c6d",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "a00ba69c",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "a5a72209",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "a70adde9",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "b3b3505d",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "b797daa9",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "bb4ff82a",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "bba91276",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "bcb8038c",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a string at line 7 colum"
+      },
+      {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing an object at line 9 colu"
+      }
+    ]
+  },
+  {
+    "id": "bd466bda",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "c584359b",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "ce13f76c",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "d05407dc",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "d7822b53",
+    "status": "CONF",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "dc28f6db",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "f0028803",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "f4187c1e",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": false,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "f7913b02",
+    "status": "INDET",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  },
+  {
+    "id": "fc7b1ca1",
+    "status": "REJ",
+    "runs": [
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      },
+      {
+        "ok": true,
+        "confirm": true,
+        "ev": ""
+      }
+    ]
+  }
+]

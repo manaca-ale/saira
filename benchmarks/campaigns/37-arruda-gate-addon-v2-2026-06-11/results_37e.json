@@ -1,0 +1,527 @@
+[
+  {
+    "name": "DESCARTE_01c9e4c7_10-44-10",
+    "status": "DESCARTE",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "In the initial frame, a pile of debris is visible against the right wall. Between the initial and final frames, a person with a cart stops near the debris pile and actively deposits material, indicati"
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "Person with a carroça stopped at the pile and deposited material. The chronic pile's growth is not clearly visible, but the action indicates dumping."
+      }
+    }
+  },
+  {
+    "name": "DESCARTE_01e54259_11-46-39",
+    "status": "DESCARTE",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A vehicle stopped in the road, and a person was observed depositing material near an existing debris pile on the right side of the street."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "A person stops at the pile and appears to deposit material. The pile is a known dumping spot. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "INDET_0c4976c0_12-24-01",
+    "status": "INDET",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A person with a cart is observed depositing material on the ground near an existing debris pile, with a vehicle stopped in proximity."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 85,
+        "scene": "DUMPING",
+        "ev": "A person with a handcart stops at the pile and appears to interact. Material flow is ambiguous, but no collection cues are present. Escalating for review."
+      }
+    }
+  },
+  {
+    "name": "INDET_0f2e9b60_07-11-13",
+    "status": "INDET",
+    "a1c_prod": 90,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A person is observed depositing material near a pre-existing pile of waste on the right side of the road. The amount of waste appears to have increased between the initial and final frames."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "A person stops at the pile, crouches, and leaves. New litter is visible near the pile afterwards. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "INDET_4d51d0a1_w0_07-00-21",
+    "status": "INDET",
+    "a1c_prod": 85,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A vehicle stopped near a pre-existing trash pile, and a person was observed actively depositing material on the ground."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "Person stopped at the pile, handled material, and left. New litter (pink bag) visible, pile appears larger. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "INDET_4d51d0a1_w1_07-07-41",
+    "status": "INDET",
+    "a1c_prod": 85,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "The initial frame shows traffic and a pre-existing waste pile. The final frame shows a vehicle stopped near the waste pile with a person, indicating active material deposition."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "Person with handcart stops at the chronic dumping point on the right and appears to deposit material. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "CONF_50c32313_11-08-32",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A person with a cart is observed actively depositing material onto an existing litter pile by the wall, indicating dumping behavior."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "Person(s) and a cart stopped at the chronic dumping pile on the right. Actions indicate material is being deposited onto the pile. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "CONF_6328e4e6_12-14-45",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": false,
+        "c": 80,
+        "scene": "TRAFFIC",
+        "ev": "The scene shows ongoing traffic on the road. A persistent pile of waste is visible on the right side, but no active dumping behavior by a person or vehicle is clearly depicted in the provided frames."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": false,
+        "c": 30,
+        "scene": "TRAFFIC",
+        "ev": "A person stopped near the pre-existing pile and then walked away. No new litter was deposited or collected, and the pile did not change. Through-traffic was observed."
+      }
+    }
+  },
+  {
+    "name": "DESCARTE_6834dad7_11-09-09",
+    "status": "DESCARTE",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "In the final frame, a person with a cart is observed stopped near a debris pile on the right side of the road, actively depositing material onto the ground."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 85,
+        "scene": "DUMPING",
+        "ev": "Person with loaded handcart stops at the chronic dumping pile on the right. Material flow is implied to be towards the pile. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "INDET_6a126950_17-40-43",
+    "status": "INDET",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A silver car stopped near a debris pile on the right side of the road, and individuals were observed interacting with the pile, suggesting material deposition."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "Person stops at the pile, interacts, and leaves. Pile appears to have increased. Low resolution, but pattern suggests disposal."
+      }
+    }
+  },
+  {
+    "name": "INDET_6e2e95ce_14-06-39",
+    "status": "INDET",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "In the final frame, a person with a cart is observed actively depositing material near a pre-existing debris pile, increasing the amount of waste on the ground."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 85,
+        "scene": "DUMPING",
+        "ev": "Person with cart stopped at the illegal dumping point on the right. Interaction visible across frames, but material flow direction is ambiguous. No positive collection cues. Escalating for review."
+      }
+    }
+  },
+  {
+    "name": "COLETA_8657dafd_16-30-13",
+    "status": "COLETA",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A silver car is stopped near a pre-existing debris pile. People are observed actively depositing material onto the pile."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 85,
+        "scene": "DUMPING",
+        "ev": "A silver car stopped near the pile. People with a trailer were present. They then left the area with the trailer. Material flow direction is unclear. No collection evidence."
+      }
+    }
+  },
+  {
+    "name": "CONF_9085ad0e_09-33-11",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": false,
+        "c": 85,
+        "scene": "TRAFFIC",
+        "ev": "A person is seen depositing material near an existing pile on the right side of the road. A white car is stopped in the road, and other vehicles are moving. New material appears to have been added to "
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "A person stops at the chronic dumping point, crouches, and new debris appears on the ground near the pile. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "INDET_95dd7824_08-50-07",
+    "status": "INDET",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A red car stopped near a pre-existing trash pile on the right side of the road. A person was observed interacting with the trash pile next to the car, indicating active material deposition."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "Red car stopped at chronic dumping point. Person exited car and interacted with pile. No collection activity seen. Likely illegal dumping."
+      }
+    }
+  },
+  {
+    "name": "INDET_9e112c6d_10-24-29",
+    "status": "INDET",
+    "a1c_prod": 90,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A person is observed depositing material near a roadside debris pile while a vehicle is parked nearby, indicating active dumping behavior."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": false,
+        "c": 30,
+        "scene": "TRAFFIC",
+        "ev": "Person observed near the pile then walking away. No clear evidence of stopping to dump or material deposition. Pre-existing pile unchanged. Through-traffic present."
+      }
+    }
+  },
+  {
+    "name": "CONF_a5a72209_w0_20-47-29",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A silver car is stationary by the wall, and a person is observed actively depositing material from a cart onto an existing debris pile on the ground."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "A person and handcart stopped at the chronic dumping point. The person interacted with the pile, consistent with depositing material. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "CONF_a5a72209_w1_20-51-28",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A person with a cart was observed depositing material near an existing debris pile. The amount of material on the ground increased between the initial and final frames, and a previously stopped vehicl"
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 85,
+        "scene": "DUMPING",
+        "ev": "A person with a cart stopped at the chronic dumping pile on the right. The person interacted with the area and then left. Material was likely deposited."
+      }
+    }
+  },
+  {
+    "name": "INDET_b797daa9_21-19-53",
+    "status": "INDET",
+    "a1c_prod": 90,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A large truck is stationary near a debris pile. A person is observed interacting with the debris pile, indicating active material deposition."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": false,
+        "c": 30,
+        "scene": "TRAFFIC",
+        "ev": "Through-traffic and one pedestrian observed. No agent stopped at the pile. No new litter detected."
+      }
+    }
+  },
+  {
+    "name": "CONF_bcb8038c_w0_15-42-14",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "A white vehicle is stopped next to a debris pile. People are observed near the vehicle and the pile, with indications of material being deposited."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 85,
+        "scene": "DUMPING",
+        "ev": "White car stopped at pile with two people. Actions ambiguous, but interaction at pile site. No positive collection evidence. Escalating due to ambiguous handling."
+      }
+    }
+  },
+  {
+    "name": "CONF_bcb8038c_w1_15-52-39",
+    "status": "CONF",
+    "a1c_prod": 90,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A red truck is stopped next to a chronic dumping spot, with a person nearby. A dumpster is visible in the final frame, indicating waste disposal activity."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": false,
+        "c": 0,
+        "scene": "COLLECTION_OR_MAINTENANCE",
+        "ev": "Red truck and worker at pile, collecting debris. Pile volume decreased."
+      }
+    }
+  },
+  {
+    "name": "INDET_bd466bda_09-33-57",
+    "status": "INDET",
+    "a1c_prod": 85,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "In the initial frame, a garbage truck is stopped by a debris pile with a person handling material. By the final frame, the truck is gone, but the debris pile has visibly increased, indicating dumping "
+      },
+      "scratch": {
+        "ok": true,
+        "trig": false,
+        "c": 40,
+        "scene": "PARKED",
+        "ev": "A person is interacting with the pre-existing pile, and a garbage truck is stopped nearby. This suggests collection or maintenance activity, not new dumping."
+      }
+    }
+  },
+  {
+    "name": "CONF_ce13f76c_09-47-29",
+    "status": "CONF",
+    "a1c_prod": 90,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": false,
+        "c": 0,
+        "scene": "TRAFFIC",
+        "ev": "The scene shows ongoing traffic on the road. A person is visible near a pre-existing pile of debris against a wall, but there is no clear evidence of a vehicle stopped for the purpose of depositing ne"
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "A person stops at the pile and appears to deposit material. The pile shows signs of increase."
+      }
+    }
+  },
+  {
+    "name": "CONF_d7822b53_w0_15-30-59",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A white car is stopped on the right side of the road, and a person is actively depositing material on the ground, increasing an existing pile."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "White car stopped at the pile. People are seen moving debris towards the pile. No collection activity observed."
+      }
+    }
+  },
+  {
+    "name": "CONF_d7822b53_w1_15-34-44",
+    "status": "CONF",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A white car is stopped, and two individuals are observed depositing green debris onto the ground next to it, increasing an existing pile."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": false,
+        "c": 0,
+        "scene": "COLLECTION_OR_MAINTENANCE",
+        "ev": "A white car is stopped at the pile. One person is seen leaving the pile area carrying debris, indicating material flow from the pile. No evidence of new dumping."
+      }
+    }
+  },
+  {
+    "name": "INDET_f7913b02_13-43-22",
+    "status": "INDET",
+    "a1c_prod": 95,
+    "g": {
+      "v1": {
+        "ok": true,
+        "trig": true,
+        "c": 95,
+        "scene": "DUMPING",
+        "ev": "A person is observed depositing new material on the ground next to a pre-existing pile of debris. The material on the ground is new compared to the initial frame."
+      },
+      "scratch": {
+        "ok": true,
+        "trig": true,
+        "c": 90,
+        "scene": "DUMPING",
+        "ev": "Person stops at the pile, bends down, and leaves. A new white object appears near the pile, indicating disposal."
+      }
+    }
+  }
+]

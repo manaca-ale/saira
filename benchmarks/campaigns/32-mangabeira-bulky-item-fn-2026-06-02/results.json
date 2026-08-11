@@ -1,0 +1,3069 @@
+{
+  "summary": [
+    {
+      "arm": "b3",
+      "tp": "10/13",
+      "fn": "1/7",
+      "fp_trig": "16/43",
+      "recall": 0.55,
+      "spec": 0.628,
+      "score": 0.5695,
+      "errors": 0,
+      "cost": 0.08948
+    },
+    {
+      "arm": "b3_bulky",
+      "tp": "10/13",
+      "fn": "1/7",
+      "fp_trig": "24/43",
+      "recall": 0.55,
+      "spec": 0.442,
+      "score": 0.523,
+      "errors": 0,
+      "cost": 0.09184
+    },
+    {
+      "arm": "b4",
+      "tp": "10/13",
+      "fn": "2/7",
+      "fp_trig": "27/43",
+      "recall": 0.6,
+      "spec": 0.372,
+      "score": 0.543,
+      "errors": 0,
+      "cost": 0.09121
+    }
+  ],
+  "results": {
+    "b3": [
+      {
+        "id": "fb4a2c50",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Municipal truck (caminhão compactador EMLURB) operating with workers in blue uniforms. Workers are near the pile and truck, suggesting material removal. Pile appears to be decreasing.",
+          "cost": 0.0014184
+        }
+      },
+      {
+        "id": "e435c966",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down near pile carrying a bag, then walks away with it. Escalated due to material carrier signal.",
+          "cost": 0.0014604
+        }
+      },
+      {
+        "id": "8b1854b9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Truck stationary with raised bed unloading material onto the ground near existing trash pile. Person in red observed standing nearby.",
+          "cost": 0.001444
+        }
+      },
+      {
+        "id": "51a9ff0e",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Truck stationary, cargo bed raised, actively unloading material onto the ground near the existing pile. A person is present near the unloading mechanism.",
+          "cost": 0.0014468
+        }
+      },
+      {
+        "id": "9c631112",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Workers in blue uniforms are collecting debris from the ground and loading it into a dump truck. The truck is stationary. This indicates a collection operation.",
+          "cost": 0.0013964
+        }
+      },
+      {
+        "id": "5e3e79cd",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Uniformed workers are actively loading a dump truck from a waste pile. The truck is stationary, and the workers are handling material, indicating collection activity.",
+          "cost": 0.0014576
+        }
+      },
+      {
+        "id": "a3dea6cb",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Uniformed workers are operating a dump truck at a waste pile. The truck is stationary and full of debris. Workers are handling material within the truck bed. The pile on the ground shows no visible change. This indicates",
+          "cost": 0.0014792
+        }
+      },
+      {
+        "id": "14698616",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Person in red stands near waste pile. Vehicle stopped nearby. No active dumping or collection observed.",
+          "cost": 0.0014432
+        }
+      },
+      {
+        "id": "6090fa86",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 40,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A person is standing near a pre-existing waste pile. A car is parked in the scene. No active dumping or collection is observed.",
+          "cost": 0.001444
+        }
+      },
+      {
+        "id": "6224b290",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A white pickup truck is parked. A person in red is seen moving through the scene, passing by the waste pile without interaction. No dumping or collection activity observed.",
+          "cost": 0.0014468
+        }
+      },
+      {
+        "id": "28fba845",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoa passando com um carrinho"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 30,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person carrying a pink container walks past the trash pile area. No interaction with the pile is observed.",
+          "cost": 0.0014408
+        }
+      },
+      {
+        "id": "e014c555",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 30,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Two individuals observed walking away from the scene. They appear to be carrying items. No clear interaction with the waste pile or evidence of dumping.",
+          "cost": 0.001442
+        }
+      },
+      {
+        "id": "983dc78f",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Person observed standing near a pre-existing waste pile with a bicycle. No clear deposit or collection activity observed. Posture is ambiguous.",
+          "cost": 0.0014592
+        }
+      },
+      {
+        "id": "57f7f1ed",
+        "label": "TP",
+        "meta": {
+          "just": "Uma pessoa realizando descarte de múltiplas coisas"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 85,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends near pile, interacts with white boxes, then leaves area. Suggests dumping.",
+          "cost": 0.001452
+        }
+      },
+      {
+        "id": "be6b5e67",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte de múltiplas coisas"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bending near pile carrying a bag. Vehicle stopped nearby.",
+          "cost": 0.0014532
+        }
+      },
+      {
+        "id": "4cca7f5d",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two uniformed workers are collecting material from a pile and loading it into a truck with a raised bed.",
+          "cost": 0.0014428
+        }
+      },
+      {
+        "id": "3766dca1",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed leaving the pile area carrying an object, indicating a recent deposit. Truck is parked.",
+          "cost": 0.0014424
+        }
+      },
+      {
+        "id": "d588e2b2",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam realizando a poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person bends near pile, then walks away carrying an object towards a parked truck.",
+          "cost": 0.0014428
+        }
+      },
+      {
+        "id": "17ff7912",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam realizando a poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in blue shirt bends near pile and walks away empty-handed, indicating deposition. Small truck is parked nearby.",
+          "cost": 0.0013068
+        }
+      },
+      {
+        "id": "61c6be4e",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down with object, then leaves empty-handed near pile. Truck stationary.",
+          "cost": 0.001424
+        }
+      },
+      {
+        "id": "7ebf062f",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Uniformed workers in green are collecting debris from a pre-existing pile and loading it into a stationary truck. No new dumping observed.",
+          "cost": 0.0014532
+        }
+      },
+      {
+        "id": "e811d8bc",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Uniformed worker near pile, truck with branches present. Worker bends, then walks away. Pile appears unchanged. Scene classified as collection/maintenance.",
+          "cost": 0.0014636
+        }
+      },
+      {
+        "id": "4f356133",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in green uniform collecting material from pile into parked truck. Truck bed is tilted for loading. Pile volume unchanged.",
+          "cost": 0.0014512
+        }
+      },
+      {
+        "id": "b489a0a9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Municipal workers in green uniforms are collecting branches from the ground and loading them into a truck.",
+          "cost": 0.00146
+        }
+      },
+      {
+        "id": "10bfef31",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two individuals in green uniforms are actively collecting material from a waste pile and loading it into an open-bed truck. This indicates a collection or maintenance operation.",
+          "cost": 0.0014764
+        }
+      },
+      {
+        "id": "a5db27cc",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in green shirt bends near pile, then walks towards truck carrying material. Truck is parked with open bed full of branches. Scene appears to be collection of vegetation.",
+          "cost": 0.0014716
+        }
+      },
+      {
+        "id": "4c5262d9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Pruning crew collecting vegetal waste from the ground and loading it into a truck bed. Person in green uniform actively handling material inside the truck. Person in blue shirt assisting near the pile.",
+          "cost": 0.0014704
+        }
+      },
+      {
+        "id": "5b109f46",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two workers in green uniforms are collecting vegetation and debris from the ground and loading it into a utility truck. The pile appears to be decreasing or unchanged, indicating a collection/maintenance activity.",
+          "cost": 0.0014552
+        }
+      },
+      {
+        "id": "8e92e6c3",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in green uniform interacts with waste pile and truck, moving material from pile towards truck. Pile size appears unchanged.",
+          "cost": 0.0014528
+        }
+      },
+      {
+        "id": "a018dd4d",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Person with backpack near pile, bends down briefly, then walks away with backpack. White van present and stationary. No clear deposit or removal of material.",
+          "cost": 0.0014672
+        }
+      },
+      {
+        "id": "66280d13",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Person standing near pile with empty hands. No material transfer or pile change observed.",
+          "cost": 0.0014516
+        }
+      },
+      {
+        "id": "ad65ae06",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte de um saco de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "from_pile",
+          "ev": "Traffic scene with vehicles and pedestrians passing by the pre-existing waste pile. One pedestrian is seen walking away from the pile area carrying an object.",
+          "cost": 0.0014624
+        }
+      },
+      {
+        "id": "bc0528c2",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte do conteúdo de uma sacol"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down near pile with bag, interacts with ground, then stands up holding bag.",
+          "cost": 0.0013496
+        }
+      },
+      {
+        "id": "bba76894",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A white truck is parked. A person is present near the pile area but does not interact with it, nor deposit or collect material. The pile appears unchanged.",
+          "cost": 0.0014476
+        }
+      },
+      {
+        "id": "1c823d95",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoa apenas estacionou e desceu com uma criança"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying an object and bending towards the pile, with apparent pile growth.",
+          "cost": 0.0014428
+        }
+      },
+      {
+        "id": "277a0631",
+        "label": "FP",
+        "meta": {
+          "just": "Carro apenas estacionou"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A person is standing near the pre-existing waste pile. No clear dumping or collection activity is observed. The pile volume remains unchanged. A vehicle is parked in the scene.",
+          "cost": 0.0014496
+        }
+      },
+      {
+        "id": "3c83eab7",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person walks past the pile area. A van is briefly parked. No dumping activity observed.",
+          "cost": 0.0014424
+        }
+      },
+      {
+        "id": "e92728ca",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas motos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Motorcycle stopped near pile with rider carrying a backpack. No clear material transfer or deposit observed. Person walks away from pile area after motorcycle leaves.",
+          "cost": 0.0014492
+        }
+      },
+      {
+        "id": "7c0cdfaa",
+        "label": "FP",
+        "meta": {
+          "just": "Dois homens trocando objetos, parece um descarte mas el"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in blue bends down with bag, interacts with pile. Second person also bends. Motorcycle parked. New material visible.",
+          "cost": 0.0014744
+        }
+      },
+      {
+        "id": "b58f9b56",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas um homem passando de bicicleta"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person on bicycle with cart at pile frontage. Material-carrier signal.",
+          "cost": 0.0014352
+        }
+      },
+      {
+        "id": "a034010b",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object, bending at pile, leaving empty-handed.",
+          "cost": 0.0014388
+        }
+      },
+      {
+        "id": "b014d1e6",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed bending with a bag, then leaving it on the ground and walking away empty-handed. New material added to pile.",
+          "cost": 0.0014176
+        }
+      },
+      {
+        "id": "3fb685f6",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in orange shirt carries a bag near the pile and appears empty-handed later. A truck is stopped nearby.",
+          "cost": 0.0014472
+        }
+      },
+      {
+        "id": "b18fe72e",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying large panel and placing it near existing pile. Panel is new material. Scene is DUMPING.",
+          "cost": 0.0014552
+        }
+      },
+      {
+        "id": "d00a79bd",
+        "label": "TP",
+        "meta": {
+          "just": "Grande quantidade de lixo descartada por um homem utili"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person pushing wheelbarrow with material towards pile. New bags visible near pile.",
+          "cost": 0.0014128
+        }
+      },
+      {
+        "id": "d59d5309",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte utilizando um carrinho d"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person pushing a cart towards the pile frontage, indicating potential dumping activity.",
+          "cost": 0.0014436
+        }
+      },
+      {
+        "id": "2bb892bc",
+        "label": "TP",
+        "meta": {
+          "just": "Pessoas descartando restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down at pile, then walks away empty-handed. New material visible.",
+          "cost": 0.0014668
+        }
+      },
+      {
+        "id": "737fdbb7",
+        "label": "FP",
+        "meta": {
+          "just": "Caminhão estacionado"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed bending down with an object near the pile, then walking away empty-handed. This indicates material deposition.",
+          "cost": 0.0014448
+        }
+      },
+      {
+        "id": "4ed80e61",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object near pile, then seen walking away empty-handed. Truck present but not involved in dumping.",
+          "cost": 0.0014468
+        }
+      },
+      {
+        "id": "38982b91",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando e pombos andando sobre o lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object approaches pile frontage and stops. Potential deposit.",
+          "cost": 0.0014132
+        }
+      },
+      {
+        "id": "missed-1",
+        "label": "FN",
+        "meta": {
+          "just": "Pessoal da prefeitura coletou o lixo do local, juntou c"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted with visual noise, preventing analysis of scene content.",
+          "cost": 0.0009756
+        }
+      },
+      {
+        "id": "missed-2",
+        "label": "FN",
+        "meta": {
+          "just": "Homem trouxe sacos de lixo e os descartou no local"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted with static, no visual content is discernible. Assuming EMPTY scene.",
+          "cost": 0.0012812
+        }
+      },
+      {
+        "id": "missed-3",
+        "label": "FN",
+        "meta": {
+          "just": "Homem mexeu no lixo e potencialmente descartou"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted with visual noise, making it impossible to detect any objects, people, or activity. Scene classified as EMPTY.",
+          "cost": 0.0010728
+        }
+      },
+      {
+        "id": "missed-4",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted and unreadable. No visual evidence of activity, persons, or vehicles. Defaulting to EMPTY scene.",
+          "cost": 0.0014099
+        }
+      },
+      {
+        "id": "missed-5",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 10,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted and unreadable. No scene content can be analyzed.",
+          "cost": 0.0012748
+        }
+      },
+      {
+        "id": "missed-6",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "The provided frames are heavily corrupted and unreadable, preventing any visual analysis of the scene. Therefore, the scene is classified as EMPTY by default.",
+          "cost": 0.0012044
+        }
+      },
+      {
+        "id": "3c840ac4",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person pushing wheelbarrow with material towards the pile frontage.",
+          "cost": 0.00145
+        }
+      },
+      {
+        "id": "f0bd4e3d",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person walks past the pile of debris, pauses briefly, and continues. No material is deposited or removed, and the pile shows no significant change.",
+          "cost": 0.0014512
+        }
+      },
+      {
+        "id": "8fdb7d45",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed bending down with an object and subsequently walking away empty-handed from the pile.",
+          "cost": 0.0014339
+        }
+      },
+      {
+        "id": "194ed500",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 55,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "People and vehicles are moving through the scene. A person on a bicycle stops briefly near a pre-existing trash pile. No material is being deposited or collected.",
+          "cost": 0.0013728
+        }
+      },
+      {
+        "id": "cfb7177e",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person with wheelbarrow interacts with pile, pile grows. Wheelbarrow is a material carrier signal.",
+          "cost": 0.0014572
+        }
+      },
+      {
+        "id": "manual-2",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte a pé sem veículo: dois homens descartando TV/e"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down near pile carrying object, then places it on pile and walks away with empty hands. New material visible on pile.",
+          "cost": 0.0014676
+        }
+      },
+      {
+        "id": "fn_1313",
+        "label": "FN",
+        "meta": {
+          "just": "2026-06-02 13:13 painéis/madeira/metal a pé (prod MISSED)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in red shirt bends and places large debris onto the pile. Person in light blue/green top carries a white object and is later near the pile with hands not clearly holding it.",
+          "cost": 0.0014756
+        }
+      }
+    ],
+    "b3_bulky": [
+      {
+        "id": "fb4a2c50",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Municipal truck (caminhão compactador EMLURB) with raised bed, workers in blue uniforms collecting material from the ground into the truck.",
+          "cost": 0.001469
+        }
+      },
+      {
+        "id": "e435c966",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in yellow shirt observed interacting with pile (bending/reaching) and then leaving empty-handed. New material visible. Dump truck stopped nearby.",
+          "cost": 0.0014894
+        }
+      },
+      {
+        "id": "8b1854b9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A green dump truck with a raised cargo bed is actively unloading material onto the ground near the existing pile. This indicates a clear dumping event.",
+          "cost": 0.0014762
+        }
+      },
+      {
+        "id": "51a9ff0e",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Truck with raised bed is stationary and actively unloading debris onto the ground, causing pile growth. A person is present and handling material near the truck.",
+          "cost": 0.001477
+        }
+      },
+      {
+        "id": "9c631112",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Municipal workers in blue uniforms are actively collecting waste from a pile and loading it into a dump truck. The truck is stationary and its bed is raised. This is a collection operation.",
+          "cost": 0.0014742
+        }
+      },
+      {
+        "id": "5e3e79cd",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Workers in blue uniforms load waste from a ground pile into a stationary dump truck with a raised bed. Activity consistent with municipal waste collection.",
+          "cost": 0.0014738
+        }
+      },
+      {
+        "id": "a3dea6cb",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two uniformed workers are operating a truck. One is inside the cargo bed, interacting with material. The ground pile is not growing. This suggests municipal collection or maintenance activity.",
+          "cost": 0.0014918
+        }
+      },
+      {
+        "id": "14698616",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 85,
+          "scene": "DUMPING",
+          "flow": "none",
+          "ev": "Person in grey shirt approaches pile and stands near it. Person in red shirt stands near pile. No clear material transfer or bulky item handling observed. Escalating due to proximity and known dumping site.",
+          "cost": 0.0014826
+        }
+      },
+      {
+        "id": "6090fa86",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Scene shows traffic with people and vehicles. One person is standing near a pre-existing waste pile but not depositing material.",
+          "cost": 0.0014602
+        }
+      },
+      {
+        "id": "6224b290",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 30,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A person in a red shirt stands near a parked pickup truck and a pre-existing pile of debris. No active dumping or collection is observed.",
+          "cost": 0.0014714
+        }
+      },
+      {
+        "id": "28fba845",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoa passando com um carrinho"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down near pile carrying pink object, then walks away empty-handed. New material visible on pile. Vehicle parked nearby.",
+          "cost": 0.001485
+        }
+      },
+      {
+        "id": "e014c555",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Two individuals are present near a large pre-existing pile of waste. A bulky item (mattress/furniture) is visible on the pile. The individuals appear to be interacting with or near the bulky item, consistent with placing",
+          "cost": 0.001507
+        }
+      },
+      {
+        "id": "983dc78f",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 85,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person near pile carrying object, bicycle stationary. Escalated due to material carrier signal.",
+          "cost": 0.001467
+        }
+      },
+      {
+        "id": "57f7f1ed",
+        "label": "TP",
+        "meta": {
+          "just": "Uma pessoa realizando descarte de múltiplas coisas"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in yellow vest bends down and places a white object onto the pile, then walks away empty-handed. New material visible.",
+          "cost": 0.0014074
+        }
+      },
+      {
+        "id": "be6b5e67",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte de múltiplas coisas"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person at pile frontage carrying a bag, indicating potential dumping. Escalated per B3 rules.",
+          "cost": 0.0014698
+        }
+      },
+      {
+        "id": "4cca7f5d",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two workers in uniform are interacting with a truck near a waste pile. The activity appears to be collection or maintenance, not dumping.",
+          "cost": 0.001499
+        }
+      },
+      {
+        "id": "3766dca1",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person seen walking away from pile carrying an object, consistent with prior deposit. Truck stationary nearby.",
+          "cost": 0.001481
+        }
+      },
+      {
+        "id": "d588e2b2",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam realizando a poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends at pile, then walks away. Truck parked nearby. Chronic dumping site.",
+          "cost": 0.0014874
+        }
+      },
+      {
+        "id": "17ff7912",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam realizando a poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying and placing a bulky item (panel/board) at the waste pile.",
+          "cost": 0.0014694
+        }
+      },
+      {
+        "id": "61c6be4e",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down near pile with bicycle, then leaves empty-handed. Fits bulky item dumping rule.",
+          "cost": 0.0014598
+        }
+      },
+      {
+        "id": "7ebf062f",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Multiple individuals in green uniforms near a waste pile and a stationary truck with a raised bed. Activity suggests material collection from the pile into the truck.",
+          "cost": 0.0014698
+        }
+      },
+      {
+        "id": "e811d8bc",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in uniform bends near pile, then walks towards truck with trailer. Consistent with collection activity.",
+          "cost": 0.0014682
+        }
+      },
+      {
+        "id": "4f356133",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in uniform interacting with green branches near a collection truck. Appears to be gathering material for removal.",
+          "cost": 0.0014818
+        }
+      },
+      {
+        "id": "b489a0a9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two individuals in green uniforms appear to be collecting vegetation and debris. One person is actively gathering green material, and another is bending near the pile. A truck is parked nearby. No clear evidence of illeg",
+          "cost": 0.0014862
+        }
+      },
+      {
+        "id": "10bfef31",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two workers in green uniforms are collecting vegetation and debris near a stationary truck with a tilted bed. The scene depicts collection and maintenance activities.",
+          "cost": 0.001461
+        }
+      },
+      {
+        "id": "a5db27cc",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in green uniform actively collecting vegetation from the ground and loading it into a stationary truck. The pile of vegetation appears to be decreasing.",
+          "cost": 0.0014458
+        }
+      },
+      {
+        "id": "4c5262d9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Pruning crew loading vegetation into a truck. Person in green actively handling and moving vegetation from the ground into the truck bed. Truck is stationary. Scene type is COLLECTION_OR_MAINTENANCE.",
+          "cost": 0.0014742
+        }
+      },
+      {
+        "id": "5b109f46",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Municipal workers in green uniforms are operating a truck with a crane arm to collect vegetation and debris from a pre-existing pile. The truck is stationary.",
+          "cost": 0.001473
+        }
+      },
+      {
+        "id": "8e92e6c3",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in uniform interacting with a parked truck near a pre-existing pile, consistent with collection activities.",
+          "cost": 0.001509
+        }
+      },
+      {
+        "id": "a018dd4d",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends near pile with backpack, then walks away. Escalated due to B3 recall mode and bulky item rule.",
+          "cost": 0.0014818
+        }
+      },
+      {
+        "id": "66280d13",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object towards pile, then leaving area empty-handed. Fits dumping criteria.",
+          "cost": 0.0014758
+        }
+      },
+      {
+        "id": "ad65ae06",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte de um saco de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Vehicles and cyclist observed moving on the road. A pedestrian walks past the pile carrying an object. No dumping or collection activity detected.",
+          "cost": 0.001467
+        }
+      },
+      {
+        "id": "bc0528c2",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte do conteúdo de uma sacol"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down with a bag, then moves away from the pile area with the bag. New material visible on the ground.",
+          "cost": 0.0014826
+        }
+      },
+      {
+        "id": "bba76894",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person walks towards pile, bends down, and walks away empty-handed. Truck is parked nearby.",
+          "cost": 0.0014814
+        }
+      },
+      {
+        "id": "1c823d95",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoa apenas estacionou e desceu com uma criança"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Person near parked car and pre-existing pile. Moves from car to pile area but no clear dumping/collection. Passing traffic observed.",
+          "cost": 0.0014702
+        }
+      },
+      {
+        "id": "277a0631",
+        "label": "FP",
+        "meta": {
+          "just": "Carro apenas estacionou"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying an object near the pile, bending posture, and new material visible on the ground. Escalated by bulky item rule.",
+          "cost": 0.0013666
+        }
+      },
+      {
+        "id": "3c83eab7",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "A person walks past the pile area and a van stops briefly on the road. No material is deposited or collected.",
+          "cost": 0.0013834
+        }
+      },
+      {
+        "id": "e92728ca",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas motos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Motorcycle stops near pile, rider dismounts and stands briefly, then rides away. No material transfer observed.",
+          "cost": 0.0014766
+        }
+      },
+      {
+        "id": "7c0cdfaa",
+        "label": "FP",
+        "meta": {
+          "just": "Dois homens trocando objetos, parece um descarte mas el"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down near pile with bag, then walks away with bag. Bulky item (white panel) present. Suggests dumping despite unclear transition.",
+          "cost": 0.001489
+        }
+      },
+      {
+        "id": "b58f9b56",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas um homem passando de bicicleta"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person pushing a cart with an orange container towards the pile and interacting with it. This is a material carrier signal.",
+          "cost": 0.0014602
+        }
+      },
+      {
+        "id": "a034010b",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object approaches pile, interacts, and leaves empty-handed. New material visible.",
+          "cost": 0.0014854
+        }
+      },
+      {
+        "id": "b014d1e6",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bending at pile frontage with bag, indicating potential dumping. Escalated per camera context.",
+          "cost": 0.0014842
+        }
+      },
+      {
+        "id": "3fb685f6",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in green shirt carrying a bag near pile. Person in orange shirt interacting with pile in last frame. Consistent with dumping.",
+          "cost": 0.0014818
+        }
+      },
+      {
+        "id": "b18fe72e",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Multiple individuals are seen carrying and placing a large white panel at the existing waste pile.",
+          "cost": 0.0014662
+        }
+      },
+      {
+        "id": "d00a79bd",
+        "label": "TP",
+        "meta": {
+          "just": "Grande quantidade de lixo descartada por um homem utili"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person pushing loaded wheelbarrow towards pile. Vehicle parked nearby.",
+          "cost": 0.0014622
+        }
+      },
+      {
+        "id": "d59d5309",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte utilizando um carrinho d"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person with cart at pile, likely depositing material. Cart is a material carrier.",
+          "cost": 0.0014618
+        }
+      },
+      {
+        "id": "2bb892bc",
+        "label": "TP",
+        "meta": {
+          "just": "Pessoas descartando restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends near pile, then walks away. New material visible.",
+          "cost": 0.0014862
+        }
+      },
+      {
+        "id": "737fdbb7",
+        "label": "FP",
+        "meta": {
+          "just": "Caminhão estacionado"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person squatting/bending at pile with material, then moving away. New material visible on ground.",
+          "cost": 0.001487
+        }
+      },
+      {
+        "id": "4ed80e61",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object leaves pile area. Another person stands near pile with object. Truck stationary.",
+          "cost": 0.0014786
+        }
+      },
+      {
+        "id": "38982b91",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando e pombos andando sobre o lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in red jacket bends down near pile, likely placing bulky debris. New material visible on pile.",
+          "cost": 0.0014774
+        }
+      },
+      {
+        "id": "missed-1",
+        "label": "FN",
+        "meta": {
+          "just": "Pessoal da prefeitura coletou o lixo do local, juntou c"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted and show no discernible content, thus classified as EMPTY.",
+          "cost": 0.001451
+        }
+      },
+      {
+        "id": "missed-2",
+        "label": "FN",
+        "meta": {
+          "just": "Homem trouxe sacos de lixo e os descartou no local"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted with static and noise, making visual analysis impossible. No objects, people, or scene elements are discernible.",
+          "cost": 0.0010862
+        }
+      },
+      {
+        "id": "missed-3",
+        "label": "FN",
+        "meta": {
+          "just": "Homem mexeu no lixo e potencialmente descartou"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Images are corrupted and unreadable. No visual evidence of any scene activity, persons, vehicles, or material.",
+          "cost": 0.0013562
+        }
+      },
+      {
+        "id": "missed-4",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are corrupted and contain no discernible visual information.",
+          "cost": 0.0011169
+        }
+      },
+      {
+        "id": "missed-5",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Images are corrupted and unreadable. Cannot determine scene content or actions. Defaulting to a neutral classification.",
+          "cost": 0.0014574
+        }
+      },
+      {
+        "id": "missed-6",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Frames are corrupted. Context indicates a chronic dumping site with a pre-existing pile. No clear dumping activity (carrying material, depositing, vehicle unloading, bulky item placement) is discernible from the corrupte",
+          "cost": 0.0014862
+        }
+      },
+      {
+        "id": "3c840ac4",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person with wheelbarrow approaching pile. Car parked. Bicycle rider previously near pile.",
+          "cost": 0.0014602
+        }
+      },
+      {
+        "id": "f0bd4e3d",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Pedestrian with umbrella and a car pass by. New litter appears near the pile in the last frame, but no clear dumping action is observed.",
+          "cost": 0.0014766
+        }
+      },
+      {
+        "id": "8fdb7d45",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed bending with red object near pile, then walking away empty-handed, indicating material deposition.",
+          "cost": 0.0014537
+        }
+      },
+      {
+        "id": "194ed500",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Multiple people and vehicles are moving through the scene. One person is consistently standing near the existing waste pile but not interacting with it. No clear dumping or collection activity is observed.",
+          "cost": 0.0014682
+        }
+      },
+      {
+        "id": "cfb7177e",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person seen placing bulky items (mattress, wood, boxes) at the pile and then walking away. Pile visibly increased with new material.",
+          "cost": 0.0014902
+        }
+      },
+      {
+        "id": "manual-2",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte a pé sem veículo: dois homens descartando TV/e"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Two individuals handle and carry a large bulky item (door/panel) at the pile. The initial action involves bending and manipulating the item at the pile, consistent with placing it there.",
+          "cost": 0.001493
+        }
+      },
+      {
+        "id": "fn_1313",
+        "label": "FN",
+        "meta": {
+          "just": "2026-06-02 13:13 painéis/madeira/metal a pé (prod MISSED)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in red shirt actively placing bulky wooden planks onto the existing pile. New material clearly visible.",
+          "cost": 0.0014758
+        }
+      }
+    ],
+    "b4": [
+      {
+        "id": "fb4a2c50",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "ambiguous",
+          "ev": "Large truck with raised bed and workers present at a known dumping site. Activity suggests waste handling, likely dumping of bulky items or tires.",
+          "cost": 0.0014972
+        }
+      },
+      {
+        "id": "e435c966",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 85,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in yellow shirt bends/reaches at pile in frame 3. Escalation based on camera context and specific recall mode instructions for handling/reaching at pile.",
+          "cost": 0.0014812
+        }
+      },
+      {
+        "id": "8b1854b9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "A white dump truck is stationary with its cargo bed raised, actively unloading material onto the ground near the existing waste pile. A person is standing near the pile.",
+          "cost": 0.0014676
+        }
+      },
+      {
+        "id": "51a9ff0e",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Truck with raised bed stationary, person actively unloading material onto the ground near the existing pile.",
+          "cost": 0.0014692
+        }
+      },
+      {
+        "id": "9c631112",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Truck stationary with workers in blue uniforms loading debris into the truck bed from the ground. Appears to be collection activity.",
+          "cost": 0.0014684
+        }
+      },
+      {
+        "id": "5e3e79cd",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Multiple uniformed workers are actively handling waste around a large truck with a raised cargo bed. The context indicates municipal collection operations. The truck appears to be loading or unloading waste, and the work",
+          "cost": 0.0015004
+        }
+      },
+      {
+        "id": "a3dea6cb",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Uniformed workers are present with a stopped truck. One worker is inside the truck bed handling material, suggesting collection activity.",
+          "cost": 0.0014652
+        }
+      },
+      {
+        "id": "14698616",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in dark shirt interacts with pile in frame 2, then walks away. New material visible on pile in last frame. Escalation due to camera context and handling signal.",
+          "cost": 0.0014908
+        }
+      },
+      {
+        "id": "6090fa86",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person approaching pile with bag, car parked nearby. Potential pile growth observed.",
+          "cost": 0.0014576
+        }
+      },
+      {
+        "id": "6224b290",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person seen carrying object near parked vehicle, then walking away from pile area. Vehicle stationary near pile. Escalation based on camera context and handling signal.",
+          "cost": 0.001486
+        }
+      },
+      {
+        "id": "28fba845",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoa passando com um carrinho"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person approaches pile carrying object, interacts with pile, and walks away empty-handed.",
+          "cost": 0.0014548
+        }
+      },
+      {
+        "id": "e014c555",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Two individuals near a large pre-existing pile. One person bends towards the pile, interacting with it. A bulky item (sofa/mattress) is present on the pile. Escalation due to bulky item and person's interaction.",
+          "cost": 0.0014856
+        }
+      },
+      {
+        "id": "983dc78f",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object near pile, then leaving empty-handed. Slight increase in pile material observed.",
+          "cost": 0.0014644
+        }
+      },
+      {
+        "id": "57f7f1ed",
+        "label": "TP",
+        "meta": {
+          "just": "Uma pessoa realizando descarte de múltiplas coisas"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down at pile, handling material. Pile visibly grows. Bulky item present.",
+          "cost": 0.001472
+        }
+      },
+      {
+        "id": "be6b5e67",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte de múltiplas coisas"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying white bag, bends towards pile, new bag appears on pile. Fits dumping criteria.",
+          "cost": 0.0014596
+        }
+      },
+      {
+        "id": "4cca7f5d",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two uniformed individuals are near a utility truck and a debris pile. One person is bending down. The truck is stopped. Scene suggests collection activity.",
+          "cost": 0.0014732
+        }
+      },
+      {
+        "id": "3766dca1",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam retirando o Lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A person walks away from the pile area. A truck is parked nearby. No material is actively being deposited or collected. The pile appears unchanged.",
+          "cost": 0.0014888
+        }
+      },
+      {
+        "id": "d588e2b2",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam realizando a poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down at pile, interacts, then walks away. Truck is parked nearby. Escalation due to handling/carrying signal.",
+          "cost": 0.0014848
+        }
+      },
+      {
+        "id": "17ff7912",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam realizando a poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying bulky item (panel/door) to pile and placing it. Another person also appears to deposit material. Truck is stationary.",
+          "cost": 0.001486
+        }
+      },
+      {
+        "id": "61c6be4e",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down at pile with bicycle nearby, then walks away. Escalation due to handling/bulky item signal.",
+          "cost": 0.001486
+        }
+      },
+      {
+        "id": "7ebf062f",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Workers in green uniforms are collecting debris from the ground and loading it into a truck. The pile is decreasing.",
+          "cost": 0.0014284
+        }
+      },
+      {
+        "id": "e811d8bc",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Person in green uniform bends down near debris pile and then moves away. A truck is parked nearby. This indicates collection activity.",
+          "cost": 0.0014644
+        }
+      },
+      {
+        "id": "4f356133",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Workers in green uniforms are collecting material from the pile and loading it into a truck trailer. The truck is stationary.",
+          "cost": 0.0014808
+        }
+      },
+      {
+        "id": "b489a0a9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Crew in green uniforms working with a truck loaded with branches. Consistent with pruning collection. Pile is unchanged.",
+          "cost": 0.0014756
+        }
+      },
+      {
+        "id": "10bfef31",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Two individuals in green uniforms are collecting vegetation and debris from a pile and loading it into a stationary truck. The pile appears to be decreasing.",
+          "cost": 0.001474
+        }
+      },
+      {
+        "id": "a5db27cc",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in green bending/squatting near pile, carrying a bag. Truck stopped nearby. Escalation rule applied for handling/carrying material.",
+          "cost": 0.0014652
+        }
+      },
+      {
+        "id": "4c5262d9",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Truck present, workers loading vegetation into the truck bed. Consistent with pruning waste collection.",
+          "cost": 0.0014616
+        }
+      },
+      {
+        "id": "5b109f46",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "Workers in green uniforms are operating near a waste pile with a utility truck, handling and moving material towards the truck.",
+          "cost": 0.0014784
+        }
+      },
+      {
+        "id": "8e92e6c3",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "COLLECTION_OR_MAINTENANCE",
+          "flow": "from_pile",
+          "ev": "A person in a green uniform is seen near a parked truck and a waste pile. The person appears to be collecting material from the pile and placing it into the truck. The truck is not a compactador EMLURB. The pile is pre-e",
+          "cost": 0.0014844
+        }
+      },
+      {
+        "id": "a018dd4d",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person approaches pile, bends down, and walks away empty-handed. White van stopped nearby.",
+          "cost": 0.0014768
+        }
+      },
+      {
+        "id": "66280d13",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object, bending/reaching at pile, then leaving empty-handed. Clear dumping event.",
+          "cost": 0.0014572
+        }
+      },
+      {
+        "id": "ad65ae06",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte de um saco de lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Traffic observed with cars, a cyclist, and pedestrians passing by a pre-existing waste pile. No person or vehicle interacted with the pile.",
+          "cost": 0.0014604
+        }
+      },
+      {
+        "id": "bc0528c2",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte do conteúdo de uma sacol"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bending near pile handling bags. Material flow towards pile. No clear transition to empty hands.",
+          "cost": 0.0014772
+        }
+      },
+      {
+        "id": "bba76894",
+        "label": "FP",
+        "meta": {
+          "just": "Estavam limpando os restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "A person is observed near a pre-existing pile of waste. A white truck is parked nearby. The person walks towards the pile, stands near it, and then walks away. No material is visibly handled, deposited, or collected. The",
+          "cost": 0.0014932
+        }
+      },
+      {
+        "id": "1c823d95",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoa apenas estacionou e desceu com uma criança"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person seen bending and carrying an object near the pile. New material appears in later frames. White car parked.",
+          "cost": 0.0014624
+        }
+      },
+      {
+        "id": "277a0631",
+        "label": "FP",
+        "meta": {
+          "just": "Carro apenas estacionou"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in red shirt seen near pile, then walking away carrying an object. New material visible on pile. Vehicle stopped nearby.",
+          "cost": 0.0014892
+        }
+      },
+      {
+        "id": "3c83eab7",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas pessoas e veículos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 50,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Person observed near pile, then walking away. Van parked briefly. No active dumping or collection observed.",
+          "cost": 0.001458
+        }
+      },
+      {
+        "id": "e92728ca",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas motos passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Motorcycle stopped near pile area, occupants observed, then departed. No material transfer or pile change observed.",
+          "cost": 0.0014556
+        }
+      },
+      {
+        "id": "7c0cdfaa",
+        "label": "FP",
+        "meta": {
+          "just": "Dois homens trocando objetos, parece um descarte mas el"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bending at pile with bag, then leaving with bag. New material visible. Escalation mode active.",
+          "cost": 0.0014832
+        }
+      },
+      {
+        "id": "b58f9b56",
+        "label": "FP",
+        "meta": {
+          "just": "Apenas um homem passando de bicicleta"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person on bicycle with basket positioned at the pile frontage, likely depositing material. Escalation rule for cart at pile frontage applied.",
+          "cost": 0.0014696
+        }
+      },
+      {
+        "id": "a034010b",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person approached pile carrying object, bent down, then left empty-handed. New material deposited. Vehicle stopped nearby.",
+          "cost": 0.0014668
+        }
+      },
+      {
+        "id": "b014d1e6",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down with white bag near waste pile. Truck present. Posture and bag suggest material handling and deposit.",
+          "cost": 0.0014628
+        }
+      },
+      {
+        "id": "3fb685f6",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in orange seen carrying a white bag, bending near the pile, and then standing up with empty hands. A truck is stopped nearby. This indicates dumping.",
+          "cost": 0.001492
+        }
+      },
+      {
+        "id": "b18fe72e",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Two individuals are seen interacting with a large white panel. One person carries the panel towards the pile and places it down, while the other observes. The panel is a new addition to the existing debris pile.",
+          "cost": 0.001482
+        }
+      },
+      {
+        "id": "d00a79bd",
+        "label": "TP",
+        "meta": {
+          "just": "Grande quantidade de lixo descartada por um homem utili"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person in orange with wheelbarrow near pile, squatting. Wheelbarrow contains bags. Escalation due to handling material near chronic dumping point.",
+          "cost": 0.0014864
+        }
+      },
+      {
+        "id": "d59d5309",
+        "label": "TP",
+        "meta": {
+          "just": "Um homem realizando o descarte utilizando um carrinho d"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Two individuals approach the pile, one bends/reaches at the pile while carrying an object, then they move away. Escalation due to handling/carrying material near pile.",
+          "cost": 0.001496
+        }
+      },
+      {
+        "id": "2bb892bc",
+        "label": "TP",
+        "meta": {
+          "just": "Pessoas descartando restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed bending down near pile in multiple frames (15:26:01, 15:28:46), indicating material handling and depositing. A person is also seen holding a bag near the pile (15:26:56). New material is visible on the gr",
+          "cost": 0.0014988
+        }
+      },
+      {
+        "id": "737fdbb7",
+        "label": "FP",
+        "meta": {
+          "just": "Caminhão estacionado"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person squats near pile, then walks away. Truck parked. Escalation based on posture and departure.",
+          "cost": 0.0014788
+        }
+      },
+      {
+        "id": "4ed80e61",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object, bending at pile, and moving away. Truck stationary. Clear dumping activity.",
+          "cost": 0.0014736
+        }
+      },
+      {
+        "id": "38982b91",
+        "label": "FP",
+        "meta": {
+          "just": "Pessoas passando e pombos andando sobre o lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object, bending near pile, hands empty later. New material visible.",
+          "cost": 0.0013276
+        }
+      },
+      {
+        "id": "missed-1",
+        "label": "FN",
+        "meta": {
+          "just": "Pessoal da prefeitura coletou o lixo do local, juntou c"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are heavily corrupted with visual noise, making scene analysis impossible. No objects or people are discernible.",
+          "cost": 0.0009788
+        }
+      },
+      {
+        "id": "missed-2",
+        "label": "FN",
+        "meta": {
+          "just": "Homem trouxe sacos de lixo e os descartou no local"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "PARKED",
+          "flow": "none",
+          "ev": "Images are corrupted and unreadable. No visual evidence of activity or material change can be assessed. Defaulting to a neutral state.",
+          "cost": 0.0013732
+        }
+      },
+      {
+        "id": "missed-3",
+        "label": "FN",
+        "meta": {
+          "just": "Homem mexeu no lixo e potencialmente descartou"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Images are heavily corrupted and unreadable. No scene elements are discernible.",
+          "cost": 0.001004
+        }
+      },
+      {
+        "id": "missed-4",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person observed depositing material at the pile. Pile volume increased. Vehicle/cart stationary at pile. Escalation rule applied due to handling/adding material.",
+          "cost": 0.0014027
+        }
+      },
+      {
+        "id": "missed-5",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando restos de poda"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Frames are heavily corrupted with visual noise, preventing any identification of people, vehicles, or material. No activity can be assessed.",
+          "cost": 0.001406
+        }
+      },
+      {
+        "id": "missed-6",
+        "label": "FN",
+        "meta": {
+          "just": "Homem descartando lixo"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "EMPTY",
+          "flow": "none",
+          "ev": "Images are corrupted and unreadable, preventing visual analysis of the scene.",
+          "cost": 0.0011716
+        }
+      },
+      {
+        "id": "3c840ac4",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person on bicycle with object approaching pile (frame 4). Two people pushing wheelbarrow with material towards pile (frame 5). Escalation criteria met.",
+          "cost": 0.0014792
+        }
+      },
+      {
+        "id": "f0bd4e3d",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Person with umbrella walks past pre-existing waste pile. Cars driving. Rain.",
+          "cost": 0.0014548
+        }
+      },
+      {
+        "id": "8fdb7d45",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying red object, bends down at pile, then walks away empty-handed. Clear pedestrian dumping.",
+          "cost": 0.0014463
+        }
+      },
+      {
+        "id": "194ed500",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": false,
+          "conf": 0,
+          "scene": "TRAFFIC",
+          "flow": "none",
+          "ev": "Pedestrians and a cyclist pass by a pre-existing trash pile. A cyclist stops near the pile, and another person stands nearby. No dumping or collection activity is observed.",
+          "cost": 0.0014696
+        }
+      },
+      {
+        "id": "cfb7177e",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte confirmado na plataforma (CONFIRMADO)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person with wheelbarrow seen interacting with pile. Pile grows significantly with bulky items (mattress, boxes). Strong indication of dumping.",
+          "cost": 0.0014628
+        }
+      },
+      {
+        "id": "manual-2",
+        "label": "TP",
+        "meta": {
+          "just": "Descarte a pé sem veículo: dois homens descartando TV/e"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person bends down, handles large debris (door/panel), and places it on the ground near the pile. New material added.",
+          "cost": 0.001486
+        }
+      },
+      {
+        "id": "fn_1313",
+        "label": "FN",
+        "meta": {
+          "just": "2026-06-02 13:13 painéis/madeira/metal a pé (prod MISSED)"
+        },
+        "gate": {
+          "ok": true,
+          "triggered": true,
+          "conf": 90,
+          "scene": "DUMPING",
+          "flow": "to_pile",
+          "ev": "Person carrying object, bends at pile, deposits material, pile grows. Another person handles construction debris.",
+          "cost": 0.001472
+        }
+      }
+    ]
+  }
+}

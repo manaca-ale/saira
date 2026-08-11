@@ -1,0 +1,43 @@
+{
+  "summary": {
+    "arm": "smoke_haiku",
+    "provider": "bedrock",
+    "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "events_total": 3,
+    "events_ok": 0,
+    "total_cost_usd": 0,
+    "elapsed_seconds": 18.3
+  },
+  "results": [
+    {
+      "event": "5520e0c7-918b-4619-9820-c2c230edef1c",
+      "gold": "kill",
+      "subtype": "revira_explicit",
+      "source": "comment",
+      "ok": false,
+      "error": "UnauthorizedSSOTokenError: The SSO session associated with this profile has expired or is otherwise invalid. To refresh this SSO session run aws sso login with the corresponding profile.",
+      "keep": true,
+      "cost_usd": 0.0
+    },
+    {
+      "event": "c836bea4-6646-435b-8258-b80cad1b61e3",
+      "gold": "kill",
+      "subtype": "passante_parado",
+      "source": "comment",
+      "ok": false,
+      "error": "UnauthorizedSSOTokenError: The SSO session associated with this profile has expired or is otherwise invalid. To refresh this SSO session run aws sso login with the corresponding profile.",
+      "keep": true,
+      "cost_usd": 0.0
+    },
+    {
+      "event": "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+      "gold": "keep",
+      "subtype": "real_deposit",
+      "source": "comment",
+      "ok": false,
+      "error": "UnauthorizedSSOTokenError: The SSO session associated with this profile has expired or is otherwise invalid. To refresh this SSO session run aws sso login with the corresponding profile.",
+      "keep": true,
+      "cost_usd": 0.0
+    }
+  ]
+}

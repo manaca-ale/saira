@@ -1,0 +1,23 @@
+X=(67, 384) y=(67,) cams=[10, 11]
+bbox_10=[6, 297, 995, 719]  bbox_11=[461, 66, 939, 416]
+
+cam_10: n=27 (CON=10 REJ=17)
+  acc=0.960  AUC=1.000
+  OOF: TP=9 TN=17 FP=0 FN=1  recall=90.00% spec=100.00%
+  misclassified:
+    8bfe0a1f gt=CON pred=REJ p=0.01
+
+cam_11: n=40 (CON=21 REJ=19)
+  acc=0.750  AUC=0.787
+  OOF: TP=15 TN=15 FP=4 FN=6  recall=71.43% spec=78.95%
+  misclassified:
+    b3482d87 gt=REJ pred=CON p=0.93
+    ae3d87cb gt=CON pred=REJ p=0.04
+    08533ffb gt=REJ pred=CON p=0.58
+    37d6feb0 gt=REJ pred=CON p=0.99
+    80fdbc2b gt=CON pred=REJ p=0.24
+    85d56cc5 gt=REJ pred=CON p=0.94
+    6b4d979d gt=CON pred=REJ p=0.45
+    3c840ac4 gt=CON pred=REJ p=0.49
+    d59d5309 gt=CON pred=REJ p=0.05
+    bc0528c2 gt=CON pred=REJ p=0.07

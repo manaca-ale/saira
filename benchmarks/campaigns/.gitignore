@@ -3,3 +3,26 @@
 */imbiribeira_fn18/
 *.tar
 run*.log
+
+# Secrets — nunca commitar (o *.env da raiz NÃO cobre .env.benchmark)
+.env
+.env.*
+*.env
+
+# Scratch / caches locais
+*/.crops/
+*/.tmp/
+*/cache/
+
+# Binários pesados reconstruíveis (backup completo no zip do Drive — ver docs/handoff-benchmarks.md)
+*.npz
+*.tgz
+36-window-latency-sim-2026-06-05/recent_baseline/
+36-window-latency-sim-2026-06-05/bgsub_models/
+36-window-latency-sim-2026-06-05/corpus/
+36-window-latency-sim-2026-06-05/recent_test/
+39-bgsub-arruda-v2-2026-06-12/models/
+40-mangabeira-b3-fp-2026-06-16/largeN/
+40-mangabeira-b3-fp-2026-06-16/volume_proto/
+44-imbiribeira-vehicle-fp-polygons-2026-06-23/largeN/
+44-imbiribeira-vehicle-fp-polygons-2026-06-23/results/windows/

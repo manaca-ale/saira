@@ -1,0 +1,105 @@
+{
+  "campaign_number": 20,
+  "date": "2026-05-30",
+  "title": "detail+verifier model comparison + free filters",
+  "type": "model-selection",
+  "focus": "model-selection (detail/verifier role + free filters, multi-axis)",
+  "models": {
+    "gate": "gemini-2.5-flash-lite (unchanged)",
+    "detail": "varies (flash-V1 baseline / sonnet-4-6 / pro-2.5)",
+    "verifier": "varies (pro-2.5 / sonnet-4-6 / flash-lite)",
+    "free_filter": "dinov2-base / pile-zone-delta / bytetrack-yolov8s"
+  },
+  "dataset": "production REJ/CON snapshot (saira-db-prod 2026-05-29 23:59 BRT, n=52)",
+  "variants": {
+    "current": {
+      "n": 52,
+      "tp_recall": 100.0,
+      "fp_rate": 100.0,
+      "cost_per_event": 0.005,
+      "label": "Gemini Flash V1 detail (prod baseline)",
+      "notes": "Sempre confirma — TP recall 100 mas FP rate também 100 (22/22 REJ passam)"
+    },
+    "sonnet_detail_V1_V3": {
+      "n": 52,
+      "tp_recall": 73.3,
+      "fp_rate": 68.2,
+      "cost_per_event": 0.0515,
+      "label": "Claude Sonnet 4.6 detail (V1 cam_10 + V3 cam_11)",
+      "notes": "Acc 55.77%; perde 8 ocorrências reais (FN)"
+    },
+    "pro_detail_V1_V3": {
+      "n": 52,
+      "tp_recall": 63.3,
+      "fp_rate": 63.6,
+      "cost_per_event": 0.0217,
+      "label": "Gemini Pro 2.5 detail (V1 cam_10 + V3 cam_11)",
+      "notes": "Acc 51.92%; PIOR detail testado; perde 11 ocorrências reais"
+    },
+    "agent3_pro_few_shot": {
+      "n": 8,
+      "tp_recall": 75.0,
+      "fp_rate": 0.0,
+      "cost_per_event": 0.015,
+      "label": "Gemini Pro 2.5 Agent-3 verifier + 3 few-shot REJ",
+      "notes": "Acc 87.5%, 0 false-confirm — VENCEDOR pra cam_11"
+    },
+    "agent3_sonnet_few_shot": {
+      "n": 8,
+      "tp_recall": 50.0,
+      "fp_rate": 0.0,
+      "cost_per_event": 0.050,
+      "label": "Claude Sonnet 4.6 Agent-3 verifier + few-shot REJ",
+      "notes": "Acc 75%; 0 false-confirm mas 2 false-reject; pior+caro que Pro"
+    },
+    "agent3_flashlite_few_shot": {
+      "n": 8,
+      "tp_recall": 100.0,
+      "fp_rate": 100.0,
+      "cost_per_event": 0.0004,
+      "label": "Gemini Flash Lite Agent-3 + few-shot REJ",
+      "notes": "Acc 50%; confabula tudo (4 false-confirms)"
+    },
+    "dinov2_per_camera_10": {
+      "n": 23,
+      "tp_recall": 90.0,
+      "fp_rate": 7.7,
+      "cost_per_event": 0.0,
+      "label": "DINOv2-base + LogReg per-camera (cam_10 only)",
+      "notes": "Acc 96%, AUC 0.933 — free filter VENCEDOR pra cam_10"
+    },
+    "dinov2_per_camera_11": {
+      "n": 29,
+      "tp_recall": 60.0,
+      "fp_rate": 66.7,
+      "cost_per_event": 0.0,
+      "label": "DINOv2-base + LogReg per-camera (cam_11 only)",
+      "notes": "Acc 47%, AUC 0.525 — não funciona em cam_11 (imagem estática insuficiente)"
+    },
+    "pile_delta_logreg": {
+      "n": 52,
+      "tp_recall": 65.5,
+      "fp_rate": 47.6,
+      "cost_per_event": 0.0,
+      "label": "Pile-zone edge delta (OpenCV) + LogReg 14 features",
+      "notes": "Acc 67.5% cap, AUC 0.708; fail — gate já pre-seleciona pile-zone activity"
+    },
+    "bytetrack_yolov8s_cam11": {
+      "n": 27,
+      "tp_recall": 77.8,
+      "fp_rate": 77.8,
+      "cost_per_event": 0.0,
+      "label": "ByteTrack + YOLOv8s + dwell features (cam_11 only)",
+      "notes": "Acc 60% (=baseline trivial sempre-CON); YOLO COCO não detecta depositadores reais"
+    }
+  },
+  "success_criteria_check": {
+    "detail_acc_min_70": "FAIL — nenhum detail bate 70%; Sonnet 55.8% e Pro 51.9% pioraram",
+    "detail_fn_max_5": "FAIL — Sonnet 26.7% FN, Pro 36.7% FN",
+    "verifier_acc_min_80": "PASS — Pro 87.5% sobre 8 events (limitação: amostra pequena)",
+    "verifier_false_confirm_max_0": "PASS — Pro e Sonnet 0 false-confirms",
+    "free_filter_cam10_acc_min_90": "PASS — DINOv2 96% per-camera",
+    "cost_per_event_max_0.020": "PASS pra Pro verifier ($0.015), FAIL pra Sonnet/Pro detail"
+  },
+  "verdict": "Recomenda manter Flash V1/V3 como Agent-2; adicionar DINOv2+LogReg shadow A/B para cam_10 ($0, 96%); Pro 2.5 + few-shot REJ como Agent-3 só para cam_11 ($0.015/event, 87.5%). Sonnet 4.6, Pro como detail, Flash Lite Agent-3, pile-delta hard filter e ByteTrack-COCO: descartados."
+}

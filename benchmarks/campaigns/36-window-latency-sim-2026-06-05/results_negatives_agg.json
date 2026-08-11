@@ -1,0 +1,32 @@
+{
+  "prod_240_poll180": {
+    "overall_fp_h": 1.5,
+    "imbiribeira_fp_h": 1.0,
+    "mangabeira_fp_h": 2.0,
+    "raw_fp_mean": 1.8
+  },
+  "prod_240_poll60": {
+    "overall_fp_h": 2.75,
+    "imbiribeira_fp_h": 2.5,
+    "mangabeira_fp_h": 3.0,
+    "raw_fp_mean": 4
+  },
+  "fix_60_poll30": {
+    "overall_fp_h": 2.75,
+    "imbiribeira_fp_h": 2.5,
+    "mangabeira_fp_h": 3.0,
+    "raw_fp_mean": 4.8
+  },
+  "slide_120_str60": {
+    "overall_fp_h": 2.25,
+    "imbiribeira_fp_h": 3.0,
+    "mangabeira_fp_h": 1.5,
+    "raw_fp_mean": 2.8
+  },
+  "slide_90_str30": {
+    "overall_fp_h": 3.5,
+    "imbiribeira_fp_h": 4.0,
+    "mangabeira_fp_h": 3.0,
+    "raw_fp_mean": 9.8
+  }
+}

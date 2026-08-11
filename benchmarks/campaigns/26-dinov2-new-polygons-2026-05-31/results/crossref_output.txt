@@ -1,0 +1,30 @@
+eventos cruzados (cam_11): 40
+
+both right:        22
+both wrong:        5
+DINO fixes Gemini: 8  (Gemini errou, DINO acertou)
+DINO breaks:       5  (Gemini acertou, DINO errou)
+
+--- DINO corrige erros do Gemini ---
+  2bb86418 gt=REJ gemini=CON dino=REJ (p=0.4)
+  45dc0327 gt=REJ gemini=CON dino=REJ (p=0.1)
+  5896feaa gt=REJ gemini=CON dino=REJ (p=0.09)
+  62497a92 gt=REJ gemini=CON dino=REJ (p=0.0)
+  686b5746 gt=REJ gemini=CON dino=REJ (p=0.03)
+  69b8b0b6 gt=REJ gemini=CON dino=REJ (p=0.25)
+  b96cef1b gt=REJ gemini=CON dino=REJ (p=0.05)
+  cf39d55f gt=REJ gemini=CON dino=REJ (p=0.32)
+
+--- DINO quebra acertos do Gemini ---
+  6b4d979d gt=CON gemini=CON dino=REJ (p=0.45)
+  80fdbc2b gt=CON gemini=CON dino=REJ (p=0.24)
+  85d56cc5 gt=REJ gemini=REJ dino=CON (p=0.94)
+  bc0528c2 gt=CON gemini=CON dino=REJ (p=0.07)
+  d59d5309 gt=CON gemini=CON dino=REJ (p=0.05)
+
+=== ensembles (cam_11) ===
+  Gemini E+CROPS alone               acc=67.5% rec=90.5% spec=42.1% TP=19 TN=8 FP=11 FN=2
+  DINOv2 alone                       acc=75.0% rec=71.4% spec=78.9% TP=15 TN=15 FP=4 FN=6
+  AND (both CON)                     acc=77.5% rec=71.4% spec=84.2% TP=15 TN=16 FP=3 FN=6
+  OR (any CON)                       acc=65.0% rec=90.5% spec=36.8% TP=19 TN=7 FP=12 FN=2
+  Gemini, veto if dino p<0.2         acc=75.0% rec=81.0% spec=68.4% TP=17 TN=13 FP=6 FN=4

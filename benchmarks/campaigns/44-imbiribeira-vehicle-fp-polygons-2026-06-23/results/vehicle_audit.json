@@ -1,0 +1,216 @@
+{
+  "summary": "Vision audit: are vehicle-gate TP losses legit (on-foot) and vehicles ubiquitous in FPs?",
+  "agentCount": 24,
+  "logs": [],
+  "result": {
+    "tp": [
+      {
+        "event_id": "12506543",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "modality": "handcart",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "Real CONFIRMED disposal carried out on foot using a wheeled handcart (\"carroça\"), not by a vehicle. Sequence: frames 1-3 show one-to-two men beside a tan/brown wheeled cart in the central path of the lot; frame 4 the cart is pushed into the foreground center with a man beside it (clearly a pushed hand/animal cart on wheels, not a motor vehicle); frame 5 the men and cart are gone and fresh material is left deposited in the central area where they had been working. The only motor vehicle in the scene is a dark car parked near the upper road that stays in the SAME spot across all 5 frames and never unloads — it is a passively parked/through-path car, not the depositor. Operator note confirms \"os dois homens ainda estavam mexendo no lixo\" (two men handling the trash). A vehicle-required gate correctly fails to recover this: there is no vehicle stop-and-unload event; the depositor is two men with a handcart. recoverable_by_vehicle_prompt=false because keying on a vehicle would just relock onto the inert parked car and still miss the on-foot/handcart action.",
+        "model_veh": false
+      },
+      {
+        "event_id": "218673e1",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "unclear",
+        "modality": "on_foot",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "Confirmed real disposal at the chronic dump pile mid-frame (behind central pole). A vehicle is parked at the road edge near the pile throughout all 5 frames, but the depositing action is performed by two men ON FOOT who walk to the pile and place large objects on the ground (consistent with operator note \"dois homens realizando o descarte de objetos grandes\"). Colored material (reds/pinks) accumulates on the ground from frame 1 to frame 5. The vehicle likely transported the items but is NOT clearly the depositor (no stop-and-unload-to-ground motion by the vehicle itself) — humans carry and place the objects. A vehicle-required gate drops this precisely because the disposal modality is on-foot human deposition near a parked vehicle, not a vehicle unloading. recoverable_by_vehicle_prompt=false: requiring a vehicle as the depositor would still miss this event since the men, not the vehicle, do the depositing.",
+        "model_veh": false
+      },
+      {
+        "event_id": "48350bb4",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "modality": "group",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "Two men on foot empty a large white bag/sack onto the ground in the open dirt lot (left of the central pole), matching operator note \"Dois homens descartando o conteudo dentro de um grande saco\". Sequence: F1-F2 a light pickup and cars are parked/passing on the road far up; F2-F3 two figures appear on foot in the vacant lot, one carrying/dragging a large pale bag; F3 shows the big white sack on the ground beside them mid-lot, well away from any vehicle; F4-F5 deposit complete, one man lingers, vehicles still parked on the distant road. Vehicles are present (pickup + cars) but only parking/transiting the lot-as-parking-area; none stops and unloads to ground. The actual deposit is on-foot/group. A vehicle-required gate dropped this correctly-detected real disposal because the depositor is not a vehicle, so a vehicle-anchored prompt cannot recover it.",
+        "model_veh": true
+      },
+      {
+        "event_id": "8bfe0a1f",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "modality": "on_foot",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "Confirmed real disposal happening ON FOOT. Sequence: F1 empty central pile zone (motorcycle bottom-left, cars parked/passing on right near road - this lot doubles as parking/through-path). F2 two pedestrians appear far right near buildings (one orange). F3-F4 a single pedestrian walks into the central lot and stands alone right at the debris pile - no vehicle accompanies this actor. F5 person still on foot at the pile zone, second pedestrian by road. Vehicles ARE present in frame but only parked/passing far from the deposit point on the right; none stops and unloads to ground at the pile. The depositor is a pedestrian at the central chronic-dump pile. A vehicle-required gate correctly cannot recover this - the actor is on foot, so a vehicle-deposit prompt would not catch it. This is a genuine vehicle-prompt FN (on-foot disposal misclassified by a vehicle-only gate).",
+        "model_veh": false
+      },
+      {
+        "event_id": "a447ff19",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "modality": "group",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "On-foot group disposal at the chronic dump zone (left-center, by the chain-link cage/handcart structure). Across all 5 frames, 3-4 people on foot work the spot and deposit white bags/tarp material on the ground; the deposited pile visibly grows (frames 1->4) and remains in frame 5. Modality is group/handcart on foot. Vehicles ARE present but only as background parking/passing: a blue car parked far on the right and a white truck on the distant street at top -- neither ever approaches the deposit zone or stops+unloads there. So vehicle_present=yes but vehicle_depositing=no. A vehicle-required gate correctly drops/misses this because the depositor is pedestrian, not a vehicle; recoverable_by_vehicle_prompt=false. Pole at frame center ignored as instructed.",
+        "model_veh": true
+      },
+      {
+        "event_id": "c8cb22fb",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "modality": "handcart",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "Confirmed disposal at a chronic open-lot dumping ground (Imbiribeira). Vehicles ARE present throughout (a blue car parked on the right the whole sequence, plus motorcycles and a white car passing on the back road), but none stops-and-unloads-to-ground — the blue car is merely parked. The actual material movement is on-foot/handcart: by frames 4-5 (10:07-10:10) a loaded pushcart (carroca) appears in the central-right area with a person beside it working the pile edge, plus people on foot bent over the central pile. This is the catador/handcart + on-foot pattern, not a vehicle depositor. A vehicle-required gate drops it precisely because the depositor is not a vehicle, which is why this operator-CONFIRMED TP was lost. recoverable_by_vehicle_prompt=false (vehicle presence is incidental parking/through-traffic, not the disposal mechanism).",
+        "model_veh": true
+      },
+      {
+        "event_id": "cb49921a",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "unclear",
+        "modality": "group",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "Group/on-foot disposal at the chronic dump zone (center-right, near existing pile). Frame 1: cluster of people on foot + bicycles around the pile, colorful (pink/red) bags on ground, no truck yet. Frame 2: a white flatbed truck (caminhao de carroceria) arrives and parks right beside the group at the dump zone; a separate silver car is parked at left-center (just parking, unrelated). People gathered between truck and pile, one with arm raised. Frame 3: truck departs (gone from frame), an empty flatbed/cart-like object left behind, people moving on bicycles, colorful material remains on ground. Frames 4-5: lot empties, people walk/cycle away, deposited dark bags + colorful items left on the ground = persistent new debris. Operator note ('Pessoas realizando o descarte do conteudo de um saco marrom') confirms the depositing ACT is done by PEOPLE emptying bag contents on foot, not by the truck tipping its bed. The truck is co-located and likely transported material, but I did not observe a clear vehicle-tip/unload-to-ground action; the disposal is a group/on-foot act with bicycles. vehicle_depositing=unclear, modality=group. A strict vehicle-required gate would drop this because the actual deposit is people emptying bags by hand, so recoverable_by_vehicle_prompt=false (a vehicle-anchored prompt would only catch it incidentally via the parked truck in frame 2, but the real signal is the people+bags, not vehicle unloading).",
+        "model_veh": true
+      },
+      {
+        "event_id": "e2bdf0d5",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "yes",
+        "modality": "vehicle",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": true,
+        "note": "Sequence: frames 1-3 show passing/empty traffic on the road in the dumping lot; frame 4 (14:56:24) a dark Nissan sedan has pulled OFF the road INTO the open lot/dumping zone, stopped center-frame nose-toward-camera, with a motorcyclist immediately behind it; frame 5 (14:57:33) the sedan and motorcyclist are gone. Signature stop-and-dump: vehicle enters the chronic dumping ground, halts ~1 min in the deposit zone, then departs. The deposited material is hard to isolate visually because the lot is already saturated with scattered debris, but the vehicle's enter-stop-leave behavior is the depositor. A vehicle IS the depositor, so a vehicle-required prompt should recover this; the gate likely dropped it because the sedan appears stopped in essentially a single frame and the new material blends into the pre-existing trash, not because the modality was on-foot.",
+        "model_veh": true
+      },
+      {
+        "event_id": "f15a5964",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "modality": "on_foot",
+        "is_real_disposal": "yes",
+        "recoverable_by_vehicle_prompt": false,
+        "note": "On-foot disposal. Frame 3 (14:29:19) shows a pedestrian in light/white top in the central lot carrying items by hand, with an orange object set on the ground beside them; by frame 4 the person has left material and moved on. Vehicles are present throughout (cars/truck on the far road, a parked dark car/van at right, and a 2-rider motorcycle entering lower-left in frame 5) but ALL are parking, passing, or transiting through the lot/road — none stops and unloads cargo to the ground. The motorcycle arrives AFTER the deposit and does not unload bulk material. This is the classic vehicle-required gate failure: a genuine pedestrian (hand-carry) deposit gets dropped because no vehicle-unload event occurs. A vehicle-anchored prompt would NOT recover this — the depositor modality is on-foot, so recoverable_by_vehicle_prompt=false.",
+        "model_veh": false
+      }
+    ],
+    "fp": [
+      {
+        "event_id": "04dec739",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Multiple vehicles present across frames: a blue car parked steadily by the far roadside (rubble pile) in all 5 frames, plus through-traffic (a motorcycle with motion blur in f1, dark+light cars passing in f3) and a dark car/SUV that stops near the concrete barrier (f4-f5). All behavior is consistent with parking/passing on this lot-cum-road. No vehicle is seen unloading or dumping material. The human activity (people on the debris pile at far left, f3-f5) is on foot at the pre-existing rubble, not tied to any vehicle. Correct false positive: vehicle present but merely parked/passing, no disposal."
+      },
+      {
+        "event_id": "0d501fb6",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Multiple vehicles present across the sequence: a small static truck/cart at the debris-pile edge (center) throughout, parked/passing cars on the road behind, and a white car that pulls in near pedestrians in frame 5. None show depositing behavior — no tipping bed, no person unloading material from a vehicle into the lot. The pre-existing massive debris piles are unchanged. This is the chronic Imbiribeira FP pattern: an open lot used as parking/through-path where parked or passing vehicles are confused with disposal. Operator correctly REJECTED."
+      },
+      {
+        "event_id": "0db0b542",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Multiple vehicles present across all frames: a silver hatchback parked in foreground (frames 1-3, departs by frame 4), a white van and blue car parked/circulating in mid-distance, and an orange flatbed truck passing near the right pile in frame 5. All vehicles are parked or passing/circulating through this lot (a known parking/through-path area). Person in yellow beside the silver car (frame 3) is entering/exiting their parked vehicle, not dumping. No vehicle is seen depositing material; debris piles are chronic and unchanged across the sequence. Consistent with operator REJECTION (vehicles parked/passing, not depositing)."
+      },
+      {
+        "event_id": "10497a6f",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Multiple vehicles present across all 5 frames but all are parking or passing, not depositing. A silver hatchback stays parked in the same spot (center-left) the whole sequence; a blue car and other vehicles transit the lot/road; pedestrians walk through (pink-shirted person in frames 2/4) and a red motorcycle crosses in frame 5. No vehicle is at a pile unloading material; no trunk/tailgate dump behavior. The large garbage piles on left/right edges are the chronic pre-existing dumping ground and do not grow in a way attributable to any vehicle. Open lot doubles as parking/through-path, so stationary vehicle alone triggered the gate. Consistent with operator REJECT (false positive)."
+      },
+      {
+        "event_id": "13dc1453",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Multiple vehicles present but all transiting/parking, none depositing. Frame 1: parked motorcycle lower-left + dark vehicle at back road. Frames 3-5: a white sedan crosses the lot left-to-right then moves to lower-left (changes position between frames 4 and 5 = moving, consistent with passing/maneuvering, not stationary). Other cars (red truck, silver car) parked in the far back-left strip, away from debris. The central pink/debris pile is chronic, pre-existing and unchanged across all frames; no vehicle is positioned at it and no one is seen unloading. Matches operator note 'Apenas pessoas e veiculos passando'. Clear FP: vehicle present, not depositing."
+      },
+      {
+        "event_id": "1dd7f6e8",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Vehicles clearly present: white cars parked upper-left, and a black SUV (Duster-type) that enters bottom-left (frame 2), parks center-left (frames 3-4), then repositions to center (frame 5). No vehicle is depositing material — no unloading from trunk/bed, no debris dropped. The black SUV is parking/maneuvering in this lot that doubles as a parking area. People present are a pedestrian, a motorcyclist, and a cyclist, all passing/moving. The pink/magenta debris pile near center (behind the pole) is pre-existing and unchanged across all 5 frames (chronic dumping, not fresh). Matches operator note 'Apenas pessoas e veiculos passando'. Gate flagged a stationary vehicle, but parked != depositing. Confirmed false positive."
+      },
+      {
+        "event_id": "21b27cad",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Distant vehicles only, none on the dumping lot. A blue/gray car is parked far back at the roadside near the houses (background) for the entire sequence with no person loading/unloading; silver cars merely pass along the far through-road in frames 3 and 5. No vehicle-to-ground material transfer anywhere. Foreground activity is pedestrians: a person in teal pants standing mid-lot (frame 1) and a person in pink scavenging trash in the grass (frame 5). All debris piles are pre-existing and static across frames (identical positions). Classic Imbiribeira FP: lot doubles as parking/through-path + chronic permanent debris + human presence among trash triggered the stationary-vehicle gate. No depositing event."
+      },
+      {
+        "event_id": "2220e135",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "unclear",
+        "looks_like_disposal": "unclear",
+        "note": "Frame 1 (00:33): central lot empty (only abandoned cart bottom-left + distant black sedan parked far right near houses). Frame 2 (00:34): a white small flatbed/pickup truck is stationary in center-foreground with a person standing beside it and apparent material on the bed - this is a genuine vehicle, not the pole. Frames 3-5 (00:35-00:36): truck is gone, lot empty. So a vehicle WAS truly present (gate correctly saw a vehicle), but it is visible in only ONE frame and departs within ~1 min. Cannot confirm depositing vs pickup/quick stop: debris is chronically scattered everywhere so no clear before/after new-pile evidence attributable to this truck. Vehicle present = yes; depositing/disposal = unclear. Operator REJECTED (note: none) - likely judged it a brief stop/pass-through rather than a confirmed dump."
+      },
+      {
+        "event_id": "2900d8ea",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Small open flatbed truck parked center-left near the chronic debris pile/orange bin, essentially stationary across the full 11:20:29-11:23:49 window (position vs pile/bin barely changes). No tipping/unloading motion, flatbed keeps its load, no growing pile attributable to the truck; debris field is the pre-existing dumping ground. A person in red passes near it in frame 1 but is not seen unloading. Lot doubles as parking/through-path, so a parked truck is expected. Consistent with operator REJECT: stationary parked vehicle, not depositing."
+      },
+      {
+        "event_id": "290eb292",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "unclear",
+        "note": "A small flatbed truck/pickup sits stationary in the center of the lot across all 5 frames (10:59:24 to 11:00:29), same position the whole window — consistent with parked, not depositing. No loading/unloading FROM the truck bed is observed. The only material movement is a PEDESTRIAN on foot carrying a corrugated metal sheet (telha) in frame 2 (10:59:44) — pedestrian disposal, not vehicle disposal. Lot doubles as parking/through-path; gate likely flagged the parked truck as a 'stationary vehicle depositing', which is a false positive: vehicle is parked, not dumping. looks_like_disposal=unclear because human-carried dumping may be happening nearby, but it is not attributable to the vehicle."
+      },
+      {
+        "event_id": "2e089ea2",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Multiple vehicles present across frames (white box-truck at back near road, blue sedan, a black car then a grey SUV parking center-left, a white taxi passing bottom-right). None deposit material: passenger cars are parking near the handcart area, the box-truck stays at the back by the road and is never seen unloading into the lot. Real activity is human (person with carroca/handcart in frames 4-5) plus a dog crossing in frame 5. Debris is pre-existing/scattered everywhere. Classic Imbiribeira FP: gate confabulated 'stationary vehicle depositing' from vehicles merely parking/passing in an open lot that doubles as parking and through-path. Operator REJECT correct."
+      },
+      {
+        "event_id": "32c2f287",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Multiple vehicles present on this open vacant-lot/parking/through-path at night. A maroon hatchback is seen on the dirt lot in frame 1, then moves up onto the road (motion blur) in frame 2, with cars at different positions across frames 3-5 and a pedestrian + motorcycle in transit in frame 4. The frame-to-frame position changes and motion blur indicate vehicles are passing/maneuvering, not stationary. No vehicle is observed unloading, and no NEW pile of material appears beside any vehicle — the trash/debris near the road and the pile by the buildings are pre-existing across all 5 frames (chronic dumping ground). Consistent with operator note 'Veiculos passando'. Central pole ignored. False positive: vehicles present but merely passing/transiting, not depositing."
+      },
+      {
+        "event_id": "3f5e4001",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "Dark sedan parked center-right of the lot (just left of the pole base) is stationary across all 5 frames over ~4 min — parked, not depositing. A white truck sits parked in the far background (tree line) and also does not move. The orange skip/caçamba at frame center is static scenery, not a vehicle. Heavy rain streaks intensify in frames 2-5, consistent with the operator note \"Apenas está chovendo\". No loading/unloading or material drop by any vehicle; scattered debris is the lot's chronic baseline. Clear false positive."
+      },
+      {
+        "event_id": "4909dc2d",
+        "vehicle_present": "yes",
+        "vehicle_depositing": "no",
+        "looks_like_disposal": "no",
+        "note": "White flatbed truck parked stationary center-left of the lot across all 5 frames, with 1-2 workers at the rear of the bed and a debris pile beside it. The pile does not visibly grow into a fresh dumped load between frames; debris is pre-existing scatter on this chronic dumping ground. Action is loading/collection, not deposition. Operator note confirms \"Caminhão realizando a retirada de lixo\" (truck performing garbage REMOVAL). Vehicle is genuinely present and stationary, but it is removing material, not depositing — classic cam_10 FP where a removal/collection op near existing debris is misread as a disposal event."
+      }
+    ],
+    "synthesis": {
+      "vehicle_lever_viable": false,
+      "tp_loss_legit_no_vehicle": 8,
+      "tp_loss_has_vehicle_promptbug": 1,
+      "fp_vehicle_present_count": 14,
+      "fp_vehicle_depositing_count": 0,
+      "recommendation": "REJECT the vehicle-focused gate for esp32_001. It is structurally disqualified, not merely under-tuned. Of the 9 TPs the hard gate dropped, 8 are LEGIT unrecoverable losses (on-foot/handcart/group disposals with no depositing vehicle; recoverable_by_vehicle_prompt=false on all 8) and only 1 (e2bdf0d5) is a genuine prompt-bug (a sedan stop-and-dump missed because it appears in ~1 frame). Because 8 of 20 TPs are intrinsically beyond a vehicle anchor, the MAXIMUM achievable recall of ANY vehicle-anchored gate is (20-8)/20 = 60% even if perfectly tuned and the prompt-bug is fixed (which lifts the hard arm only from 55% to 60%). That ceiling is 25pp below the SAIRA recall-x3 floor of 85% (needs >=17/20). All three benchmarked arms are below floor (A 60%, B 15%, C 40%), and even the baseline already fails it. On the FP side the lever is also weak: all 14 vehicle-flagged FPs do have a real vehicle (so vehicle detection is accurate), but 0/14 show a DEPOSITING vehicle (12 no, 2 unclear; one is literally garbage REMOVAL) - the lot doubles as parking/through-path so vehicle_stopped=true fired on 110/147 FPs as noise. The discriminating signal (vehicle depositing-to-ground) is exactly what cannot be reliably extracted because fresh material blends into the chronic saturated pile. The depositor modality at Imbiribeira is dominantly pedestrian, so a vehicle anchor cannot meet recall. Keep V1 baseline and pursue the established levers instead (DINOv2 cam_10 shadow per Camp 26/27, Camp 31 E_modality prompt for specificity at equal recall, structural-delta). Do not invest further in a vehicle prompt.",
+      "key_findings": [
+        "Recall ceiling is structural: 8 of 9 dropped TPs are on-foot/handcart/group disposals with NO depositing vehicle (recoverable_by_vehicle_prompt=false on all 8), capping ANY vehicle-anchored gate at 60% recall (20-8)/20 - 25pp below the 85% floor (needs >=17/20).",
+        "Only 1 dropped TP (e2bdf0d5) is a real prompt-bug: a Nissan sedan pulled off-road into the lot, stopped ~1min, departed (true stop-and-dump) but was missed because it shows in essentially one frame. Fixing it lifts the hard arm only 55%->60%.",
+        "All three arms fail the floor: A_baseline 12/20=60% (FP 66/147), B_vehicle_hard 3/20=15% (FP 11), C_vehicle_soft 8/20=40% (FP 26). Vehicle gates trade recall far below floor for FP reduction.",
+        "Vehicle detection itself is accurate but non-discriminating: 14/14 vehicle-flagged FPs truly have a vehicle present, but 0/14 are DEPOSITING (12 no, 2 unclear: 2220e135, 290eb292). One FP (4909dc2d) is a truck doing garbage REMOVAL, not disposal.",
+        "Root cause: the open lot doubles as parking/through-path with a chronic saturated debris pile, so vehicle_stopped=true fired on 110/147 FPs as noise; the only true discriminator (vehicle unloading-to-ground) is unextractable because fresh material blends into the pre-existing pile.",
+        "Disposal modality at Imbiribeira is dominantly pedestrian (on_foot/handcart/group across the dropped TPs), so anchoring on a vehicle as the depositor mismodels the site and cannot satisfy recall.",
+        "Recommendation: keep V1; the viable levers remain DINOv2 cam_10 shadow (Camp 26/27) and the Camp 31 E_modality prompt (specificity at equal recall) - not a vehicle gate."
+      ]
+    }
+  }
+}

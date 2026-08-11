@@ -1,0 +1,73 @@
+{
+  "summary": {
+    "arm": "gemini_smoke",
+    "provider": "gemini",
+    "model": "gemini-2.5-flash",
+    "events_total": 3,
+    "events_ok": 3,
+    "total_cost_usd": 0.001192,
+    "elapsed_seconds": 4.0
+  },
+  "results": [
+    {
+      "event": "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+      "gold": "keep",
+      "subtype": "real_deposit",
+      "source": "",
+      "keep": false,
+      "verdict": {
+        "is_real_new_disposal": false,
+        "pile_delta": "unchanged",
+        "actor_behavior": "rummaged_or_took",
+        "confidence_0_100": 90,
+        "reason": "The person appears to be rummaging through the pile, and the pile's contents and size remain unchanged between the before and after frames."
+      },
+      "cost_usd": 0.00039705,
+      "latency_ms": 2929,
+      "input_tokens": 2271,
+      "output_tokens": 94,
+      "n_images": 6,
+      "ok": true
+    },
+    {
+      "event": "ad65ae06-bc84-456d-b216-a14f0591219b",
+      "gold": "keep",
+      "subtype": "real_deposit",
+      "source": "",
+      "keep": true,
+      "verdict": {
+        "is_real_new_disposal": true,
+        "pile_delta": "increased",
+        "actor_behavior": "deposited_new",
+        "confidence_0_100": 95,
+        "reason": "A metal frame with a dark bag and another dark object are clearly visible in the AFTER frames that were not present in the BEFORE frames."
+      },
+      "cost_usd": 0.00039285,
+      "latency_ms": 3713,
+      "input_tokens": 2271,
+      "output_tokens": 87,
+      "n_images": 6,
+      "ok": true
+    },
+    {
+      "event": "bc0528c2-8034-40a8-bad3-62f93136f44c",
+      "gold": "keep",
+      "subtype": "real_deposit",
+      "source": "",
+      "keep": false,
+      "verdict": {
+        "is_real_new_disposal": false,
+        "pile_delta": "unchanged",
+        "actor_behavior": "rummaged_or_took",
+        "confidence_0_100": 90,
+        "reason": "The person in the red shirt is seen rummaging through the existing pile, and no new material is visible in the after-frame that was not present in the before-frame."
+      },
+      "cost_usd": 0.00040185,
+      "latency_ms": 3900,
+      "input_tokens": 2271,
+      "output_tokens": 102,
+      "n_images": 6,
+      "ok": true
+    }
+  ]
+}

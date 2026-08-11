@@ -1,0 +1,860 @@
+{
+  "dataset": "cam_picam001",
+  "polygon_source": "prod DB cameras.pile_zone_polygon (2026-07-22)",
+  "polygon": [
+    [
+      [
+        18,
+        550
+      ],
+      [
+        12,
+        709
+      ],
+      [
+        1264,
+        709
+      ],
+      [
+        1262,
+        540
+      ]
+    ],
+    [
+      [
+        325,
+        3
+      ],
+      [
+        288,
+        73
+      ],
+      [
+        1191,
+        162
+      ],
+      [
+        1167,
+        8
+      ]
+    ]
+  ],
+  "frame_resolution": "1280x720 (todos os 122 eventos)",
+  "config": {
+    "tile": 32,
+    "tile_frac": 0.5,
+    "ham_thr": 3,
+    "min_cover": 24,
+    "recall_floor": 0.85
+  },
+  "counts_scored": {
+    "tp": 30,
+    "fp": 37,
+    "indefinido": 15,
+    "baseline": 40
+  },
+  "signal_stats": {
+    "tp": {
+      "n": 30,
+      "min": 0,
+      "median": 19.5,
+      "mean": 32.03,
+      "max": 120
+    },
+    "fp": {
+      "n": 37,
+      "min": 0,
+      "median": 7.0,
+      "mean": 11.05,
+      "max": 93
+    },
+    "baseline": {
+      "n": 40,
+      "min": 0,
+      "median": 0.0,
+      "mean": 9.6,
+      "max": 115
+    },
+    "indefinido": {
+      "n": 15,
+      "min": 0,
+      "median": 3.0,
+      "mean": 10.8,
+      "max": 86
+    }
+  },
+  "primary_tp_vs_fp": {
+    "auc": 0.6959,
+    "auc_ci95": [
+      0.5563,
+      0.8266
+    ],
+    "recall_safe_veto": {
+      "threshold": 1,
+      "tp_keep": 27,
+      "tp_keep_pct": 90.0,
+      "tp_reject": 3,
+      "fp_supp": 6,
+      "fp_supp_pct": 16.2
+    },
+    "temporal_holdout": {
+      "cut_datetime": "2026-07-18 11:59:31.093513-03",
+      "train_auc": 0.7273,
+      "test_auc": 0.6908,
+      "train_thr": 3,
+      "test_tp_keep_pct": 68.4,
+      "test_fp_supp_pct": 25.0,
+      "n_train_tp": 11,
+      "n_train_fp": 29,
+      "n_test_tp": 19,
+      "n_test_fp": 8
+    },
+    "permutation": {
+      "obs_auc": 0.6959,
+      "perm_mean": 0.4999,
+      "perm_p95": 0.6167,
+      "p_value": 0.005
+    }
+  },
+  "bonus_tp_vs_baseline_auc": 0.8108,
+  "sweep_table": [
+    {
+      "threshold": 0,
+      "tp_keep_pct": 100.0,
+      "fp_supp_pct": 0.0,
+      "baseline_supp_pct": 0.0
+    },
+    {
+      "threshold": 1,
+      "tp_keep_pct": 90.0,
+      "fp_supp_pct": 16.2,
+      "baseline_supp_pct": 60.0
+    },
+    {
+      "threshold": 2,
+      "tp_keep_pct": 83.3,
+      "fp_supp_pct": 21.6,
+      "baseline_supp_pct": 70.0
+    },
+    {
+      "threshold": 3,
+      "tp_keep_pct": 76.7,
+      "fp_supp_pct": 24.3,
+      "baseline_supp_pct": 77.5
+    },
+    {
+      "threshold": 4,
+      "tp_keep_pct": 73.3,
+      "fp_supp_pct": 32.4,
+      "baseline_supp_pct": 80.0
+    },
+    {
+      "threshold": 5,
+      "tp_keep_pct": 73.3,
+      "fp_supp_pct": 35.1,
+      "baseline_supp_pct": 80.0
+    },
+    {
+      "threshold": 6,
+      "tp_keep_pct": 73.3,
+      "fp_supp_pct": 43.2,
+      "baseline_supp_pct": 82.5
+    },
+    {
+      "threshold": 7,
+      "tp_keep_pct": 73.3,
+      "fp_supp_pct": 48.6,
+      "baseline_supp_pct": 82.5
+    },
+    {
+      "threshold": 8,
+      "tp_keep_pct": 73.3,
+      "fp_supp_pct": 56.8,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 9,
+      "tp_keep_pct": 70.0,
+      "fp_supp_pct": 56.8,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 10,
+      "tp_keep_pct": 66.7,
+      "fp_supp_pct": 62.2,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 11,
+      "tp_keep_pct": 66.7,
+      "fp_supp_pct": 67.6,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 12,
+      "tp_keep_pct": 63.3,
+      "fp_supp_pct": 70.3,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 13,
+      "tp_keep_pct": 60.0,
+      "fp_supp_pct": 75.7,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 14,
+      "tp_keep_pct": 56.7,
+      "fp_supp_pct": 81.1,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 15,
+      "tp_keep_pct": 56.7,
+      "fp_supp_pct": 81.1,
+      "baseline_supp_pct": 85.0
+    },
+    {
+      "threshold": 16,
+      "tp_keep_pct": 56.7,
+      "fp_supp_pct": 81.1,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 17,
+      "tp_keep_pct": 56.7,
+      "fp_supp_pct": 86.5,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 18,
+      "tp_keep_pct": 56.7,
+      "fp_supp_pct": 89.2,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 19,
+      "tp_keep_pct": 53.3,
+      "fp_supp_pct": 89.2,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 20,
+      "tp_keep_pct": 50.0,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 21,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 22,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 23,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 24,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 25,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 26,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 27,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 28,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 29,
+      "tp_keep_pct": 46.7,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 30,
+      "tp_keep_pct": 43.3,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 31,
+      "tp_keep_pct": 43.3,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 32,
+      "tp_keep_pct": 43.3,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 33,
+      "tp_keep_pct": 40.0,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 34,
+      "tp_keep_pct": 40.0,
+      "fp_supp_pct": 91.9,
+      "baseline_supp_pct": 87.5
+    },
+    {
+      "threshold": 35,
+      "tp_keep_pct": 40.0,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 36,
+      "tp_keep_pct": 40.0,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 37,
+      "tp_keep_pct": 40.0,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 38,
+      "tp_keep_pct": 40.0,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 39,
+      "tp_keep_pct": 36.7,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 40,
+      "tp_keep_pct": 33.3,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 41,
+      "tp_keep_pct": 33.3,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 42,
+      "tp_keep_pct": 30.0,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 43,
+      "tp_keep_pct": 30.0,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 90.0
+    },
+    {
+      "threshold": 44,
+      "tp_keep_pct": 26.7,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 45,
+      "tp_keep_pct": 26.7,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 46,
+      "tp_keep_pct": 26.7,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 47,
+      "tp_keep_pct": 26.7,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 48,
+      "tp_keep_pct": 26.7,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 49,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 50,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 94.6,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 51,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 92.5
+    },
+    {
+      "threshold": 52,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 53,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 54,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 55,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 56,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 57,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 58,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 59,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 60,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 61,
+      "tp_keep_pct": 23.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 62,
+      "tp_keep_pct": 20.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 63,
+      "tp_keep_pct": 20.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 64,
+      "tp_keep_pct": 16.7,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 65,
+      "tp_keep_pct": 16.7,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 66,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 67,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 68,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 69,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 70,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 71,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 72,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 73,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 74,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 75,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 76,
+      "tp_keep_pct": 13.3,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 77,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 78,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 79,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 80,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 81,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 82,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 83,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 84,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 85,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 86,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 87,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 88,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 89,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 90,
+      "tp_keep_pct": 10.0,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 91,
+      "tp_keep_pct": 6.7,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 92,
+      "tp_keep_pct": 6.7,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 93,
+      "tp_keep_pct": 6.7,
+      "fp_supp_pct": 97.3,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 94,
+      "tp_keep_pct": 6.7,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 95,
+      "tp_keep_pct": 6.7,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 96,
+      "tp_keep_pct": 6.7,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 97,
+      "tp_keep_pct": 6.7,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 98,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 99,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 100,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 101,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 95.0
+    },
+    {
+      "threshold": 102,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 103,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 104,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 105,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 106,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 107,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 108,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 109,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 110,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 111,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 112,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 113,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 114,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 115,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 97.5
+    },
+    {
+      "threshold": 116,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 100.0
+    },
+    {
+      "threshold": 117,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 100.0
+    },
+    {
+      "threshold": 118,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 100.0
+    },
+    {
+      "threshold": 119,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 100.0
+    },
+    {
+      "threshold": 120,
+      "tp_keep_pct": 3.3,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 100.0
+    },
+    {
+      "threshold": 121,
+      "tp_keep_pct": 0.0,
+      "fp_supp_pct": 100.0,
+      "baseline_supp_pct": 100.0
+    }
+  ],
+  "gate": {
+    "criteria": "AUC>=0.75 AND CI_low>0.5 AND existe threshold recall-safe (>=85% TP) que suprime FP",
+    "auc_pass": false,
+    "ci_pass": true,
+    "verdict": "FAIL"
+  }
+}

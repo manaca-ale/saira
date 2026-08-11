@@ -1,0 +1,395 @@
+{
+  "summary": {
+    "camera": "esp32_005 / Arruda / cam_14",
+    "model": "gemini-2.5-flash-lite",
+    "thinking_budget": 2048,
+    "trigger_min_confidence": 85,
+    "recall": {
+      "v1": {
+        "missed": {
+          "n": 0,
+          "hits": 0,
+          "recall": null,
+          "fn_ids": []
+        },
+        "conf_single": {
+          "n": 6,
+          "hits": 1,
+          "recall": 0.167,
+          "fn_ids": [
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528"
+          ]
+        },
+        "all": {
+          "n": 7,
+          "hits": 2,
+          "recall": 0.286,
+          "fn_ids": [
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528"
+          ]
+        }
+      },
+      "v3b3": {
+        "missed": {
+          "n": 0,
+          "hits": 0,
+          "recall": null,
+          "fn_ids": []
+        },
+        "conf_single": {
+          "n": 6,
+          "hits": 0,
+          "recall": 0.0,
+          "fn_ids": [
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528",
+            "c0604_1541"
+          ]
+        },
+        "all": {
+          "n": 7,
+          "hits": 0,
+          "recall": 0.0,
+          "fn_ids": [
+            "id24_lixo_1242",
+            "c0529_1043",
+            "c0529_1108",
+            "c0529_1145",
+            "c0530_0933",
+            "c0604_1528",
+            "c0604_1541"
+          ]
+        }
+      }
+    },
+    "total_cost_usd": 0.016178
+  },
+  "results": [
+    {
+      "event_id": "id24_lixo_1242",
+      "cohort": "missed_clean",
+      "metadata": {
+        "n_frames": 30,
+        "first": "2026-06-02_12-41-04.jpg",
+        "last": "2026-06-02_12-43-28.jpg"
+      },
+      "gates": {
+        "v1": {
+          "ok": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 95,
+          "triggered": true,
+          "scene_type": "DUMPING",
+          "person_position_signature": null,
+          "material_flow_direction": null,
+          "evidence_summary": "A green truck is stopped, and two individuals are actively using shovels near a debris pile, indicating material handling and potential dumping.",
+          "scene_delta_analysis": "Fixed objects in first frame: truck, 2 people, debris pile. Fixed objects in last frame: truck, 2 people, debris pile, metal grate. Differences: DUMPING_BEHAVIOR, MOVING_OBJECT (people), new object (metal grate).",
+          "n_sent_frames": 5,
+          "input_tokens": 2125,
+          "total_tokens": 4321,
+          "wall_ms": 11084,
+          "cost_usd": 0.0010909,
+          "model": "gemini-2.5-flash-lite"
+        },
+        "v3b3": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "COLLECTION_OR_MAINTENANCE",
+          "person_position_signature": "collecting_from_pile",
+          "material_flow_direction": "from_pile",
+          "evidence_summary": "Two workers in blue uniforms are collecting debris from a pile using shovels and brooms, loading it into a stationary green dump truck. This indicates collection activity.",
+          "scene_delta_analysis": "Workers are actively collecting debris from the pile and loading it into the truck. The truck remains stationary throughout the observed period. The scene depicts a collection operation.",
+          "n_sent_frames": 5,
+          "input_tokens": 5393,
+          "total_tokens": 7700,
+          "wall_ms": 8297,
+          "cost_usd": 0.0014621,
+          "model": "gemini-2.5-flash-lite"
+        }
+      }
+    },
+    {
+      "event_id": "c0529_1043",
+      "cohort": "conf_single",
+      "metadata": {
+        "n_frames": 1,
+        "first": "2026-05-29_10-41-35.jpg",
+        "last": "2026-05-29_10-41-35.jpg"
+      },
+      "gates": {
+        "v1": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "PARKED",
+          "person_position_signature": null,
+          "material_flow_direction": null,
+          "evidence_summary": "The initial and final frames are identical. No new material or dumping activity is observed. The scene shows a pre-existing pile of debris and a parked vehicle.",
+          "scene_delta_analysis": "No significant changes detected between frames. Scene shows a parked vehicle and a pre-existing debris pile.",
+          "n_sent_frames": 2,
+          "input_tokens": 1267,
+          "total_tokens": 3428,
+          "wall_ms": 8222,
+          "cost_usd": 0.0009911,
+          "model": "gemini-2.5-flash-lite"
+        },
+        "v3b3": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "PARKED",
+          "person_position_signature": "absent",
+          "material_flow_direction": "none",
+          "evidence_summary": "Pre-existing waste pile visible on the right. Several vehicles are parked, and people are present on the left side of the street. No activity observed at the waste pile.",
+          "scene_delta_analysis": "Frames are identical, no changes observed.",
+          "n_sent_frames": 2,
+          "input_tokens": 4535,
+          "total_tokens": 6811,
+          "wall_ms": 9219,
+          "cost_usd": 0.0013639,
+          "model": "gemini-2.5-flash-lite"
+        }
+      }
+    },
+    {
+      "event_id": "c0529_1108",
+      "cohort": "conf_single",
+      "metadata": {
+        "n_frames": 1,
+        "first": "2026-05-29_11-08-40.jpg",
+        "last": "2026-05-29_11-08-40.jpg"
+      },
+      "gates": {
+        "v1": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "TRAFFIC",
+          "person_position_signature": null,
+          "material_flow_direction": null,
+          "evidence_summary": "The scene shows a street with traffic and a pre-existing pile of debris. No active dumping behavior is observed.",
+          "scene_delta_analysis": "Only one frame provided, no comparison possible. Static elements include street, wall, debris pile, buildings, trees, utility poles.",
+          "n_sent_frames": 2,
+          "input_tokens": 1267,
+          "total_tokens": 3237,
+          "wall_ms": 7790,
+          "cost_usd": 0.0009147,
+          "model": "gemini-2.5-flash-lite"
+        },
+        "v3b3": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "triggered": false,
+          "scene_type": "PARKED",
+          "person_position_signature": "standing_near_pile",
+          "material_flow_direction": "none",
+          "evidence_summary": "A person is standing near a pre-existing pile of waste. No dumping activity is observed. A car is parked nearby.",
+          "scene_delta_analysis": "The two provided frames are identical. No changes observed.",
+          "n_sent_frames": 2,
+          "input_tokens": 4535,
+          "total_tokens": 6806,
+          "wall_ms": 8522,
+          "cost_usd": 0.0013619,
+          "model": "gemini-2.5-flash-lite"
+        }
+      }
+    },
+    {
+      "event_id": "c0529_1145",
+      "cohort": "conf_single",
+      "metadata": {
+        "n_frames": 1,
+        "first": "2026-05-29_11-45-49.jpg",
+        "last": "2026-05-29_11-45-49.jpg"
+      },
+      "gates": {
+        "v1": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "TRAFFIC",
+          "person_position_signature": null,
+          "material_flow_direction": null,
+          "evidence_summary": "The scene displays a street with ongoing traffic, including vehicles and pedestrians. A pre-existing pile of debris is present on the right side, but no active material deposition is observed.",
+          "scene_delta_analysis": "null",
+          "n_sent_frames": 2,
+          "input_tokens": 1267,
+          "total_tokens": 3088,
+          "wall_ms": 6682,
+          "cost_usd": 0.0008551,
+          "model": "gemini-2.5-flash-lite"
+        },
+        "v3b3": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "TRAFFIC",
+          "person_position_signature": "standing_near_pile",
+          "material_flow_direction": "none",
+          "evidence_summary": "Person standing near a pre-existing waste pile on the right side of a street with traffic. A vehicle is parked nearby. No active dumping or collection observed.",
+          "scene_delta_analysis": "Only one frame provided, no delta analysis possible.",
+          "n_sent_frames": 2,
+          "input_tokens": 4535,
+          "total_tokens": 6810,
+          "wall_ms": 7358,
+          "cost_usd": 0.0013635,
+          "model": "gemini-2.5-flash-lite"
+        }
+      }
+    },
+    {
+      "event_id": "c0530_0933",
+      "cohort": "conf_single",
+      "metadata": {
+        "n_frames": 1,
+        "first": "2026-05-30_09-33-11.jpg",
+        "last": "2026-05-30_09-33-11.jpg"
+      },
+      "gates": {
+        "v1": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "PARKED",
+          "person_position_signature": null,
+          "material_flow_direction": null,
+          "evidence_summary": "The initial and final frames are identical, showing no change in the scene. There is a pre-existing pile of debris visible.",
+          "scene_delta_analysis": "1: [pole, traffic light, trash bin, parked car, wall] 2: [pole, traffic light, trash bin, parked car, wall] 3: SHADOW|LIGHTING|MOVING_OBJECT|DUMPING_BEHAVIOR",
+          "n_sent_frames": 2,
+          "input_tokens": 1267,
+          "total_tokens": 3196,
+          "wall_ms": 8083,
+          "cost_usd": 0.0008983,
+          "model": "gemini-2.5-flash-lite"
+        },
+        "v3b3": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "triggered": false,
+          "scene_type": "TRAFFIC",
+          "person_position_signature": "passing_by",
+          "material_flow_direction": "none",
+          "evidence_summary": "Pedestrian and vehicles passing on the street. Pre-existing waste pile visible on the right. No dumping or collection activity observed.",
+          "scene_delta_analysis": "No change observed between identical frames. Scene shows traffic and parked vehicles with a visible pre-existing waste pile.",
+          "n_sent_frames": 2,
+          "input_tokens": 4535,
+          "total_tokens": 6538,
+          "wall_ms": 7633,
+          "cost_usd": 0.0012547,
+          "model": "gemini-2.5-flash-lite"
+        }
+      }
+    },
+    {
+      "event_id": "c0604_1528",
+      "cohort": "conf_single",
+      "metadata": {
+        "n_frames": 1,
+        "first": "2026-06-04_15-28-39.jpg",
+        "last": "2026-06-04_15-28-39.jpg"
+      },
+      "gates": {
+        "v1": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 0,
+          "triggered": false,
+          "scene_type": "PARKED",
+          "person_position_signature": null,
+          "material_flow_direction": null,
+          "evidence_summary": "The initial and final frames are identical. No changes in vehicles, people, or ground material were detected between the two frames.",
+          "scene_delta_analysis": "Fixed objects in first frame: street, cars, people, wall, debris pile. Fixed objects in last frame: street, cars, people, wall, debris pile. Differences: None detected.",
+          "n_sent_frames": 2,
+          "input_tokens": 1267,
+          "total_tokens": 3519,
+          "wall_ms": 9089,
+          "cost_usd": 0.0010275,
+          "model": "gemini-2.5-flash-lite"
+        },
+        "v3b3": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 50,
+          "triggered": false,
+          "scene_type": "TRAFFIC",
+          "person_position_signature": "standing_near_pile",
+          "material_flow_direction": "none",
+          "evidence_summary": "Single frame shows a person standing near a pre-existing waste pile. White car parked nearby. Other vehicles and pedestrians in motion. No clear dumping or collection activity observed.",
+          "scene_delta_analysis": "Only one frame available for analysis. No change detected.",
+          "n_sent_frames": 2,
+          "input_tokens": 4535,
+          "total_tokens": 6814,
+          "wall_ms": 8435,
+          "cost_usd": 0.0013651,
+          "model": "gemini-2.5-flash-lite"
+        }
+      }
+    },
+    {
+      "event_id": "c0604_1541",
+      "cohort": "conf_single",
+      "metadata": {
+        "n_frames": 1,
+        "first": "2026-06-04_15-41-49.jpg",
+        "last": "2026-06-04_15-41-49.jpg"
+      },
+      "gates": {
+        "v1": {
+          "ok": true,
+          "new_litter_detected": true,
+          "confidence_0_100": 95,
+          "triggered": true,
+          "scene_type": "DUMPING",
+          "person_position_signature": null,
+          "material_flow_direction": null,
+          "evidence_summary": "A white vehicle is stopped next to a pile of debris, and a person is standing nearby, appearing to handle material. The scene is a known dumping spot.",
+          "scene_delta_analysis": "Fixed objects: 1 white car, 1 person, debris pile. No differences observed between frames as they are identical. The scene depicts a stopped vehicle and a person interacting with a known dumping area.",
+          "n_sent_frames": 2,
+          "input_tokens": 1267,
+          "total_tokens": 3074,
+          "wall_ms": 7092,
+          "cost_usd": 0.0008495,
+          "model": "gemini-2.5-flash-lite"
+        },
+        "v3b3": {
+          "ok": true,
+          "new_litter_detected": false,
+          "confidence_0_100": 60,
+          "triggered": false,
+          "scene_type": "PARKED",
+          "person_position_signature": "standing_near_pile",
+          "material_flow_direction": "none",
+          "evidence_summary": "White car parked near chronic dumping pile. Person standing nearby. Trunk is open, but no active unloading or material transfer is visible. Pre-existing pile is unchanged.",
+          "scene_delta_analysis": "Single frame shows a parked car with an open trunk and a person standing near a pre-existing dumping pile. No clear evidence of material being deposited or removed. The scene is classified as PARKED with a person standing near the pile.",
+          "n_sent_frames": 2,
+          "input_tokens": 4535,
+          "total_tokens": 6850,
+          "wall_ms": 7809,
+          "cost_usd": 0.0013795,
+          "model": "gemini-2.5-flash-lite"
+        }
+      }
+    }
+  ]
+}

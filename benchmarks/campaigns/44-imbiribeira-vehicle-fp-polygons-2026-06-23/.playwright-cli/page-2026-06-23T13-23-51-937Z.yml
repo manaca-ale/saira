@@ -1,0 +1,61 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - button "◀ frame" [ref=e7] [cursor=pointer]
+      - generic [ref=e8]: frame 7/12
+      - generic [ref=e9]: 14:28:05
+      - generic [ref=e10]: sem ponto
+      - button "frame ▶" [ref=e11] [cursor=pointer]
+    - slider [ref=e12]: "6"
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - heading "Marcador de TPs — SAIRA" [level=1] [ref=e15]
+      - paragraph [ref=e16]: esp32_001 / Imbiribeira · pontos em 1280×720
+      - generic [ref=e17]: 1 / 20
+      - generic [ref=e18]:
+        - generic [ref=e19]: 0 marcados
+        - generic [ref=e20]: "veículo: 0"
+        - generic [ref=e21]: 0 pulados
+    - generic [ref=e22]:
+      - heading "Carregar lista" [level=2] [ref=e23]
+      - generic [ref=e24]: URL do index.json (servido)
+      - generic [ref=e25]:
+        - textbox [ref=e26]: /benchmarks/campaigns/44-imbiribeira-vehicle-fp-polygons-2026-06-23/labeling/index.json
+        - button "Ir" [ref=e27] [cursor=pointer]
+      - generic [ref=e28]: …ou arquivo local
+      - button "Choose File" [ref=e29]
+      - paragraph [ref=e30]:
+        - text: Sirva
+        - code [ref=e31]: c:\saira
+        - text: com
+        - code [ref=e32]: python -m http.server 8009
+        - text: e abra
+        - code [ref=e33]: http://localhost:8009/tools/tp_marker.html
+        - text: .
+    - generic [ref=e34]:
+      - heading "Evento atual" [level=2] [ref=e35]
+      - generic [ref=e36]:
+        - text: 06414b5a · 2026-05-20T14:27:35-03:00
+        - text: Carro escuro (preto) realizando descarte de lixo
+      - generic [ref=e37]: Veículo presente neste descarte?
+      - generic [ref=e38]:
+        - button "Sim v" [ref=e39] [cursor=pointer]
+        - button "Não" [ref=e40] [cursor=pointer]
+        - button "?" [ref=e41] [cursor=pointer]
+      - generic [ref=e42]:
+        - button "← TP anterior p" [ref=e43] [cursor=pointer]
+        - button "Pular s" [ref=e44] [cursor=pointer]
+        - button "Salvar + Próximo Enter" [ref=e45] [cursor=pointer]
+      - paragraph [ref=e46]: As setas ←/→ trocam o frame (ache o instante do descarte). O ponto verde fica fixo em 1280×720 e aparece em todos os frames. Clique de novo p/ reposicionar.
+    - generic [ref=e47]:
+      - heading "Exportar 0/20" [level=2] [ref=e48]
+      - generic [ref=e49]:
+        - button "Baixar tp_labels.json" [ref=e50] [cursor=pointer]
+        - button "Limpar progresso" [ref=e51] [cursor=pointer]
+      - generic [ref=e52]:
+        - button "Copiar" [ref=e53] [cursor=pointer]
+        - textbox [ref=e54]: "{ \"camera\": \"cam_imbiribeira\", \"ref_w\": 1280, \"ref_h\": 720, \"count\": 20, \"events\": [ { \"event_id\": \"06414b5a-4c73-401a-95b2-54cb1d775f74\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-20T14:27:35-03:00\" }, { \"event_id\": \"0bb40faf-8ea6-4550-bd27-c92ba0aafd9a\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-08 14:44:33-03\" }, { \"event_id\": \"12506543-1c64-4604-8c76-a85300a43669\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-22T02:52:34-03:00\" }, { \"event_id\": \"218673e1-397c-4293-be2b-0d5e2326334f\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-20T19:40:09-03:00\" }, { \"event_id\": \"341b7657-5be5-4dec-9cd4-cbec6d612ea2\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-09 19:16:37-03\" }, { \"event_id\": \"4422e2c5-9b75-4f5d-8dbe-0779c2b250b1\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-19 09:38:31-03\" }, { \"event_id\": \"454c8308-69a4-469d-8f78-376747f23ac5\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-20T08:56:20-03:00\" }, { \"event_id\": \"48350bb4-b72c-4bc1-aeaa-89bc00d1595c\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-19T18:39:29-03:00\" }, { \"event_id\": \"67d156a3-4bb1-47da-a92f-4634e9ebfabc\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-06 09:17:47-03\" }, { \"event_id\": \"7509fcf2-aefb-48d0-a09c-a38d863543b5\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-18 17:38:44-03\" }, { \"event_id\": \"8bfe0a1f-da31-4ddd-9455-de0d6a5ef652\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-28 18:45:35-03\" }, { \"event_id\": \"a447ff19-068a-4460-855c-3f6d02937860\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-26 02:46:34-03\" }, { \"event_id\": \"a73a3f44-03d0-4dc1-b850-efbac6210f3e\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-20T14:16:15-03:00\" }, { \"event_id\": \"b0a0e12e-a702-42bf-afb9-22e1db35c589\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-26 02:35:19-03\" }, { \"event_id\": \"c8cb22fb-86f9-4a0b-90e4-282ae1bfbe38\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-19 10:02:20-03\" }, { \"event_id\": \"c9c2c83e-b5e3-495c-99b7-93ef0b387c63\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-03 19:33:09-03\" }, { \"event_id\": \"cb49921a-c894-4cfd-8802-5c41316e7301\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-05-20T15:45:45-03:00\" }, { \"event_id\": \"e2bdf0d5-163c-4789-a9d6-efa4ada37571\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-08 14:56:03-03\" }, { \"event_id\": \"eff8003e-4ddd-4440-84f1-905401920448\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-09 18:21:22-03\" }, { \"event_id\": \"f15a5964-f90a-4907-9f05-990244d51800\", \"label\": \"tp\", \"x\": null, \"y\": null, \"vehicle_present\": null, \"skipped\": false, \"frame_name\": null, \"datetime\": \"2026-06-08 14:30:53-03\" } ] }"
+      - paragraph [ref=e55]:
+        - text: Salve em
+        - code [ref=e56]: …/44-…/labeling/tp_labels.json
+        - text: quando terminar.

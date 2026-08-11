@@ -1,0 +1,58 @@
+{
+  "us-east-1 · qwen3-vl-235b": {
+    "eventos": 24,
+    "erro_efetivo": 0,
+    "erro_camp49": 0,
+    "tentativas": 48,
+    "falhas_1a": 0,
+    "exc": {},
+    "relogio_ms": 639463,
+    "taxa_erro_efetivo_pct": 0.0,
+    "taxa_erro_camp49_pct": 0.0,
+    "taxa_falha_1a_tentativa_pct": 0.0,
+    "lat_ok_p50_s": 12.2,
+    "lat_ok_p90_s": 17.9
+  },
+  "us-east-1 · magistral-small": {
+    "eventos": 12,
+    "erro_efetivo": 0,
+    "erro_camp49": 0,
+    "tentativas": 24,
+    "falhas_1a": 0,
+    "exc": {},
+    "relogio_ms": 307170,
+    "taxa_erro_efetivo_pct": 0.0,
+    "taxa_erro_camp49_pct": 0.0,
+    "taxa_falha_1a_tentativa_pct": 0.0,
+    "lat_ok_p50_s": 14.0,
+    "lat_ok_p90_s": 16.8
+  },
+  "us-west-2 · qwen3-vl-235b": {
+    "eventos": 24,
+    "erro_efetivo": 0,
+    "erro_camp49": 0,
+    "tentativas": 24,
+    "falhas_1a": 0,
+    "exc": {},
+    "relogio_ms": 354290,
+    "taxa_erro_efetivo_pct": 0.0,
+    "taxa_erro_camp49_pct": 0.0,
+    "taxa_falha_1a_tentativa_pct": 0.0,
+    "lat_ok_p50_s": 15.1,
+    "lat_ok_p90_s": 19.3
+  },
+  "us-west-2 · magistral-small": {
+    "eventos": 12,
+    "erro_efetivo": 0,
+    "erro_camp49": 0,
+    "tentativas": 12,
+    "falhas_1a": 0,
+    "exc": {},
+    "relogio_ms": 133866,
+    "taxa_erro_efetivo_pct": 0.0,
+    "taxa_erro_camp49_pct": 0.0,
+    "taxa_falha_1a_tentativa_pct": 0.0,
+    "lat_ok_p50_s": 12.2,
+    "lat_ok_p90_s": 14.4
+  }
+}

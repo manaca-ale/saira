@@ -1,0 +1,62 @@
+campaign: 52-gate-prompt-v1-vs-v3-cost
+date: 2026-08-04
+question: >
+  Os ~3.200 tokens extras de prompt que esp32_001 e esp32_002 carregam em toda chamada
+  de gate (V3 + addon vs V1) ainda compram o recall que compravam em maio? Delta medido
+  na fatura: ~R$46/mes.
+
+runner: scripts/bench_gate_prompt_cost.py
+
+arms:
+  A_prod:
+    desc: V3 + addon por camera (producao hoje)
+    system_prompt_chars: {cam_mangabeira: 14286, cam_imbiribeira: 13923}
+    schema: GeminiNewLitterReportV3
+    mechanism: nenhum patch — o codigo escolhe V3+addon pelo device_id
+  B_v3_base:
+    desc: V3 base, sem addon por camera
+    system_prompt_chars: 12124
+    schema: GeminiNewLitterReportV3
+    mechanism: rebind de _prompts_v3.gate_system_prompt_for_camera
+  C_v1:
+    desc: V1 (prompt curto, o que roda nas outras 4 cameras)
+    system_prompt_chars: 1430
+    schema: GeminiNewLitterReport
+    mechanism: omite device_id do camera_context -> cai no ramo V1 real (prompt + schema + pos-gates)
+
+dataset:
+  root: data/datasets/official
+  cameras: [cam_mangabeira, cam_imbiribeira]
+  cam_mangabeira: {tp: 74, fp: 219, indefinido: 20, missed: 6}
+  cam_imbiribeira: {tp: 20, fp: 147, indefinido: 44}
+  scored: tp + missed (recall) e fp (especificidade); indefinido roda fora do score
+  subsampling: none   # camps 20/21 foram invalidadas por sub-amostragem
+
+prod_parity:   # conferido no saira-yolo-worker-prod em 2026-08-04
+  gate_model: gemini-2.5-flash-lite
+  thinking_budget: 2048          # default do codigo; .env diz 1024 mas o compose nao repassa
+  trigger_min_confidence: 85
+  frames: first + 3 mids uniformes + last (5, individuais)
+  mid_frame_spacing: even        # main.py:1462 — NAO 25/50/75 (mudou no commit 027b33c51)
+  mosaic: false                  # GEMINI_MOSAIC_AGENT1 default false, nao setado em lugar nenhum
+  camera_context: [camera_name, device_id, logradouro, bairro, rpa, horario_local]
+
+auth:
+  mode: vertex + ADC keyless
+  env_file: services/.env.benchmark
+  project: saira-tests-260520     # conta de billing Testes (0149F3), nao Producao
+
+pricing_usd_per_1m: {input: 0.10, output: 0.40}   # thinking cobrado como output
+estimated_cost_usd: ~1.60         # 460 eventos x 3 bracos = 1380 chamadas
+
+known_deviation: >
+  Braco C_v1 perde a linha "- device_id: esp32_00X" do user prompt (~5 tokens), porque o
+  despacho de versao e hardcoded em detector_gemini.py:1156 e le device_id do camera_context.
+  Alternativa (monkeypatch dos simbolos V3) deixaria apply_v3_gates rodando sobre report V1 —
+  configuracao que nao existe em prod. Ver docstring do runner.
+
+decision_rule:
+  - C_v1 empata ou ganha em recall -> cortar para V1 (~R$46/mes)
+  - B_v3_base empata com A_prod    -> cortar so o addon (~R$7/mes)
+  - A_prod ganha em recall         -> manter, assunto encerrado com numero
+  note: recall manda; custo so desempata (camera de fiscalizacao)

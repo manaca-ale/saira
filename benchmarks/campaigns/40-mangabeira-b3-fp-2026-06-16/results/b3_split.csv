@@ -1,0 +1,71 @@
+event_id,bucket,category,datetime,volumetria,justificativa,local_path,n_frames
+fb4a2c50-8124-4055-9968-f1237817367b,B1B2,fp,2026-05-18T13:12:50-03:00,0.5 m³,Estavam retirando o Lixo,cam_mangabeira/fp/fb4a2c50-8124-4055-9968-f1237817367b,12
+e435c966-f162-4a4d-bfcb-9c1361e0e5c8,B3,fp,2026-05-18T13:39:45-03:00,0 m³,Pessoas passando,cam_mangabeira/fp/e435c966-f162-4a4d-bfcb-9c1361e0e5c8,12
+8b1854b9-21d7-427b-91fc-9878e5428569,B1B2,fp,2026-05-18T13:55:45-03:00,1 m³,Estavam retirando o Lixo,cam_mangabeira/fp/8b1854b9-21d7-427b-91fc-9878e5428569,12
+51a9ff0e-ae1a-40c2-836e-407b2738ced2,B1B2,fp,2026-05-18T13:56:50-03:00,3 m³,Estavam retirando o Lixo,cam_mangabeira/fp/51a9ff0e-ae1a-40c2-836e-407b2738ced2,12
+9c631112-b16e-4317-a8e8-c746fb7e424e,B1B2,fp,2026-05-18T13:59:55-03:00,1.5 m³,Estavam retirando o Lixo,cam_mangabeira/fp/9c631112-b16e-4317-a8e8-c746fb7e424e,12
+5e3e79cd-5d57-4fd5-8e6c-622139ad8305,B1B2,fp,2026-05-18T14:05:30-03:00,0.5 m³,Estavam retirando o Lixo,cam_mangabeira/fp/5e3e79cd-5d57-4fd5-8e6c-622139ad8305,12
+a3dea6cb-cdd9-4350-aaf2-bde2e92fd32f,B1B2,fp,2026-05-18T14:13:41-03:00,2.5 m³,Estavam retirando o Lixo,cam_mangabeira/fp/a3dea6cb-cdd9-4350-aaf2-bde2e92fd32f,12
+14698616-b7ba-4ab7-99a4-fcc850a72fe1,B3,fp,2026-05-18T19:02:22-03:00,0.02 m³,Pessoas passando,cam_mangabeira/fp/14698616-b7ba-4ab7-99a4-fcc850a72fe1,12
+c5ac123b-ca3f-4c71-9009-303042a83753,B1B2,fp,2026-05-18T21:44:22-03:00,1.5 m³,Estavam retirando o Lixo,cam_mangabeira/fp/c5ac123b-ca3f-4c71-9009-303042a83753,1
+6c7aafda-1ba2-4b9c-9f4d-143bea974cfd,B1B2,fp,2026-05-18T21:45:17-03:00,4 m³,Estavam retirando o Lixo,cam_mangabeira/fp/6c7aafda-1ba2-4b9c-9f4d-143bea974cfd,1
+206ef90b-4b1b-44e6-adba-51414f4d49aa,B1B2,fp,2026-05-18T21:45:48-03:00,1.5 m³,Estavam retirando o Lixo,cam_mangabeira/fp/206ef90b-4b1b-44e6-adba-51414f4d49aa,1
+9bf33d99-c877-4269-9520-922dfc38eae3,B1B2,fp,2026-05-18T21:47:23-03:00,0.8 m³,Estavam retirando o Lixo,cam_mangabeira/fp/9bf33d99-c877-4269-9520-922dfc38eae3,1
+66735392-93fb-4b89-9aff-6f0e77eaae53,B1B2,fp,2026-05-18T21:49:07-03:00,3 m³,Estavam retirando o Lixo,cam_mangabeira/fp/66735392-93fb-4b89-9aff-6f0e77eaae53,1
+6090fa86-c1c5-4fae-9c6b-9baf0757e2db,B3,fp,2026-05-19T08:18:23-03:00,0.05 m³,Pessoas passando,cam_mangabeira/fp/6090fa86-c1c5-4fae-9c6b-9baf0757e2db,12
+6224b290-d951-45f2-9874-c40fba6cd992,B3,fp,2026-05-19T08:56:02-03:00,0.1 m³,Pessoas passando,cam_mangabeira/fp/6224b290-d951-45f2-9874-c40fba6cd992,12
+5f84e70f-b6f1-4e9c-bef7-6e928c519318,INDEF,indefinido,2026-05-19T10:11:18-03:00,1.5 m³,Possivelmente apenas uma pessoa passando com um carrinho de mão,cam_mangabeira/indefinido/5f84e70f-b6f1-4e9c-bef7-6e928c519318,12
+570a5967-692c-4d41-ae6f-3503c434763a,INDEF,indefinido,2026-05-19T10:12:22-03:00,0.1 m³,Possivelmente apenas uma pessoa passando com um carrinho de mão indo para uma residência,cam_mangabeira/indefinido/570a5967-692c-4d41-ae6f-3503c434763a,12
+28fba845-30a2-44f9-9639-400cb87ee60b,B3,fp,2026-05-19T17:27:58-03:00,0.05 m³,Pessoa passando com um carrinho,cam_mangabeira/fp/28fba845-30a2-44f9-9639-400cb87ee60b,12
+e014c555-4b0a-47ee-8a5a-90adf44e5e5a,B3,fp,2026-05-19T18:18:18-03:00,0 m³,Pessoas passando,cam_mangabeira/fp/e014c555-4b0a-47ee-8a5a-90adf44e5e5a,12
+983dc78f-8a5e-4803-a9d1-fb9d7392c6d5,B3,fp,2026-05-19T18:55:28-03:00,0.01 m³,Pessoas passando,cam_mangabeira/fp/983dc78f-8a5e-4803-a9d1-fb9d7392c6d5,12
+57f7f1ed-2d9a-4e82-9585-775c9e366561,TP,tp,2026-05-19T19:22:03-03:00,0.05 m³,Uma pessoa realizando descarte de múltiplas coisas,cam_mangabeira/tp/57f7f1ed-2d9a-4e82-9585-775c9e366561,12
+be6b5e67-2286-4565-af7c-e6544ebaa1ce,TP,tp,2026-05-19T22:11:17-03:00,0.01 m³,Um homem realizando o descarte de múltiplas coisas,cam_mangabeira/tp/be6b5e67-2286-4565-af7c-e6544ebaa1ce,12
+4cca7f5d-4f6e-4c0c-98de-abcb2766faa2,B1B2,fp,2026-05-20T05:05:18-03:00,0.1 m³,Estavam retirando o Lixo,cam_mangabeira/fp/4cca7f5d-4f6e-4c0c-98de-abcb2766faa2,12
+3766dca1-28db-4e31-94f2-6b810c9db47c,B1B2,fp,2026-05-20T05:08:18-03:00,0.01 m³,Estavam retirando o Lixo,cam_mangabeira/fp/3766dca1-28db-4e31-94f2-6b810c9db47c,12
+d588e2b2-12f6-4a32-99e7-1ec271607c51,B1B2,fp,2026-05-20T05:12:18-03:00,0.8 m³,Estavam realizando a poda,cam_mangabeira/fp/d588e2b2-12f6-4a32-99e7-1ec271607c51,12
+17ff7912-a48a-43b7-92ff-108f621a42fd,B1B2,fp,2026-05-20T05:13:38-03:00,0.01 m³,Estavam realizando a poda,cam_mangabeira/fp/17ff7912-a48a-43b7-92ff-108f621a42fd,12
+61c6be4e-a107-4f65-a241-ff97da60f453,B1B2,fp,2026-05-20T05:17:43-03:00,0.02 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/61c6be4e-a107-4f65-a241-ff97da60f453,12
+7ebf062f-2356-4279-bc69-c2c1fb332feb,B1B2,fp,2026-05-20T05:25:08-03:00,1.5 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/7ebf062f-2356-4279-bc69-c2c1fb332feb,12
+e811d8bc-14d5-43d7-992b-c3d3cae665a6,B1B2,fp,2026-05-20T05:26:12-03:00,1.5 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/e811d8bc-14d5-43d7-992b-c3d3cae665a6,12
+4f356133-0cee-489d-9875-8bae0014ad32,B1B2,fp,2026-05-20T05:27:13-03:00,1.5 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/4f356133-0cee-489d-9875-8bae0014ad32,12
+b489a0a9-2758-4132-834b-d6e31f305d15,B1B2,fp,2026-05-20T05:28:18-03:00,0.8 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/b489a0a9-2758-4132-834b-d6e31f305d15,12
+10bfef31-9ed7-4f9d-9a0f-b4f986c3cfd2,B1B2,fp,2026-05-20T05:29:18-03:00,0.01 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/10bfef31-9ed7-4f9d-9a0f-b4f986c3cfd2,12
+a5db27cc-af35-4e1d-8b21-f5333b886feb,B1B2,fp,2026-05-20T05:33:18-03:00,0.8 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/a5db27cc-af35-4e1d-8b21-f5333b886feb,12
+4c5262d9-ce4e-401c-a730-3b1bd5783086,B1B2,fp,2026-05-20T05:33:38-03:00,1.5 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/4c5262d9-ce4e-401c-a730-3b1bd5783086,12
+5b109f46-1672-4876-8ac2-e9aaa0a038bd,B1B2,fp,2026-05-20T05:36:14-03:00,2 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/5b109f46-1672-4876-8ac2-e9aaa0a038bd,12
+8e92e6c3-e5a4-4cce-9df6-331b251e9b4d,B1B2,fp,2026-05-20T05:37:18-03:00,0.8 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/8e92e6c3-e5a4-4cce-9df6-331b251e9b4d,12
+a018dd4d-8e20-47bb-a981-726bf82bceda,B1B2,fp,2026-05-20T05:44:18-03:00,0 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/a018dd4d-8e20-47bb-a981-726bf82bceda,12
+66280d13-ac95-4cb7-8841-8b2733cade15,B1B2,fp,2026-05-20T05:57:59-03:00,0.15 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/66280d13-ac95-4cb7-8841-8b2733cade15,12
+ad65ae06-bc84-456d-b216-a14f0591219b,TP,tp,2026-05-20T06:47:35-03:00,0.05 m³,Um homem realizando o descarte de um saco de lixo,cam_mangabeira/tp/ad65ae06-bc84-456d-b216-a14f0591219b,24
+bc0528c2-8034-40a8-bad3-62f93136f44c,TP,tp,2026-05-20T07:29:00-03:00,0.05 m³,Um homem realizando o descarte do conteúdo de uma sacola branca,cam_mangabeira/tp/bc0528c2-8034-40a8-bad3-62f93136f44c,24
+bba76894-eacb-488a-8b56-454017a8c408,B1B2,fp,2026-05-20T07:53:54-03:00,0.05 m³,Estavam limpando os restos de poda,cam_mangabeira/fp/bba76894-eacb-488a-8b56-454017a8c408,12
+1c823d95-102d-4b1b-9e40-4cf1b039ebea,B3,fp,2026-05-20T13:16:44-03:00,0.01 m³,Pessoa apenas estacionou e desceu com uma criança,cam_mangabeira/fp/1c823d95-102d-4b1b-9e40-4cf1b039ebea,36
+277a0631-2e5d-4521-a420-7dafe453f9ab,B3,fp,2026-05-20T13:25:09-03:00,0.01 m³,Carro apenas estacionou,cam_mangabeira/fp/277a0631-2e5d-4521-a420-7dafe453f9ab,24
+3c83eab7-534d-4c09-984d-682b4be658b9,B3,fp,2026-05-20T14:09:09-03:00,0.01 m³,Apenas pessoas e veículos passando,cam_mangabeira/fp/3c83eab7-534d-4c09-984d-682b4be658b9,12
+e92728ca-7aa0-4b19-a78e-8f43d288e64e,B3,fp,2026-05-20T14:25:12-03:00,0.01 m³,Apenas motos passando,cam_mangabeira/fp/e92728ca-7aa0-4b19-a78e-8f43d288e64e,12
+7c0cdfaa-6655-47b9-95a0-027bd2755e6b,B3,fp,2026-05-20T15:29:49-03:00,0.05 m³,"Dois homens trocando objetos, parece um descarte mas eles apenas usam o local para realizar uma troca",cam_mangabeira/fp/7c0cdfaa-6655-47b9-95a0-027bd2755e6b,12
+b58f9b56-f286-4055-9b82-b53362eba589,B3,fp,2026-05-20T16:00:09-03:00,0.1 m³,Apenas um homem passando de bicicleta,cam_mangabeira/fp/b58f9b56-f286-4055-9b82-b53362eba589,12
+a034010b-8138-4a0c-9b18-d2852dbf9ca3,B3,fp,2026-05-20T18:02:32-03:00,0.01 m³,Pessoas passando,cam_mangabeira/fp/a034010b-8138-4a0c-9b18-d2852dbf9ca3,12
+b014d1e6-31f7-427c-8448-201747c0afaf,B3,fp,2026-05-21T07:48:10-03:00,0.01 m³,Pessoas passando,cam_mangabeira/fp/b014d1e6-31f7-427c-8448-201747c0afaf,13
+3fb685f6-bcef-4860-93f2-7000672d65cf,B3,fp,2026-05-21T09:49:24-03:00,0.01 m³,Pessoas passando,cam_mangabeira/fp/3fb685f6-bcef-4860-93f2-7000672d65cf,20
+b18fe72e-1b4f-4f36-a2b8-033f5b209749,B3,fp,2026-05-21T10:06:14-03:00,0.1 m³,Pessoas passando,cam_mangabeira/fp/b18fe72e-1b4f-4f36-a2b8-033f5b209749,15
+d00a79bd-4052-4406-986f-01707b7fc713,TP,tp,2026-05-21T11:15:34-03:00,0.1 m³,Grande quantidade de lixo descartada por um homem utilizando uniforme laranja,cam_mangabeira/tp/d00a79bd-4052-4406-986f-01707b7fc713,44
+d59d5309-60c5-4ce9-8a64-2c68342c07c5,TP,tp,2026-05-21T11:33:54-03:00,0.01 m³,Um homem realizando o descarte utilizando um carrinho de mão,cam_mangabeira/tp/d59d5309-60c5-4ce9-8a64-2c68342c07c5,42
+dc908b80-0391-4213-b18f-631b2d6fde31,INDEF,indefinido,2026-05-21T13:42:10-03:00,0 m³,Trabalhador da prefeitura jogou um saco de lixo no local,cam_mangabeira/indefinido/dc908b80-0391-4213-b18f-631b2d6fde31,46
+2bb892bc-c4d8-4175-b8b1-89007a82d133,TP,tp,2026-05-21T15:27:11-03:00,0.4 m³,Pessoas descartando restos de poda,cam_mangabeira/tp/2bb892bc-c4d8-4175-b8b1-89007a82d133,45
+737fdbb7-5832-4570-a8fa-9d08333187da,B3,fp,2026-05-22T10:13:28-03:00,0 m³,Caminhão estacionado,cam_mangabeira/fp/737fdbb7-5832-4570-a8fa-9d08333187da,26
+4ed80e61-81ef-4c68-b0c4-1d2bb1518f1f,B3,fp,2026-05-22T10:41:48-03:00,0 m³,Pessoas passando,cam_mangabeira/fp/4ed80e61-81ef-4c68-b0c4-1d2bb1518f1f,48
+38982b91-c60b-475f-b966-54f6428238c5,B3,fp,2026-05-22T12:44:53-03:00,0.01 m³,Pessoas passando e pombos andando sobre o lixo,cam_mangabeira/fp/38982b91-c60b-475f-b966-54f6428238c5,45
+missed-1,MISSED,missed,2026-05-21T08:05:29-03:00,,"Pessoal da prefeitura coletou o lixo do local, juntou com mais lixo que estavam carregando e descartou no local",cam_mangabeira/missed/missed-1,80
+missed-2,MISSED,missed,2026-05-21T08:48:50-03:00,,Homem trouxe sacos de lixo e os descartou no local,cam_mangabeira/missed/missed-2,5
+missed-3,MISSED,missed,2026-05-21T09:30:40-03:00,,Homem mexeu no lixo e potencialmente descartou,cam_mangabeira/missed/missed-3,6
+missed-4,MISSED,missed,2026-05-22T10:44:08-03:00,,Homem descartando lixo,cam_mangabeira/missed/missed-4,4
+missed-5,MISSED,missed,2026-05-22T10:51:08-03:00,,Homem descartando restos de poda,cam_mangabeira/missed/missed-5,7
+missed-6,MISSED,missed,2026-05-22T11:01:58-03:00,,Homem descartando lixo,cam_mangabeira/missed/missed-6,7
+3c840ac4-b0f7-4fec-b696-dd7e68725b49,TP,tp,2026-05-23T13:11:00-03:00,0.1 m³,Descarte confirmado na plataforma (CONFIRMADO),cam_mangabeira/tp/3c840ac4-b0f7-4fec-b696-dd7e68725b49,45
+f0bd4e3d-eeeb-4a5d-81a7-81b79d0fb1eb,TP,tp,2026-05-26T06:14:31-03:00,0.03 m³,Descarte confirmado na plataforma (CONFIRMADO),cam_mangabeira/tp/f0bd4e3d-eeeb-4a5d-81a7-81b79d0fb1eb,5
+8fdb7d45-3093-46f2-bcf8-a1fb2ac49dbd,TP,tp,2026-05-26T09:26:37-03:00,0.1 m³,Descarte confirmado na plataforma (CONFIRMADO),cam_mangabeira/tp/8fdb7d45-3093-46f2-bcf8-a1fb2ac49dbd,4
+194ed500-6c09-41fd-be26-9758c80b849b,TP,tp,2026-05-26T09:59:06-03:00,0.05 m³,Descarte confirmado na plataforma (CONFIRMADO),cam_mangabeira/tp/194ed500-6c09-41fd-be26-9758c80b849b,6
+cfb7177e-2c76-4eeb-9760-b1118ebef8f7,TP,tp,2026-05-26T10:03:30-03:00,0.15 m³,Descarte confirmado na plataforma (CONFIRMADO),cam_mangabeira/tp/cfb7177e-2c76-4eeb-9760-b1118ebef8f7,53
+manual-20260527-1452,TP,tp,2026-05-27T14:52:52-03:00,0.2 m³,Descarte a pé sem veículo: dois homens descartando TV/espelho/metal na pilha. FN do gate V1 (prod) — detail confirma a 95%.,cam_mangabeira/tp/manual-20260527-1452,41
