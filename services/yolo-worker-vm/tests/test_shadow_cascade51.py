@@ -267,3 +267,28 @@ def test_both_arms_receive_the_exact_same_bytes(monkeypatch, frames, camera, man
                        prod_disposal=False, prod_detection_id=None)
 
     assert got["a_bytes"] == got["b_bytes"]
+
+
+def test_arm_b_off_skips_bedrock_and_keeps_ledger_schema(monkeypatch, frames, camera, manifest):
+    """SHADOW_C51_GATE_B=off desliga só o braço B (revisão 11/08): o bedrock não é
+    chamado, o registro mantém o schema e o detail dispara apenas via A."""
+    calls: list[str] = []
+    _patch_arms(monkeypatch, True, True, calls)
+
+    def bedrock_must_not_run(*a, **k):
+        raise AssertionError("_arm_bedrock não deveria rodar com o braço B desligado")
+
+    monkeypatch.setattr(_shadow_gate51, "_arm_bedrock", bedrock_must_not_run)
+    monkeypatch.setattr(config, "SHADOW_C51_GATE_B", "off")
+
+    _shadow_gate51.run(frames, "pi-cam-001", camera, manifest,
+                       prod_disposal=False, prod_detection_id=None)
+
+    rows = _audit_rows(config.STATE_DIR)
+    assert len(rows) == 1
+    assert rows[0]["arm_b"]["disabled"] is True
+    assert rows[0]["arm_b"]["fire_v1"] is False
+    assert rows[0]["arm_b"]["cost_usd"] == 0.0
+    assert rows[0]["detail"]["triggered_by"] == ["a"]
+    assert rows[0]["detail"]["ran"] is True
+    assert calls == ["kimi-k2.5"]
