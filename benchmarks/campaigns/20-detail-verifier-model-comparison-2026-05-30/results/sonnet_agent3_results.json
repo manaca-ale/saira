@@ -1,0 +1,175 @@
+{
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "accuracy": "6/8",
+  "total_cost_usd": 0.400527,
+  "results": [
+    {
+      "label": "E1",
+      "id": "9e90cc61-5d0d-4d42-b5a2-52a1e92eaa25",
+      "gt": "REJ",
+      "descr": "14:43 cam10",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-29_14-39-36.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-29_14-41-26.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-29_14-43-16.jpg"
+      ],
+      "evidence_summary": "Uma pessoa foi observada descartando dois itens na pilha de lixo existente. Primeiro, um objeto grande semelhante a uma placa ou pedaco de mobilia, e depois um item menor, como um saco ou pedaco de lixo, ambos adicionados a pilha de residuos na lateral da via.",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 72,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "Nos frames, pessoas passam pela área mas a pilha de resíduos não apresenta aumento visível de volume entre o primeiro e último frame. Padrão similar aos exemplos rejeitados desta câmera."
+      },
+      "latency_ms": 10472,
+      "in_tok": 15293,
+      "out_tok": 102
+    },
+    {
+      "label": "E2",
+      "id": "2900d8ea-77ee-41a5-894d-1b3863801919",
+      "gt": "REJ",
+      "descr": "11:23 cam10",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-29_11-20-31.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-29_11-22-11.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-29_11-23-51.jpg"
+      ],
+      "evidence_summary": "Uma pessoa em camiseta vermelha foi observada carregando um objeto escuro (possivelmente um saco ou pacote) e depositando-o na pilha de resíduos existente na lateral da via, entre 11:20:44 e 11:20:49.",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 72,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "Pessoa de camiseta vermelha visível no frame inicial próxima ao caminhão, mas nos frames seguintes a pilha não apresenta aumento visível de volume. Padrão idêntico aos exemplos rejeitados desta câmera."
+      },
+      "latency_ms": 9354,
+      "in_tok": 15284,
+      "out_tok": 110
+    },
+    {
+      "label": "E3",
+      "id": "90c05405-10a3-4d14-923b-3ce8b683eded",
+      "gt": "REJ",
+      "descr": "13:41 cam11",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_13-37-47.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_13-41-32.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_13-45-12.jpg"
+      ],
+      "evidence_summary": "Uma pessoa caminhando depositou uma sacola branca de lixo na pilha de residuos ja existente na calcada, aumentando o volume de descarte irregular.",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 68,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "Pilha permanece com volume similar nos 3 frames. Pessoas aparecem próximas mas sem transferência clara de material. Padrão idêntico ao REJ#1 da mesma câmera."
+      },
+      "latency_ms": 14915,
+      "in_tok": 15256,
+      "out_tok": 356
+    },
+    {
+      "label": "E4",
+      "id": "c4224caf-6cb9-48df-846d-b7ad0ea7d141",
+      "gt": "REJ",
+      "descr": "13:14 cam11",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_13-11-02.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_13-12-57.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_13-14-49.jpg"
+      ],
+      "evidence_summary": "Uma pessoa caminhou em direcao a uma pilha de residuos pre-existente, parou e depositou um pequeno objeto no chao, que nao estava presente anteriormente. A pessoa carregava uma sacola amarela antes do descarte.",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 72,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "Primeiro frame mostra caminhão de coleta com garis (uniformes azuis) no local. Pilha não apresenta aumento visível de volume entre frames. Pessoa agachada pode ser coletor. Sacola amarela mencionada pelo Agent-2 não é identificável nos frames."
+      },
+      "latency_ms": 15855,
+      "in_tok": 15275,
+      "out_tok": 416
+    },
+    {
+      "label": "E5",
+      "id": "8bfe0a1f-da31-4ddd-9455-de0d6a5ef652",
+      "gt": "CON",
+      "descr": "18:45 cam10 (S3)",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-28_18-42-25.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-28_18-44-00.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-28_18-45-35.jpg"
+      ],
+      "evidence_summary": "Uma pessoa se aproxima de uma pilha de lixo pre-existente na lateral esquerda da via. Após a passagem da pessoa, o volume da pilha de lixo domiciliar aumenta visivelmente, indicando descarte de material novo.",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 78,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "Nos 3 frames (18:42-18:45) a pilha lateral esquerda não apresenta mudança visível de volume. Ciclista no 1º frame passa sem parar; pessoas no último frame estão na via, longe da pilha. Sem transferência clara de material."
+      },
+      "latency_ms": 8730,
+      "in_tok": 15278,
+      "out_tok": 121
+    },
+    {
+      "label": "E6",
+      "id": "a447ff19-068a-4460-855c-3f6d02937860",
+      "gt": "CON",
+      "descr": "02:46 cam10 (S3)",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-26_02-42-49.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-26_02-44-44.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_001\\2026-05-26_02-46-34.jpg"
+      ],
+      "evidence_summary": "Uma pessoa descarregou ativamente material branco/claro de um carrinho de mão, formando uma nova pilha de resíduos na via pública. O material foi depositado sobre uma área já com resíduos, aumentando o volume.",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 72,
+        "fp_pattern_match": null,
+        "reasoning": "Pessoa ativa com carrinho de mão às 02h42; entre frames, material branco/claro foi depositado na área e pessoa se afastou. Aumento visível de resíduos ao redor do carrinho confirma descarte irregular."
+      },
+      "latency_ms": 18178,
+      "in_tok": 15275,
+      "out_tok": 413
+    },
+    {
+      "label": "E7",
+      "id": "8367f372-247b-42fd-886d-61bfc600b303",
+      "gt": "CON",
+      "descr": "12:46 cam11",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_12-43-37.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_12-50-13.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_12-51-27.jpg"
+      ],
+      "evidence_summary": "Uma pessoa empurrando um carrinho de mão depositou material adicional, incluindo um painel branco, na pilha de resíduos existente, aumentando seu volume.",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 72,
+        "fp_pattern_match": null,
+        "reasoning": "Frame 2 mostra pessoa de amarelo carregando painel branco em direção à pilha; frame 3 mostra painel branco depositado no chão próximo à pilha, ausente no frame 1. Mudança visível de volume confirma descarte."
+      },
+      "latency_ms": 13823,
+      "in_tok": 15258,
+      "out_tok": 363
+    },
+    {
+      "label": "E8",
+      "id": "ae3d87cb-189c-4d80-b56e-d202d92b4e59",
+      "gt": "CON",
+      "descr": "12:03 cam11",
+      "frame_paths": [
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_12-00-37.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_12-04-52.jpg",
+        "c:\\saira\\.tmp\\sonnet_bench\\frames\\esp32_002\\2026-05-29_12-07-37.jpg"
+      ],
+      "evidence_summary": "Uma pessoa vestindo camisa vermelha se aproximou da pilha de residuos existente, depositou um saco branco no chao e se afastou.",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 68,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "Pilha sem aumento visível de volume entre frame 1 e 3. Pessoa de camisa vermelha passa próximo mas não há evidência clara de depósito; padrão idêntico aos exemplos rejeitados desta mesma câmera."
+      },
+      "latency_ms": 15694,
+      "in_tok": 15255,
+      "out_tok": 386
+    }
+  ]
+}

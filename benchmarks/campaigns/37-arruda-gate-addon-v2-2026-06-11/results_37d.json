@@ -1,0 +1,420 @@
+[
+  {
+    "name": "id25",
+    "cohort": "FN",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the pile to deposit or collect material. Observed through-traffic and individuals near the pile without clear interaction."
+    }
+  },
+  {
+    "name": "id26",
+    "cohort": "FN",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the pile. Through-traffic observed. No new litter deposited."
+    }
+  },
+  {
+    "name": "id27",
+    "cohort": "FN",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 85,
+      "scene": "DUMPING",
+      "ev": "Person with handcart stops at chronic dumping point. Prolonged presence suggests interaction, but material deposition is not clearly visible. No collection activity observed. Favoring recall for poten"
+    }
+  },
+  {
+    "name": "id31",
+    "cohort": "FN",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person with handcart stops at the pile, interacts, and leaves. This indicates disposal of material. No collection activity observed."
+    }
+  },
+  {
+    "name": "id32",
+    "cohort": "FN",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person approached pile with object, interacted near ground, left empty-handed. Strong disposal evidence."
+    }
+  },
+  {
+    "name": "01_REVIEWREJ_01-38-44",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person observed crouching at the right-side dumping point, depositing material. New litter visible on the ground near the pile, indicating a disposal event."
+    }
+  },
+  {
+    "name": "02_REVIEWREJ_01-48-49",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person seen interacting with the right-side pile, appearing to deposit material. No collection evidence."
+    }
+  },
+  {
+    "name": "03_A2REJ_05-01-04",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent observed stopping at the pile for disposal or collection. Only through-traffic is present. The pre-existing pile remains unchanged."
+    }
+  },
+  {
+    "name": "04_REVIEWREJ_06-03-09",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "A person stopped at the chronic dumping point on the right, interacted with the ground, and then moved away, indicating a new disposal."
+    }
+  },
+  {
+    "name": "05_REVIEWREJ_06-22-44",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 85,
+      "scene": "DUMPING",
+      "ev": "A person with a loaded handcart stopped at the chronic dumping point. Material transfer is not visible, making flow direction ambiguous. No collection cues observed."
+    }
+  },
+  {
+    "name": "06_REVIEWREJ_06-33-44",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "A handcart stops at the chronic dumping pile. A person is seen near the cart, and the cart is gone in a later frame, with the person walking away. This indicates a disposal event."
+    }
+  },
+  {
+    "name": "07_REVIEWREJ_07-08-45",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 85,
+      "scene": "DUMPING",
+      "ev": "Person in orange vest seen near the pile, then disappears. Ambiguous interaction at a known dumping point. No clear collection evidence. Escalating for review."
+    }
+  },
+  {
+    "name": "08_KEPT_07-58-40",
+    "cohort": "KEPT",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person in red seen near the pile, carrying an object and within the litter area, indicating disposal. No collection activity observed."
+    }
+  },
+  {
+    "name": "09_A2REJ_09-56-20",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the chronic dumping pile. A single person was observed passing through the scene. The pre-existing pile remained unchanged."
+    }
+  },
+  {
+    "name": "10_REVIEWREJ_10-07-15",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the chronic dumping point on the right. Only through-traffic observed. The pre-existing pile remains unchanged."
+    }
+  },
+  {
+    "name": "11_A2REJ_10-16-45",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the illegal dumping point. Only through-traffic observed. Pre-existing pile remains unchanged."
+    }
+  },
+  {
+    "name": "12_A2REJ_10-26-00",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the pile. Through-traffic observed. Pre-existing pile unchanged. No new litter detected."
+    }
+  },
+  {
+    "name": "13_REVIEWREJ_10-29-45",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person with cart stopped at chronic dumping point on the right. Material flow inferred as towards the pile. No collection cues observed."
+    }
+  },
+  {
+    "name": "14_REVIEWREJ_10-45-45",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person on foot interacted with the pile, suggesting disposal. Material flow is towards the pile. No collection evidence."
+    }
+  },
+  {
+    "name": "15_A2REJ_10-53-45",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent clearly stopped at the pile to dispose of material. A person was briefly seen near the pile but their interaction was ambiguous. The pre-existing pile did not visibly change."
+    }
+  },
+  {
+    "name": "16_REVIEWREJ_11-31-55",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "A motorcycle stopped at the chronic dumping point on the right for multiple frames. While the act of disposal is not explicitly visible due to low resolution, the stop at this location strongly sugges"
+    }
+  },
+  {
+    "name": "17_A2REJ_11-54-35",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person on foot carrying bags towards the pile on the right in the last frame. This indicates a new disposal event."
+    }
+  },
+  {
+    "name": "18_A2REJ_11-58-10",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person seen interacting with bags near the chronic dumping pile, then leaves. New bags are visible in the area, indicating disposal."
+    }
+  },
+  {
+    "name": "19_REVIEWREJ_12-05-35",
+    "cohort": "REVIEWREJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person stops at pile, bends down, then leaves. Strong indication of disposal. No collection cues. Chronic pile present."
+    }
+  },
+  {
+    "name": "21_NEG_01-18-54",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent was observed stopping at the pile to deposit or collect material. Only through-traffic is present."
+    }
+  },
+  {
+    "name": "22_NEG_02-41-58",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent was observed stopping at the pile to deposit or collect material. Only through-traffic is present. The pre-existing pile is unchanged."
+    }
+  },
+  {
+    "name": "23_NEG_04-03-19",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent (person, cart, or vehicle) was observed stopping at the chronic dumping pile on the right. Only through-traffic is visible across the frames. The pre-existing pile remains unchanged."
+    }
+  },
+  {
+    "name": "24_NEG_05-27-19",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 85,
+      "scene": "DUMPING",
+      "ev": "Person in blue shirt/yellow helmet observed near pile across frames. Material flow ambiguous. No collection evidence. Escalating for review."
+    }
+  },
+  {
+    "name": "25_NEG_07-02-00",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the dumping point. Through-traffic only. Chronic pile is present but unchanged."
+    }
+  },
+  {
+    "name": "26_NEG_08-32-35",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "Through-traffic observed. No agent stopped at the illegal dumping pile on the right. The pile appears unchanged. No new litter detected."
+    }
+  },
+  {
+    "name": "27_NEG_10-03-15",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 85,
+      "scene": "DUMPING",
+      "ev": "Truck stopped near chronic dumping point with a person present. Material flow direction is ambiguous. No positive collection evidence. Escalating for review."
+    }
+  },
+  {
+    "name": "28_NEG_11-51-14",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person carrying material observed near the pile and then absent, indicating disposal. Pre-existing pile."
+    }
+  },
+  {
+    "name": "29_NEG_13-20-39",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person with handcart stops at the pile and appears to deposit material. No collection evidence. Garbage truck passes but does not interact."
+    }
+  },
+  {
+    "name": "30_NEG_14-03-09",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "No agent stopped at the illegal dumping pile on the right. Through-traffic and a pedestrian with an umbrella were observed passing by. No new litter detected."
+    }
+  },
+  {
+    "name": "31_NEG_16-51-34",
+    "cohort": "NEG",
+    "scratch2": {
+      "ok": true,
+      "trig": false,
+      "c": 30,
+      "scene": "TRAFFIC",
+      "ev": "Through-traffic observed. No agent stopped at the chronic dumping point on the right. The pre-existing pile remained unchanged. No new litter detected."
+    }
+  },
+  {
+    "name": "32_DET6b8b1210_17-43-28",
+    "cohort": "KEPT",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "Person observed interacting with the chronic dumping pile and then leaving the area. New material appears to have been added to the pile."
+    }
+  },
+  {
+    "name": "33_A2REJ_18-41-03",
+    "cohort": "A2REJ",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 90,
+      "scene": "DUMPING",
+      "ev": "A person stopped at the chronic dumping point on the right and appeared to deposit material. No collection activity observed. Low resolution makes precise observation difficult."
+    }
+  },
+  {
+    "name": "34_DET05b2ada1_18-44-53",
+    "cohort": "KEPT",
+    "scratch2": {
+      "ok": true,
+      "trig": true,
+      "c": 85,
+      "scene": "DUMPING",
+      "ev": "Person in red observed standing near the chronic dumping pile. Material flow is ambiguous, and no collection cues are present. Escalating for detailed review."
+    }
+  }
+]

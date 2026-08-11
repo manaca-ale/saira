@@ -1,0 +1,54 @@
+{
+  "campaign_number": 25,
+  "date": "2026-05-30",
+  "title": "pile_volume_change isolado + voto combinado (crops hi-res, cam_11)",
+  "type": "signal-isolation + late-fusion",
+  "hypothesis": "As camps 11-14 testaram pile_volume_change SEM crops hi-res. Com o close da pile-zone (upscale 2x) o sinal de delta-volume talvez separe CON/REJ de forma confiavel, sozinho ou como veto.",
+  "model": "gemini-2.5-flash",
+  "provider": "vertex",
+  "dataset": {"source": "prod DB cam_11 snapshot 2026-05-30", "n": 40, "con": 21, "rej": 19},
+  "pile_bbox_esp32_002": [461, 66, 939, 416],
+  "n_crops": 12,
+  "crop_upscale": 2,
+  "results": {
+    "pile_volume_alone": {
+      "rule": "CON sse pile_volume_change=='increased'",
+      "acc": 0.650, "recall": 0.571, "spec": 0.737, "prec": 0.706,
+      "tp": 12, "tn": 14, "fp": 5, "fn": 9,
+      "dist_con": {"increased": 12, "unchanged": 9},
+      "dist_rej": {"increased": 5, "unchanged": 14}
+    },
+    "ecrops_model_alone": {
+      "rule": "infraction_confirmed (camp 24 reuse)",
+      "acc": 0.675, "recall": 0.905, "spec": 0.421, "prec": 0.633,
+      "tp": 19, "tn": 8, "fp": 11, "fn": 2
+    },
+    "combined_rules": {
+      "R1_model_and_not_decreased": {"acc": 0.675, "recall": 0.905, "spec": 0.421, "tp": 19, "tn": 8, "fp": 11, "fn": 2, "note": "IDENTICO ao modelo — nenhum FP teve pile_volume=decreased, entao o veto nunca dispara"},
+      "R2_model_and_increased": {"acc": 0.725, "recall": 0.571, "spec": 0.895, "prec": 0.857, "tp": 12, "tn": 17, "fp": 2, "fn": 9, "note": "melhor acc/spec MAS recall despenca 90->57 (perde 7 TPs reais que sao sacola pequena = unchanged)"},
+      "R4_union": {"acc": 0.600, "recall": 0.905, "spec": 0.263, "tp": 19, "tn": 5, "fp": 14, "fn": 2, "note": "spec piora"}
+    }
+  },
+  "fp_breakdown": {
+    "model_fps_total": 11,
+    "pvc_unchanged_vetoable": 9,
+    "pvc_increased_confabulation": 2,
+    "ids_increased_confab": ["5896feaa (conf75)", "686b5746 (conf85)"],
+    "note": "9/11 FPs o pile_volume DISCORDA (unchanged) e os vetaria; so 2 confabulam increased junto"
+  },
+  "fn_breakdown": {
+    "model_fns_total": 2,
+    "ids": ["3c840ac4 (pvc unchanged)", "ae3d87cb (pvc unchanged)"],
+    "note": "pile_volume tambem erra nos 2 FN do modelo (diz unchanged) — nao resgata recall"
+  },
+  "verdict": {
+    "headline": "pile_volume_change com crop hi-res e o sinal MAIS ESPECIFICO ja medido (spec 74% sozinho). Como gate de CON (R2: exigir increased) leva spec a 89.5% e precision a 85.7% — MAS custa 7 TPs reais (recall 90->57).",
+    "key_finding": "9 dos 11 FPs do modelo tem pile_volume=unchanged → o sinal DISCORDA da decisao errada e os vetaria. Apenas 2 FPs confabulam increased junto. Isso e melhor do que se temia.",
+    "but_recall_cost": "O veto 'exigir increased' tambem mata 7 dos 19 TPs (descartes de sacola pequena, mediana 0.05 m3, que NAO mudam o volume visivel → pile_volume=unchanged corretamente, mas era CON).",
+    "saira_recall_weighted_3x": "SAIRA pondera recall 3x. Trocar 9 FP por 7 TP perdidos NAO compensa nesse peso. R2 nao deve ser deployado como decisor.",
+    "todays_fp_caveat": "O FP investigado hoje (49e304b7, 17:17) ainda nao esta rotulado no set; no smoke o evento 12:59 REJ deu increased conf90 (confabulou). Ha casos increased-confabulado que NENHUMA regra pega.",
+    "overfitting_warning": "Regras combinadas avaliadas nos MESMOS 40 eventos (sem holdout). Ganhos sao otimistas.",
+    "recommendation": "pile_volume_change NAO substitui nem melhora o pipeline sob o peso recall-3x da SAIRA. Util apenas se a meta virasse minimizar FP a custo de recall. Caminho forte e independente continua sendo CV geometrico de delta-volume (medido, nao estimado por VLM)."
+  },
+  "cost_usd": 0.088
+}

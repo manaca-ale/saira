@@ -1,0 +1,108 @@
+{
+  "campaign_number": 19,
+  "title": "gate esp32_002 pedestre recall",
+  "date": "2026-05-27",
+  "type": "prompt-ab",
+  "focus": "gate recall tuning para cam_mangabeira / esp32_002 — descarte de pedestre",
+  "models": {
+    "gate": "gemini-2.5-flash-lite",
+    "detail": "nao executado (gate-only)",
+    "thinking_budget": 2048
+  },
+  "status_line": "✅ **PASS** (F_v3_esp32_recall_b4) — todos os critérios atendidos.",
+  "pass": true,
+  "variants": {
+    "A_v1": {
+      "n": 116,
+      "total_cost_usd": 0.11812980000000001,
+      "tp_recall": 0.0,
+      "fp_rate": 0.0,
+      "tp_gate_recall": 38.46153846153847,
+      "fp_gate_rate": 72.09302325581395,
+      "cost_per_event": 0.0010183603448275862,
+      "latency_p50": 9667.0,
+      "output_tokens_total": 24696,
+      "by_category": {
+        "TP": {
+          "n": 13,
+          "confirmed": 0,
+          "errors": 13
+        },
+        "FP": {
+          "n": 43,
+          "confirmed": 0,
+          "errors": 0
+        }
+      }
+    },
+    "C_v3_esp32_recall_b2": {
+      "n": 116,
+      "total_cost_usd": 0.1667246,
+      "tp_recall": 0.0,
+      "fp_rate": 0.0,
+      "tp_gate_recall": 53.84615384615385,
+      "fp_gate_rate": 32.55813953488372,
+      "cost_per_event": 0.0014372810344827586,
+      "latency_p50": 9569.0,
+      "output_tokens_total": 29783,
+      "by_category": {
+        "TP": {
+          "n": 13,
+          "confirmed": 0,
+          "errors": 13
+        },
+        "FP": {
+          "n": 43,
+          "confirmed": 0,
+          "errors": 0
+        }
+      }
+    },
+    "D_v3_esp32_recall_b3": {
+      "n": 116,
+      "total_cost_usd": 0.1676854,
+      "tp_recall": 0.0,
+      "fp_rate": 0.0,
+      "tp_gate_recall": 76.92307692307693,
+      "fp_gate_rate": 39.53488372093023,
+      "cost_per_event": 0.0014455637931034483,
+      "latency_p50": 9460.5,
+      "output_tokens_total": 30116,
+      "by_category": {
+        "TP": {
+          "n": 13,
+          "confirmed": 0,
+          "errors": 13
+        },
+        "FP": {
+          "n": 43,
+          "confirmed": 0,
+          "errors": 0
+        }
+      }
+    },
+    "F_v3_esp32_recall_b4": {
+      "n": 116,
+      "total_cost_usd": 0.1692842,
+      "tp_recall": 0.0,
+      "fp_rate": 0.0,
+      "tp_gate_recall": 61.53846153846154,
+      "fp_gate_rate": 60.46511627906976,
+      "cost_per_event": 0.001459346551724138,
+      "latency_p50": 9114.5,
+      "output_tokens_total": 29794,
+      "by_category": {
+        "TP": {
+          "n": 13,
+          "confirmed": 0,
+          "errors": 13
+        },
+        "FP": {
+          "n": 43,
+          "confirmed": 0,
+          "errors": 0
+        }
+      }
+    }
+  }
+}

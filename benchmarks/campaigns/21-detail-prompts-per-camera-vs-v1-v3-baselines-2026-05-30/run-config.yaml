@@ -1,0 +1,28 @@
+# Campanha 21 — gerada por scaffold_campaign.py em 2026-05-30
+campaign_number: 21
+title: "detail prompts per-camera vs V1/V3 baselines"
+date: 2026-05-30
+type: model-selection
+hypothesis: "Per-camera detail prompts (Imbiribeira/Mangabeira) com vocabulario de operador derivado do spreadsheet bate >=70% acc no Flash V1 (vs 57.7% baseline) sem perder >5pp de recall"
+
+models:
+  gate: "gemini-2.5-flash-lite"
+  detail: "varies (see report)"
+  thinking_budget: 2048
+
+runner: "benchmarks/scripts/rebench_run.py"
+focus: "model-selection"
+
+filters:
+  camera:
+    - cam_imbiribeira
+    - cam_mangabeira
+  category:
+    - operator-labeled-REJ-CON
+
+success_criteria:
+  tp_recall_min: 95
+  fp_rate_max: 30
+
+# Preenchido em runtime pelo compute_metrics.py após Fase 3.
+# results_seen: []

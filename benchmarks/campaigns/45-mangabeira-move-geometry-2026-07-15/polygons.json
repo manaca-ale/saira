@@ -1,0 +1,9 @@
+{
+  "_comment": "pile_zone_polygon candidatos (referencia 1280x720). Nesting list-of-polygons obrigatorio (get_mask itera 'for poly in polygons'; formato flat = fail-open silencioso).",
+  "_current": "valor vigente no DB (updated_at 2026-05-27, PRE-mudanca). Area 5006 px2. Cobre o nucleo da pilha na vista nova, mas perde depositos a direita/abaixo: carroca 11/07 (x 640-700) e sacola 10/07 (x 660-720, y 345-370).",
+  "_proposed": "faixa de terra ao longo do meio-fio cobrindo os 6 depositos confirmados inspecionados + margem. Area 15328 px2 (3.1x). Para em x=740, antes da faixa onde os carros estacionam (x>=755).",
+  "_proposed_tight": "variante conservadora: para em x=722 e sobe a borda inferior (menos asfalto). Braco de controle do sweep.",
+  "current": [[[496, 322], [554, 357], [660, 328], [610, 298]]],
+  "proposed": [[[474, 338], [500, 312], [612, 290], [692, 296], [740, 320], [706, 348], [592, 372], [508, 372]]],
+  "proposed_tight": [[[480, 336], [504, 314], [612, 292], [686, 298], [722, 320], [690, 342], [586, 364], [512, 366]]]
+}

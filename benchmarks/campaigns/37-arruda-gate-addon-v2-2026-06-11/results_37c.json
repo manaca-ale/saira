@@ -1,0 +1,2244 @@
+[
+  {
+    "name": "id25",
+    "cohort": "FN",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is seen pushing a cart filled with debris towards an existing pile of waste on the right side of the road, indicating active material deposition."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is seen pushing a cart filled with debris towards an existing pile of waste on the right side of the road, indicating active material deposition."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is seen pushing a cart filled with debris towards an existing pile of waste on the right side of the road, indicating active material deposition."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart loaded with vegetation stops at the chronic dumping point on the right and appears to be disposing of the material. No collection activity observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart loaded with vegetation stops at the chronic dumping point on the right and appears to be disposing of the material. No collection activity observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart loaded with vegetation stops at the chronic dumping point on the right and appears to be disposing of the material. No collection activity observed."
+        }
+      ]
+    }
+  },
+  {
+    "name": "id26",
+    "cohort": "FN",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person pushing a cart loaded with branches stops near a debris pile on the right side of the road and appears to deposit material, increasing the pile. Traffic is present."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person pushing a cart loaded with branches stops near a debris pile on the right side of the road and appears to deposit material, increasing the pile. Traffic is present."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person pushing a cart loaded with branches stops near a debris pile on the right side of the road and appears to deposit material, increasing the pile. Traffic is present."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stopped at the pile, deposited vegetation, and left. Material flow was towards the pile."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stopped at the pile, deposited vegetation, and left. Material flow was towards the pile."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stopped at the pile, deposited vegetation, and left. Material flow was towards the pile."
+        }
+      ]
+    }
+  },
+  {
+    "name": "id27",
+    "cohort": "FN",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A cart is stationary near an existing debris pile on the right side of the road. People are observed interacting with the cart and the pile, indicating material is being deposited."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A cart is stationary near an existing debris pile on the right side of the road. People are observed interacting with the cart and the pile, indicating material is being deposited."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A cart is stationary near an existing debris pile on the right side of the road. People are observed interacting with the cart and the pile, indicating material is being deposited."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stopped at the right-side pile and appeared to deposit material. Handcart moved away afterwards. No collection activity observed. Consistent with illegal dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stopped at the right-side pile and appeared to deposit material. Handcart moved away afterwards. No collection activity observed. Consistent with illegal dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stopped at the right-side pile and appeared to deposit material. Handcart moved away afterwards. No collection activity observed. Consistent with illegal dumping."
+        }
+      ]
+    }
+  },
+  {
+    "name": "id31",
+    "cohort": "FN",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic with vehicles and pedestrians. A person is seen pushing a wheelbarrow, and a pre-existing pile of debris is present on the roadside. No active dumping behavior was dete"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic with vehicles and pedestrians. A person is seen pushing a wheelbarrow, and a pre-existing pile of debris is present on the roadside. No active dumping behavior was dete"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic with vehicles and pedestrians. A person is seen pushing a wheelbarrow, and a pre-existing pile of debris is present on the roadside. No active dumping behavior was dete"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stops at the chronic dumping point on the right and deposits material. Cart appears to be emptied onto the pile."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stops at the chronic dumping point on the right and deposits material. Cart appears to be emptied onto the pile."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person with handcart stops at the chronic dumping point on the right and deposits material. Cart appears to be emptied onto the pile."
+        }
+      ]
+    }
+  },
+  {
+    "name": "id32",
+    "cohort": "FN",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic moving on the road with pedestrians present. A vehicle is parked on the left side. While there is pre-existing debris on the right, no active dumping behavior is observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic moving on the road with pedestrians present. A vehicle is parked on the left side. While there is pre-existing debris on the right, no active dumping behavior is observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic moving on the road with pedestrians present. A vehicle is parked on the left side. While there is pre-existing debris on the right, no active dumping behavior is observed."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "A person walked past the chronic dumping point without stopping or interacting. No new litter was deposited or collected. The pre-existing pile remained unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "A person walked past the chronic dumping point without stopping or interacting. No new litter was deposited or collected. The pre-existing pile remained unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "A person walked past the chronic dumping point without stopping or interacting. No new litter was deposited or collected. The pre-existing pile remained unchanged."
+        }
+      ]
+    }
+  },
+  {
+    "name": "01_REVIEWREJ_01-38-44",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person is observed actively depositing material onto a pre-existing debris pile on the right side of the road. While traffic is present, no vehicle is clearly seen stopped for the dumping activity."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person is observed actively depositing material onto a pre-existing debris pile on the right side of the road. While traffic is present, no vehicle is clearly seen stopped for the dumping activity."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person is observed actively depositing material onto a pre-existing debris pile on the right side of the road. While traffic is present, no vehicle is clearly seen stopped for the dumping activity."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at pile, interacts, and leaves. Pile appears to have increased. New disposal detected."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at pile, interacts, and leaves. Pile appears to have increased. New disposal detected."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at pile, interacts, and leaves. Pile appears to have increased. New disposal detected."
+        }
+      ]
+    }
+  },
+  {
+    "name": "02_REVIEWREJ_01-48-49",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is observed actively depositing waste material onto an existing pile on the side of the road across multiple frames. The pile of waste has increased significantly from the initial to the fina"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is observed actively depositing waste material onto an existing pile on the side of the road across multiple frames. The pile of waste has increased significantly from the initial to the fina"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is observed actively depositing waste material onto an existing pile on the side of the road across multiple frames. The pile of waste has increased significantly from the initial to the fina"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the pile, interacts, and leaves. Suggests disposal of material. No collection evidence."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the pile, interacts, and leaves. Suggests disposal of material. No collection evidence."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the pile, interacts, and leaves. Suggests disposal of material. No collection evidence."
+        }
+      ]
+    }
+  },
+  {
+    "name": "03_A2REJ_05-01-04",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows active traffic on the road. A pre-existing pile of litter is visible along the right wall, with no new material being deposited."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows active traffic on the road. A pre-existing pile of litter is visible along the right wall, with no new material being deposited."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows active traffic on the road. A pre-existing pile of litter is visible along the right wall, with no new material being deposited."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic and pedestrians passing by. The pre-existing pile remained unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic and pedestrians passing by. The pre-existing pile remained unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic and pedestrians passing by. The pre-existing pile remained unchanged."
+        }
+      ]
+    }
+  },
+  {
+    "name": "04_REVIEWREJ_06-03-09",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A white van stopped near a debris pile on the right side of the road. A person was observed depositing material on the ground next to the existing pile. More material is visible on the ground in the f"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A white van stopped near a debris pile on the right side of the road. A person was observed depositing material on the ground next to the existing pile. More material is visible on the ground in the f"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A white van stopped near a debris pile on the right side of the road. A person was observed depositing material on the ground next to the existing pile. More material is visible on the ground in the f"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the pile, interacts, and leaves. Pile appears to have increased. Consistent with illegal dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the pile, interacts, and leaves. Pile appears to have increased. Consistent with illegal dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the pile, interacts, and leaves. Pile appears to have increased. Consistent with illegal dumping."
+        }
+      ]
+    }
+  },
+  {
+    "name": "05_REVIEWREJ_06-22-44",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart is observed stopping by a pre-existing debris pile on the right side of the road and actively depositing material from the cart onto the ground, increasing the pile's size. Traffi"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart is observed stopping by a pre-existing debris pile on the right side of the road and actively depositing material from the cart onto the ground, increasing the pile's size. Traffi"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart is observed stopping by a pre-existing debris pile on the right side of the road and actively depositing material from the cart onto the ground, increasing the pile's size. Traffi"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person with a cart stops at the chronic dumping point, unloads material, and leaves. The visible pile has increased."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person with a cart stops at the chronic dumping point, unloads material, and leaves. The visible pile has increased."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person with a cart stops at the chronic dumping point, unloads material, and leaves. The visible pile has increased."
+        }
+      ]
+    }
+  },
+  {
+    "name": "06_REVIEWREJ_06-33-44",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is observed depositing material near a cart by the roadside, adjacent to an existing debris pile. Traffic is present on the street."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is observed depositing material near a cart by the roadside, adjacent to an existing debris pile. Traffic is present on the street."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person is observed depositing material near a cart by the roadside, adjacent to an existing debris pile. Traffic is present on the street."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person with a handcart stopped at the chronic dumping pile. Material flow direction is ambiguous, but the agent's interaction warrants escalation."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person with a handcart stopped at the chronic dumping pile. Material flow direction is ambiguous, but the agent's interaction warrants escalation."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person with a handcart stopped at the chronic dumping pile. Material flow direction is ambiguous, but the agent's interaction warrants escalation."
+        }
+      ]
+    }
+  },
+  {
+    "name": "07_REVIEWREJ_07-08-45",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person was observed near a wall with accumulating debris. The amount of ground material increased between the initial and final frames, and a vehicle remained stationary, indicating dumping behavior"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person was observed near a wall with accumulating debris. The amount of ground material increased between the initial and final frames, and a vehicle remained stationary, indicating dumping behavior"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person was observed near a wall with accumulating debris. The amount of ground material increased between the initial and final frames, and a vehicle remained stationary, indicating dumping behavior"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person in an orange vest stands near the chronic dumping pile, and a white car is stopped nearby. The interaction is ambiguous, but the presence of an agent warrants escalation for review."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person in an orange vest stands near the chronic dumping pile, and a white car is stopped nearby. The interaction is ambiguous, but the presence of an agent warrants escalation for review."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person in an orange vest stands near the chronic dumping pile, and a white car is stopped nearby. The interaction is ambiguous, but the presence of an agent warrants escalation for review."
+        }
+      ]
+    }
+  },
+  {
+    "name": "08_KEPT_07-58-40",
+    "cohort": "KEPT",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "A person is observed near a pre-existing litter pile, appearing to deposit additional material. However, no vehicle is stopped at the dumping location, and the primary activity is traffic flow."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "A person is observed near a pre-existing litter pile, appearing to deposit additional material. However, no vehicle is stopped at the dumping location, and the primary activity is traffic flow."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "A person is observed near a pre-existing litter pile, appearing to deposit additional material. However, no vehicle is stopped at the dumping location, and the primary activity is traffic flow."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person stopped near the chronic dumping pile and appeared to handle material, but direction was unclear. No positive collection evidence. Escalating for review."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person stopped near the chronic dumping pile and appeared to handle material, but direction was unclear. No positive collection evidence. Escalating for review."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person stopped near the chronic dumping pile and appeared to handle material, but direction was unclear. No positive collection evidence. Escalating for review."
+        }
+      ]
+    }
+  },
+  {
+    "name": "09_A2REJ_09-56-20",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic on the road. A person walks across the road in the initial frames. A pre-existing pile of waste is visible on the right, but no new material is being deposited."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic on the road. A person walks across the road in the initial frames. A pre-existing pile of waste is visible on the right, but no new material is being deposited."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic on the road. A person walks across the road in the initial frames. A pre-existing pile of waste is visible on the right, but no new material is being deposited."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person stopped near the chronic dumping pile, interacted, and then left. This pattern suggests a new disposal. No collection cues were observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person stopped near the chronic dumping pile, interacted, and then left. This pattern suggests a new disposal. No collection cues were observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person stopped near the chronic dumping pile, interacted, and then left. This pattern suggests a new disposal. No collection cues were observed."
+        }
+      ]
+    }
+  },
+  {
+    "name": "10_REVIEWREJ_10-07-15",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A large truck is stopped on the road, and a person in an orange shirt is observed near a pre-existing debris pile on the right side of the road, actively depositing material. New material is visible o"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A large truck is stopped on the road, and a person in an orange shirt is observed near a pre-existing debris pile on the right side of the road, actively depositing material. New material is visible o"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A large truck is stopped on the road, and a person in an orange shirt is observed near a pre-existing debris pile on the right side of the road, actively depositing material. New material is visible o"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "Through-traffic observed. No agent stopped at the illegal dumping point on the right. Pre-existing pile unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "Through-traffic observed. No agent stopped at the illegal dumping point on the right. Pre-existing pile unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "Through-traffic observed. No agent stopped at the illegal dumping point on the right. Pre-existing pile unchanged."
+        }
+      ]
+    }
+  },
+  {
+    "name": "11_A2REJ_10-16-45",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on a street with a pre-existing pile of debris on the right side. No active new dumping event is clearly captured in the provided frames."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on a street with a pre-existing pile of debris on the right side. No active new dumping event is clearly captured in the provided frames."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on a street with a pre-existing pile of debris on the right side. No active new dumping event is clearly captured in the provided frames."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agents stopped at the illegal dumping point on the right. Only through-traffic observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agents stopped at the illegal dumping point on the right. Only through-traffic observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agents stopped at the illegal dumping point on the right. Only through-traffic observed."
+        }
+      ]
+    }
+  },
+  {
+    "name": "12_A2REJ_10-26-00",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person is observed near a known dumping spot, and new material appears to have been deposited on the ground between the initial and final frames."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person is observed near a known dumping spot, and new material appears to have been deposited on the ground between the initial and final frames."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person is observed near a known dumping spot, and new material appears to have been deposited on the ground between the initial and final frames."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person approached the pile, bent down as if depositing material, and then left the area. No collection activity or municipal equipment was observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person approached the pile, bent down as if depositing material, and then left the area. No collection activity or municipal equipment was observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person approached the pile, bent down as if depositing material, and then left the area. No collection activity or municipal equipment was observed."
+        }
+      ]
+    }
+  },
+  {
+    "name": "13_REVIEWREJ_10-29-45",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart is observed depositing material onto an existing pile of waste on the right side of the road. A white vehicle briefly stopped near the dumping area."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart is observed depositing material onto an existing pile of waste on the right side of the road. A white vehicle briefly stopped near the dumping area."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart is observed depositing material onto an existing pile of waste on the right side of the road. A white vehicle briefly stopped near the dumping area."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person with cart stopped at pile, handling material. Flow direction ambiguous. No positive collection cues. Escalating for potential dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person with cart stopped at pile, handling material. Flow direction ambiguous. No positive collection cues. Escalating for potential dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person with cart stopped at pile, handling material. Flow direction ambiguous. No positive collection cues. Escalating for potential dumping."
+        }
+      ]
+    }
+  },
+  {
+    "name": "14_REVIEWREJ_10-45-45",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A vehicle stopped near a chronic dumping site, and a person was observed depositing material, increasing the amount of debris on the ground."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A vehicle stopped near a chronic dumping site, and a person was observed depositing material, increasing the amount of debris on the ground."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A vehicle stopped near a chronic dumping site, and a person was observed depositing material, increasing the amount of debris on the ground."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the pile on the right, interacted with it, and then left. New material is visible at the pile. No collection activity was observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the pile on the right, interacted with it, and then left. New material is visible at the pile. No collection activity was observed."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the pile on the right, interacted with it, and then left. New material is visible at the pile. No collection activity was observed."
+        }
+      ]
+    }
+  },
+  {
+    "name": "15_A2REJ_10-53-45",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "The scene shows traffic on a road. On the right, a pile of waste is present. A person was observed near the waste pile in a mid-window frame, and the amount of debris appears to have increased between"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "The scene shows traffic on a road. On the right, a pile of waste is present. A person was observed near the waste pile in a mid-window frame, and the amount of debris appears to have increased between"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "The scene shows traffic on a road. On the right, a pile of waste is present. A person was observed near the waste pile in a mid-window frame, and the amount of debris appears to have increased between"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the chronic dumping point on the right and interacted with the pile. Material flow direction is ambiguous, but the context suggests dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the chronic dumping point on the right and interacted with the pile. Material flow direction is ambiguous, but the context suggests dumping."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the chronic dumping point on the right and interacted with the pile. Material flow direction is ambiguous, but the context suggests dumping."
+        }
+      ]
+    }
+  },
+  {
+    "name": "16_REVIEWREJ_11-31-55",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The initial and final frames show a street with ongoing traffic. A motorcycle is parked on the right side near a pre-existing pile of waste. No active material deposition by a person is observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The initial and final frames show a street with ongoing traffic. A motorcycle is parked on the right side near a pre-existing pile of waste. No active material deposition by a person is observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The initial and final frames show a street with ongoing traffic. A motorcycle is parked on the right side near a pre-existing pile of waste. No active material deposition by a person is observed."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "A motorcycle is stopped near the pre-existing pile. No person is seen interacting with the pile. No new litter is deposited or collected. Traffic and pedestrians are passing by."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "A motorcycle is stopped near the pre-existing pile. No person is seen interacting with the pile. No new litter is deposited or collected. Traffic and pedestrians are passing by."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "A motorcycle is stopped near the pre-existing pile. No person is seen interacting with the pile. No new litter is deposited or collected. Traffic and pedestrians are passing by."
+        }
+      ]
+    }
+  },
+  {
+    "name": "17_A2REJ_11-54-35",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person carrying bags is seen depositing material near a stopped vehicle by an existing litter pile on the right side of the road."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person carrying bags is seen depositing material near a stopped vehicle by an existing litter pile on the right side of the road."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person carrying bags is seen depositing material near a stopped vehicle by an existing litter pile on the right side of the road."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Through-traffic observed. A person walked past carrying bags but did not interact with the pile. Pile appears unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Through-traffic observed. A person walked past carrying bags but did not interact with the pile. Pile appears unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Through-traffic observed. A person walked past carrying bags but did not interact with the pile. Pile appears unchanged."
+        }
+      ]
+    }
+  },
+  {
+    "name": "18_A2REJ_11-58-10",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic on a road with a pre-existing pile of debris on the right. People are observed near this pile, appearing to interact with it. No vehicles are seen stopped for the purpose of du"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic on a road with a pre-existing pile of debris on the right. People are observed near this pile, appearing to interact with it. No vehicles are seen stopped for the purpose of du"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows traffic on a road with a pre-existing pile of debris on the right. People are observed near this pile, appearing to interact with it. No vehicles are seen stopped for the purpose of du"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at pile, interacts with bags. Suggests disposal. No collection cues."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at pile, interacts with bags. Suggests disposal. No collection cues."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at pile, interacts with bags. Suggests disposal. No collection cues."
+        }
+      ]
+    }
+  },
+  {
+    "name": "19_REVIEWREJ_12-05-35",
+    "cohort": "REVIEWREJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "A person is observed near a growing pile of debris on the right side of the road, indicating material handling and new material on the ground. However, no vehicle is seen stopped at the moment of depo"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "A person is observed near a growing pile of debris on the right side of the road, indicating material handling and new material on the ground. However, no vehicle is seen stopped at the moment of depo"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "A person is observed near a growing pile of debris on the right side of the road, indicating material handling and new material on the ground. However, no vehicle is seen stopped at the moment of depo"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the chronic dumping point on the right, interacts with the pile, and leaves. No collection activity observed. Inferred disposal."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the chronic dumping point on the right, interacts with the pile, and leaves. No collection activity observed. Inferred disposal."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person stops at the chronic dumping point on the right, interacts with the pile, and leaves. No collection activity observed. Inferred disposal."
+        }
+      ]
+    }
+  },
+  {
+    "name": "21_NEG_01-18-54",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene displays continuous traffic on the road. A persistent pile of debris is present on the right side, but no active dumping or new material deposition is observed in the provided frames."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene displays continuous traffic on the road. A persistent pile of debris is present on the right side, but no active dumping or new material deposition is observed in the provided frames."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene displays continuous traffic on the road. A persistent pile of debris is present on the right side, but no active dumping or new material deposition is observed in the provided frames."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the chronic dumping point. Only through-traffic observed. The pre-existing pile remained unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the chronic dumping point. Only through-traffic observed. The pre-existing pile remained unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the chronic dumping point. Only through-traffic observed. The pre-existing pile remained unchanged."
+        }
+      ]
+    }
+  },
+  {
+    "name": "22_NEG_02-41-58",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A pre-existing pile of litter is visible against the wall on the right side, which does not appear to change significantly between the initial and final fr"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A pre-existing pile of litter is visible against the wall on the right side, which does not appear to change significantly between the initial and final fr"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A pre-existing pile of litter is visible against the wall on the right side, which does not appear to change significantly between the initial and final fr"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent was observed stopping at the illegal dumping point on the right. Only through-traffic was present."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent was observed stopping at the illegal dumping point on the right. Only through-traffic was present."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent was observed stopping at the illegal dumping point on the right. Only through-traffic was present."
+        }
+      ]
+    }
+  },
+  {
+    "name": "23_NEG_04-03-19",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows a street with ongoing traffic and parked vehicles. A pre-existing pile of debris is visible on the right side. No active dumping or new material deposition is observed during this peri"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows a street with ongoing traffic and parked vehicles. A pre-existing pile of debris is visible on the right side. No active dumping or new material deposition is observed during this peri"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows a street with ongoing traffic and parked vehicles. A pre-existing pile of debris is visible on the right side. No active dumping or new material deposition is observed during this peri"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic observed. The pre-existing pile on the right wall remained unchanged throughout the observed period."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic observed. The pre-existing pile on the right wall remained unchanged throughout the observed period."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic observed. The pre-existing pile on the right wall remained unchanged throughout the observed period."
+        }
+      ]
+    }
+  },
+  {
+    "name": "24_NEG_05-27-19",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A person is observed near a pre-existing pile of waste on the right side of the road, interacting with the material."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A person is observed near a pre-existing pile of waste on the right side of the road, interacting with the material."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A person is observed near a pre-existing pile of waste on the right side of the road, interacting with the material."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person in blue/yellow stops at pile, handles material, and leaves. Action suggests dumping. No collection evidence. Pile is pre-existing."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person in blue/yellow stops at pile, handles material, and leaves. Action suggests dumping. No collection evidence. Pile is pre-existing."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "Person in blue/yellow stops at pile, handles material, and leaves. Action suggests dumping. No collection evidence. Pile is pre-existing."
+        }
+      ]
+    }
+  },
+  {
+    "name": "25_NEG_07-02-00",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A pre-existing pile of litter is present along the right wall. No active dumping behavior by a person or vehicle was observed between the initial and final"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A pre-existing pile of litter is present along the right wall. No active dumping behavior by a person or vehicle was observed between the initial and final"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A pre-existing pile of litter is present along the right wall. No active dumping behavior by a person or vehicle was observed between the initial and final"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping point. Only through-traffic observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping point. Only through-traffic observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping point. Only through-traffic observed."
+        }
+      ]
+    }
+  },
+  {
+    "name": "26_NEG_08-32-35",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene displays ongoing traffic with vehicles and pedestrians. A pre-existing pile of trash is visible against a wall, but no new material was observed being deposited during the analyzed time wind"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene displays ongoing traffic with vehicles and pedestrians. A pre-existing pile of trash is visible against a wall, but no new material was observed being deposited during the analyzed time wind"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene displays ongoing traffic with vehicles and pedestrians. A pre-existing pile of trash is visible against a wall, but no new material was observed being deposited during the analyzed time wind"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping point on the right. Only through-traffic observed. The pre-existing pile remains unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping point on the right. Only through-traffic observed. The pre-existing pile remains unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping point on the right. Only through-traffic observed. The pre-existing pile remains unchanged."
+        }
+      ]
+    }
+  },
+  {
+    "name": "27_NEG_10-03-15",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A large truck is stopped on the right side of the road near a chronic dumping site, with a person standing beside it, suggesting active material deposition."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A large truck is stopped on the right side of the road near a chronic dumping site, with a person standing beside it, suggesting active material deposition."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A large truck is stopped on the right side of the road near a chronic dumping site, with a person standing beside it, suggesting active material deposition."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A truck stopped near the chronic dumping point with a person present. The material flow is unclear, but the stop warrants escalation."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A truck stopped near the chronic dumping point with a person present. The material flow is unclear, but the stop warrants escalation."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A truck stopped near the chronic dumping point with a person present. The material flow is unclear, but the stop warrants escalation."
+        }
+      ]
+    }
+  },
+  {
+    "name": "28_NEG_11-51-14",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows vehicles moving on a road with a pre-existing debris pile on the right. No active dumping or new material deposition is observed between the initial and final frames."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows vehicles moving on a road with a pre-existing debris pile on the right. No active dumping or new material deposition is observed between the initial and final frames."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows vehicles moving on a road with a pre-existing debris pile on the right. No active dumping or new material deposition is observed between the initial and final frames."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic observed. The pre-existing pile remains unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic observed. The pre-existing pile remains unchanged."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Only through-traffic observed. The pre-existing pile remains unchanged."
+        }
+      ]
+    }
+  },
+  {
+    "name": "29_NEG_13-20-39",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on a road with a persistent pile of litter on the right. A person with a cart is visible near the litter pile in one frame."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on a road with a persistent pile of litter on the right. A person with a cart is visible near the litter pile in one frame."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 0,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on a road with a persistent pile of litter on the right. A person with a cart is visible near the litter pile in one frame."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Observed only through-traffic and a passing garbage truck. No new litter detected."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Observed only through-traffic and a passing garbage truck. No new litter detected."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the pile. Observed only through-traffic and a passing garbage truck. No new litter detected."
+        }
+      ]
+    }
+  },
+  {
+    "name": "30_NEG_14-03-09",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A person is observed near a known chronic dumping spot on the right side, but no vehicle is stopped and actively depositing material. The pre-existing wast"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A person is observed near a known chronic dumping spot on the right side, but no vehicle is stopped and actively depositing material. The pre-existing wast"
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 70,
+          "scene": "TRAFFIC",
+          "ev": "The scene shows ongoing traffic on the road. A person is observed near a known chronic dumping spot on the right side, but no vehicle is stopped and actively depositing material. The pre-existing wast"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping pile on the right. Only through-traffic observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping pile on the right. Only through-traffic observed."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "No agent stopped at the illegal dumping pile on the right. Only through-traffic observed."
+        }
+      ]
+    }
+  },
+  {
+    "name": "31_NEG_16-51-34",
+    "cohort": "NEG",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart stopped near a pre-existing trash pile on the right side of the road and appeared to be depositing material. Traffic is moving on the road."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart stopped near a pre-existing trash pile on the right side of the road and appeared to be depositing material. Traffic is moving on the road."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person with a cart stopped near a pre-existing trash pile on the right side of the road and appeared to be depositing material. Traffic is moving on the road."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person with a handcart stopped at the chronic dumping point on the right, deposited material, and then left. This indicates a new illegal disposal."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person with a handcart stopped at the chronic dumping point on the right, deposited material, and then left. This indicates a new illegal disposal."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 90,
+          "scene": "DUMPING",
+          "ev": "A person with a handcart stopped at the chronic dumping point on the right, deposited material, and then left. This indicates a new illegal disposal."
+        }
+      ]
+    }
+  },
+  {
+    "name": "32_DET6b8b1210_17-43-28",
+    "cohort": "KEPT",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person was observed near a trash pile on the right side of the road. In the final frame, new material appears to have been added to the pile, and the person's proximity suggests they were depositing"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person was observed near a trash pile on the right side of the road. In the final frame, new material appears to have been added to the pile, and the person's proximity suggests they were depositing"
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person was observed near a trash pile on the right side of the road. In the final frame, new material appears to have been added to the pile, and the person's proximity suggests they were depositing"
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person present at the pile across frames, interacting with material. Direction of flow is ambiguous. No positive collection cues. Escalating for review."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person present at the pile across frames, interacting with material. Direction of flow is ambiguous. No positive collection cues. Escalating for review."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "Person present at the pile across frames, interacting with material. Direction of flow is ambiguous. No positive collection cues. Escalating for review."
+        }
+      ]
+    }
+  },
+  {
+    "name": "33_A2REJ_18-41-03",
+    "cohort": "A2REJ",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "In the final frame, a person is observed actively depositing material onto a pre-existing debris pile on the right side of the road, while traffic continues to pass."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "In the final frame, a person is observed actively depositing material onto a pre-existing debris pile on the right side of the road, while traffic continues to pass."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "In the final frame, a person is observed actively depositing material onto a pre-existing debris pile on the right side of the road, while traffic continues to pass."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the chronic dumping pile. Material flow direction is ambiguous. No positive evidence of collection."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the chronic dumping pile. Material flow direction is ambiguous. No positive evidence of collection."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 85,
+          "scene": "DUMPING",
+          "ev": "A person stopped at the chronic dumping pile. Material flow direction is ambiguous. No positive evidence of collection."
+        }
+      ]
+    }
+  },
+  {
+    "name": "34_DET05b2ada1_18-44-53",
+    "cohort": "KEPT",
+    "n_frames": 5,
+    "g": {
+      "v1": [
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person in a red jacket is observed interacting with a pre-existing pile of debris on the right side of the road, adding new material to the ground. Traffic is moving on the road."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person in a red jacket is observed interacting with a pre-existing pile of debris on the right side of the road, adding new material to the ground. Traffic is moving on the road."
+        },
+        {
+          "ok": true,
+          "trig": true,
+          "det": true,
+          "c": 95,
+          "scene": "DUMPING",
+          "ev": "A person in a red jacket is observed interacting with a pre-existing pile of debris on the right side of the road, adding new material to the ground. Traffic is moving on the road."
+        }
+      ],
+      "scratch": [
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "Person observed standing near the chronic dumping pile. No active disposal or collection activity detected. No new litter visible."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "Person observed standing near the chronic dumping pile. No active disposal or collection activity detected. No new litter visible."
+        },
+        {
+          "ok": true,
+          "trig": false,
+          "det": false,
+          "c": 30,
+          "scene": "TRAFFIC",
+          "ev": "Person observed standing near the chronic dumping pile. No active disposal or collection activity detected. No new litter visible."
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,127 @@
+{
+  "model": "gemini-2.5-pro",
+  "accuracy": "7/8",
+  "total_cost_usd": 0.122816,
+  "results": [
+    {
+      "label": "E1",
+      "id": "9e90cc61-5d0d-4d42-b5a2-52a1e92eaa25",
+      "gt": "REJ",
+      "descr": "14:43 cam10",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 95,
+        "fp_pattern_match": "passante",
+        "reasoning": "As imagens mostram pessoas apenas passando pela área. Não há evidência de descarte ou interação com a pilha de lixo, que permanece com o mesmo volume em todos os frames."
+      },
+      "latency_ms": 9530,
+      "in_tok": 3874,
+      "out_tok": 1032
+    },
+    {
+      "label": "E2",
+      "id": "2900d8ea-77ee-41a5-894d-1b3863801919",
+      "gt": "REJ",
+      "descr": "11:23 cam10",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 95,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "A pessoa de vermelho parece interagir com o caminhão e não com a pilha de lixo. Não há aumento visível no volume de resíduos entre os frames, indicando que nenhum descarte ocorreu."
+      },
+      "latency_ms": 8808,
+      "in_tok": 3875,
+      "out_tok": 1044
+    },
+    {
+      "label": "E3",
+      "id": "90c05405-10a3-4d14-923b-3ce8b683eded",
+      "gt": "REJ",
+      "descr": "13:41 cam11",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 95,
+        "fp_pattern_match": "passante",
+        "reasoning": "As imagens mostram diferentes pessoas apenas passando pela calçada e pela rua. Não há nenhuma evidência de que alguém tenha depositado lixo, e a pilha existente não muda de volume."
+      },
+      "latency_ms": 11269,
+      "in_tok": 3845,
+      "out_tok": 1320
+    },
+    {
+      "label": "E4",
+      "id": "c4224caf-6cb9-48df-846d-b7ad0ea7d141",
+      "gt": "REJ",
+      "descr": "13:14 cam11",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 95,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "Uma pessoa está agachada mexendo na pilha e outra passa pela rua, mas não há evidência de novo descarte. O volume da pilha de lixo não se altera visivelmente entre os frames."
+      },
+      "latency_ms": 9906,
+      "in_tok": 3863,
+      "out_tok": 1113
+    },
+    {
+      "label": "E5",
+      "id": "8bfe0a1f-da31-4ddd-9455-de0d6a5ef652",
+      "gt": "CON",
+      "descr": "18:45 cam10 (S3)",
+      "response": {
+        "should_confirm": false,
+        "confidence_0_100": 95,
+        "fp_pattern_match": "pile_unchanged",
+        "reasoning": "As imagens mostram um ciclista e um pedestre passando pela via, mas não há nenhuma ação de descarte. O volume da pilha de lixo preexistente permanece inalterado entre os frames."
+      },
+      "latency_ms": 9951,
+      "in_tok": 3863,
+      "out_tok": 1009
+    },
+    {
+      "label": "E6",
+      "id": "a447ff19-068a-4460-855c-3f6d02937860",
+      "gt": "CON",
+      "descr": "02:46 cam10 (S3)",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "Uma pessoa com um carrinho de mão despeja material no chão. A comparação entre o primeiro e o último frame mostra claramente a criação de uma nova pilha de resíduos claros no local."
+      },
+      "latency_ms": 8558,
+      "in_tok": 3861,
+      "out_tok": 971
+    },
+    {
+      "label": "E7",
+      "id": "8367f372-247b-42fd-886d-61bfc600b303",
+      "gt": "CON",
+      "descr": "12:46 cam11",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "Uma pessoa com um carrinho de mão se aproxima da pilha de lixo. No quadro final, um novo objeto branco é claramente visível, confirmando o descarte e o aumento de volume no local."
+      },
+      "latency_ms": 9452,
+      "in_tok": 3845,
+      "out_tok": 1044
+    },
+    {
+      "label": "E8",
+      "id": "ae3d87cb-189c-4d80-b56e-d202d92b4e59",
+      "gt": "CON",
+      "descr": "12:03 cam11",
+      "response": {
+        "should_confirm": true,
+        "confidence_0_100": 95,
+        "fp_pattern_match": null,
+        "reasoning": "Uma pessoa de camisa vermelha é vista claramente depositando um objeto claro e volumoso na pilha de lixo. A comparação entre o primeiro e o último frame mostra o novo resíduo no local."
+      },
+      "latency_ms": 8396,
+      "in_tok": 3843,
+      "out_tok": 890
+    }
+  ]
+}

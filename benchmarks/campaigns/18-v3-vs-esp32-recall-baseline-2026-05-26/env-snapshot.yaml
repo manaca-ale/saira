@@ -1,0 +1,19 @@
+# Snapshot do ambiente em 2026-05-26T18:50:39
+# Gerado por snapshot_prompts.py — não editar à mão.
+
+host:
+  platform: "Windows-11-10.0.26200-SP0"
+  python: "3.13.11"
+  python_impl: "CPython"
+
+git:
+  commit: "ea6dc3febc4c9460b1d54c97c734fc461086f45b"
+  branch: "develop"
+  describe: "ea6dc3feb"
+  dirty: true
+
+env_benchmark:  # chaves sensíveis mascaradas
+  GEMINI_AGENT1_MODEL: "gemini-2.5-flash-lite"
+  GEMINI_AGENT1_THINKING_BUDGET: "2048"
+  GEMINI_API_KEY: "AIzaSyBT…sJdE (len=39)"
+  GEMINI_MODEL: "gemini-2.5-flash"

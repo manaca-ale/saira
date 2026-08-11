@@ -1,0 +1,489 @@
+{
+  "model": "facebook/dinov2-base",
+  "n": 52,
+  "cv_acc_mean": 0.6927272727272727,
+  "cv_acc_std": 0.07004131012457537,
+  "cv_auc_mean": 0.8216666666666669,
+  "cv_auc_std": 0.049888765156985884,
+  "cv_f1_mean": 0.7337662337662338,
+  "confusion": [
+    [
+      14,
+      8
+    ],
+    [
+      8,
+      22
+    ]
+  ],
+  "rows": [
+    {
+      "id": "9e90cc61-5d0d-4d42-b5a2-52a1e92eaa25",
+      "ts": "2026-05-29 17:43:16+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "90c05405-10a3-4d14-923b-3ce8b683eded",
+      "ts": "2026-05-29 16:41:12+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "c4224caf-6cb9-48df-846d-b7ad0ea7d141",
+      "ts": "2026-05-29 16:14:49+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "8367f372-247b-42fd-886d-61bfc600b303",
+      "ts": "2026-05-29 15:46:48+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "ae3d87cb-189c-4d80-b56e-d202d92b4e59",
+      "ts": "2026-05-29 15:03:47+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "45dc0327-464c-4b70-8c3d-578bed9af07d",
+      "ts": "2026-05-29 14:35:47+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "2900d8ea-77ee-41a5-894d-1b3863801919",
+      "ts": "2026-05-29 14:23:51+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "290eb292-c7c2-46ae-ab29-d7ba2fa74b8c",
+      "ts": "2026-05-29 13:59:51+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "0b4aa1a0-ad6c-4063-b5b4-6e813e7e3dbe",
+      "ts": "2026-05-29 13:47:21+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "08533ffb-1985-4f16-8ab9-ed930f6467cc",
+      "ts": "2026-05-29 13:43:42+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "976040f3-1855-49ca-a41d-6db3ad8aa33c",
+      "ts": "2026-05-29 13:27:56+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "d27e2560-de7e-4847-8ba6-f57c642484bf",
+      "ts": "2026-05-29 13:16:17+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "01948367-8228-4824-b3ce-b54365d93daf",
+      "ts": "2026-05-29 10:02:25+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "7ada74a4-674c-403e-859c-7c10980e997f",
+      "ts": "2026-05-29 09:58:44+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "3840ceba-7185-4a52-92ed-4c328ddbcff7",
+      "ts": "2026-05-29 09:05:09+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "9a47e511-a16a-4390-9316-67151e3c8fb1",
+      "ts": "2026-05-29 08:53:13+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "6a0b10ec-07eb-435a-9d7d-aa635a9922a6",
+      "ts": "2026-05-29 03:34:10+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "37d6feb0-c40f-47e3-a757-d12f2d62ea3e",
+      "ts": "2026-05-29 01:24:38+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "80fdbc2b-e478-4d2a-a844-731ef1b6d256",
+      "ts": "2026-05-28 22:25:08+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "d36dfdd3-a1e2-4132-8a80-0efc4e5cb19b",
+      "ts": "2026-05-28 22:03:18+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "6fd0cc32-6285-494f-a5db-281d1eac14c5",
+      "ts": "2026-05-28 21:56:15+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "8bfe0a1f-da31-4ddd-9455-de0d6a5ef652",
+      "ts": "2026-05-28 21:45:35+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "85d56cc5-630e-44b6-913d-e477393e121d",
+      "ts": "2026-05-28 18:10:14+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "580ab301-4f94-4880-8e65-9ee39ec82b96",
+      "ts": "2026-05-28 15:31:19+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "2bb86418-1bf2-4342-ab0a-668b39ef98cb",
+      "ts": "2026-05-28 14:57:04+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 1
+    },
+    {
+      "id": "cf39d55f-f305-41fd-987b-48309c02b0de",
+      "ts": "2026-05-28 14:40:34+00",
+      "cam": 11,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "6b4d979d-b8e1-4634-a226-c38cb7e38055",
+      "ts": "2026-05-28 14:03:25+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "0444830d-9f3b-4770-bd4d-bc1407a3b843",
+      "ts": "2026-05-28 06:58:50+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": false,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "85634170-8eba-43ab-bd5b-708a7f8b72c0",
+      "ts": "2026-05-28 05:08:40+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "2220e135-fc9c-492d-9ac7-d72574dbe621",
+      "ts": "2026-05-28 03:36:45+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "e71880df-fb37-46ac-a692-ab9faec241ec",
+      "ts": "2026-05-27 23:33:11+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "2cf37e71-a82b-442b-b0e5-019cd29fda03",
+      "ts": "2026-05-27 18:40:00+00",
+      "cam": 10,
+      "gt": "REJ",
+      "night": true,
+      "y_true": 0,
+      "y_pred": 0
+    },
+    {
+      "id": "cfb7177e-2c76-4eeb-9760-b1118ebef8f7",
+      "ts": "2026-05-26 13:03:30+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "194ed500-6c09-41fd-be26-9758c80b849b",
+      "ts": "2026-05-26 12:59:06+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "8fdb7d45-3093-46f2-bcf8-a1fb2ac49dbd",
+      "ts": "2026-05-26 12:26:37+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "f0bd4e3d-eeeb-4a5d-81a7-81b79d0fb1eb",
+      "ts": "2026-05-26 09:14:31+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "a447ff19-068a-4460-855c-3f6d02937860",
+      "ts": "2026-05-26 05:46:34+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "b0a0e12e-a702-42bf-afb9-22e1db35c589",
+      "ts": "2026-05-26 05:35:19+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "3c840ac4-b0f7-4fec-b696-dd7e68725b49",
+      "ts": "2026-05-23 16:11:00+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "12506543-1c64-4604-8c76-a85300a43669",
+      "ts": "2026-05-22 05:52:34+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "2bb892bc-c4d8-4175-b8b1-89007a82d133",
+      "ts": "2026-05-21 18:27:11+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "d59d5309-60c5-4ce9-8a64-2c68342c07c5",
+      "ts": "2026-05-21 14:33:54+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "d00a79bd-4052-4406-986f-01707b7fc713",
+      "ts": "2026-05-21 14:15:34+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "218673e1-397c-4293-be2b-0d5e2326334f",
+      "ts": "2026-05-20 22:40:09+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "cb49921a-c894-4cfd-8802-5c41316e7301",
+      "ts": "2026-05-20 18:45:45+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "06414b5a-4c73-401a-95b2-54cb1d775f74",
+      "ts": "2026-05-20 17:27:35+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "a73a3f44-03d0-4dc1-b850-efbac6210f3e",
+      "ts": "2026-05-20 17:16:15+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "454c8308-69a4-469d-8f78-376747f23ac5",
+      "ts": "2026-05-20 11:56:20+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "bc0528c2-8034-40a8-bad3-62f93136f44c",
+      "ts": "2026-05-20 10:29:00+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "ad65ae06-bc84-456d-b216-a14f0591219b",
+      "ts": "2026-05-20 09:47:35+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": false,
+      "y_true": 1,
+      "y_pred": 1
+    },
+    {
+      "id": "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+      "ts": "2026-05-20 01:11:17+00",
+      "cam": 11,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 0
+    },
+    {
+      "id": "48350bb4-b72c-4bc1-aeaa-89bc00d1595c",
+      "ts": "2026-05-19 21:39:29+00",
+      "cam": 10,
+      "gt": "CON",
+      "night": true,
+      "y_true": 1,
+      "y_pred": 1
+    }
+  ]
+}

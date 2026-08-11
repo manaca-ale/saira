@@ -1,0 +1,1746 @@
+{
+ "count": 102,
+ "agreement": 89,
+ "distribution": {
+  "passante_parado": 60,
+  "revira_mexe": 25,
+  "real_deposit": 4,
+  "uncertain": 13
+ },
+ "results": [
+  {
+   "id": "cf39d55f-f305-41fd-987b-48309c02b0de",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "Multiple people pass through the scene (including what appears to be a catador with a collection cart in the middle frames), but the pile composition in the AFTER frame is visually identical to BEFORE — same bags, same spread — with no new material deposited on it."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Multiple groups of pedestrians and a delivery cyclist pass through the area over ~3 minutes with no interaction with the pile; the pile's footprint, bags, and white foam pieces appear identical in the BEFORE and AFTER frames."
+   }
+  },
+  {
+   "id": "2bb86418-1bf2-4342-ab0a-668b39ef98cb",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The chronic pile remains visually identical from BEFORE to AFTER; the person in red (11:57) and the person in dark (11:58) both walk along the sidewalk without approaching or interacting with the pile, and no new material is visible in the AFTER frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "The garbage pile composition and footprint are identical in the BEFORE and AFTER frames; the two people visible in middle/final frames are walking on the sidewalk well away from the pile without any interaction with it."
+   }
+  },
+  {
+   "id": "580ab301-4f94-4880-8e65-9ee39ec82b96",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Two pedestrians walked along the sidewalk edge during the sequence but neither approached or interacted with the pile; the pile's size, shape, and composition are visually identical in the BEFORE (12:28:59) and AFTER (12:32:24) frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Two pedestrians passed through or briefly stood near the pile zone during the sequence but neither interacted with the pile, and the AFTER frame shows the same pile configuration — same black and white bags, same footprint — as the BEFORE frame with no new material remaining."
+   }
+  },
+  {
+   "id": "85d56cc5-630e-44b6-913d-e477393e121d",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person crouches directly over the existing pile at 15:07:54 (catador posture) and is seen departing at 15:09:04 carrying a blue bag — consistent with retrieving/sorting items — while the pile footprint in the AFTER frame (15:10:14) shows no net new material compared to BEFORE."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "A person in a blue cap crouches directly over the existing pile at 15:07:54 rummaging through it (catador behavior), then another figure walks away carrying a blue bag at 15:09:04; the AFTER frame (15:10:14) shows the pile at the same footprint and volume as the BEFORE frame with no new material remaining."
+   }
+  },
+  {
+   "id": "37d6feb0-c40f-47e3-a757-d12f2d62ea3e",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person with a backpack is seen leaning over and handling the existing pile in the middle frames, but the AFTER frame shows no new material — the furniture, boards, and bag cluster remain identical to BEFORE, consistent with a catador sorting through the pile rather than depositing new waste."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Two people wearing white helmets crouched at the existing pile for ~2 minutes handling/sorting items (consistent with catadores), then left; the AFTER frame shows the same mattress and debris pile without any new material remaining, and the overall pile bulk did not increase."
+   }
+  },
+  {
+   "id": "08533ffb-1985-4f16-8ab9-ed930f6467cc",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Two people were observed crouching and handling items at the existing pile in the BEFORE frame (10:39:47), but after they departed the pile composition — green vegetation mass, flat grey panel, dark bag, small white bag — remained visually unchanged with no new material added, consistent with catador/waste-picker sorting behavior rather than a new disposal."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Two people are seen crouching and interacting with the existing pile at 10:39:47 (consistent with catador/waste-picker behavior), but by 10:41 they have left and the pile's composition, footprint, and visible contents (green vegetation, dark bags, flat white panel) are indistinguishable from the BEFORE frame — no new material remains."
+   }
+  },
+  {
+   "id": "45dc0327-464c-4b70-8c3d-578bed9af07d",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "A pedestrian walks past the pile in the first frame and two people appear near it in the last frame, but the pile's composition — dark bags, vegetation debris, and construction rubble — is indistinguishable between BEFORE and AFTER, with no clearly new material remaining after their passage."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Multiple pedestrians pass near the pre-existing pile across the 3m35s window but the pile's composition — dark bags, white bags, and construction debris — remains visually identical between the BEFORE and AFTER frames, with no new material discernible in the final frame."
+   }
+  },
+  {
+   "id": "c4224caf-6cb9-48df-846d-b7ad0ea7d141",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "In the final frame a person is crouched and bent over the existing pile (catador-style interaction — sorting/rummaging), while the pile composition (green vegetation, white boards, metal container) remains visually the same as in the BEFORE frame with no new material added and no new persistent object visible afterward."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Sanitation workers in blue uniforms (from the garbage truck visible at 13:11) are seen crouching and handling the existing pile across the middle frames; the pile composition (green vegetation, white panels, gray bin) remains essentially unchanged between BEFORE and AFTER, with no new material left behind."
+   }
+  },
+  {
+   "id": "90c05405-10a3-4d14-923b-3ce8b683eded",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The pile of construction debris, green vegetation, and dark bags remains visually identical across all four frames; the person visible in the first frame (blue shirt, far right on the road) and the last frame (walking past on the sidewalk) show no interaction with the pile and leave no new material behind."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The pile (dark bags, green vegetation, white boards/debris) is visually identical in BEFORE and AFTER frames; a pedestrian walks past near the pile in the final frame but does not interact with it and no new material remains afterward."
+   }
+  },
+  {
+   "id": "0927b49d-a0b2-4957-aadc-1e02ba7bf14c",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 62,
+    "reason": "In the BEFORE frame a man stands beside 2-3 plastic bags at the curb edge of the pile; by the AFTER frame those bags are gone and the pile is no larger, consistent with a catador removing material rather than depositing new waste."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "The man arrives at the curb with bags, actively crouches and handles the existing debris pile (middle frame shows him sorting/rearranging wood boards), and by the AFTER frame the bags he carried are absent while the overall pile bulk is unchanged — consistent with a catador rummaging through and potentially taking items rather than depositing new material."
+   }
+  },
+  {
+   "id": "3c8b1451-779a-4b0a-b194-185b55c5874b",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "All persons visible (pedestrian in pink, cyclists) are in transit past the pile; the pile's composition and footprint are visually identical between the BEFORE and AFTER frames with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "Multiple pedestrians and cyclists pass through the frame across the sequence but none interact with the existing pile; the vegetation mass, mixed debris, and dark bags remain in identical positions between the first and last frame with no new material added."
+   }
+  },
+  {
+   "id": "9a66db2e-7665-4699-9cf4-3d218cb592d7",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Across all four frames (17:18 to 17:25) the chronic pile remains visually identical in size and composition with only passing vehicles visible and no person approaching or interacting with the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "All four frames show the same chronic pile with identical composition (rubble, red object, bags near bush) and no person interacting with it — only passing vehicles are visible, with no net change in pile volume or material between BEFORE and AFTER."
+   }
+  },
+  {
+   "id": "62f2201f-f8c1-4c4a-be60-9dba092788f0",
+   "final_label": "real_deposit",
+   "agree": true,
+   "vote1": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 52,
+    "reason": "A white plastic bag/object not present in the BEFORE frame appears persistently on the sidewalk in front of the pile from the 17:14 frame onward, coinciding with a group of pedestrians who passed by the pile area at 17:12:48; however, confidence is limited because the item could have been obscured by angle in the BEFORE frame rather than newly deposited."
+   },
+   "vote2": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 78,
+    "reason": "A person in red crouches over the pile at 17:12:58; by 17:13:53 a prominent white bag/object appears on the sidewalk in front of the vegetation pile that was absent in the BEFORE frame and remains visible in the AFTER frame (17:15:08), indicating new material was deposited and left behind."
+   }
+  },
+  {
+   "id": "475a7953-035a-4e06-b822-39d07332271d",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Three separate pedestrians/passersby moved through the scene between 19:05 and 19:12 without approaching or interacting with the pile; the white flip-flop, basket, and litter distribution visible in the BEFORE frame remain in identical positions in the AFTER frame with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A pedestrian in a black shirt and red cap walks along the roadside near the pile but does not interact with it; the white flip-flop and existing debris remain in identical positions from BEFORE to AFTER, with no new material added or removed."
+   }
+  },
+  {
+   "id": "d47b5f14-a29d-4ce8-abf6-e105d342eb0c",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "A person in a striped shirt crouches and handles items at the pile edge for ~2-3 minutes (frames 20:48–20:49) then leaves, with the pile returning to essentially the same size and composition in the AFTER frame — consistent with a catador sorting/picking from the existing pile rather than depositing new material."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A person in a striped shirt crouches at the right edge of the pre-existing pile for ~2 minutes (20:48–20:50), handling/sorting items, then leaves; the AFTER frame shows the same green-vegetation pile, white rope, and blue bag as BEFORE with no new persistent material added."
+   }
+  },
+  {
+   "id": "7b88bbfa-872b-4933-b849-f24bfd457c14",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person visible at the curb in the first frame (23:20:30) departed without interacting with the pile; the before and after frames show the same pile composition (white strap, box, scattered debris on the grass strip) with no new material added or removed."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Two people visible in the first frame were on the roadway near a wheeled bin and did not approach the pile; subsequent frames show a passing pedestrian and then an empty scene, with the pile (green vegetation, white cord, box, scattered litter) visually identical in composition and extent between BEFORE and AFTER."
+   }
+  },
+  {
+   "id": "711209bb-6f02-4812-a584-281ef93837a0",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "One pedestrian passes on the road in the middle frames without approaching or interacting with the sidewalk area; the ground state (scattered debris, dark patches) is identical between the BEFORE and AFTER frames with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A single pedestrian in dark clothing walked through the road/curb area at ~05:13:59 without approaching or interacting with any pile; the lot surface is identical in BEFORE and AFTER frames with no new material added."
+   }
+  },
+  {
+   "id": "776e44df-c443-408c-93e0-6e3ed8489d9e",
+   "final_label": "real_deposit",
+   "agree": true,
+   "vote1": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 82,
+    "reason": "BEFORE frame (05:30:45) shows the curb area completely clear of bags; by the first middle frame (05:31:50) a pedestrian in black is walking away and 2-3 white bags have appeared at the curb edge; those bags persist through the motorcycle pass and remain in the empty AFTER frame (05:33:45), confirming new material was left behind."
+   },
+   "vote2": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 82,
+    "reason": "The BEFORE frame (05:30:45) shows a bare sidewalk with no bags at the curb; by the first middle frame (05:31:50) a person in black is walking away and 2-3 white/light bags have appeared at the curb edge; these bags remain in place through the motorcycle frame and the AFTER frame (05:33:45), confirming new material was deposited and persisted."
+   }
+  },
+  {
+   "id": "7f58a25f-f7ff-4560-884c-1687f57673c5",
+   "final_label": "real_deposit",
+   "agree": true,
+   "vote1": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 72,
+    "reason": "A person seen carrying a white bag toward the pile at 08:18:15 is gone by 08:19:25, at which point a new flat white object (board/bag) has appeared on top of the pre-existing pile and remains in all subsequent frames, indicating new material was left and persisted."
+   },
+   "vote2": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 82,
+    "reason": "In the BEFORE frame a person is seen carrying a large white flat object toward the pile; by the first middle frame a new large white rectangular panel (foam board or similar) has appeared on top of the existing bags and remains there through the AFTER frame, indicating a net new deposit that persists after the person left."
+   }
+  },
+  {
+   "id": "712b3bc7-112e-4992-9f96-c3460bce84b1",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "A pedestrian with a red hat walks past the existing pile at 08:50 without stopping or interacting with it, and the pile — same dark bags and white flat panel — shows no change in size, composition, or position between the BEFORE and AFTER frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 75,
+    "reason": "The pile (dark bags plus white flat panel at the curb) remains visually identical in size and composition between the BEFORE and AFTER frames; the only person visible walked past holding a stick without approaching or interacting with the pile, and no new material is discernible in the final frame."
+   }
+  },
+  {
+   "id": "ec77c751-c683-4fb3-866b-56a4ac12fc26",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A pedestrian passes through the scene at 09:15 but does not approach or interact with the pile, and the pile's size, composition (dark bags, vegetation, flat tile piece) and footprint are identical between the BEFORE (09:13:30) and AFTER (09:21:25) frames with no new material remaining."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "The existing chronic pile is present throughout all frames with no change in volume or composition; the two people visible at 09:19 (a cyclist and a pedestrian) are both passing through the street without approaching or interacting with the pile, and the AFTER frame shows no new material relative to BEFORE."
+   }
+  },
+  {
+   "id": "d38868e5-94d9-4745-871b-f9888ad5c9bd",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The pre-existing scattered litter/debris pile remains visually identical between BEFORE (10:04) and AFTER (10:15), with the only human presence being a pedestrian walking past in the final frame without stopping or interacting with the pile area."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Two separate pedestrians pass through the frame at 10:12 and 10:15 respectively, neither approaching or interacting with the existing debris scatter; the ground litter pattern is visually identical between the BEFORE (10:03:58) and AFTER (10:15:26) frames with no new material deposited."
+   }
+  },
+  {
+   "id": "649299b3-2ff0-4019-b0c1-b1e5cfc71baf",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Across all four frames the debris field in the central lot area remains visually identical in extent and composition; people visible in the sequence (person at 10:15, plaid-shirt figure at 10:23, pair at 10:27) are all positioned on the sidewalk/curb edge and none approach or interact with the pile, consistent with pedestrians passing by."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Pedestrians appear in the BEFORE and middle frames walking past the sidewalk, but the pile/debris area remains visually identical in the AFTER frame — no new material deposited and no interaction with the existing litter observed."
+   }
+  },
+  {
+   "id": "f20508d4-b809-45a8-a1bc-10333c8e06d6",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "Across the 12-minute window, only pedestrians and a motorcyclist pass through without any interaction with the existing litter/debris pile, and the pile composition appears visually unchanged between the BEFORE and AFTER frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 68,
+    "reason": "Across all four frames, pedestrians (a child at 10:40 and a person in pink at 10:43) are merely passing through the area without interacting with the existing debris pile near the curb; the pile composition and extent appear consistent between BEFORE and AFTER with no identifiable new bulk material deposited."
+   }
+  },
+  {
+   "id": "86dcacb1-5691-4daf-8207-054e2479fcb3",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 58,
+    "reason": "The BEFORE frame shows a person crouching near the pile zone; by the AFTER frame, new visible items (a white container/bag and additional scattered debris near the curb) appear that were not present in the initial frame, and the pile area shows a net increase in material, though the 6-minute gap in the middle frames and partial occlusions leave some ambiguity."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 52,
+    "reason": "The pre-existing pile near the curb shows consistent scattered debris across all frames with no clear net addition; a person crouching at the bottom of the first frame and a cyclist with a bag in the last frame do not appear to deposit new material that persists, and rain between frames complicates comparison but does not indicate a new deposit."
+   }
+  },
+  {
+   "id": "7d57129f-90e8-4804-914d-2ca97dad389e",
+   "final_label": "real_deposit",
+   "agree": true,
+   "vote1": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 88,
+    "reason": "Between the BEFORE frame (12:18:50, mostly scattered small litter near the curb) and the AFTER frame (12:22:05), a cluster of multiple large white garbage bags plus green plant cuttings appeared in the center of the sidewalk and remained there after the nearby person walked away, constituting a clear new deposit."
+   },
+   "vote2": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 92,
+    "reason": "Between 12:19:45 and 12:20:55 a substantial cluster of large white garbage bags with plant/organic material appeared in the center of the lot (absent in the BEFORE frame), and remains fully in place in the AFTER frame — a person visible at 12:20:55 standing adjacent to the freshly deposited material confirms the illegal disposal event."
+   }
+  },
+  {
+   "id": "b83aba0c-d560-4a56-a577-6970f262736b",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "Multiple pedestrians pass by the chronic pile between 13:47 and 13:58 but no new material clearly appears in the AFTER frame — the pile composition (bags, cardboard box, green organic matter) remains essentially the same size and arrangement throughout the sequence."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Multiple pedestrians passed near or briefly paused beside the pre-existing pile (cardboard box, white bags, vegetation debris visible in all frames), but the AFTER frame shows the pile with identical mass and composition — no new material added and nothing removed."
+   }
+  },
+  {
+   "id": "eac5c4ab-b61d-46d4-b7be-a791b106e0f6",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 92,
+    "reason": "Two catadores (one in red, one in yellow/green) spent ~3 minutes crouching and actively sorting through the pre-existing pile; by the final frame they have left and the pile appears more spread out but no larger, consistent with items being picked and carried away rather than any new material deposited."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 88,
+    "reason": "A person in a red cap crouches at the pile and handles materials (visible large black bag), while a second person is seen walking away carrying the cardboard box that was present in the BEFORE frame; the AFTER frame shows the pile rearranged/spread with the cardboard box gone, confirming catador activity with material removed and no net new waste added."
+   }
+  },
+  {
+   "id": "5e29a4d9-bcb5-4c49-9703-0fac3fe6032b",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "The pre-existing pile of mixed garbage (bags, cardboard, vegetation) remains visually identical from the BEFORE (14:17:20) to the AFTER (14:21:05) frame — same footprint, same blue bag and cardboard boxes in the same positions — while the only person visible (in blue, at 14:18:40) is passing on the street edge without approaching the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "The pre-existing pile (cardboard boxes, bags, plant debris, blue bag) shows identical composition and extent in all four frames; pedestrians and vehicles appear only on the street in the background with no one approaching or interacting with the pile."
+   }
+  },
+  {
+   "id": "6fc04c08-e90f-44cc-a1ba-7a74251e1ecb",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The pre-existing pile (grey bags, white box, loose debris) remains identical in composition and footprint from BEFORE to AFTER; the man walking along the road edge at 15:02 and two people near the retaining wall at 15:03 do not approach or interact with the pile, and no new material is visible in the final frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "The pile remains visually unchanged throughout all 4 frames (same bags, white box, scatter pattern); two people appear only in the final frame in the lower foreground, not interacting with the pile — one walking past and one at the very edge of frame — with no new material deposited and no rummaging behavior observed at the pile."
+   }
+  },
+  {
+   "id": "5eb366e4-6445-4077-89a4-7b54ac0301e8",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "The garbage pile remains visually the same size and composition from BEFORE to AFTER (same grey bags, cardboard box, scattered debris); the person walking past in the first frame does not interact with the pile, and the two individuals appearing at the sidewalk edge in the last frame are positioned near the wall/bottom of frame far from the main pile with no observable deposit."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The chronic pile remains identical in volume and composition across all frames — the person walking past in the BEFORE frame does not interact with the pile, and the two people visible in the AFTER frame are merely passing by or near the pile without adding any new material."
+   }
+  },
+  {
+   "id": "41ba8d56-a9d5-4c55-80cc-4070226f36bb",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person is seen crouching and handling items directly within the existing pile at 16:06:53 (catador/sorting posture), then walking away; the pile composition and volume in the AFTER frame (16:08:52) match the BEFORE with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "All four frames show the pre-existing pile (bags, sofa frame, scattered debris) in the same configuration with no new material added; the only person visible is a woman walking past on the street in the final frame with no interaction with the pile whatsoever."
+   }
+  },
+  {
+   "id": "bcd518c7-8a5a-4518-b079-aab5c5103a04",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 62,
+    "reason": "Between BEFORE (16:27) and AFTER (16:38), the large cluster of green bags in the pile visibly shrank; a green bucket appeared mid-sequence and a person was seen near the pile carrying a bag, consistent with a catador sorting and removing material rather than adding net new waste."
+   },
+   "vote2": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 72,
+    "reason": "A large green bucket/bin that was absent in the BEFORE frame (16:27) appears on the pile by 16:30 and remains through the AFTER frame (16:38), constituting a new persistent object added to the pre-existing pile."
+   }
+  },
+  {
+   "id": "2e0c9ed7-0380-4953-9994-c96525623148",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A pedestrian walks along the sidewalk near the pile at 19:41 but does not interact with it; the pile's composition and volume (blue bag, cardboard, scattered debris) are identical between the BEFORE (19:39) and AFTER (19:42) frames, with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 90,
+    "reason": "The pile composition (blue bag, cardboard boxes, mixed debris) is visually identical from the BEFORE frame (19:39:08) to the AFTER frame (19:42:23); one person in orange passes on the sidewalk edge without approaching the pile (19:41:13) and a second pedestrian is seen in the foreground (19:42:23), neither interacting with the pile nor leaving any new material."
+   }
+  },
+  {
+   "id": "716d1c2b-2129-4666-bd28-b5aece908b88",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "A person crouches and handles the existing pile for ~2 minutes (visible in middle frames at 20:34 and 20:35 with a blue bag), consistent with catador/waste-picker behavior; the AFTER frame (20:36:18) shows the pile at essentially the same footprint with no clearly new material remaining after the person leaves."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "One or two individuals crouch and handle the existing pile (blue bag prominently manipulated) for ~2 minutes in the middle frames, consistent with catador/waste-picker rummaging; the AFTER frame shows the pile at essentially the same volume and footprint as BEFORE, with no new distinct material remaining."
+   }
+  },
+  {
+   "id": "f53be038-76dc-4da6-80c9-8b985bae6f2c",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person carrying a large sack walked through the frame at 12:51 and was gone by 12:53 with no new material left behind; the pile (white bags, cardboard panel, debris at curb) remained in the same configuration throughout all four frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "The first frame shows a person walking away already carrying a bag — no deposit action visible — and comparing BEFORE to AFTER the pile composition (rubble cluster, white bags, flat boards) remains essentially the same with no new persistent material added."
+   }
+  },
+  {
+   "id": "bec1fb3a-2d3a-4618-9cd3-c30a7cb5a7fe",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A single pedestrian walks past the pile area at 13:07 without stopping or interacting with it, and the pile configuration (white/green bags, cardboard panels, scattered debris) is visually identical between the BEFORE and AFTER frames with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "A single pedestrian walks along the sidewalk edge near the pile at 13:07 but does not crouch, carry bags, or interact with the waste; the pile composition (white/green bags, cardboard panels, scattered debris) is identical in the BEFORE and AFTER frames with no new material added or removed."
+   }
+  },
+  {
+   "id": "a1ecc016-1f41-46cd-8219-72db51af7ae8",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person with red hair is seen walking away from the pile area in the first frame but does not interact with it; across all four frames the pile — rubble cluster near curb, white/green bags, flat cardboard piece — shows no change in volume or composition between BEFORE and AFTER."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The person with red hair visible in the first frame was already walking away from the pile area; across all frames the pile composition (white/green bags along the curb, flat cardboard, scattered debris) remains identical with no new material appearing in the AFTER frame."
+   }
+  },
+  {
+   "id": "7ef70ea1-91fb-460e-aa1e-927f977b2fc7",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A person crouches over the existing pile for ~3 minutes handling/sorting bags (catador behavior), then leaves — the pile configuration of bags, cardboard, and debris in the AFTER frame is essentially identical to the BEFORE frame, with no net new material added."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A person crouches over the existing pile for ~2 minutes handling and sorting bags (catador behavior), then leaves; the AFTER frame shows the same bag configuration with no new material added and the pile footprint unchanged relative to BEFORE."
+   }
+  },
+  {
+   "id": "f0e1ef92-842d-4aea-83e4-7558e5848ee8",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A person in a blue shirt briefly appears near the curb at 15:59:56 but does not interact with the pile and leaves no new material — the bag clusters, flat slabs, and debris positions are identical in the BEFORE and AFTER frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person in a blue shirt briefly stopped near the pile's edge around 15:59:56 but left without interacting with it; the pile composition (bags, flat tiles, scattered litter) is visually identical between the BEFORE and AFTER frames with no new material added."
+   }
+  },
+  {
+   "id": "744ffdd0-3c77-4c1c-8ee6-1ff528286bbb",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A woman with a child stands briefly near the pile in the middle frames but does not interact with it or deposit anything; the pile composition (bags, dark flat object, slabs, scattered litter) is visually identical between the first and last frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "The pile remains identical in composition and size across all 4 frames; the only people visible (two women in the final frame and figures near a parked car in the middle frame) are passing pedestrians who do not approach or interact with the pile."
+   }
+  },
+  {
+   "id": "e6185347-2acc-42fb-ad73-18ea0c4ae56b",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "In the first frame, a person with a purple backpack is crouching and handling items directly over the existing pile (classic catador behavior); by the final frame, all people have left and the pile composition — same cardboard box and surrounding debris — is unchanged, with no new material persistently added."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "In the first frame a person with a purple backpack is bent over handling items directly at the existing pile (catador behavior); after they leave the pile composition and volume are visually unchanged in the final frame — no new material was added."
+   }
+  },
+  {
+   "id": "e777233d-c345-4a26-8f49-eedafa885afb",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A pedestrian carrying a white bag walks past the pile in the BEFORE frame but does not approach or deposit anything; the pile's composition (cardboard boxes, dark and green bags, organic debris) is identical in the AFTER frame with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 52,
+    "reason": "A person carrying white bags walks past the pile zone in the first frame but disappears within ~51 seconds; comparing BEFORE and AFTER the pile composition (cardboard boxes, dark/green bags, organic debris) is visually identical with no clearly new material remaining, suggesting the person passed through without depositing."
+   }
+  },
+  {
+   "id": "e69fa464-a165-432b-b177-2437a84697a3",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "In the first frame a person is crouching and handling items from the existing pile (catador behavior); by the middle and final frames they have left and the pile composition and footprint are visually unchanged with no new material remaining."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The BEFORE frame shows a person crouching and handling items in the existing pile (classic catador behavior); after the person departs, the pile footprint and composition in the AFTER frame are essentially identical to BEFORE with no net new material remaining."
+   }
+  },
+  {
+   "id": "645e11c8-2bcb-4821-8efa-1febbddb5436",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person is seen crouching and handling items at the existing pile in the first frames (catador behavior), but the AFTER frame shows the pile at the same size and composition with no new material remaining, indicating interaction with the pre-existing pile rather than a new deposit."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A person is seen crouching and rummaging through the existing pile in the first two frames (catador behavior), then leaves; the AFTER frame shows the pile with the same composition and footprint — no new material was added and nothing clearly remains that was not present before."
+   }
+  },
+  {
+   "id": "53ac2b53-4024-40be-9835-4815a4888322",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person in dark clothing spends ~3 minutes crouching and actively sorting through the existing pile (rearranging the large wooden furniture pieces and handling bags), consistent with a catador picking through recyclables; the pile's overall volume and composition remain unchanged between the first and last frame with no new material deposited."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "A single person in dark clothing spends the entire ~3-minute sequence crouching and rummaging through the pre-existing pile (classic catador behavior), rearranging wooden crates and cardboard without leaving any new material — the pile volume and composition in the AFTER frame is equivalent to the BEFORE frame."
+   }
+  },
+  {
+   "id": "69620077-0d40-4636-bda5-868af2a7da11",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 90,
+    "reason": "The pre-existing pile (bags, open cardboard box, blue material) is visually identical across all four frames; only a passing red vehicle is briefly visible on the road, and no person approaches or interacts with the pile at any point."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "Two pedestrians and a child walk past the pile on the sidewalk in the middle frames without interacting with it, and the AFTER frame shows the pile in identical composition and extent to the BEFORE frame — no new material added, nothing removed."
+   }
+  },
+  {
+   "id": "46a5c760-be44-42d3-ad5d-dcf86fd41091",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "uncertain",
+    "pile_delta": "unclear",
+    "confidence": 38,
+    "reason": "Two people were observed standing close to the pile at 20:36 and the AFTER frame (20:38) shows a large black bag mass more prominently on top of the pile compared to BEFORE (20:31) where blue bags dominated, but no clear deposit action was captured and the pile boundary did not visibly expand, making it impossible to distinguish a deposit from pile rearrangement or pre-existing material."
+   },
+   "vote2": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 62,
+    "reason": "In the BEFORE frame (20:31) the pile has mixed debris with blue bags but no prominent dark black bags on top; by the AFTER frame (20:38) one or two large dark black garbage bags are clearly sitting on top of the pile center where lighter items dominated before, and two individuals were present near the pile in the middle frames (20:36), suggesting at least one of them deposited the bags — though the people were standing near the curb edge and direct interaction with the pile is not fully visible, making this a moderately confident deposit judgment."
+   }
+  },
+  {
+   "id": "91376baf-5eaa-43ca-8857-a410724403a5",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person is briefly visible at the top-right edge of the first frame (with a red/pink item) but is gone by the second frame, and the pile of white boards, wood planks, and debris remains visually identical in composition and extent across all four frames with no new persistent material in the AFTER frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "A person was briefly visible at the right edge of the pile in the BEFORE frame but left within seconds; the middle and AFTER frames show no new material added to the existing construction-debris pile, which remains in the same configuration throughout the sequence."
+   }
+  },
+  {
+   "id": "8329c7b3-9092-4ef5-8349-fc5110eadda1",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Two pedestrians briefly stood adjacent to the pre-existing pile at ~05:52 but departed without adding or removing any material; the pile's composition, size, and footprint are visually identical between the BEFORE and AFTER frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "Two pedestrians walk past the pile at 05:52 without crouching or depositing anything; the pile composition and footprint in the AFTER frame (05:54:05) is visually identical to the BEFORE frame (05:51:06), with no new material added or removed."
+   }
+  },
+  {
+   "id": "06f83f87-a9f8-4110-bee2-3df03c91b517",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 92,
+    "reason": "All people visible across the 7-minute sequence are pedestrians walking past without interacting with the pile; the pre-existing debris (wood planks, tiles, mixed construction waste) is visually identical in composition and extent from the first to the last frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "All four frames show the same chronic debris pile (boards, white panels, wood scraps) with identical configuration; multiple pedestrians pass through the area but none interact with or add material to the pile between 06:42 and 06:49."
+   }
+  },
+  {
+   "id": "901dfd91-5ca8-4d40-803a-62550579f951",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A pedestrian in dark clothing walks past on the street side in the middle frames without approaching or interacting with the pile, and the AFTER frame shows the same green bags, white bag, and red item in identical configuration as the BEFORE frame with no net new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The pile (green bags, black bag, red item at curb) is visually identical in size and composition from first to last frame; no person is seen approaching or interacting with it, and no new material appears in the AFTER frame."
+   }
+  },
+  {
+   "id": "43651af6-8ff2-461d-b13f-3c313a27bec9",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Two individuals (catadores) are seen crouching at and handling the existing pile across the sequence — the first man in a green shirt sorts through items at 14:42, and a second person in a blue hat is visibly carrying away a white bag and the yellow container by the final frame at 14:53, with no net new material clearly remaining in the AFTER frame relative to BEFORE."
+   },
+   "vote2": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 72,
+    "reason": "A yellow container absent in the BEFORE and middle-1 frames appears on the pile at 14:49:54 and remains in the AFTER frame, while the overall pile footprint expanded with additional scattered white bags, indicating new material was deposited and left behind."
+   }
+  },
+  {
+   "id": "fe68de6f-c218-4ec4-8d67-650f076cfcfc",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 82,
+    "reason": "Two individuals with a cart crouch and handle the existing pile throughout the middle frames (classic catador behavior), and the AFTER frame shows the scene empty with the pile slightly reduced/reorganized and no new material identifiable compared to BEFORE."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 82,
+    "reason": "In the BEFORE frame two people (one with a catador's wheeled cart) are crouching and actively sorting through the pre-existing pile; by the AFTER frame all people have left and the pile is visibly more compact/smaller with no new material added, consistent with a waste-picker removing items rather than depositing waste."
+   }
+  },
+  {
+   "id": "d79364b6-0972-470b-9e7c-f1430c213d41",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 52,
+    "reason": "A person carrying a large bag approaches the pile in the first frame but the pile composition (white furniture panels, green bags, blue plastic, brick rubble) appears identical before and after, with no clearly new persistent object remaining in the AFTER frame, suggesting the person passed by or interacted without adding net new material."
+   },
+   "vote2": {
+    "label": "uncertain",
+    "pile_delta": "unclear",
+    "confidence": 38,
+    "reason": "In the BEFORE frame a person with a red cap approaches the pile carrying a large green sack (consistent with either depositing or catador collecting), but by the middle and AFTER frames the person has left and the pile composition — same cardboard boxes, green bags, blue bag — shows no clearly identifiable new persistent object, making it impossible to confirm whether material was added or taken away."
+   }
+  },
+  {
+   "id": "ebc4c3e4-b8f4-4e33-afc8-aff128ee6ded",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "In the first frame a person is crouching and handling items at the existing pile (rubble, furniture boards, bags); after they depart the pile composition and volume remain the same with no new persistent material visible, consistent with a catador sorting/inspecting rather than depositing."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "In the first frame a person is crouched over the existing pile in a typical catador/waste-picker posture handling items; by the middle frames the person has left and the pile's composition (rubble, green bags, blue bag, cardboard/furniture) is visually unchanged with no new persistent material, while the final frame shows only an unrelated passerby walking nearby."
+   }
+  },
+  {
+   "id": "1c8a999d-bd01-47e4-838d-d165c3e6921a",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "The pile composition (cardboard, wood, tire, green/blue bags, rubble) is identical in the BEFORE and AFTER frames; only passing vehicles and a distant pedestrian appear in the middle frames, none approaching or interacting with the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "Only road vehicles (motorcycle with red rider, passing truck) moved through the scene without approaching the pile; the chronic pile of cardboard, wood, construction debris, and blue bags shows identical composition and volume in the AFTER frame compared to BEFORE."
+   }
+  },
+  {
+   "id": "aeb209a3-dd3f-4d85-b5a1-daee4fe3b13e",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Two individuals sequentially interact with the pre-existing pile (one sorting through it, a second arriving with a wheelbarrow/cart to load material), consistent with catador/waste-picker activity; the pile composition in the AFTER frame shows no clear net addition of new material compared to BEFORE."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Two individuals interact with the pre-existing pile across the sequence — the first crouches and rummages through the pile at 14:57 (catador sorting), and the second arrives with a wheelbarrow at 15:03 apparently loading material for removal; the pile footprint and visible elements (cardboard, tire, green and blue bags, debris) remain essentially unchanged between the BEFORE and AFTER frames, with no new material clearly persisting."
+   }
+  },
+  {
+   "id": "ff8d6b79-0c55-41ca-a436-6d8f1985348a",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The person in red crouches and actively handles/sorts items within the existing pile (classic catador behavior), then leaves — the pile's composition of cardboard, bicycle wheel, and bags remains the same in the AFTER frame with no new material added."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "A person in red was seen walking toward the pre-existing pile (15:33:26), then crouching and actively rummaging through it (15:34:28 — classic catador behavior), and after they left the pile composition and volume in the AFTER frame (15:37:18) shows no new material — same cardboard, bicycle wheel, and bags as in the BEFORE frame with no persistent additions."
+   }
+  },
+  {
+   "id": "0e15f85f-55ab-4e64-b939-784552d9542c",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person in a red cap is seen crouching and actively handling/sorting items within the existing pile across two middle frames (catador behavior), with no new material visibly added; the AFTER frame shows the pile at similar volume and composition to the BEFORE frame, and a pedestrian group walking away with a white bag suggests items were taken rather than deposited."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Two individuals (one with a white collection sack) are seen crouching and sorting through the existing pile in the middle frames — classic catador behavior — and the AFTER frame shows the pile's overall composition and footprint unchanged from BEFORE, with no new persistent material added."
+   }
+  },
+  {
+   "id": "3e4b9404-d42a-4c35-b924-3d08161be9ea",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person crouches and handles items in the existing pile for ~2 minutes (visible in BEFORE and MIDDLE frames), consistent with a catador sorting/picking recyclables, and after they leave the pile shows no new persistent material — volume is unchanged to slightly smaller."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person is visibly crouching and handling the existing pile at 21:49 (catador-style rummaging); after they leave by 21:51, the pile shows no net new material — volume and composition are essentially unchanged between BEFORE and AFTER frames."
+   }
+  },
+  {
+   "id": "854018ea-83e2-47d3-98e7-05b36b6e20bb",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person is seen crouching and handling the existing pile in the BEFORE frame (22:14:03); by 22:15:13 they have departed and the pile shows no net new material — only slight redistribution of existing debris — consistent with a catador sorting/picking rather than a new deposit."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "In the BEFORE frame a person is crouching beside the pile interacting with items; after they leave the pile shows minor rearrangement but no distinct new mass remains in the AFTER frame, consistent with a catador sorting/handling existing material rather than depositing new waste."
+   }
+  },
+  {
+   "id": "0f871a82-62fc-40f4-a958-e2eccf4db9ad",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A person walking near the pile at 05:09:43 is clearly in motion passing by without stopping or interacting, and the pile composition (earth mound, debris cluster) is visually identical between the BEFORE (05:07:03) and AFTER (05:10:43) frames with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "A bald man in a gray shirt walks along the curb near the pile in the middle frames carrying a small item but does not crouch or interact with the pile, and the AFTER frame shows the pile composition and volume unchanged relative to BEFORE."
+   }
+  },
+  {
+   "id": "a18f7f91-2e4e-43e9-9b21-8d96da58148d",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A single person in dark clothing spends ~3.5 minutes crouching over and sorting through the pre-existing pile (classic catador behavior), a separated black bag appears in the middle frames and is gone by the final frame, and the pile in the AFTER frame shows no net new material — overall volume is unchanged or slightly reduced."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 82,
+    "reason": "A single person in dark clothing spent ~4 minutes crouching and rummaging through the pre-existing pile (catador behavior); the large detached black bag visible at 07:34 is absent in the final frame and the pile's upper portion appears slightly reduced, indicating items were taken away with no net new material added."
+   }
+  },
+  {
+   "id": "3fa69efd-1f3d-47b8-a515-01759a961e22",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The pre-existing chronic pile remains visually identical in size and composition between the BEFORE (07:58:53) and AFTER (08:10:42) frames; the only person visible — a man in a red shirt at 08:07:52 — is walking past on the sidewalk edge without approaching or interacting with the pile, and no new material persists in the final frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Two separate pedestrians (dark-clothed person at 08:01 and red-shirted person at 08:07) walked past the pre-existing chronic pile without crouching, handling, or depositing anything; the pile footprint and composition in the AFTER frame (08:10) match the BEFORE frame (07:58) with no new material detectable."
+   }
+  },
+  {
+   "id": "d7956e29-ecce-4f5e-af13-3a978a9b262f",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Two pedestrians walk past the pre-existing rubble pile without interacting with it, and the pile's composition and volume appear unchanged between the first and last frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The pile's size and composition remain identical from the first frame (08:35:59) to the last (08:39:54); the person with blue clothing and green cart visible at the bottom-right corner of the first frame departed without adding material, and all subsequent individuals (motorcyclist, two pedestrians, passersby) moved through without interacting with the pile."
+   }
+  },
+  {
+   "id": "d669b501-d034-433a-991f-5c5834bd5d37",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 82,
+    "reason": "Two catadores with a shopping cart are seen actively sorting the existing pile at 09:08:56; after they leave (09:11:57) the pile is visibly smaller — cardboard and upper bulk removed — confirming material was taken away, not deposited."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The chronic rubble/debris pile remains visually identical in size and composition between the BEFORE and AFTER frames; the person in pink in the first frame is carrying items and moving away from the pile without interacting with it, and no person approaches or deposits anything onto the pile across the entire sequence."
+   }
+  },
+  {
+   "id": "82de9362-4df4-4420-82f0-b195c9a27201",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 70,
+    "reason": "Two persons are present near the sidewalk for the entire 7-minute window but neither approaches or interacts with the pile directly, and the pile's footprint and volume remain visually identical from the first to the last frame with no new material evident."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "Two persons appear near the sidewalk adjacent to the pre-existing debris pile across the 7-minute sequence, but neither deposits new material — the pile's volume and composition remain visually identical between the BEFORE and AFTER frames, with no new persistent objects added."
+   }
+  },
+  {
+   "id": "d1096caa-8f63-412f-91a6-2357f29b0085",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The chronic rubble/debris pile remains visually identical between the first (11:14:04) and last (11:17:59) frames; a pedestrian in gray walks past the area in the middle frames without interacting with the pile, and the person in a yellow vest present throughout stays at the bottom corner far from the pile with no deposition or removal observed."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person in a yellow shirt is stationary in the lower-right corner throughout the sequence (possibly working or resting near a blue object/bucket), a second person briefly walks past in the middle frames, but neither interacts with the debris pile at the center-top of the frame, which shows no visible change in volume or composition between the first and last frame."
+   }
+  },
+  {
+   "id": "cd76a625-fe72-46d9-9910-df151afc3779",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Across all four frames the rubble/debris pile along the curb strip remains visually identical in footprint and composition; the persons visible are pedestrians or nearby workers (yellow bucket, construction context) who do not approach or interact with the pile, and no new material appears in the AFTER frame."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Two people with a yellow bucket are seen crouching and working around the pile across the middle frames in classic catador/waste-picker behavior, but the pile's composition and size appear unchanged between the BEFORE and AFTER frames — no new material remains after they move away."
+   }
+  },
+  {
+   "id": "abae87ed-ef70-4e40-acd2-ef3c7ded8e8d",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "The person in the BEFORE frame walks past the pile without interacting with it, subsequent frames show people near the road/motorcycle area away from the pile, and the AFTER frame pile composition (rubble mound + bags) is visually identical to the BEFORE frame with no new material added or removed."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "The chronic rubble-and-bag pile is visually identical in size and composition between the BEFORE (11:55) and AFTER (12:06) frames; people visible in the middle and final frames are on the footpath near the camera base, not near the pile, and no new material appears to have been added or removed."
+   }
+  },
+  {
+   "id": "fbdfea00-dfbb-420b-bcb0-7b654b8a05aa",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "real_deposit",
+    "pile_delta": "increased",
+    "confidence": 62,
+    "reason": "In the BEFORE frame a man with a loaded cart is at the pile's curb edge; by the AFTER frame the same cart (now being unloaded by the man in blue) has added new white/light-colored bags to the pile's curb-side edge that were not present before, indicating a net deposit of new material."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Multiple catadores with carts interact with the pre-existing rubble/debris pile throughout the sequence — sorting, picking through, and loading materials onto their carts — but the pile volume in the AFTER frame is not visibly larger than in the BEFORE frame, indicating no net new disposal occurred."
+   }
+  },
+  {
+   "id": "ecabb10b-95a5-4f8b-b169-2b35ec35435c",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 92,
+    "reason": "A motorcycle with a red-jacketed rider passes on the sidewalk in the first frame and then departs; no person approaches or interacts with the chronic rubble/garbage pile, which remains identical in composition, size, and footprint from BEFORE to AFTER."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "A person stands at the pile's edge leaning over it (00:59:09, rummaging/catador posture) but carries nothing in and the pile footprint and composition in the AFTER frame (01:01:31) is visually identical to BEFORE — no new material persists."
+   }
+  },
+  {
+   "id": "9b06620e-1707-4b8e-b02f-fb33d54382c1",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 90,
+    "reason": "A white van passes on the street in the middle frames but never approaches the pile; the pile's footprint, composition, and shape are identical in BEFORE (03:48:14) and AFTER (03:52:04) with no person interacting with the pile at any point."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 92,
+    "reason": "A white van parks on the roadway adjacent to the pile across the ~4-minute sequence then departs, but no person approaches or interacts with the pile at any point, and the pile's footprint, composition, and layout are identical in BEFORE and AFTER frames."
+   }
+  },
+  {
+   "id": "9bce2829-1f77-4cde-9c0c-07165d67e505",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "All people visible (a pedestrian at 10:07, a cyclist at 10:17, two pedestrians at 10:20) simply pass by the pre-existing rubble/debris pile without stopping or interacting with it, and the pile's size, shape, and composition remain identical between the BEFORE and AFTER frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The pre-existing pile of broken tiles and rubble remains the same size and shape from the first to the last frame; pedestrians and a cyclist pass through or pause near it but no one interacts with the pile or adds any new material."
+   }
+  },
+  {
+   "id": "31fd9108-0c76-401b-9c44-ea367b169ad9",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 78,
+    "reason": "Two people approach and handle the existing debris pile around 10:43, with one carrying an item away; the wooden box/crate visible beside the pile in the BEFORE frame is absent in AFTER, while no new material appears — consistent with catador activity removing an item rather than depositing."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 78,
+    "reason": "Multiple people interact with the existing pile around 10:44; by 10:47 they have left and the wooden crate and white board/panel that were beside the pile in the BEFORE frame are gone, indicating items were removed (catador/waste-picker activity), with the tile-debris pile remaining but no net new material added."
+   }
+  },
+  {
+   "id": "03691006-e60a-45f8-a90a-dd7f5b37105f",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The pre-existing rubble/bag pile remains identical in footprint and volume from BEFORE to AFTER; a motorcyclist and a child visible at 12:22 are on the far sidewalk with no proximity to or interaction with the pile, and the scene is clear by the final frame with no new material remaining."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "The pre-existing pile of construction rubble and bags remains at identical size and footprint from BEFORE to AFTER; the only people visible are a passing pedestrian at the frame edge (12:20:47) and a motorcyclist moving past without stopping near the pile (12:21:56), with no interaction with the waste and no new material remaining."
+   }
+  },
+  {
+   "id": "f0c3c69a-1d32-4876-a9bf-6ba9866ccc48",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 55,
+    "reason": "A person walking with a white bag passed through the area near the pile (visible in frames 2 and 3), but the AFTER frame shows the pile in the same composition and volume as the BEFORE frame with no new material persisting."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person in a white top walked through the area near the pile between 16:14 and 16:16 and then moved away along the road, but the garbage pile's volume and composition appear identical in the AFTER frame (16:17:28) compared to the BEFORE frame (16:13:38), with no new material visibly remaining."
+   }
+  },
+  {
+   "id": "020358a8-9734-41ad-b5a2-7b683920ff3c",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 90,
+    "reason": "The pile of bags and vegetation clippings is identical in size and arrangement from BEFORE (17:19) to AFTER (17:23); all persons visible — a pedestrian in the first frame, a cyclist passing on the street, and a pedestrian in the last frame — move past without approaching or interacting with the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 90,
+    "reason": "Across all 4 frames (17:19 to 17:23), the existing pile of bags, cardboard, vegetation clippings, and debris remains completely unchanged; the pedestrian in the first frame and another in the last frame walk past the sidewalk without approaching or interacting with the pile, and a cyclist visible in the middle frame passes on the road — no new material deposited and no interaction with the pile."
+   }
+  },
+  {
+   "id": "0915828f-a9eb-442c-9261-9cc24ab8479e",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "Two different pedestrians walk past the chronic pile on the sidewalk curb without interacting with it, and the pile's composition (branches, white boards, mixed plastic waste) remains visually identical between the BEFORE and AFTER frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Multiple pedestrians — including a catador with a cart and two individuals walking near the pile — pass through the scene, but the pile's footprint, composition, and volume are visually identical in the BEFORE and AFTER frames with no new material deposited."
+   }
+  },
+  {
+   "id": "91bd1956-de77-4c4f-9378-4d513d2e8b30",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Between BEFORE (13:38:08) and AFTER (13:41:23) the pile volume and composition remain visually identical — same debris mix, flat boards, and loose waste — while the two people seen in the sequence walk through the area without approaching or interacting with the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "The chronic pile remains visually identical in composition and volume between the BEFORE and AFTER frames; persons seen in the sequence (a child and an adult) pass through the sidewalk area without interacting with or depositing new material on the pile."
+   }
+  },
+  {
+   "id": "4554a8fd-f6a9-4643-8731-1d04d3aeb9f4",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The pile (blue, black, and green bags) is identical in size and composition between the BEFORE and AFTER frames; the pedestrians visible in all frames pass by or linger near the sidewalk without approaching or interacting with the pile, and no new material persists in the AFTER frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Two pedestrians pass near the pile in the first frame but do not interact with it; across all four frames the pile's bag composition (blue, black, and green bags) remains identical with no new material added or removed, and no person approaches the pile at any point."
+   }
+  },
+  {
+   "id": "c3477267-f145-43b7-beeb-97d6cece9862",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "Two people remain stationary at the bottom of the frame near a wall throughout the entire 6-minute sequence without ever approaching or interacting with the pile, which shows no change in volume, composition, or footprint between the first and last frame."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "The pre-existing garbage pile remains visually identical in size, composition, and boundaries from the first to the last frame; the individuals visible at the bottom of the frame throughout the sequence never approach or interact with the pile, and no new material appears in the AFTER frame."
+   }
+  },
+  {
+   "id": "7cf299f3-d940-48db-b645-0b181e3f5804",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person in a white shirt remains stationary at the base of the steps throughout all 14 minutes, never approaching the pile; the green bag, black bags, and cardboard arrangement are essentially identical between the BEFORE (10:50) and AFTER (11:04) frames with no new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A person in a white shirt sits/rests at the bottom edge of the frame throughout the entire ~14-minute sequence without ever approaching or interacting with the garbage pile, which retains the same composition (green bag, dark bags, cardboard) and footprint from first to last frame."
+   }
+  },
+  {
+   "id": "60d44ce8-7d2e-43f9-91c3-2a4cdd4ca376",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "The pre-existing pile remains essentially the same volume and composition from first to last frame while two or three individuals (consistent with catadores) are seen congregating near the pile across the sequence without any new material visibly added or remaining after their presence."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "One or more catadores (visible with yellow collection basket) spend ~13 minutes around the pre-existing pile; the pile's overall mass and composition are unchanged between the BEFORE and AFTER frames, with no distinct new material deposited and remaining after they leave."
+   }
+  },
+  {
+   "id": "ff12edaa-a458-4712-801a-8120d1d7201f",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "In the BEFORE frame a person with a loaded collection cart is extracting materials from the pile (catador), they leave and the pile appears slightly smaller; in the LAST frame a second person with a large red backpack crouches directly at the pile sorting/handling items — no new material is deposited and the pile does not grow."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "In the first frame two catadores with a loaded cart are collecting recyclables from the existing pile; they depart between frames leaving the pile slightly reduced, and in the final frame a third person with a red backpack is crouching over the pile rummaging — no new material was added and the pile did not grow."
+   }
+  },
+  {
+   "id": "e76b157b-06ff-4f02-b13a-0ea3b4adf0f0",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "Two people passed near the pile across the 4-minute window — the first (red hat, floral dress) stood briefly beside it without any visible new material being deposited, and the second (blue shirt) walked past without interaction; the AFTER frame shows the pile with the same green bags, yellow items, and overall footprint as BEFORE, with no new persistent objects."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 75,
+    "reason": "A person approached and stood beside the existing pile between 13:56 and 13:58, then departed, but the AFTER frame (14:00) shows the pile with the same composition and volume as BEFORE — the same green bags, yellow item, and cardboard are present with no new material visibly added, consistent with a catador rummaging rather than a new disposal."
+   }
+  },
+  {
+   "id": "02c019f4-6454-4a0d-8bdc-29ef5887fe55",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "A pedestrian walks past on the road in the middle frames without approaching or interacting with the pile, and the pile composition (yellow bag, green bags, cardboard) remains identical between BEFORE and AFTER with no new material added or removed."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "Across all four frames the chronic pile maintains identical composition (yellow bag, large green bag, cardboard) with no person interacting with it and no new material appearing; the only change is a natural shadow shift from the sun angle over the ~4-minute window."
+   }
+  },
+  {
+   "id": "3ce0c63c-2bc8-4a89-b4ad-be0919f6f1b1",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Multiple pedestrians pass through the scene across the clip but none interact with the pile, and the AFTER frame shows the pile with identical size, composition (same green bags, yellow bag, cardboard), and footprint as the BEFORE frame — no net new material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Multiple pedestrians walk along the sidewalk edge near the pile but no one is observed depositing material; the pile's volume, composition (green bags, yellow items, cardboard), and footprint remain visually identical between the first and last frames."
+   }
+  },
+  {
+   "id": "7833192e-22fd-4373-b493-101a54ab943b",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 75,
+    "reason": "Two people (one on a bicycle, one on foot) are seen handling and sorting through the existing pile between 14:33 and 14:35, consistent with catadores/waste-pickers, but the AFTER frame shows the pile at essentially the same size and composition as BEFORE with no new material added — only birds foraging remain afterward."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "A person in a red shirt crouches near the wall at the bottom of the frame in the middle frames (near where a bicycle was parked) but does not approach the pile; the pile composition and volume — same yellow bag, green bags, cardboard — is indistinguishable between BEFORE and AFTER, with only birds foraging around it in the final frame."
+   }
+  },
+  {
+   "id": "f789bf44-3f8c-4c9b-9aff-f59f4b99836d",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "The pile (green bags, black bags, cardboard) is identical in size and composition from the first to the last frame; the pedestrians visible in the middle and final frames are walking past without approaching or interacting with the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "All four frames show the chronic pile with identical composition (same green bags, black bags, cardboard) while the people visible in middle and final frames are pedestrians walking past with no interaction with or proximity to the pile, and no new material appears or disappears between BEFORE and AFTER."
+   }
+  },
+  {
+   "id": "eab009ec-3019-451e-a3c8-081fbec8a5f6",
+   "final_label": "revira_mexe",
+   "agree": true,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "Two individuals stood close to and appeared to handle items in the existing pile (middle frames 15:45 and 15:46), consistent with catador/waste-picker behavior; the AFTER frame shows the pile at the same volume and composition as BEFORE with no new material remaining."
+   },
+   "vote2": {
+    "label": "revira_mexe",
+    "pile_delta": "decreased",
+    "confidence": 78,
+    "reason": "Two people are seen standing and handling material directly at the pile edge in the middle frames; by the final frame the pile is visibly more compact and smaller in footprint than at the start, with no new material added — consistent with catadores removing items rather than depositing waste."
+   }
+  },
+  {
+   "id": "8659f874-99e9-427d-b25d-c1ae0e4e2c66",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "Three pedestrians visible near the pile in the BEFORE frame (yellow-shirt person walking past, hat-wearing person standing, white-shirt man on roadside) all leave without depositing anything; the pile's green bag and overall footprint remain identical in the AFTER frame with no new persistent material added."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 60,
+    "reason": "The pre-existing pile remains visually identical in composition and footprint between BEFORE (15:55:58) and AFTER (15:59:34), with multiple passers-by observed near the pile but no new material clearly left behind — one person walking away in the middle frame may have taken an item (catador), but no net deposit is evident."
+   }
+  },
+  {
+   "id": "f06944a9-2cb1-40cb-9803-0b74e53ac623",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "Two pedestrians walk past on the sidewalk in the final frame without approaching or interacting with the pile; the pile's volume and composition are identical from the first to the last frame across the 50-second window."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Two pedestrians (pink and blue shirts) appear in the final frame walking past the sidewalk area without interacting with the pile, which shows no discernible change in volume or composition between the BEFORE (16:29:14) and AFTER (16:30:09) frames."
+   }
+  },
+  {
+   "id": "56f15c71-eb05-4080-822e-7206e03495f4",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "The chronic garbage pile remains identical in size, composition, and position across all four frames (22:24 to 22:31); no person approaches or interacts with it, and only a passing vehicle appears briefly on the road in the middle frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "Across the full 7-minute sequence (22:24 to 22:32), no person approaches or interacts with the pile; a vehicle passes in the background at 22:29 but stays on the road, and the pile's size, composition, and footprint are visually identical in the BEFORE and AFTER frames."
+   }
+  },
+  {
+   "id": "4f2a0d65-7dd8-4155-80e4-5f9628d32853",
+   "final_label": "uncertain",
+   "agree": false,
+   "vote1": {
+    "label": "revira_mexe",
+    "pile_delta": "unchanged",
+    "confidence": 72,
+    "reason": "In the final frame a person is crouching directly over the existing pile handling/sorting items — consistent with catador behavior — while the pile footprint and volume remain comparable to the BEFORE frame with no discernible new material persisting after the interaction."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "Multiple pedestrians pass through the scene across the sequence but no person is observed depositing material onto the pile; the pile's footprint and overall volume remain the same between the BEFORE and AFTER frames, with no new persistent object visible after everyone leaves."
+   }
+  },
+  {
+   "id": "5e5e1b9a-0f56-48ac-8e59-c262df7de52c",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "The pre-existing pile (pink items, cardboard box, mixed bags) remains visually identical in composition and footprint from BEFORE to AFTER; the only person visible (red shirt, ~17:00:00) was walking past on the road edge without approaching or interacting with the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 90,
+    "reason": "The pile remains identical in size and composition from first to last frame; the only person visible (red shirt, 17:00:00) walks past the scene without approaching or interacting with the pile, and no new material appears in the after frame."
+   }
+  },
+  {
+   "id": "f7df8680-963f-4f23-91fe-5e7c76b24872",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Two pedestrians carrying their own bags walked past the existing pile at 12:20 without stopping or interacting with it, and the AFTER frame (12:22) shows the pile identical in size and composition to the BEFORE frame (12:18)."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "Two people walk past the pile area carrying bags at 12:20:47 but do not stop or interact with the pile; the AFTER frame (12:22:12) shows the pile in identical configuration to the BEFORE frame (12:18:17) — same green/blue bags and flat slab, no new material added or removed."
+   }
+  },
+  {
+   "id": "678559fd-4c01-47ac-8d14-82cae9e97d8c",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 88,
+    "reason": "Only pedestrians pass and birds forage near the existing pile across the entire sequence; the pile composition (bags, mattress, debris) is visually identical in BEFORE and AFTER with no person interacting with the pile and no new material deposited."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 85,
+    "reason": "Multiple pedestrians and a cyclist pass through the area across the sequence but none interact with the existing pile; the pile's volume and composition (green/blue bags, flat board, branch debris) is visually identical in the AFTER frame compared to the BEFORE frame, with birds foraging but no new material added."
+   }
+  },
+  {
+   "id": "9bf7b038-367c-4b82-b831-23b1ce7ecb83",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "All four frames show the same chronic pile of green/blue bags and debris with the white van alongside and no person interacting with the pile at any point; the only change across the 7-minute window is a lighting shift from overcast to sunny with tree shadows, while pile volume and composition remain visually identical."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 62,
+    "reason": "A person briefly stands near the pile in the middle frames holding a small white object but the pile volume and composition appear identical between the BEFORE and AFTER frames with no new material remaining, suggesting a passerby or brief non-deposit interaction rather than an actual disposal event."
+   }
+  },
+  {
+   "id": "fa39b54b-964b-47bc-91c7-38b94431116e",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "The pile of green bags remains unchanged in composition and volume from first to last frame; the man seen near the pile in the first frame appears to be walking away without depositing anything, and subsequent frames show only passersby with no interaction with the pile."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 82,
+    "reason": "All four frames show the same green bags and loose debris pile at the corner; the several pedestrians visible across the sequence pass by on the sidewalk without approaching or interacting with the pile, and no new material is present in the AFTER frame compared to BEFORE."
+   }
+  },
+  {
+   "id": "84192388-3c73-41b8-94c7-a076df0a9c21",
+   "final_label": "passante_parado",
+   "agree": true,
+   "vote1": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 78,
+    "reason": "A person carrying a blue bundle walks past the pile area at 11:21 without stopping or interacting with it, and the pile's green bags and debris appear identical in volume and composition between the BEFORE (11:15) and AFTER (11:24) frames."
+   },
+   "vote2": {
+    "label": "passante_parado",
+    "pile_delta": "unchanged",
+    "confidence": 80,
+    "reason": "A single pedestrian carrying a blue bag walks through the area near the pile at 11:21 but does not stop or interact with it, and the pile's footprint and bag arrangement are indistinguishable between the BEFORE (11:15) and AFTER (11:24) frames — no new material remains."
+   }
+  }
+ ]
+}

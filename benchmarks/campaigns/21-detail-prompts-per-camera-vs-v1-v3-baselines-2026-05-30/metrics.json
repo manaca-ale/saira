@@ -1,0 +1,93 @@
+{
+  "campaign_number": 21,
+  "date": "2026-05-30",
+  "title": "detail prompts per-camera vs V1/V3 baselines",
+  "type": "model-selection",
+  "focus": "per-camera detail prompts derived from operator-spreadsheet anti-patterns",
+  "production_parity": {
+    "n_frames": 48,
+    "mosaic": "off",
+    "detail_prompt_today": "V1 (current) for all cameras",
+    "gate_prompt_today": "V1 cam_10, V3+B3 cam_11"
+  },
+  "dataset": {
+    "source": "production DB + cascade_audit (n=64 events)",
+    "snapshot_date": "2026-05-30 07:00 BRT",
+    "class_balance": {"CON": 31, "REJ": 33},
+    "single_call_cohort_n": 49,
+    "coalesced_cohort_n": 9,
+    "no_audit_cohort_n": 6
+  },
+  "models": {
+    "gate": "gemini-2.5-flash-lite (unchanged)",
+    "detail": "varies (flash V1 baseline vs flash/pro/sonnet per-camera)"
+  },
+  "variants": {
+    "current": {
+      "n": 46,
+      "label": "Flash 2.5 + V1 (prod baseline, single-call cohort)",
+      "tp_recall": 88.9,
+      "fp_rate": 75.0,
+      "cost_per_event": 0.01,
+      "notes": "Confirma o teto recall: 88.9% mas specificity 25% (filtra só 1/4 dos FPs)"
+    },
+    "flash_per_camera": {
+      "n": 49,
+      "label": "Flash 2.5 + per-camera prompts (single-call cohort)",
+      "tp_recall": 78.9,
+      "fp_rate": 66.7,
+      "cost_per_event": 0.01,
+      "notes": "Ganho marginal de specificity (33%) em troca de 10pp de recall"
+    },
+    "pro_per_camera": {
+      "n": 49,
+      "label": "Gemini Pro 2.5 + per-camera prompts (single-call cohort)",
+      "tp_recall": 63.2,
+      "fp_rate": 23.3,
+      "cost_per_event": 0.04,
+      "notes": "+21pp acc vs baseline; cam_11 ATINGE 81.5% acc. cam_10 colapsa (recall 43%)"
+    },
+    "sonnet_per_camera": {
+      "n": 49,
+      "label": "Claude Sonnet 4.6 + per-camera prompts (single-call cohort)",
+      "tp_recall": 63.2,
+      "fp_rate": 23.3,
+      "cost_per_event": 0.15,
+      "notes": "Empate Pro mas 3.75x mais caro. Descartado."
+    }
+  },
+  "per_camera_clean_cohort": {
+    "cam_10_imbiribeira": {
+      "baseline_flash_v1": {"n": 20, "acc": 45.0, "recall": 83.3, "fp_rate": 71.4},
+      "flash_per_camera":  {"n": 22, "acc": 50.0, "recall": 85.7, "fp_rate": 66.7},
+      "pro_per_camera":    {"n": 22, "acc": 59.1, "recall": 42.9, "fp_rate": 33.3, "notes": "REGRIDE: perde 4/7 CONs reais"},
+      "verdict": "MANTER Flash V1 atual; novo prompt IMBIRIBEIRA quebra o recall veicular"
+    },
+    "cam_11_mangabeira": {
+      "baseline_flash_v1": {"n": 26, "acc": 53.8, "recall": 91.7, "fp_rate": 78.6},
+      "flash_per_camera":  {"n": 27, "acc": 51.9, "recall": 75.0, "fp_rate": 66.7},
+      "pro_per_camera":    {"n": 27, "acc": 81.5, "recall": 75.0, "fp_rate": 13.3, "notes": "WINNER: filtra 13/15 dos FPs, mantem 9/12 CONs"},
+      "verdict": "ADOTAR Pro 2.5 + DETAIL_PROMPT_V3_MANGABEIRA"
+    }
+  },
+  "success_criteria_check": {
+    "flash_detail_acc_min_70": "FAIL — Flash per-cam 51% (clean), recall 79%",
+    "flash_detail_fn_max_pp_5": "FAIL — Flash per-cam FN +2pp single-call",
+    "pro_detail_acc_min_85": "PASS (cam_11 only) — Pro per-cam cam_11 atingiu 81.5%",
+    "per_camera_acc_min_75": "PASS cam_11 (81.5%) / FAIL cam_10 (59%)",
+    "cost_per_event_max_0.020": "PASS Flash; FAIL Pro/Sonnet single-shot"
+  },
+  "coalesced_caveat": {
+    "n": 9,
+    "issue": "detection_frames.json mescla N>1 windows; prod fez calls separadas — bench mistura tudo numa call de 48 frames",
+    "impact": "Pro perde 4/6 coalesced CONs (recall 33%); Flash V1 baseline perde 1/5 (80% mantido)",
+    "operational": "Em prod, Pro per-camera ainda funciona em coalesced (2 calls separadas com chance de pelo menos 1 confirmar); bench subestima recall coalesced"
+  },
+  "verdict": "Adotar Pro 2.5 + DETAIL_PROMPT_V3_MANGABEIRA para cam_11 (esp32_002) APENAS. Manter Flash V1 para cam_10 e cam_14. Custo extra estimado ~$15/mes pra cam_11 com -50% operator workload e -2 ocorrencias/mes perdidas.",
+  "next_steps": [
+    "1. Implementar detail_system_prompt_for_camera() em _prompts_v3.py (so cam_11)",
+    "2. Implementar GEMINI_DETAIL_MODEL_OVERRIDE_BY_CAM em config.py + main.py para usar Pro 2.5 so em esp32_002",
+    "3. Shadow A/B em test-saira por 1 semana antes de prod",
+    "4. Re-iterar prompt IMBIRIBEIRA com mais foco no padrao veicular (fail cam_10 sugere bullet list muito agressiva em anti-padroes)"
+  ]
+}

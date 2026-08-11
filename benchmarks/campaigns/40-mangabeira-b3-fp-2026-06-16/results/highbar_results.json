@@ -1,0 +1,1493 @@
+{
+ "be6b5e67-2286-4565-af7c-e6544ebaa1ce": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pedestres apenas passam pela pilha de lixo, sem parar ou depositar qualquer material visível ou volumoso. Nenhuma alteração na pilha."
+ },
+ "ad65ae06-bc84-456d-b216-a14f0591219b": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Nenhum",
+  "reason": "Novo objeto volumoso (saco verde, objeto preto, estrutura metálica) apareceu na pilha entre 06:17:37 e 06:17:42."
+ },
+ "bc0528c2-8034-40a8-bad3-62f93136f44c": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por mais de 20s (07:28:19 a 07:29:14+), depositando saco branco visível junto à pilha de lixo."
+ },
+ "d00a79bd-4052-4406-986f-01707b7fc713": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa descarrega sacos de lixo volumosos de um carrinho na pilha de lixo existente, aumentando significativamente o volume."
+ },
+ "d59d5309-60c5-4ce9-8a64-2c68342c07c5": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou um saco escuro volumoso junto à pilha, visível após sua saída (entre 11:32:56 e 11:33:06)."
+ },
+ "2bb892bc-c4d8-4175-b8b1-89007a82d133": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachou e depositou um saco grande e visível na pilha de lixo (15:26:01 - 15:26:11)."
+ },
+ "3c840ac4-b0f7-4fec-b696-dd7e68725b49": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa descarregando material de um carrinho de mão diretamente na pilha de lixo, conforme frames 13:47:34 e 13:47:41."
+ },
+ "cfb7177e-2c76-4eeb-9760-b1118ebef8f7": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa com carrinho de mão depositou saco azul e tábuas volumosas na pilha de lixo (10:02:41 - 10:02:56)."
+ },
+ "f0bd4e3d-eeeb-4a5d-81a7-81b79d0fb1eb": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou um saco preto e outro item na pilha de lixo, visivelmente aumentando o volume do descarte entre o inicio e o fim da sequencia."
+ },
+ "8fdb7d45-3093-46f2-bcf8-a1fb2ac49dbd": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoa apenas passou pela pilha de lixo sem depositar carga visivel."
+ },
+ "194ed500-6c09-41fd-be26-9758c80b849b": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou um objeto branco e volumoso na pilha de lixo, que não estava presente no início da sequência."
+ },
+ "6b4d979d-b8e1-4634-a226-c38cb7e38055": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Carrinho parado junto à pilha, com descarte de objetos brancos visíveis entre 11:01:57 e 11:02:02."
+ },
+ "cf39d55f-f305-41fd-987b-48309c02b0de": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam ou param brevemente sem depositar carga visivel."
+ },
+ "2bb86418-1bf2-4342-ab0a-668b39ef98cb": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nao ha evidencia de veiculo descarregando, pessoa depositando carga visivel por tempo prolongado, ou objeto volumoso novo na pilha."
+ },
+ "580ab301-4f94-4880-8e65-9ee39ec82b96": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte irregular. Pedestre com sacola pequena apenas passou, sem depositar carga visivel."
+ },
+ "85d56cc5-630e-44b6-913d-e477393e121d": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por >7min, depositando objeto volumoso (saco escuro). Outro objeto (estrutura branca) também aparece no início da interação."
+ },
+ "d36dfdd3-a1e2-4132-8a80-0efc4e5cb19b": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Objeto volumoso (colchão/móvel) aparece na pilha entre 19:03:16 e 19:07:36. Pessoa se afasta da área."
+ },
+ "80fdbc2b-e478-4d2a-a844-731ef1b6d256": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por 25s depositando saco grande e objeto volumoso na pilha de lixo, visível em vários frames."
+ },
+ "37d6feb0-c40f-47e3-a757-d12f2d62ea3e": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa parou por 40s (22:22:31-22:23:11) e depositou uma sacola amarela visível na pilha de lixo, que não estava lá antes e sumiu com o indivíduo."
+ },
+ "9a47e511-a16a-4390-9316-67151e3c8fb1": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou grande volume de vegetação (galhos/folhas) na pilha de lixo existente (aparece entre 05:52:27 e 05:52:37)."
+ },
+ "3840ceba-7185-4a52-92ed-4c328ddbcff7": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada depositou grande volume de material vegetal na pilha de lixo (06:11:52)."
+ },
+ "7ada74a4-674c-403e-859c-7c10980e997f": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Um saco branco volumoso aparece sobre a pilha de lixo entre 06:08:22 e 06:08:32, depositado por uma pessoa em colete amarelo."
+ },
+ "d27e2560-de7e-4847-8ba6-f57c642484bf": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou chapas de metal ondulado (material volumoso) na pilha de lixo, visível em 10:13:00 e subsequentes."
+ },
+ "08533ffb-1985-4f16-8ab9-ed930f6467cc": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nao ha evidencia de descarte atribuivel e significativo. Pessoa com carrinho passou, mas nao parou nem descarregou material visivel."
+ },
+ "45dc0327-464c-4b70-8c3d-578bed9af07d": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pedestres apenas passando, sem depositar carga visivel ou volumosa. Pilha inalterada."
+ },
+ "ae3d87cb-189c-4d80-b56e-d202d92b4e59": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência atribuível e significativa de descarte irregular. Interações curtas e sem depósito de carga visível não configuram flagrante."
+ },
+ "8367f372-247b-42fd-886d-61bfc600b303": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pequeno objeto nao e considerado volumoso para flagrante."
+ },
+ "c4224caf-6cb9-48df-846d-b7ad0ea7d141": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interage com a pilha existente por longo período, mas não há evidência clara de descarte de carga visível ou volumosa. Nenhuma outra infração."
+ },
+ "90c05405-10a3-4d14-923b-3ce8b683eded": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência atribuível e significativa de descarte irregular foi observada. Pessoas e veículos apenas passaram pelo local."
+ },
+ "b41e38bc-d62d-4027-9fd1-b710565da912": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte irregular. Pedestres apenas passam, sem depositar carga visivel ou volumosa."
+ },
+ "95bdec5a-1de8-4539-b6e5-f1b50c49c96d": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma pessoa ou veiculo foi observado descartando material de forma atribuivel e significativa. Nao ha objeto novo e volumoso na pilha."
+ },
+ "b69af1a2-4884-48ff-9510-9827596ba63f": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho descarrega folhagem e saco branco na pilha de lixo crônica."
+ },
+ "b3482d87-0da7-4573-b799-602b345143d9": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte. Pedestres e veiculos passam, mas sem depositar carga visivel ou volumosa."
+ },
+ "69b8b0b6-d712-48af-a5bf-4266a6dd59fa": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou objeto volumoso (saco escuro) na pilha de lixo, visível entre 08:46:30 e 08:46:55."
+ },
+ "66552250-ab55-4b97-9976-ba1adedd5e25": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte irregular foi observada. Nao ha veiculo descarregando, pessoa depositando carga visivel ou objeto novo "
+ },
+ "c34ea9d5-00eb-4f36-bf13-861da0b236fb": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Objeto volumoso (barril azul) aparece junto à pilha entre 12:36:10 e 12:36:20, indicando descarte."
+ },
+ "889c8519-b2f5-4d0c-97a6-f731dbe1e411": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passaram, sem interacao com a pilha de lixo."
+ },
+ "84dc54ad-3958-40a4-be5f-1343ec084e4f": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte. Pedestres apenas passam, sem depositar carga visivel ou volumosa."
+ },
+ "0f90ca65-ceb8-429a-950c-d7c0777550bb": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pedestres apenas passando, sem depositar carga visivel ou volumosa."
+ },
+ "c836bea4-6646-435b-8258-b80cad1b61e3": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pedestres apenas passam, sem depositar carga visivel ou volumosa. Pilha inalterada."
+ },
+ "1f3009d5-21d8-4c68-8b9d-03419179ae06": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte irregular. Pedestres passam, mas nao depositam carga visivel ou volumosa."
+ },
+ "49e304b7-4182-40c7-963f-7fb992e73909": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte irregular. Pedestres passaram com sacolas pequenas, mas nao houve deposito visivel."
+ },
+ "8be1a215-ac5d-4bbf-8454-39cede2a087b": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho parou e descartou saco azul volumoso na pilha de lixo, visível nos crops."
+ },
+ "0259140a-1210-415e-b7be-6416ad845532": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Nenhum",
+  "reason": "Objeto novo e volumoso (placa branca) apareceu na pilha entre 22:03:21 e 22:03:41, configurando descarte irregular."
+ },
+ "03bfaf38-7e6a-4430-8ae0-787c31248ab6": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho de mão parou junto à pilha e descarregou caixas e entulho, aumentando o volume de descarte irregular."
+ },
+ "c2b0294a-935e-41cd-ba22-689313937171": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou um saco grande de lixo na pilha entre 10:11:51 e 10:12:21, conforme visivel nos frames e crops."
+ },
+ "3a0d985b-12a6-4cbf-aee6-80cee0181c87": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Interação curta e ambígua de pedestre, sem depósito de carga visível ou alteração volumosa na pilha de lixo existente."
+ },
+ "8af46b23-66e2-4d89-a314-13cdfd2aad57": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Nao ha veiculo descarregando, pessoa depositando carga visivel ou objeto volumoso novo."
+ },
+ "d249a14d-63ea-4ef6-94e2-64019853a95b": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Nenhuma pessoa ou veículo parou para descartar, nem houve adição de objeto volumoso à pilha."
+ },
+ "a071b32e-b2ec-480e-a1f3-9c3cca147934": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "11d08e33-2f25-45c9-89d3-188142e0740f": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma pessoa ou veiculo foi observado descartando material de forma atribuivel e significativa. Nao ha novos objetos volumosos na pilha."
+ },
+ "50530e22-13ed-44fd-8543-dcca5549fef7": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo (veiculo descarregando, pessoa depositando carga visivel ou objeto volumoso novo)."
+ },
+ "2df50334-491d-49e6-bc6d-98897da10c92": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of new, bulky waste being deposited. People and vehicles pass by without stopping or unloading significant items."
+ },
+ "ba4d2af7-e373-44d3-b602-70af4c0e0a1b": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of vehicle unloading, person depositing bulky load, or new bulky object appearing on the pile. Pedestrians and vehicles passed without interaction."
+ },
+ "6af521a0-5631-4aba-893d-f05b775aab25": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pedestre com sacola pequena teve interacao curta e ambigua com a pilha. Nao houve descarte de carga visivel, volumosa ou parada longa."
+ },
+ "719a9046-0a3a-4e59-8833-fa7f51bb4a7b": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Interacao curta e ambigua de pessoa em bicicleta, sem evidencia clara de deposito de carga visivel ou objeto novo/volumoso na pilha."
+ },
+ "1fd31006-1637-4f66-8788-b74482872f30": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa com carrinho/bicicleta parada por longo tempo, mas sem evidencia clara de descarte de carga visivel ou volumosa. Acao parece ser de catador/mexer no lixo"
+ },
+ "ad89e39e-56c7-4abc-b795-7e1b7dc6e581": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No vehicle stopped unloading. No person observed squatting or stopped for >=20s depositing a visible, bulky load. A small bottle appeared, but it's not consider"
+ },
+ "82b922ae-16aa-4aa9-8320-029ee66a007f": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho parada por mais de 2 minutos junto à pilha, em posição de descarte, indicando descarga de material."
+ },
+ "8873d1a1-916b-49d5-a33b-69c0abdc437f": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Carrinho",
+  "reason": "Novo objeto volumoso (caixa/painel) apareceu na pilha entre 13:53:14 e 13:53:29, enquanto pessoa com carrinho estava presente e interagindo."
+ },
+ "7ffae02b-40f4-4c51-a7a9-a309187c16ed": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo (veículo descarregando, pessoa depositando carga visível, ou objeto volumoso novo)."
+ },
+ "1930de97-55a5-4e0d-b606-50d080df49a2": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passando, sem interacao com a pilha de lixo."
+ },
+ "a99b7dae-9b45-49c2-9710-c4ba43c55b50": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Carrinho parado junto à pilha com pessoa descarregando caixas e outros materiais volumosos, resultando em aumento visível da pilha."
+ },
+ "0c7055c8-9abe-43f4-ac6e-8887278e6b07": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Objeto volumoso (pacote marrom) apareceu na pilha entre 18:08:41 e 18:08:56, com pessoa parada ao lado no momento do descarte."
+ },
+ "4feb7732-12f3-427d-a995-e63b55916852": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of vehicle/person unloading material, nor a new bulky object appearing. Pedestrians passed without depositing visible loads."
+ },
+ "6022da19-a1b4-49cb-a40c-e4bf7745a3bf": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Não há veículo descarregando, pessoa depositando carga visível ou objeto novo e volumoso."
+ },
+ "1717aef5-7b17-44d0-964c-cadac03dfc39": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam, sem interacao com a pilha de lixo."
+ },
+ "c7b03d28-1da7-4c6b-ad75-23d9621fe682": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "c4bc567a-cc7d-474c-872b-13c1997d2873": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Objeto volumoso (colchão/almofada grande) apareceu na pilha entre 15:42:27 e 15:43:37, conforme evidenciado nas imagens."
+ },
+ "5043229a-e7c9-4798-925c-377deeea8d85": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou uma estrutura metálica volumosa na pilha de lixo às 16:09:52 (SEQ1) / Crop 5 (SEQ2)."
+ },
+ "02b1f0d9-fce9-4079-bb84-fb5727f0faca": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Homem com carrinho descarrega caixa de material na pilha de lixo (16:19:52 - 16:20:42)."
+ },
+ "07f2dd28-506e-4698-bffe-a1c579b2e8ec": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "ea0f060a-0066-438c-8e79-9546627e96b6": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Interações ambíguas ou pessoas paradas olhando não configuram flagrante."
+ },
+ "90cf40b9-b770-4f74-a37f-f6e3012ed355": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of new, bulky object appearing, nor person/vehicle depositing visible load. An animal was observed rummaging, which is not an infraction."
+ },
+ "7ebd2314-8349-49dc-b6a7-54b669331912": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa passa brevemente pela pilha de lixo sem evidência de descarte de carga visível ou volumosa. Nenhuma alteração significativa na pilha."
+ },
+ "8fc90d67-c846-41a3-953d-065d7f5e4374": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam, sem depositar carga visivel ou volumosa."
+ },
+ "3da3bb27-e8d4-4087-affe-14a472bede36": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada/parada depositando carga visível (recipiente com lixo) na pilha, resultando em aumento significativo do volume."
+ },
+ "6b08dd18-e477-471e-abf8-9b235bac04b2": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pedestres e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "e52fec0f-948e-4fc7-8d19-379ed1affe08": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "9d0d11b6-ff46-4647-a1af-7f52ef02c282": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho carregado se aproxima da pilha, descarrega material e se afasta com carrinho vazio (12:11:47 - 12:11:57)."
+ },
+ "be780e80-05a3-41a2-815b-c6e6c27e067f": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Novo objeto volumoso (painéis brancos) aparece na pilha entre 15:13:39 e 15:13:59, trazido por pessoa."
+ },
+ "0927b49d-a0b2-4957-aadc-1e02ba7bf14c": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por tempo prolongado (mais de 20s) depositando objeto volumoso (tubo branco) na pilha de lixo."
+ },
+ "3c8b1451-779a-4b0a-b194-185b55c5874b": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma pessoa ou veículo foi observado descartando material de forma atribuível e significativa. A pilha de lixo permanece inalterada."
+ },
+ "9a66db2e-7665-4699-9cf4-3d218cb592d7": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa descarregando material de um carrinho na pilha de lixo (frames 17:21:04 a 17:21:44)."
+ },
+ "83962f79-0f4c-4c43-a36b-fe1111b1da20": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Um objeto novo e volumoso (folha de palmeira) apareceu na pilha, depositado por uma pessoa entre 17:56:14 e 17:56:34."
+ },
+ "88ffa4f0-ae33-4856-bea6-f85e5810d231": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa parada por tempo prolongado, mas sem evidência clara de descarte de carga visível ou volumosa. Não há alteração na pilha."
+ },
+ "152b587e-e9ca-4a2d-92c0-eab97794251b": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência atribuível e significativa de descarte irregular. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "62f2201f-f8c1-4c4a-be60-9dba092788f0": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por mais de 20s depositando um balde branco volumoso na pilha de lixo."
+ },
+ "475a7953-035a-4e06-b822-39d07332271d": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada/curvada depositando um saco grande de lixo na pilha. Novo item volumoso visível após a ação."
+ },
+ "d47b5f14-a29d-4ce8-abf6-e105d342eb0c": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagiu com a pilha por tempo prolongado, mas nao ha evidencia clara de descarte de carga visivel ou volumosa. Acao se assemelha a catador/rearranjo."
+ },
+ "7b88bbfa-872b-4933-b849-f24bfd457c14": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa com carrinho passou rapidamente (menos de 10s) sem evidência clara de descarte de material. Nenhuma carga visível depositada ou objeto novo e volumoso."
+ },
+ "711209bb-6f02-4812-a584-281ef93837a0": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma pessoa ou veiculo parou para descartar material. Nao ha evidencia de descarte atribuivel ou significativo."
+ },
+ "776e44df-c443-408c-93e0-6e3ed8489d9e": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Novos objetos volumosos (dois sacos e uma tigela vermelha) apareceram junto à pilha entre 05:31:38 e 05:31:46."
+ },
+ "7f58a25f-f7ff-4560-884c-1687f57673c5": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Um objeto volumoso (caixa) apareceu entre 08:18:51 e 08:19:01, mas a ação de descarte não é atribuível a nenhuma pessoa ou veículo visível na sequência."
+ },
+ "712b3bc7-112e-4992-9f96-c3460bce84b1": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pedestres e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "ec77c751-c683-4fb3-866b-56a4ac12fc26": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of new, bulky waste being deposited by a person or vehicle. Pedestrians and vehicles pass without significant interaction or disposal."
+ },
+ "d38868e5-94d9-4745-871b-f9888ad5c9bd": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "649299b3-2ff0-4019-b0c1-b1e5cfc71baf": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia atribuivel e significativa de descarte. Nao ha veiculo descarregando, pessoa depositando carga visivel ou objeto volumoso novo."
+ },
+ "f20508d4-b809-45a8-a1bc-10333c8e06d6": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Novos itens (copos, papel) apareceram, mas são considerados 'descarte minusculo' e não 'volumoso' para um flagrante de barra alta."
+ },
+ "86dcacb1-5691-4daf-8207-054e2479fcb3": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Novo objeto volumoso (saco branco) apareceu na pilha entre 10:48:21 e 10:52:36, com pessoa se afastando do local."
+ },
+ "b83aba0c-d560-4a56-a577-6970f262736b": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of a vehicle unloading, a person depositing a visible bulky load, or a new bulky object appearing in the pile."
+ },
+ "eac5c4ab-b61d-46d4-b7be-a791b106e0f6": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou várias caixas de papelão (carga volumosa) junto à pilha de lixo, permanecendo no local por mais de 2 minutos."
+ },
+ "5e29a4d9-bcb5-4c49-9703-0fac3fe6032b": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of new bulky items, or person/vehicle depositing visible load. Pedestrians and vehicles only passed by or were parked."
+ },
+ "6fc04c08-e90f-44cc-a1ba-7a74251e1ecb": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Nenhuma pessoa ou veículo depositou carga visível ou volumosa."
+ },
+ "5eb366e4-6445-4077-89a4-7b54ac0301e8": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa em bicicleta parou e depositou uma caixa de papelão volumosa junto à pilha de lixo, permanecendo no local por mais de 20s."
+ },
+ "41ba8d56-a9d5-4c55-80cc-4070226f36bb": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo (veiculo descarregando, pessoa depositando carga visivel por tempo prolongado, ou objeto volumoso novo)"
+ },
+ "bcd518c7-8a5a-4518-b079-aab5c5103a04": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Nenhum",
+  "reason": "Um balde verde volumoso apareceu na pilha entre 16:28:23 e 16:28:53, configurando descarte de objeto novo e volumoso."
+ },
+ "2e0c9ed7-0380-4953-9994-c96525623148": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pedestres e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "716d1c2b-2129-4666-bd28-b5aece908b88": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por mais de 2 minutos (20:33:38 a 20:36:18), manuseando um saco grande junto à pilha de lixo, indicando descarte."
+ },
+ "f53be038-76dc-4da6-80c9-8b985bae6f2c": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pedestre com sacola pequena teve interação curta, não configurando flagrante."
+ },
+ "bec1fb3a-2d3a-4618-9cd3-c30a7cb5a7fe": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam ou param brevemente sem descarregar material visível."
+ },
+ "a1ecc016-1f41-46cd-8219-72db51af7ae8": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa parada por 20s, agachada, depositando objeto retangular escuro (painel/madeira) sobre a pilha de lixo existente."
+ },
+ "7ef70ea1-91fb-460e-aa1e-927f977b2fc7": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por mais de 20s, depositando um saco preto grande junto à pilha de lixo, que não estava presente anteriormente."
+ },
+ "f0e1ef92-842d-4aea-83e4-7558e5848ee8": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pedestres apenas passando, sem depositar carga visivel ou parar por tempo prolongado."
+ },
+ "744ffdd0-3c77-4c1c-8ee6-1ff528286bbb": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de veículo descarregando, pessoa depositando carga visível ou objeto volumoso novo. Apenas pedestres e veículos passando."
+ },
+ "699b2d4b-9571-423b-bea5-00dc45e08ca3": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa descartou objeto volumoso (caixa) na pilha de lixo, visível em 17:29:42 após ação de descarte em 17:29:32."
+ },
+ "e6185347-2acc-42fb-ad73-18ea0c4ae56b": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagiu com lixo existente (caixa/roupa) por tempo prolongado, mas sem evidencia clara de descarte de carga nova e visivel."
+ },
+ "be0bdf5d-93e4-40e5-8afa-0ba2090c0d82": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa descartou caixa de papelão volumosa de carrinho junto à pilha de lixo, conforme evidenciado pela aparição do objeto."
+ },
+ "e777233d-c345-4a26-8f49-eedafa885afb": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas apenas passando, sem depositar carga visível ou volumosa."
+ },
+ "e69fa464-a165-432b-b177-2437a84697a3": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa parada por tempo prolongado, mas sem evidencia clara de descarte de carga visivel. Acao sugere catador (sai com balde). Nao ha novo item volumoso."
+ },
+ "53ac2b53-4024-40be-9835-4815a4888322": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoas agachadas ou paradas longamente parecem estar remexendo ou catando lixo existente, não depositando carga visível ou volumosa."
+ },
+ "69620077-0d40-4636-bda5-868af2a7da11": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pedestres passaram sem depositar carga visível ou parar por tempo suficiente."
+ },
+ "46a5c760-be44-42d3-ad5d-dcf86fd41091": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa se curva sobre a pilha, mas não há evidência clara de descarte de carga visível ou permanência por tempo suficiente (>=20s)."
+ },
+ "91376baf-5eaa-43ca-8857-a410724403a5": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada depositando um saco grande de lixo na pilha, visível entre 01:55:32 e 01:55:47."
+ },
+ "8329c7b3-9092-4ef5-8349-fc5110eadda1": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachou-se junto à pilha (05:52:12) e depositou um saco grande e visível, chegando com ele e saindo sem ele."
+ },
+ "901dfd91-5ca8-4d40-803a-62550579f951": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of a vehicle or person depositing a visible, bulky load. No new bulky object appeared on the pile. Pedestrians and vehicles just passed by."
+ },
+ "43651af6-8ff2-461d-b13f-3c313a27bec9": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Objeto volumoso (lixeira amarela) apareceu na pilha entre 14:45:43 e 14:46:13, configurando descarte significativo."
+ },
+ "fe68de6f-c218-4ec4-8d67-650f076cfcfc": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa com carrinho interagiu com a pilha por ~30s, mas não há evidência clara de descarte de carga visível/volumosa. Parece estar remexendo ou descartando algo"
+ },
+ "3a43f091-6a52-446e-8c4b-8f546dbf4c7a": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa parou e agachou por 20s, depositando um objeto volumoso (item vermelho/laranja) sobre a pilha de lixo."
+ },
+ "7668e74b-674d-4df9-b108-bc107efe899e": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho parou por 2 minutos (12:50:03 a 12:52:03) e descartou material volumoso (terra/entulho) na pilha de lixo."
+ },
+ "7db775b2-8249-4809-9699-17ba57040a52": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo (veículo descarregando, pessoa depositando carga visível por tempo prolongado, ou objeto volumoso novo)"
+ },
+ "d79364b6-0972-470b-9e7c-f1430c213d41": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Um saco grande e volumoso, trazido por uma pessoa, apareceu sobre a pilha de lixo entre 13:51:03 e 13:51:23."
+ },
+ "ebc4c3e4-b8f4-4e33-afc8-aff128ee6ded": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa agachada por <20s, sem deposito claro de carga visivel. Carro estacionado sem descarregar. Nenhum objeto novo e volumoso apareceu."
+ },
+ "1c8a999d-bd01-47e4-838d-d165c3e6921a": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagiu com a pilha por menos de 20s, sem agachar e sem evidência clara de descarte de carga nova e volumosa. Não atende aos critérios de flagrante."
+ },
+ "c35ccb74-c88a-4faf-b06b-098765d799ba": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa descarregou entulho de carrinho na pilha de lixo, conforme regra A (carrinho parado com material sendo descarregado)."
+ },
+ "ff8d6b79-0c55-41ca-a436-6d8f1985348a": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada por mais de 20s (15:48:43 a 15:49:13), depositando um saco preto visível na pilha de lixo."
+ },
+ "0e15f85f-55ab-4e64-b939-784552d9542c": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada depositou caixa de papelão volumosa na pilha de lixo (entre 16:15:53 e 16:16:03)."
+ },
+ "3e4b9404-d42a-4c35-b924-3d08161be9ea": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagindo com a pilha de lixo existente (aparentemente catador ou rearranjando), sem depositar carga visível nova e volumosa."
+ },
+ "854018ea-83e2-47d3-98e7-05b36b6e20bb": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoas interagindo com a pilha por tempo prolongado, mas sem evidência clara de descarte de carga visível ou volumosa. Pode ser catador."
+ },
+ "0f871a82-62fc-40f4-a958-e2eccf4db9ad": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Interação curta e ambígua de pedestre com o chão, sem evidência de descarte de carga visível ou volumosa. Não atende aos critérios de flagrante."
+ },
+ "a18f7f91-2e4e-43e9-9b21-8d96da58148d": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoas agachadas ou paradas por tempo prolongado, mas sem evidência clara de descarte de carga visível e volumosa. Interação ambígua com o lixo existente."
+ },
+ "d7956e29-ecce-4f5e-af13-3a978a9b262f": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Não há veículos descarregando, pessoas depositando cargas visíveis ou novos objetos volumosos."
+ },
+ "df78c5ae-8f25-40cc-a3bd-9e6f3d249164": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho parou e descartou saco branco na pilha de lixo (08:49:41). Outro descarte similar ocorreu em 08:58:29."
+ },
+ "d669b501-d034-433a-991f-5c5834bd5d37": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho de mão parado junto à pilha, descarregando material visível (saco branco) na lixeira crônica."
+ },
+ "82de9362-4df4-4420-82f0-b195c9a27201": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa agachada por longo tempo, mas sem depositar carga visível ou volumosa na pilha de lixo. Nenhuma alteração significativa na pilha."
+ },
+ "d1096caa-8f63-412f-91a6-2357f29b0085": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passando; pessoa com carrinho nao parou para descarregar."
+ },
+ "cd76a625-fe72-46d9-9910-df151afc3779": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem parar para depositar carga visível."
+ },
+ "abae87ed-ef70-4e40-acd2-ef3c7ded8e8d": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pedestres e veiculos apenas passam, sem depositar carga visivel ou volumosa."
+ },
+ "fbdfea00-dfbb-420b-bcb0-7b654b8a05aa": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa descarregando material volumoso de um carrinho na pilha de lixo em duas ocasiões distintas. Material branco visível adicionado à pilha."
+ },
+ "8bafeeea-3bbb-4cd0-a051-30de7eada23e": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada depositando um saco branco visível na pilha de lixo entre 14:39:44 e 14:40:24."
+ },
+ "95fcd71f-1a1a-4b2f-9d8f-3ec797ddad39": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho parou junto à pilha e descarregou entulho/material volumoso, visível na alteração da pilha entre 16:07:59 e 16:08:34."
+ },
+ "ecabb10b-95a5-4f8b-b169-2b35ec35435c": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Novo objeto volumoso (saco azul) apareceu sobre a pilha entre 00:58:34 e 00:58:44, enquanto uma pessoa estava parada ao lado."
+ },
+ "441d1cef-2be6-41ac-8fbe-31aeca9b1070": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam, sem depositar carga visivel ou volumosa."
+ },
+ "9bce2829-1f77-4cde-9c0c-07165d67e505": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma pessoa ou veículo foi observado descartando material de forma atribuível e significativa. Veículo estacionado sem descarregar."
+ },
+ "55067f32-14e0-4065-8329-4c119c85bb17": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Objeto volumoso (painel/placa) aparece sobre a pilha de lixo entre 10:31:49 e 10:32:09, depositado por uma pessoa que estava agachada."
+ },
+ "03691006-e60a-45f8-a90a-dd7f5b37105f": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhum veículo ou pessoa foi observado descartando material de forma atribuível e significativa (regras A, B, C). Pedestres apenas passaram."
+ },
+ "417dda86-0992-4c03-94b0-e07376d20ea9": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Outro",
+  "reason": "Novo objeto volumoso (aparelho/plástico branco) apareceu na pilha entre 16:03:23 e 16:03:48, conforme regra C."
+ },
+ "f0c3c69a-1d32-4876-a9bf-6ba9866ccc48": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of a vehicle/person stopping to unload material or a new bulky object appearing on the pile."
+ },
+ "020358a8-9734-41ad-b5a2-7b683920ff3c": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of a vehicle/person depositing material or a new bulky object appearing. Pedestrians passed without stopping or depositing visible loads."
+ },
+ "2ee63d2b-45b9-4148-a5ed-211f0c725bdc": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa parou por 25s (02:29:53 a 02:30:18) e depositou um saco de lixo grande junto à pilha, visível após sua saída."
+ },
+ "315734c1-340b-43b3-8f86-8d3effcef4c0": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoas com carrinho paradas perto da pilha, mas sem evidencia clara de descarte de material visível na pilha. Não há objeto novo e volumoso."
+ },
+ "0915828f-a9eb-442c-9261-9cc24ab8479e": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam ou interagem brevemente sem depositar carga visivel."
+ },
+ "9df42280-58a7-486d-85f3-f82b65ddd7df": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passando, sem depositar carga visível ou volumosa."
+ },
+ "edd30e3d-e613-471c-aff9-6ba9f77f72b3": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem interagir com a pilha de lixo."
+ },
+ "91bd1956-de77-4c4f-9378-4d513d2e8b30": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passando, sem depositar carga visível ou volumosa."
+ },
+ "e55c2b72-9ae3-49e6-936f-d04df2e395e3": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No clear evidence of a person or vehicle stopping to deposit a visible, bulky load. Pedestrians are only passing by."
+ },
+ "26818056-fb4a-464b-9f25-68f34c27b22d": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho parado por 40s (16:08:53 a 16:09:33) junto à pilha, em posição de descarregamento de material."
+ },
+ "69dcf208-e0a6-4d7b-80fd-ddf7de4d7666": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Um sofá vermelho volumoso apareceu junto à pilha de lixo entre 16:58:53 e 16:59:03, configurando descarte de objeto novo e volumoso."
+ },
+ "0205e880-ebc7-4f7b-a124-452d74620e89": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Nenhum",
+  "reason": "Objeto volumoso (colchão) aparece sobre a pilha entre 18:47:38 e 18:48:08, atendendo à regra C."
+ },
+ "9814c090-7fa3-4bd1-a41a-9c09dfff17ca": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagindo com a pilha parece estar catando/mexendo, não depositando carga visível. Carrinho passa sem descarregar. Nenhuma nova carga volumosa."
+ },
+ "22232031-066d-468f-b212-13c5abe6c6fd": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa com carrinho parou junto à pilha e depositou sacos de lixo visíveis, aumentando o volume."
+ },
+ "c3477267-f145-43b7-beeb-97d6cece9862": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Interações curtas e ambíguas, sem depósito de carga visível ou objeto volumoso novo."
+ },
+ "7cf299f3-d940-48db-b645-0b181e3f5804": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "60d44ce8-7d2e-43f9-91c3-2a4cdd4ca376": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Não há veículo descarregando, pessoa depositando carga visível ou objeto volumoso novo."
+ },
+ "ff12edaa-a458-4712-801a-8120d1d7201f": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Interacoes curtas e ambiguas com a pilha (pessoa com carrinho e pessoa com mochila) nao mostram descarte de carga visivel ou parada longa. Nao ha objeto novo e "
+ },
+ "e76b157b-06ff-4f02-b13a-0ea3b4adf0f0": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passando, sem interação de descarte visível ou objeto novo/volumoso."
+ },
+ "02c019f4-6454-4a0d-8bdc-29ef5887fe55": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam, sem depositar carga visivel ou volumosa."
+ },
+ "3ce0c63c-2bc8-4a89-b4ad-be0919f6f1b1": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa parou e se abaixou, mas não há evidência de descarte de carga visível ou objeto novo/volumoso na pilha. Interação ambígua."
+ },
+ "7833192e-22fd-4373-b493-101a54ab943b": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Interação curta e ambígua de pedestre sem depósito de carga visível ou volumosa."
+ },
+ "f789bf44-3f8c-4c9b-9aff-f59f4b99836d": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pedestres e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "eab009ec-3019-451e-a3c8-081fbec8a5f6": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of a vehicle/person actively discarding material or a new bulky item appearing. People are only passing by."
+ },
+ "8659f874-99e9-427d-b25d-c1ae0e4e2c66": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas apenas passando, sem depositar carga visível ou volumosa."
+ },
+ "a61868a6-4113-4500-a3a2-c717cbe6fdea": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada/parada por 40s (16:14:04-16:14:44) depositando objeto volumoso (lençol/tecido claro) na pilha, visível em SEQ2 Crop 3."
+ },
+ "f06944a9-2cb1-40cb-9803-0b74e53ac623": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Interação curta e ambígua de pessoa com carrinho, sem evidência clara de descarte de material ou permanência prolongada (menos de 20s)."
+ },
+ "bb2c64b9-f3ae-4884-9b81-bdbc6abaef6a": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagiu com a pilha de lixo por um longo período, mas não há evidência clara de descarte de carga visível ou volumosa. Comportamento consistente com ca"
+ },
+ "56f15c71-eb05-4080-822e-7206e03495f4": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuível e significativo. Pedestres apenas passando, sem depositar carga visível ou interagir por tempo prolongado."
+ },
+ "4f2a0d65-7dd8-4155-80e4-5f9628d32853": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of attributable and significant disposal. People are passing by, no one is seen depositing a visible load or stopping for long."
+ },
+ "0dd2fb9c-9d9a-46be-b2cc-07962c8dcaca": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "A",
+  "offender_type": "Carrinho",
+  "reason": "Pessoa descartou grande volume de vegetação usando um carrinho de mão, depositando-o diretamente na pilha de lixo."
+ },
+ "a06e68e4-3cb3-4327-a77c-427530d3d2ab": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Novo saco volumoso aparece junto à pilha entre 11:43:21 e 11:43:31. Pessoa com saco branco passa e o deposita."
+ },
+ "636c5658-6f40-4b21-8dad-9c81ac259e32": {
+  "bucket": "TP",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagindo com a pilha de lixo existente (catador), sem evidência clara de descarte de carga visível ou volumosa."
+ },
+ "6ef5009d-0ab2-4ba3-a735-51aba0a26cb9": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagindo com a pilha de lixo existente (mexendo/catando), não há evidência de descarte de carga visível ou volumosa."
+ },
+ "6825c428-7a82-4269-b1c2-3df065e7c90e": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam pela pilha de lixo, sem depositar carga visivel ou volumosa."
+ },
+ "53358038-3e38-4b7d-a2e8-f99aeaa5ef58": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou 2 sacos brancos visíveis na pilha de lixo entre 13:10:46 e 13:11:56."
+ },
+ "4005fa31-be30-46af-848e-c06af9462058": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Nao ha veiculo descarregando, pessoa depositando carga visivel ou objeto volumoso novo."
+ },
+ "4a14ce0f-6734-453a-843f-35a1d08207d3": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Nenhum",
+  "reason": "Um objeto novo e volumoso (caixa de papelão) apareceu junto à pilha entre o início e o fim da sequência."
+ },
+ "6f5a706b-b509-4b2e-8f6e-16e42cdd3468": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoa interagiu brevemente com a pilha, mas nao ha evidencia clara de descarte de carga visivel ou volumosa. Nao houve alteracao significativa na pilha."
+ },
+ "f7b278b3-efd9-47dc-bab9-7c75ce1e86a9": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo (veículo descarregando, pessoa depositando carga visível ou objeto volumoso novo) foi observada."
+ },
+ "d6978bd2-5583-471d-9142-8f1d959e4191": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam, sem depositar carga visível ou volumosa."
+ },
+ "2e3b9c36-6379-4db6-bb3d-65262e22089e": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas e veículos apenas passam ou têm interações curtas/ambíguas sem depositar carga visível."
+ },
+ "5e5e1b9a-0f56-48ac-8e59-c262df7de52c": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pedestres e veiculos apenas passam, sem interacao com a pilha de lixo."
+ },
+ "2b2b5ebd-faa9-4c0d-9d84-9092bc804db6": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoas passam e interagem brevemente com a pilha, mas não há evidência de descarte de carga visível ou volumosa, nem permanência longa (>20s)."
+ },
+ "ffb40159-138f-4d9e-8e49-02869d67760f": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma pessoa ou veiculo foi observado descartando lixo de forma atribuivel e significativa. Um novo saco de lixo apareceu, mas sem autor visivel."
+ },
+ "3a7dda03-cbad-4b0a-9460-f3e9f06ab443": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada depositando carga visível (material de carrinho de mão) na pilha de lixo entre 08:03:23 e 08:03:33."
+ },
+ "9d2aa9f7-c0b7-42f7-88b4-7f20afdbf91f": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo. Pessoas observadas estavam apenas passando, olhando ou catando, sem depositar carga visível."
+ },
+ "148ebf08-6d34-4adc-b188-12fefc0914ad": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidencia de descarte atribuivel e significativo. Pessoas e veiculos apenas passam ou param brevemente sem depositar carga visivel."
+ },
+ "4d541b46-465d-427b-b89c-3f229eb5125d": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Interação de pessoa agachada é curta (<20s) e ambígua, sem depósito de carga visível. Pessoa com carrinho não é vista descarregando."
+ },
+ "44f32681-5be5-4608-820b-a32dabef14a6": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Pessoas paradas perto da pilha não realizam descarte visível ou prolongado. Nenhum objeto novo e volumoso aparece na pilha."
+ },
+ "89ae832f-d339-45d3-94bc-90708b22b797": {
+  "bucket": "TP",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Nenhum",
+  "reason": "Um objeto volumoso (colchão/placa) apareceu sobre/junto à pilha entre 12:08:13 e 12:08:43, conforme SEQ1 e SEQ2."
+ },
+ "f7df8680-963f-4f23-91fe-5e7c76b24872": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Interacao curta e ambigua de pedestres (12:18:53-12:19:03) nao configura descarte de carga visivel ou parada longa (>=20s). Nao ha veiculos descarregando nem ob"
+ },
+ "678559fd-4c01-47ac-8d14-82cae9e97d8c": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "Nenhuma evidência de descarte atribuível e significativo (veículo descarregando, pessoa depositando carga visível por tempo prolongado, ou objeto volumoso novo)"
+ },
+ "9bf7b038-367c-4b82-b831-23b1ce7ecb83": {
+  "bucket": "B3",
+  "alert": false,
+  "basis": "none",
+  "offender_type": "Nenhum",
+  "reason": "No evidence of significant, attributable disposal. A small yellow object appeared, but it is not considered 'volumoso' enough for a high-bar flagrante."
+ },
+ "1f50c440-8a5c-48f2-960f-2db868ec02f8": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "B",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa agachada/parada por mais de 3 minutos, depositando saco preto e objeto branco volumoso na pilha de lixo."
+ },
+ "65353529-7da2-42e5-a502-e576dfb5ea93": {
+  "bucket": "B3",
+  "alert": true,
+  "basis": "C",
+  "offender_type": "Pessoa",
+  "reason": "Pessoa depositou uma caixa volumosa na pilha de lixo, visível como novo item na pilha entre os frames."
+ }
+}
