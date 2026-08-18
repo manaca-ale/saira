@@ -1,0 +1,89 @@
+campaign: 48-bedrock-oss-vlm-picam001
+date: 2026-07-30
+type: model-selection
+hypothesis: >
+  Os modelos de produção (gate gemini-2.5-flash-lite, detail gemini-2.5-flash) serão
+  desligados em 16/out/2026. O Camp 47 mostrou que o caminho oficial (Gemini-3) só
+  EMPATA com prod (unified_low_2s: 93% recall, ~$0,0025/ev) e mantém o lock-in de
+  fornecedor. Testar se algum VLM de PESO ABERTO disponível no Amazon Bedrock (conta
+  codex-ops / 818680680175) serve de Plano B: recall/detecção >=85%, custo <= o do
+  caminho Gemini-3, e pesos publicados (opção de self-host futuro). Mesma câmera
+  pi-cam-001 (event-driven), reproduzindo fielmente a janela de produção.
+
+dataset:
+  camera: cam_picam001
+  device_id: pi-cam-001
+  path: data/datasets/official/cam_picam001
+  n_events: 122        # 30 tp (16 detecções) + 37 fp (28 det) + 15 indefinido + 40 baseline
+  categories: [tp, fp, indefinido, baseline]
+  human_validation: _review_camp48/INDEX.csv   # Fase 0 — eventos com VALID=n são excluídos
+  fidelity:
+    unit: event-manifest        # 1 pasta = 1 janela de cascade
+    window: subsample_frames(48) -> fit_frames_to_payload(8_000_000)
+    gate_frames: first + 3 mids + last
+    crops: none (pi-cam-001 fora de CROP_TO_ZONE/PILECROP/DINOV2/STRUCTURAL)
+    post_gates: prod (scene_type!=DUMPING -> false; <2/3 booleanos -> false; positive_override conf>=85)
+
+bedrock:
+  profile: codex-ops           # SSO AdministratorAccess, conta 818680680175
+  region: us-east-1
+  tier: on-demand              # flex custa ~metade, mas latência não seria comparável
+
+# Teto de imagens por request, medido em 2026-07-30 com 40 chamadas reais
+# (janelas sintéticas de 8/20/21/32/48 imagens + pergunta de ordenação temporal).
+image_caps:
+  google.gemma-3-27b-it: 48        # acertou o frame de aparição em 48 quadros
+  google.gemma-3-12b-it: 48
+  qwen.qwen3-vl-235b-a22b: 48
+  nvidia.nemotron-nano-12b-v2: 48
+  moonshotai.kimi-k2.5: 48
+  mistral.magistral-small-2509: 48
+  writer.palmyra-vision-7b: 5      # 6 -> invalid_request_error => só gate ou mosaico
+  us.mistral.pixtral-large-2502-v1:0: unknown  # sem teto de validação, throttle agressivo
+  us.meta.llama4-scout-17b-instruct-v1:0: 3    # ELIMINADO: não roda o gate de 5 frames
+  us.meta.llama4-maverick-17b-instruct-v1:0: 3 # ELIMINADO (mesma família)
+
+phases:
+  phase0_review:
+    goal: validação visual humana da janela de cada evento (sem custo de API)
+    script: scripts/export_review.py
+    gate: INDEX.csv sem pendências; eventos VALID=n excluídos e documentados no report
+  phaseA_screen:
+    goal: eliminar candidatos incapazes antes da rodada cheia
+    n_events: 15         # 6 tp + 5 fp + 4 baseline (dos válidos)
+    candidates: [gemma-3-27b, gemma-3-12b, qwen3-vl-235b, nemotron-nano-12b-v2,
+                 kimi-k2.5, magistral-small, ministral-3-14b, palmyra-vision-7b]
+    conditional: [pixtral-large]
+    gates:
+      A1_json: ">=80% de respostas válidas no schema (toolConfig forçado ou JSON-em-texto)"
+      A2_images: "cabe a janela real 1280x720, ou o mosaico"
+      A3_recall: "dispara em >=1 dos 6 TPs"
+      A4_ptbr: "evidence_summary em português"
+    output: results/screen.csv
+  phaseB_full:
+    goal: rodada completa nos 3 finalistas
+    arms_per_model:
+      casc_v1:          {stages: 2, frames: window, prompt: v1}   # paridade prod
+      casc_g3:          {stages: 2, frames: window, prompt: g3}
+      single_g3:        {stages: 1, frames: window, prompt: g3}
+      single_g3_mosaic: {stages: 1, frames: mosaic_4x3, prompt: g3}
+    control:
+      current: {gate: gemini-2.5-flash-lite, detail: gemini-2.5-flash, prompt: v1}
+      note: re-rodado NESTE harness — não reaproveitar os números do Camp 47
+    output: results/bench_bedrock.csv
+
+success_criteria:
+  tp_recall_det_min: 85.0        # current = 87,5%
+  baseline_fire_rate_max: 10.0   # sinal limpo de especificidade (40 negativos verdadeiros)
+  cost_per_event_usd_max: 0.0025 # = custo do caminho Gemini-3 (unified_low_2s)
+  open_weights_required: true    # pesos publicados = opção de self-host
+  # fp_rate_det é INFORMATIVO: o conjunto fp são os FPs do modelo ATUAL, então
+  # mede re-disparo, não especificidade pura.
+
+caveats:
+  - N pequeno (16 detecções TP, menos após exclusões da Fase 0) — diferenças <10pp não são significativas
+  - conjunto fp enviesado (FPs do modelo atual); baseline é o sinal limpo
+  - os 40 baseline vêm todos de 22/07 — não fazer corte temporal ingênuo
+  - evt-20260715_085108 (van) tem rótulo ambíguo — nem humano decide
+  - gate first_frame usa win[0] (estado da janela anterior não reproduzível do DB)
+  - prior_window_context=None -> effective_threshold=85

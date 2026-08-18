@@ -1,0 +1,14 @@
+{
+  "tp_total": 20,
+  "tp_labeled_manual": 20,
+  "tp_unlabeled": 0,
+  "tp_with_vehicle_manual": 12,
+  "tp_without_vehicle_manual": 8,
+  "recall_ceiling_hard_gate": 0.6,
+  "fp_total": 147,
+  "fp_with_vehicle_model": 110,
+  "fp_without_vehicle_model": 37,
+  "fp_avoidable_no_vehicle_approx": 37,
+  "model_vs_manual_agree_tp": "17/20",
+  "note": "TP vehicle = MANUAL GT (Phase B). FP vehicle = MODEL vehicle_stopped (no manual FP labels)."
+}

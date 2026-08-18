@@ -1,0 +1,104 @@
+{
+  "n": 243,
+  "split_dt": "2026-06-07T14:22:56.866180-03:00",
+  "n_train": 122,
+  "n_test": 121,
+  "counts": {
+    "keep": 72,
+    "kill": 171
+  },
+  "signals": {
+    "census_ntiles_t32": {
+      "T_train": 1,
+      "recall_train": 0.957,
+      "fpsupp_train": 0.513,
+      "recall_test": 0.962,
+      "fpsupp_test": 0.347,
+      "fpsupp_gap_train_minus_test": 0.166,
+      "fpsupp_test_by_subtype": {
+        "passante_parado": 0.528,
+        "revira_explicit": 0.138,
+        "revira_mexe": 0.077
+      },
+      "FULLSET": {
+        "T": 1,
+        "recall": 0.958,
+        "fpsupp": 0.421,
+        "by_subtype": {
+          "passante_parado": 0.591,
+          "revira_explicit": 0.111,
+          "revira_mexe": 0.12
+        }
+      }
+    },
+    "persist_p50": {
+      "T_train": 0,
+      "recall_train": 1.0,
+      "fpsupp_train": 0.0,
+      "recall_test": 1.0,
+      "fpsupp_test": 0.0,
+      "fpsupp_gap_train_minus_test": 0.0,
+      "fpsupp_test_by_subtype": {
+        "passante_parado": 0.0,
+        "revira_explicit": 0.0,
+        "revira_mexe": 0.0
+      },
+      "FULLSET": {
+        "T": 0,
+        "recall": 1.0,
+        "fpsupp": 0.0,
+        "by_subtype": {
+          "passante_parado": 0.0,
+          "revira_explicit": 0.0,
+          "revira_mexe": 0.0
+        }
+      }
+    },
+    "persist_p70": {
+      "T_train": 0,
+      "recall_train": 1.0,
+      "fpsupp_train": 0.0,
+      "recall_test": 1.0,
+      "fpsupp_test": 0.0,
+      "fpsupp_gap_train_minus_test": 0.0,
+      "fpsupp_test_by_subtype": {
+        "passante_parado": 0.0,
+        "revira_explicit": 0.0,
+        "revira_mexe": 0.0
+      },
+      "FULLSET": {
+        "T": 0,
+        "recall": 1.0,
+        "fpsupp": 0.0,
+        "by_subtype": {
+          "passante_parado": 0.0,
+          "revira_explicit": 0.0,
+          "revira_mexe": 0.0
+        }
+      }
+    },
+    "persist_p90": {
+      "T_train": 0,
+      "recall_train": 1.0,
+      "fpsupp_train": 0.0,
+      "recall_test": 1.0,
+      "fpsupp_test": 0.0,
+      "fpsupp_gap_train_minus_test": 0.0,
+      "fpsupp_test_by_subtype": {
+        "passante_parado": 0.0,
+        "revira_explicit": 0.0,
+        "revira_mexe": 0.0
+      },
+      "FULLSET": {
+        "T": 0,
+        "recall": 1.0,
+        "fpsupp": 0.0,
+        "by_subtype": {
+          "passante_parado": 0.0,
+          "revira_explicit": 0.0,
+          "revira_mexe": 0.0
+        }
+      }
+    }
+  }
+}

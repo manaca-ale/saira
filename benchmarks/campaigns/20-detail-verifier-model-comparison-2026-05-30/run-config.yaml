@@ -1,0 +1,156 @@
+# Campanha 20 — detail + verifier model comparison (2026-05-30)
+# Tipo: model-selection (exploratory multi-axis: model × role × prompt × camera)
+campaign_number: 20
+title: "detail+verifier model comparison + free filters"
+date: 2026-05-30
+type: model-selection
+hypothesis: >
+  Quatro hipóteses testadas no mesmo dataset operacional:
+  H1 — trocar Gemini Flash por Sonnet 4.6 ou Pro 2.5 no Agent-2 (detail)
+       reduz false positives sem perder recall;
+  H2 — adicionar uma 3ª etapa "Agent-3 verifier" com few-shot REJ examples
+       (Pro / Sonnet / Flash Lite) filtra confabulações do detail;
+  H3 — filtros locais zero-cost (DINOv2 embeddings + LogReg, pile-zone edge
+       delta OpenCV, ByteTrack+YOLOv8s) podem substituir ou complementar
+       o Agent-3 pago em câmeras com sinal visual estável;
+  H4 — per-camera prompt match (V1 cam_10 vehicle-centric, V3 cam_11
+       postura-based) muda significativamente o resultado de cada modelo.
+
+models_under_test:
+  detail:  ["gemini-2.5-flash V1 (prod baseline)", "claude-sonnet-4-6", "gemini-2.5-pro"]
+  verifier: ["gemini-2.5-pro", "claude-sonnet-4-6", "gemini-2.5-flash-lite"]
+  free_filter: ["dinov2-base + LogReg per-cam", "pile-zone edge delta (OpenCV)",
+                "ByteTrack+YOLOv8s heuristics"]
+
+runner: "benchmarks/campaigns/20-detail-verifier-model-comparison-2026-05-30/scripts/"
+
+# Dataset: NÃO é o canonical data/datasets/official manifest.
+# Snapshot de eventos REJ + CON do DB de prod (operator-labeled) até
+# 2026-05-29 23h59 BRT. n=52 (22 REJ + 30 CON).
+# Não-reproduzível sem snapshot do DB; embeddings DINOv2 cacheados.
+dataset:
+  source: "production database (saira-db-prod)"
+  query: |
+    SELECT id, timestamp, camera_id, status, image_url
+    FROM detections
+    WHERE camera_id IN (10, 11)
+      AND status IN ('REJEITADO', 'CONFIRMADO')
+    ORDER BY timestamp DESC
+  snapshot_date: "2026-05-29 23:59 BRT"
+  n_total: 52
+  class_balance: {CON: 30, REJ: 22}
+  per_camera:
+    cam_10_imbiribeira: {n: 23, CON: 10, REJ: 13, gate_prompt: V1}
+    cam_11_mangabeira:  {n: 29, CON: 20, REJ: 9,  gate_prompt: V3+B3}
+
+prompts_tested:
+  detail:
+    V1: "services/yolo-worker-vm/src/worker/detector_gemini.py:84-121 (SYSTEM_PROMPT)"
+    V3: "services/yolo-worker-vm/src/worker/_prompts_v3.py:372-449 (SYSTEM_PROMPT_V3)"
+  verifier:
+    agent3: "scripts/agent3_proto.py (cético + 3 few-shot REJ disjoint)"
+
+arms:
+  # === Detail (Agent-2) — 52 events, per-camera prompt match ===
+  - id: detail_flash_v1
+    role: detail
+    model: gemini-2.5-flash
+    prompt: V1
+    notes: "Prod baseline. Acurácia = class balance (sempre CON)."
+
+  - id: detail_sonnet_V1_V3
+    role: detail
+    model: claude-sonnet-4-6 (Bedrock us-east-1)
+    prompt: V1 (cam_10) + V3 (cam_11)
+    notes: "Per-camera prompt match. Sonnet 4.6 via inference profile."
+
+  - id: detail_pro_V1_V3
+    role: detail
+    model: gemini-2.5-pro
+    prompt: V1 (cam_10) + V3 (cam_11)
+    notes: "Per-camera prompt match. Pro com thinking habilitado."
+
+  # === Verifier (Agent-3) — 8 events (4 REJ + 4 CON), 3 few-shot REJ ===
+  - id: agent3_pro
+    role: verifier
+    model: gemini-2.5-pro
+    prompt: agent3 + 3 few-shot REJ
+    notes: "Few-shot REJ disjoint do test set."
+
+  - id: agent3_sonnet
+    role: verifier
+    model: claude-sonnet-4-6
+    prompt: agent3 + 3 few-shot REJ
+    notes: ""
+
+  - id: agent3_flashlite
+    role: verifier
+    model: gemini-2.5-flash-lite
+    prompt: agent3 + 3 few-shot REJ
+    notes: "Sanity check do modelo de gate."
+
+  # === Free filters — 52 events, no API call ===
+  - id: filter_dinov2_global
+    role: free_filter
+    model: facebook/dinov2-base + LogReg
+    prompt: N/A
+    notes: "3 keyframes/event, 2304-d embed, 5-fold CV global."
+
+  - id: filter_dinov2_per_cam
+    role: free_filter
+    model: facebook/dinov2-base + LogReg per-camera
+    prompt: N/A
+    notes: "Modelo separado por câmera."
+
+  - id: filter_dinov2_handcrafted
+    role: free_filter
+    model: dinov2-base + 6 handcrafted features + LogReg
+    prompt: N/A
+    notes: "Concat com ncc, sat_delta, edge_delta_pct."
+
+  - id: filter_pile_delta_logreg
+    role: free_filter
+    model: OpenCV (Canny + HSV + ncc) inside pile_zone_polygon + LogReg
+    prompt: N/A
+    notes: "14 features hand-crafted. <50ms CPU."
+
+  - id: filter_bytetrack_yolov8s
+    role: free_filter
+    model: YOLOv8s + ByteTrack (cam_11 only)
+    prompt: N/A
+    notes: "imgsz=1280 conf=0.15; dwell/proximity features."
+
+success_criteria:
+  detail_acc_min_pct: 70          # bater "always-CON" = 57.7%
+  detail_fn_max_pct: 5            # não perder ocorrências reais
+  verifier_acc_min_pct: 80        # ≥ detail
+  verifier_false_confirm_max: 0   # não vazar FP novo
+  free_filter_cam10_acc_min: 90   # DINOv2 já atinge 96%
+  cost_per_event_max_usd: 0.020   # vs prod Flash $0.005
+
+results_summary:
+  # Detail (52 events):
+  detail_flash_v1:        {acc: 57.7,  tp: 30, tn: 0,  fp: 22, fn: 0,  cost_per_event: 0.005}
+  detail_sonnet_V1_V3:    {acc: 55.77, tp: 22, tn: 7,  fp: 15, fn: 8,  cost_per_event: 0.0515}
+  detail_pro_V1_V3:       {acc: 51.92, tp: 19, tn: 8,  fp: 14, fn: 11, cost_per_event: 0.0217}
+  # Verifier (8 events):
+  agent3_pro:             {acc: 87.5, false_confirm: 0, false_reject: 1, cost_per_event: 0.015}
+  agent3_sonnet:          {acc: 75.0, false_confirm: 0, false_reject: 2, cost_per_event: 0.050}
+  agent3_flashlite:       {acc: 50.0, false_confirm: 4, false_reject: 0, cost_per_event: 0.0004}
+  # Free filters (52 events):
+  filter_dinov2_global:        {acc: 69.27, auc: 0.822, per_event_latency_ms: 1110, cost_usd: 0}
+  filter_dinov2_per_cam_10:    {acc: 96.00, auc: 0.933, per_event_latency_ms: 1110, cost_usd: 0}
+  filter_dinov2_per_cam_11:    {acc: 47.33, auc: 0.525, per_event_latency_ms: 1110, cost_usd: 0}
+  filter_dinov2_handcrafted:   {acc: 71.09, auc: 0.822, per_event_latency_ms: 1200, cost_usd: 0}
+  filter_pile_delta_logreg:    {acc: 67.45, auc: 0.708, per_event_latency_ms: 50,   cost_usd: 0}
+  filter_bytetrack_yolov8s_11: {acc: 60.00, auc: 0.550, per_event_latency_ms: 25340, cost_usd: 0}
+
+verdict:
+  detail: "Substituir Flash por modelo maior NÃO ajuda. Pro perde 11 ocorrências reais (FN 11 vs 0 do Flash). Sonnet perde 8. Detail é arquiteturalmente difícil — confabulações vêm do role/prompt, não do modelo."
+  verifier: "Pro 2.5 + few-shot REJ é vencedor (87.5%, $0.015). Sonnet pior+caro (75%, $0.050). Flash Lite inútil (50%, confabula tudo)."
+  free_filter: "DINOv2 per-camera é vencedor pra cam_10 (96% acc, $0). cam_11 não-separável por imagem estática — precisa de Agent-3 pago ou sinal temporal."
+  recommendation: |
+    1. Manter Flash V1/V3 como Agent-2 em prod.
+    2. Adicionar DINOv2+LogReg em shadow A/B para cam_10 ($0, 96%).
+    3. Adicionar Pro 2.5 + few-shot REJ como Agent-3 só para cam_11 ($0.015/event, 87.5%).
+    4. Sonnet 4.6, Pro como detail, Flash Lite Agent-3, pile-delta, ByteTrack/COCO: descartados.

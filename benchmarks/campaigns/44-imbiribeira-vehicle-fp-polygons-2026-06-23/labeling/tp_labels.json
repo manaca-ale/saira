@@ -1,0 +1,208 @@
+{
+  "camera": "cam_imbiribeira",
+  "ref_w": 1280,
+  "ref_h": 720,
+  "count": 20,
+  "events": [
+    {
+      "event_id": "06414b5a-4c73-401a-95b2-54cb1d775f74",
+      "label": "tp",
+      "x": 723,
+      "y": 370,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-05-20_14-27-55.jpg",
+      "datetime": "2026-05-20T14:27:35-03:00"
+    },
+    {
+      "event_id": "0bb40faf-8ea6-4550-bd27-c92ba0aafd9a",
+      "label": "tp",
+      "x": 29,
+      "y": 608,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-06-08_14-53-28.jpg",
+      "datetime": "2026-06-08 14:44:33-03"
+    },
+    {
+      "event_id": "12506543-1c64-4604-8c76-a85300a43669",
+      "label": "tp",
+      "x": 663,
+      "y": 321,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-05-22_02-52-29.jpg",
+      "datetime": "2026-05-22T02:52:34-03:00"
+    },
+    {
+      "event_id": "218673e1-397c-4293-be2b-0d5e2326334f",
+      "label": "tp",
+      "x": 546,
+      "y": 303,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-05-20_19-41-09.jpg",
+      "datetime": "2026-05-20T19:40:09-03:00"
+    },
+    {
+      "event_id": "341b7657-5be5-4dec-9cd4-cbec6d612ea2",
+      "label": "tp",
+      "x": 240,
+      "y": 401,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-06-09_19-13-22.jpg",
+      "datetime": "2026-06-09 19:16:37-03"
+    },
+    {
+      "event_id": "4422e2c5-9b75-4f5d-8dbe-0779c2b250b1",
+      "label": "tp",
+      "x": 871,
+      "y": 367,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-06-19_09-36-50.jpg",
+      "datetime": "2026-06-19 09:38:31-03"
+    },
+    {
+      "event_id": "454c8308-69a4-469d-8f78-376747f23ac5",
+      "label": "tp",
+      "x": 536,
+      "y": 311,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-05-20_08-55-25.jpg",
+      "datetime": "2026-05-20T08:56:20-03:00"
+    },
+    {
+      "event_id": "48350bb4-b72c-4bc1-aeaa-89bc00d1595c",
+      "label": "tp",
+      "x": 545,
+      "y": 299,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-05-19_18-39-39.jpg",
+      "datetime": "2026-05-19T18:39:29-03:00"
+    },
+    {
+      "event_id": "67d156a3-4bb1-47da-a92f-4634e9ebfabc",
+      "label": "tp",
+      "x": 438,
+      "y": 359,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-06-06_09-16-47.jpg",
+      "datetime": "2026-06-06 09:17:47-03"
+    },
+    {
+      "event_id": "7509fcf2-aefb-48d0-a09c-a38d863543b5",
+      "label": "tp",
+      "x": 916,
+      "y": 363,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-06-18_17-39-14.jpg",
+      "datetime": "2026-06-18 17:38:44-03"
+    },
+    {
+      "event_id": "8bfe0a1f-da31-4ddd-9455-de0d6a5ef652",
+      "label": "tp",
+      "x": 946,
+      "y": 385,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-05-28_18-43-10.jpg",
+      "datetime": "2026-05-28 18:45:35-03"
+    },
+    {
+      "event_id": "a447ff19-068a-4460-855c-3f6d02937860",
+      "label": "tp",
+      "x": 458,
+      "y": 358,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-05-26_02-43-39.jpg",
+      "datetime": "2026-05-26 02:46:34-03"
+    },
+    {
+      "event_id": "a73a3f44-03d0-4dc1-b850-efbac6210f3e",
+      "label": "tp",
+      "x": 664,
+      "y": 366,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-05-20_14-19-35.jpg",
+      "datetime": "2026-05-20T14:16:15-03:00"
+    },
+    {
+      "event_id": "b0a0e12e-a702-42bf-afb9-22e1db35c589",
+      "label": "tp",
+      "x": 455,
+      "y": 388,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-05-26_02-42-44.jpg",
+      "datetime": "2026-05-26 02:35:19-03"
+    },
+    {
+      "event_id": "c8cb22fb-86f9-4a0b-90e4-282ae1bfbe38",
+      "label": "tp",
+      "x": 866,
+      "y": 319,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-06-19_09-59-35.jpg",
+      "datetime": "2026-06-19 10:02:20-03"
+    },
+    {
+      "event_id": "c9c2c83e-b5e3-495c-99b7-93ef0b387c63",
+      "label": "tp",
+      "x": 438,
+      "y": 333,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-06-03_19-35-35.jpg",
+      "datetime": "2026-06-03 19:33:09-03"
+    },
+    {
+      "event_id": "cb49921a-c894-4cfd-8802-5c41316e7301",
+      "label": "tp",
+      "x": 702,
+      "y": 375,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-05-20_15-46-30.jpg",
+      "datetime": "2026-05-20T15:45:45-03:00"
+    },
+    {
+      "event_id": "e2bdf0d5-163c-4789-a9d6-efa4ada37571",
+      "label": "tp",
+      "x": 42,
+      "y": 599,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-06-08_14-56-48.jpg",
+      "datetime": "2026-06-08 14:56:03-03"
+    },
+    {
+      "event_id": "eff8003e-4ddd-4440-84f1-905401920448",
+      "label": "tp",
+      "x": 128,
+      "y": 404,
+      "vehicle_present": true,
+      "skipped": false,
+      "frame_name": "2026-06-09_18-20-32.jpg",
+      "datetime": "2026-06-09 18:21:22-03"
+    },
+    {
+      "event_id": "f15a5964-f90a-4907-9f05-990244d51800",
+      "label": "tp",
+      "x": 76,
+      "y": 612,
+      "vehicle_present": false,
+      "skipped": false,
+      "frame_name": "2026-06-08_14-30-43.jpg",
+      "datetime": "2026-06-08 14:30:53-03"
+    }
+  ]
+}

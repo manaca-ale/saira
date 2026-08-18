@@ -1,0 +1,8 @@
+rule,recall,b3_fp,b3_supp,supp_pct,supp_ci,recall_ci,tp_lost,ok
+baseline E+CROPS,12,18,2,10,"[0,25]","[10,13]",8fdb7d45-3,OK
+D2 DINOv2 veto (p_con>=0.008) recall-safe,12,9,11,55,"[35,75]","[10,13]",8fdb7d45-3,OK
+D2' DINOv2 veto (p_con>=0.043) @floor,11,8,12,60,"[40,80]","[8,13]",be6b5e67-2;8fdb7d45-3,OK
+D1 CV permanence (>=1173),11,14,6,30,"[10,50]","[8,13]",8fdb7d45-3;194ed500-6,OK
+D5 V1 prompt standalone,11,10,10,50,"[30,70]","[8,13]",8fdb7d45-3;manual-202,OK
+D5 V2 prompt standalone,10,11,9,45,"[25,65]","[7,13]",be6b5e67-2;3c840ac4-b;8fdb7d45-3,FAIL
+D6 V1 + DINOv2 veto,11,4,16,80,"[60,95]","[8,13]",8fdb7d45-3;manual-202,OK

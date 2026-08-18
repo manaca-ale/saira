@@ -1,0 +1,815 @@
+{
+  "gemma-3-4b:min": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 100.0,
+      "passagem_dataset": 100.0,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 40,
+          "taxa": 100.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 97.1,
+      "tp_perdidos": 1,
+      "disparo_fp": 81.2,
+      "disparo_baseline": 62.5,
+      "passagem_dataset": 79.4,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 34,
+          "taxa": 97.1
+        },
+        "fp": {
+          "n": 32,
+          "fire": 26,
+          "taxa": 81.2
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 25,
+          "taxa": 62.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 13,
+          "taxa": 86.7
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00013111,
+    "latencia_p50_ms": 3205,
+    "tok_in_medio": 2895,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 100.0% > 48.6% da produção"
+      ]
+    }
+  },
+  "gemma-3-12b:min": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 100.0,
+      "passagem_dataset": 100.0,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 40,
+          "taxa": 100.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 94.3,
+      "tp_perdidos": 2,
+      "disparo_fp": 65.6,
+      "disparo_baseline": 40.0,
+      "passagem_dataset": 65.4,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 33,
+          "taxa": 94.3
+        },
+        "fp": {
+          "n": 32,
+          "fire": 21,
+          "taxa": 65.6
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 16,
+          "taxa": 40.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 10,
+          "taxa": 66.7
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00032499,
+    "latencia_p50_ms": 5386,
+    "tok_in_medio": 2895,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 100.0% > 48.6% da produção"
+      ]
+    }
+  },
+  "ministral-3-14b:min": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 85.0,
+      "passagem_dataset": 94.4,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 34,
+          "taxa": 85.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 94.3,
+      "tp_perdidos": 2,
+      "disparo_fp": 68.8,
+      "disparo_baseline": 17.5,
+      "passagem_dataset": 57.9,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 33,
+          "taxa": 94.3
+        },
+        "fp": {
+          "n": 32,
+          "fire": 22,
+          "taxa": 68.8
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 7,
+          "taxa": 17.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 10,
+          "taxa": 66.7
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00067994,
+    "latencia_p50_ms": 3803,
+    "tok_in_medio": 3133,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 94.4% > 48.6% da produção"
+      ]
+    }
+  },
+  "nemotron-nano-12b:min": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 97.5,
+      "passagem_dataset": 99.1,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 39,
+          "taxa": 97.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 97.5,
+      "passagem_dataset": 99.1,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 39,
+          "taxa": 97.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00037847,
+    "latencia_p50_ms": 4286,
+    "tok_in_medio": 5460,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 99.1% > 48.6% da produção"
+      ]
+    }
+  },
+  "gemma-3-4b:g3": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 100.0,
+      "passagem_dataset": 100.0,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 40,
+          "taxa": 100.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 100.0,
+      "passagem_dataset": 100.0,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 40,
+          "taxa": 100.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00013228,
+    "latencia_p50_ms": 3793,
+    "tok_in_medio": 2826,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 100.0% > 48.6% da produção"
+      ]
+    }
+  },
+  "gemini-3.1-flash-lite:min": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 97.1,
+      "tp_perdidos": 1,
+      "disparo_fp": 90.6,
+      "disparo_baseline": 25.0,
+      "passagem_dataset": 68.2,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 34,
+          "taxa": 97.1
+        },
+        "fp": {
+          "n": 32,
+          "fire": 29,
+          "taxa": 90.6
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 10,
+          "taxa": 25.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 97.1,
+      "tp_perdidos": 1,
+      "disparo_fp": 75.0,
+      "disparo_baseline": 20.0,
+      "passagem_dataset": 61.7,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 34,
+          "taxa": 97.1
+        },
+        "fp": {
+          "n": 32,
+          "fire": 24,
+          "taxa": 75.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 8,
+          "taxa": 20.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 12,
+          "taxa": 80.0
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00105314,
+    "latencia_p50_ms": 2678,
+    "tok_in_medio": 6668,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "v1",
+      "motivos": [
+        "c3' passagem 61.7% > 48.6% da produção"
+      ]
+    }
+  },
+  "gemini-2.5-flash-lite:v1": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 80.0,
+      "tp_perdidos": 7,
+      "disparo_fp": 65.6,
+      "disparo_baseline": 7.5,
+      "passagem_dataset": 48.6,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 28,
+          "taxa": 80.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 21,
+          "taxa": 65.6
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 3,
+          "taxa": 7.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 10,
+          "taxa": 66.7
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 80.0,
+      "tp_perdidos": 7,
+      "disparo_fp": 65.6,
+      "disparo_baseline": 7.5,
+      "passagem_dataset": 48.6,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 28,
+          "taxa": 80.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 21,
+          "taxa": 65.6
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 3,
+          "taxa": 7.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 10,
+          "taxa": 66.7
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00058164,
+    "latencia_p50_ms": 6017,
+    "tok_in_medio": 2016
+  },
+  "gemma-3-12b:g3": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 75.0,
+      "passagem_dataset": 90.7,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 30,
+          "taxa": 75.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 14,
+          "taxa": 93.3
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 96.9,
+      "disparo_baseline": 65.0,
+      "passagem_dataset": 86.0,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 31,
+          "taxa": 96.9
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 26,
+          "taxa": 65.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 14,
+          "taxa": 93.3
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00033278,
+    "latencia_p50_ms": 5688,
+    "tok_in_medio": 2826,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "v1",
+      "motivos": [
+        "c3' passagem 86.0% > 48.6% da produção"
+      ]
+    }
+  },
+  "ministral-3-14b:g3": {
+    "n": 122,
+    "n_ok": 118,
+    "n_erro": 4,
+    "erros": [
+      "evt-20260715_090305: sem JSON na resposta (stop=end_turn)",
+      "evt-20260717_131804: sem JSON na resposta (stop=end_turn)",
+      "evt-20260717_180936: sem JSON na resposta (stop=end_turn)",
+      "evt-20260722_133402: sem JSON na resposta (stop=end_turn)"
+    ],
+    "raw": {
+      "recall_tp": 97.1,
+      "tp_perdidos": 1,
+      "disparo_fp": 87.1,
+      "disparo_baseline": 20.5,
+      "passagem_dataset": 65.4,
+      "por_categoria": {
+        "tp": {
+          "n": 34,
+          "fire": 33,
+          "taxa": 97.1
+        },
+        "fp": {
+          "n": 31,
+          "fire": 27,
+          "taxa": 87.1
+        },
+        "baseline": {
+          "n": 39,
+          "fire": 8,
+          "taxa": 20.5
+        },
+        "indefinido": {
+          "n": 14,
+          "fire": 11,
+          "taxa": 78.6
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 91.2,
+      "tp_perdidos": 3,
+      "disparo_fp": 71.0,
+      "disparo_baseline": 12.8,
+      "passagem_dataset": 55.8,
+      "por_categoria": {
+        "tp": {
+          "n": 34,
+          "fire": 31,
+          "taxa": 91.2
+        },
+        "fp": {
+          "n": 31,
+          "fire": 22,
+          "taxa": 71.0
+        },
+        "baseline": {
+          "n": 39,
+          "fire": 5,
+          "taxa": 12.8
+        },
+        "indefinido": {
+          "n": 14,
+          "fire": 10,
+          "taxa": 71.4
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00067145,
+    "latencia_p50_ms": 3934,
+    "tok_in_medio": 3075,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 65.4% > 48.6% da produção",
+        "c4 4 erro(s)"
+      ]
+    }
+  },
+  "nemotron-nano-12b:g3": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 100.0,
+      "passagem_dataset": 100.0,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 40,
+          "taxa": 100.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 100.0,
+      "tp_perdidos": 0,
+      "disparo_fp": 100.0,
+      "disparo_baseline": 100.0,
+      "passagem_dataset": 100.0,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 35,
+          "taxa": 100.0
+        },
+        "fp": {
+          "n": 32,
+          "fire": 32,
+          "taxa": 100.0
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 40,
+          "taxa": 100.0
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 15,
+          "taxa": 100.0
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00037587,
+    "latencia_p50_ms": 4232,
+    "tok_in_medio": 5402,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 100.0% > 48.6% da produção"
+      ]
+    }
+  },
+  "gemini-3.1-flash-lite:g3": {
+    "n": 122,
+    "n_ok": 122,
+    "n_erro": 0,
+    "erros": [],
+    "raw": {
+      "recall_tp": 94.3,
+      "tp_perdidos": 2,
+      "disparo_fp": 65.6,
+      "disparo_baseline": 12.5,
+      "passagem_dataset": 55.1,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 33,
+          "taxa": 94.3
+        },
+        "fp": {
+          "n": 32,
+          "fire": 21,
+          "taxa": 65.6
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 5,
+          "taxa": 12.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 13,
+          "taxa": 86.7
+        }
+      }
+    },
+    "v1": {
+      "recall_tp": 94.3,
+      "tp_perdidos": 2,
+      "disparo_fp": 65.6,
+      "disparo_baseline": 12.5,
+      "passagem_dataset": 55.1,
+      "por_categoria": {
+        "tp": {
+          "n": 35,
+          "fire": 33,
+          "taxa": 94.3
+        },
+        "fp": {
+          "n": 32,
+          "fire": 21,
+          "taxa": 65.6
+        },
+        "baseline": {
+          "n": 40,
+          "fire": 5,
+          "taxa": 12.5
+        },
+        "indefinido": {
+          "n": 15,
+          "fire": 13,
+          "taxa": 86.7
+        }
+      }
+    },
+    "custo_usd_por_chamada": 0.00120127,
+    "latencia_p50_ms": 2557,
+    "tok_in_medio": 6599,
+    "veredito": {
+      "resultado": "REPROVADO",
+      "regra": "raw",
+      "motivos": [
+        "c3' passagem 55.1% > 48.6% da produção"
+      ]
+    }
+  }
+}

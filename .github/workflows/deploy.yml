@@ -39,6 +39,11 @@ jobs:
             cd /home/ubuntu/saira
             git fetch origin develop
             git reset --hard origin/develop
+            # Realign the branch NAME with what is checked out. reset --hard moves
+            # whatever branch happens to be current (the checkout is shared between
+            # the test and prod jobs), so without this the server can sit on a
+            # stale branch name pointing at develop/main commits.
+            git checkout -B develop origin/develop
 
             # Guard pós-reset: cron scripts são versionados 100755, mas reforça o +x
             # como rede de segurança (incidente 2026-06-05: o reset zerou o +x e a
@@ -97,6 +102,8 @@ jobs:
             cd /home/ubuntu/saira
             git fetch origin main
             git reset --hard origin/main
+            # Realign the branch NAME with what is checked out (see test job note).
+            git checkout -B main origin/main
 
             # Guard pós-reset: cron scripts são versionados 100755, mas reforça o +x
             # como rede de segurança (incidente 2026-06-05: o reset zerou o +x e a

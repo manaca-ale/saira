@@ -1,0 +1,25 @@
+{
+  "tp_source": "manual",
+  "n_tp": 20,
+  "n_fp_bbox": 55,
+  "coverage": {
+    "current_live": {
+      "tp_coverage": 0.55,
+      "fp_coverage_approx": 0.5636363636363636,
+      "area_pct": 22.3,
+      "n_polys": 4
+    },
+    "camp41": {
+      "tp_coverage": 0.0,
+      "fp_coverage_approx": 0.21818181818181817,
+      "area_pct": 3.26,
+      "n_polys": 3
+    },
+    "proposed": {
+      "tp_coverage": 1.0,
+      "fp_coverage_approx": 0.2727272727272727,
+      "area_pct": 15.1,
+      "n_polys": 4
+    }
+  }
+}

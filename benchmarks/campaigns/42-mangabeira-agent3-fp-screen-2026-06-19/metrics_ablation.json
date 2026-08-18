@@ -1,0 +1,150 @@
+{
+  "tp_floor": 95.0,
+  "arms": [
+    {
+      "arm": "gemini_flash",
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "n_events": 243,
+      "n_keep_gold": 72,
+      "n_kill_gold": 171,
+      "tp_preservation_pct": 51.4,
+      "tp_lost_count": 35,
+      "tp_lost_events": [
+        "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+        "bc0528c2-8034-40a8-bad3-62f93136f44c",
+        "d59d5309-60c5-4ce9-8a64-2c68342c07c5",
+        "2bb892bc-c4d8-4175-b8b1-89007a82d133",
+        "3c840ac4-b0f7-4fec-b696-dd7e68725b49",
+        "8fdb7d45-3093-46f2-bcf8-a1fb2ac49dbd",
+        "3840ceba-7185-4a52-92ed-4c328ddbcff7",
+        "d27e2560-de7e-4847-8ba6-f57c642484bf",
+        "ae3d87cb-189c-4d80-b56e-d202d92b4e59",
+        "66552250-ab55-4b97-9976-ba1adedd5e25",
+        "889c8519-b2f5-4d0c-97a6-f731dbe1e411",
+        "03bfaf38-7e6a-4430-8ae0-787c31248ab6",
+        "d249a14d-63ea-4ef6-94e2-64019853a95b",
+        "ba4d2af7-e373-44d3-b602-70af4c0e0a1b",
+        "6af521a0-5631-4aba-893d-f05b775aab25",
+        "8873d1a1-916b-49d5-a33b-69c0abdc437f",
+        "0c7055c8-9abe-43f4-ac6e-8887278e6b07",
+        "5043229a-e7c9-4798-925c-377deeea8d85",
+        "02b1f0d9-fce9-4079-bb84-fb5727f0faca",
+        "e52fec0f-948e-4fc7-8d19-379ed1affe08",
+        "7668e74b-674d-4df9-b108-bc107efe899e",
+        "7db775b2-8249-4809-9699-17ba57040a52",
+        "c35ccb74-c88a-4faf-b06b-098765d799ba",
+        "df78c5ae-8f25-40cc-a3bd-9e6f3d249164",
+        "95fcd71f-1a1a-4b2f-9d8f-3ec797ddad39",
+        "441d1cef-2be6-41ac-8fbe-31aeca9b1070",
+        "417dda86-0992-4c03-94b0-e07376d20ea9",
+        "2ee63d2b-45b9-4148-a5ed-211f0c725bdc",
+        "9814c090-7fa3-4bd1-a41a-9c09dfff17ca",
+        "a61868a6-4113-4500-a3a2-c717cbe6fdea",
+        "bb2c64b9-f3ae-4884-9b81-bdbc6abaef6a",
+        "0dd2fb9c-9d9a-46be-b2cc-07962c8dcaca",
+        "a06e68e4-3cb3-4327-a77c-427530d3d2ab",
+        "636c5658-6f40-4b21-8dad-9c81ac259e32",
+        "3a7dda03-cbad-4b0a-9460-f3e9f06ab443"
+      ],
+      "fp_suppression_overall_pct": 89.5,
+      "fp_killed_count": 153,
+      "fp_suppression_by_subtype": {
+        "passante_parado": {
+          "killed": 105,
+          "total": 110,
+          "pct": 95.5
+        },
+        "revira_explicit": {
+          "killed": 25,
+          "total": 36,
+          "pct": 69.4
+        },
+        "revira_mexe": {
+          "killed": 23,
+          "total": 25,
+          "pct": 92.0
+        }
+      },
+      "cost_total_usd": 0.095353,
+      "cost_per_event_usd": 0.000392,
+      "latency_p50_ms": 3435,
+      "errors": 0,
+      "passes_tp_floor": false
+    },
+    {
+      "arm": "gemini_8frames",
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "n_events": 243,
+      "n_keep_gold": 72,
+      "n_kill_gold": 171,
+      "tp_preservation_pct": 47.2,
+      "tp_lost_count": 38,
+      "tp_lost_events": [
+        "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+        "bc0528c2-8034-40a8-bad3-62f93136f44c",
+        "d59d5309-60c5-4ce9-8a64-2c68342c07c5",
+        "2bb892bc-c4d8-4175-b8b1-89007a82d133",
+        "3c840ac4-b0f7-4fec-b696-dd7e68725b49",
+        "8fdb7d45-3093-46f2-bcf8-a1fb2ac49dbd",
+        "80fdbc2b-e478-4d2a-a844-731ef1b6d256",
+        "3840ceba-7185-4a52-92ed-4c328ddbcff7",
+        "7ada74a4-674c-403e-859c-7c10980e997f",
+        "d27e2560-de7e-4847-8ba6-f57c642484bf",
+        "ae3d87cb-189c-4d80-b56e-d202d92b4e59",
+        "8367f372-247b-42fd-886d-61bfc600b303",
+        "66552250-ab55-4b97-9976-ba1adedd5e25",
+        "889c8519-b2f5-4d0c-97a6-f731dbe1e411",
+        "d249a14d-63ea-4ef6-94e2-64019853a95b",
+        "ba4d2af7-e373-44d3-b602-70af4c0e0a1b",
+        "6af521a0-5631-4aba-893d-f05b775aab25",
+        "82b922ae-16aa-4aa9-8320-029ee66a007f",
+        "8873d1a1-916b-49d5-a33b-69c0abdc437f",
+        "0c7055c8-9abe-43f4-ac6e-8887278e6b07",
+        "5043229a-e7c9-4798-925c-377deeea8d85",
+        "02b1f0d9-fce9-4079-bb84-fb5727f0faca",
+        "e52fec0f-948e-4fc7-8d19-379ed1affe08",
+        "83962f79-0f4c-4c43-a36b-fe1111b1da20",
+        "7668e74b-674d-4df9-b108-bc107efe899e",
+        "7db775b2-8249-4809-9699-17ba57040a52",
+        "c35ccb74-c88a-4faf-b06b-098765d799ba",
+        "df78c5ae-8f25-40cc-a3bd-9e6f3d249164",
+        "95fcd71f-1a1a-4b2f-9d8f-3ec797ddad39",
+        "441d1cef-2be6-41ac-8fbe-31aeca9b1070",
+        "417dda86-0992-4c03-94b0-e07376d20ea9",
+        "2ee63d2b-45b9-4148-a5ed-211f0c725bdc",
+        "9814c090-7fa3-4bd1-a41a-9c09dfff17ca",
+        "a61868a6-4113-4500-a3a2-c717cbe6fdea",
+        "bb2c64b9-f3ae-4884-9b81-bdbc6abaef6a",
+        "0dd2fb9c-9d9a-46be-b2cc-07962c8dcaca",
+        "636c5658-6f40-4b21-8dad-9c81ac259e32",
+        "3a7dda03-cbad-4b0a-9460-f3e9f06ab443"
+      ],
+      "fp_suppression_overall_pct": 86.5,
+      "fp_killed_count": 148,
+      "fp_suppression_by_subtype": {
+        "passante_parado": {
+          "killed": 103,
+          "total": 110,
+          "pct": 93.6
+        },
+        "revira_explicit": {
+          "killed": 24,
+          "total": 36,
+          "pct": 66.7
+        },
+        "revira_mexe": {
+          "killed": 21,
+          "total": 25,
+          "pct": 84.0
+        }
+      },
+      "cost_total_usd": 0.134026,
+      "cost_per_event_usd": 0.000552,
+      "latency_p50_ms": 3519,
+      "errors": 0,
+      "passes_tp_floor": false
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "summary": {
+    "arm": "haiku_smoke",
+    "provider": "bedrock",
+    "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "events_total": 3,
+    "events_ok": 3,
+    "total_cost_usd": 0.03687,
+    "elapsed_seconds": 46.9
+  },
+  "results": [
+    {
+      "event": "be6b5e67-2286-4565-af7c-e6544ebaa1ce",
+      "gold": "keep",
+      "subtype": "real_deposit",
+      "source": "",
+      "keep": false,
+      "verdict": {
+        "reasoning_delta": "The pile-zone crop comparison shows identical material distribution, positioning, and composition between BEFORE (22:10:18) and AFTER (22:11:13): same white papers, dark refuse items, and overall footprint. No new bags, containers, or material accumulation is visible in the AFTER frame that was absent in BEFORE.",
+        "actor_behavior": "rummaged_or_took",
+        "pile_delta": "unchanged",
+        "confidence_0_100": 82,
+        "is_real_new_disposal": false,
+        "reason": "Person crouched and rummaged through the pile, but pile composition and mass remain identical; no new material was added or retained—consistent with waste-picker activity, not illegal disposal."
+      },
+      "cost_usd": 0.011125,
+      "latency_ms": 20983,
+      "input_tokens": 7285,
+      "output_tokens": 768,
+      "n_images": 6,
+      "ok": true
+    },
+    {
+      "event": "ad65ae06-bc84-456d-b216-a14f0591219b",
+      "gold": "keep",
+      "subtype": "real_deposit",
+      "source": "",
+      "keep": false,
+      "verdict": {
+        "reasoning_delta": "The pile in the AFTER frame exhibits identical composition, color distribution, and boundary geometry compared to the BEFORE frame. The high-res crop comparison shows the same white/light materials, dark debris, and vegetation positioning; no new distinct bag or material accumulation is discernible. The four people visible in middle frames walk through the area but show no crouching, stopping, or hand-to-pile interaction consistent with deposition.",
+        "actor_behavior": "passed_by",
+        "pile_delta": "unchanged",
+        "confidence_0_100": 88,
+        "is_real_new_disposal": false,
+        "reason": "Pile geometry and material distribution are visually identical between BEFORE and AFTER frames; people transit without stopping or depositing, indicating no net addition of waste material."
+      },
+      "cost_usd": 0.01231,
+      "latency_ms": 11829,
+      "input_tokens": 7285,
+      "output_tokens": 1005,
+      "n_images": 6,
+      "ok": true
+    },
+    {
+      "event": "bc0528c2-8034-40a8-bad3-62f93136f44c",
+      "gold": "keep",
+      "subtype": "real_deposit",
+      "source": "",
+      "keep": true,
+      "verdict": {
+        "reasoning_delta": "The BEFORE pile-zone crop (7:27) shows the established chronic waste with dispersed white debris and dark materials. The AFTER crop (7:29) shows visibly increased colored items—notably blue plastic and additional materials in the foreground/bottom area—that were not as prominent or present in the BEFORE frame. The person in red is positioned at the pile in middle and AFTER frames, consistent with deposition behavior.",
+        "actor_behavior": "deposited_new",
+        "pile_delta": "increased",
+        "confidence_0_100": 68,
+        "is_real_new_disposal": true,
+        "reason": "AFTER pile-zone crop displays additional blue-colored bag/plastic and more colored debris in the lower area absent in BEFORE, with actor in red positioned at pile suggesting deposition rather than scavenging."
+      },
+      "cost_usd": 0.013435,
+      "latency_ms": 14013,
+      "input_tokens": 7285,
+      "output_tokens": 1230,
+      "n_images": 6,
+      "ok": true
+    }
+  ]
+}

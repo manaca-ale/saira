@@ -1,0 +1,44 @@
+campaign_number: 44
+title: "Imbiribeira (esp32_001) — reduzir FP: polígonos recall-safe + gate veículo-focado"
+date: 2026-06-23
+type: prompt-ab            # + análise de polígonos (Fase C) e split de veículo (Fase D.1)
+camera: cam_imbiribeira
+device_id: esp32_001
+
+hypothesis: >
+  O FP do Imbiribeira (terreno aberto, vista distante) é dominado por pedestre passando.
+  (1) Os 4 polígonos pile_zone atuais podem não cobrir onde os descartes reais caem
+  (atrapalhando recall/BGSUB/DINOv2) — redesenhar recall-safe (100% dos TPs). (2) Exigir
+  VEÍCULO no gate corta FP de pedestre; medir quanto recall isso custa.
+
+ground_truth: detections.status (CONFIRMADO=TP, REJEITADO=FP, INDETERMINADO=excluído)
+dataset: data/datasets/official/cam_imbiribeira (pull full-DB 2026-06-23: 20 TP / 147 FP / 44 IND)
+
+models:
+  gate: gemini-2.5-flash-lite
+  thinking_budget: 2048
+  auth: vertex (saira-tests-260520, ADC keyless)
+
+gate_sampling: first + last + 3 mid (even-spaced)   # prod-faithful (camp-31)
+trigger_min_confidence: 85
+
+arms:
+  - id: A_baseline
+    desc: "live ESP32_001_IMBIRIBEIRA_E_ADDON (camp-31 winner, prod hoje) — qualquer modalidade a/b/c/d escala"
+  - id: B_vehicle_hard
+    desc: "só modalidade (a) VEÍCULO escala; a-pé/carrinho/grupo suprimidos"
+  - id: C_vehicle_soft
+    desc: "veículo escala livre; modalidades a-pé exigem barra alta (transição carry->empty / grupo 2+)"
+
+success_criteria:
+  tp_recall_min_pct: 85.0     # piso recall ×3 (SAIRA), ≈ camp-31 6/7
+  decision: >
+    adotar veículo-hard só se recall >= 85% E corte de FP relevante; senão recomendar
+    soft (C) ou só a alavanca de polígonos (Fase C). Polígono e veículo são complementares.
+
+phases:
+  A: pull full-DB + merge no dataset oficial (DONE: 55->211)
+  B: tools/tp_marker.html — usuário marca localização dos TPs + veículo (manual)
+  C: polygon_analysis.py — overlay TP vs polígonos + proposta recall-safe + SQL
+  D1: vehicle_split.py — split de veículo dos TPs (bound do recall)
+  D2: bench_vehicle_gate.py — A/B/C recall/spec

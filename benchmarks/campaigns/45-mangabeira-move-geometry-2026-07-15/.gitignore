@@ -1,0 +1,6 @@
+# Baselines MOG2 (~118 MB cada) — reconstruíveis: c45_prod.npz vem de
+# tmp/mangabeira_move/state/ (cópia do npz de prod) e fresh_base.npz é gerado
+# por replay_bgsub.py a partir dos frames de 07-10 00-03h.
+models/
+# Sweep por janela (~500k linhas); o agregado sweep_45.json é versionado.
+results/sweep_windows.csv

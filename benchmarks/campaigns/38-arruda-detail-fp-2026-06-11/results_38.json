@@ -1,0 +1,1121 @@
+[
+  {
+    "id": "01c9e4c7",
+    "status": "CONF",
+    "n_frames": 48,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Dois indivíduos empurrando um carrinho com material param junto à pilha de resíduos pré-existente e descarregam o conteúdo do carrinho, aumentando o volume da pilha. A ação de descarte é visível em mú"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Dois indivíduos empurrando um carrinho com resíduos param ao lado da pilha de lixo existente. Um dos indivíduos é visto descarregando material do carrinho para o chão, aumentando a pilha."
+      }
+    }
+  },
+  {
+    "id": "01e54259",
+    "status": "CONF",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Uma pessoa empurrando um carrinho com entulho parou ao lado de uma pilha de lixo pre-existente e depositou material adicional, aumentando o volume da pilha."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho de mão parou ao lado da pilha de lixo existente e depositou material do carrinho no chão, aumentando o volume da pilha."
+      }
+    }
+  },
+  {
+    "id": "098d3182",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho para e deposita sacolas brancas de lixo na pilha de resíduos pré-existente ao lado do muro."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa com um carrinho para próximo à pilha de lixo existente e deposita sacolas brancas, aumentando o volume de resíduos visíveis no chão."
+      }
+    }
+  },
+  {
+    "id": "0c4976c0",
+    "status": "INDET",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Duas pessoas com carrinhos de coleta param junto ao muro à direita, na área de descarte crônico, e adicionam material à pilha de resíduos existente. A pilha de lixo parece ter aumentado de volume após"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho se aproximou da pilha de lixo existente, parou e foi vista inclinando o carrinho para descarregar material na pilha. Uma segunda pessoa com outro carrinho se juntou p"
+      }
+    }
+  },
+  {
+    "id": "0cb3394b",
+    "status": "INDET",
+    "n_frames": 42,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas pessoas se aproximam da pilha de lixo pré-existente na lateral da via. Uma delas se inclina e parece depositar material. Após a saída das pessoas, a pilha de lixo visivelmente aumentou de volume."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "A sequência mostra tráfego de veículos e pedestres. Duas pessoas foram observadas próximas à pilha de lixo pré-existente, mas não há evidência visual de descarte de material novo no chão."
+      }
+    }
+  },
+  {
+    "id": "0e865565",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pé parou junto ao muro à direita, agachou-se e depositou um objeto no chão, que permaneceu visível após a pessoa se afastar. O material depositado é novo e não estava presente no início d"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa parou proximo a pilha de residuos existente, curvou-se e um novo material de lixo tornou-se visivel no chao na sua posicao, que nao estava presente em frames anteriores."
+      }
+    }
+  },
+  {
+    "id": "0f2e9b60",
+    "status": "INDET",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa parou ao lado de uma pilha de resíduos pré-existente na calçada, curvou-se e manipulou material, sugerindo descarte. Em seguida, uma van branca parou próximo à pessoa e à pilha de resíduos."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa é observada curvada sobre a pilha de lixo pré-existente na faixa direita da via, aparentemente remexendo ou recolhendo itens. Não há evidência visual de material novo sendo depositado no ch"
+      }
+    }
+  },
+  {
+    "id": "278a25cd",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas pessoas param junto ao muro onde há uma pilha de lixo pré-existente. Uma das pessoas se curva sobre a pilha, indicando descarte de material."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Duas pessoas se aproximam de uma pilha de lixo pre-existente na lateral da via. Uma pessoa se curva sobre a pilha, mas nao ha evidencia visual clara de descarte de material novo ou de largada de resid"
+      }
+    }
+  },
+  {
+    "id": "3435b0a8",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas infrações de descarte foram observadas. Primeiro, um pedestre descartou um objeto escuro na pilha de lixo existente entre 18:59:25 e 18:59:30. Em seguida, outro pedestre descartou um objeto azul "
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Nenhum material novo foi visivelmente depositado no chao. Pessoas e veiculos passaram pela via e calcadas sem realizar descarte, conforme observado entre o primeiro e o ultimo frame."
+      }
+    }
+  },
+  {
+    "id": "3af136cd",
+    "status": "REJ",
+    "n_frames": 47,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho parou ao lado da pilha de resíduos pré-existente e depositou material, aumentando o volume da pilha."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Uma pessoa empurrando um carrinho de mao verde para ao lado da pilha de lixo existente na faixa direita da via e despeja material do carrinho no chao, aumentando a pilha de residuos."
+      }
+    }
+  },
+  {
+    "id": "3d245b0d",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa caminhando depositou um objeto grande e claro (aparentemente uma caixa ou similar) na pilha de lixo pre-existente ao lado do muro à direita da via."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa caminhando com uma caixa na cabeca para na faixa direita e deposita a caixa na pilha de residuos existente."
+      }
+    }
+  },
+  {
+    "id": "3ee3f599",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa vestindo camisa amarela parou ao lado da pilha de lixo pre-existente e um pequeno saco branco de lixo apareceu no chao, permanecendo visivel apos a pessoa se afastar."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Veiculos e pedestres, incluindo uma pessoa com carrinho, passaram pela área. Não há evidência visual de material novo depositado no chão nem de descarte ativo."
+      }
+    }
+  },
+  {
+    "id": "40ee3a04",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Duas pessoas foram observadas depositando grandes objetos brancos na pilha de lixo existente ao lado do muro. A primeira pessoa depositou um objeto por volta de 21:34:30, e a segunda pessoa depositou "
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "A sequencia mostra tráfego de veículos e pedestres. Uma pessoa se aproxima da pilha de resíduos existente, mas não há evidência visual de descarte de material novo no chão. A pilha de lixo pré-existen"
+      }
+    }
+  },
+  {
+    "id": "435d39f1",
+    "status": "REJ",
+    "n_frames": 48,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um indivíduo em uma bicicleta com carrinho parou ao lado da pilha de lixo pré-existente e depositou material adicional, aumentando o volume de resíduos no local."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "A sequencia mostra trafego de veiculos e pedestres. Duas pessoas com carrinhos e uma pessoa a pe foram observadas proximo a pilha de residuos pre-existente, mas nao ha evidencia visual clara de descar"
+      }
+    }
+  },
+  {
+    "id": "47ef561c",
+    "status": "REJ",
+    "n_frames": 39,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Duas pessoas empurram um carrinho de mao com entulho, param proximo a uma pilha de residuos pre-existente na calcada direita e descartam o material, aumentando o volume da pilha."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Um objeto grande e escuro, possivelmente um colchao ou pedaco de madeira, apareceu na via proximo a pilha de residuos pre-existente entre 18:30:54 e 18:31:00. Nao foi possivel identificar o agente do "
+      }
+    }
+  },
+  {
+    "id": "4d51d0a1",
+    "status": "INDET",
+    "n_frames": 82,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Uma pessoa com um carrinho parou junto ao muro na área de descarte crônico e permaneceu estacionária, indicando a deposição de resíduos. O carrinho e a pessoa estão visíveis e parados por vários frame"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa com um carrinho amarelo parou ao lado da pilha de lixo pre-existente e depositou material, resultando em um aumento visivel na quantidade de residuos no local."
+      }
+    }
+  },
+  {
+    "id": "4d8b8659",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": null,
+        "ev": "Uma pessoa caminhou ate a pilha de residuos pre-existente, parou, curvou-se proximo ao chao e depois se afastou, indicando descarte de material."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa se aproximou da pilha de lixo pré-existente à direita da via, curvou-se e pareceu manusear o material, mas não há evidência visual de descarte de novo material. A pessoa se afastou em segui"
+      }
+    }
+  },
+  {
+    "id": "5066ab54",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um indivíduo com um carrinho parou próximo à pilha de lixo pré-existente e depositou material. Posteriormente, outra pessoa com colete laranja parou no mesmo local e também adicionou resíduos à pilha,"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um carro branco permaneceu estacionado proximo a uma pilha de residuos pre-existente. Apos o veiculo se afastar, uma quantidade notavel de lixo, incluindo sacolas plasticas, apareceu no chao onde o ca"
+      }
+    }
+  },
+  {
+    "id": "50c32313",
+    "status": "CONF",
+    "n_frames": 41,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa com um carrinho permaneceu estacionária ao lado de uma pilha de resíduos pré-existente, manuseando e adicionando material à pilha durante a sequência. A pilha de resíduos visivelmente aumen"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa com um carrinho permanece estacionaria proximo a uma pilha de lixo pre-existente. Ao longo da sequencia, o volume de residuos no chao, proximo ao carrinho, aumenta visivelmente, indicando d"
+      }
+    }
+  },
+  {
+    "id": "5ecd9bed",
+    "status": "REJ",
+    "n_frames": 39,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pe para proximo a pilha de residuos pre-existente na calcada direita e deposita material, permanecendo estacionaria por varios segundos."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa aparece na cena e permanece parada proximo a uma pilha de lixo pre-existente na faixa direita da via. Nao ha evidencia visual de descarte de material novo ou de acao de largar/derramar resi"
+      }
+    }
+  },
+  {
+    "id": "6328e4e6",
+    "status": "CONF",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho parou próximo à pilha de resíduos existente na lateral da via. A pessoa permaneceu estacionária por alguns segundos, e após sua saída, a pilha de resíduos visivelment"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Uma pessoa empurrando um carrinho de mão parou ao lado da pilha de resíduos existente na faixa direita da via. A pessoa e o carrinho permaneceram estacionários por um período prolongado. Ao comparar o"
+      }
+    }
+  },
+  {
+    "id": "66187ce6",
+    "status": "REJ",
+    "n_frames": 38,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Novos sacos de lixo de cor vermelha/laranja surgiram no canto inferior direito da imagem a partir do frame 02:26:00 (23:26:04) e permaneceram no local, indicando descarte irregular de material."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa apareceu no canto inferior direito da imagem e depositou material novo (sacos vermelhos/laranjas) no chao, que nao estava presente nos frames iniciais e permaneceu no local ate o final da s"
+      }
+    }
+  },
+  {
+    "id": "6834dad7",
+    "status": "CONF",
+    "n_frames": 48,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Um indivíduo empurrando uma carroça com resíduos para ao lado da pilha de lixo pré-existente e descarrega o material, aumentando o volume da pilha."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Uma pessoa empurrando uma carroça com entulho parou junto à pilha de resíduos existente na faixa direita da via e depositou o material, aumentando visivelmente o volume da pilha. O material novo é cla"
+      }
+    }
+  },
+  {
+    "id": "6a126950",
+    "status": "INDET",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa parou próximo à pilha de resíduos existente na lateral da via, adicionou material ao local e em seguida se afastou."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa permaneceu estacionaria proxima a uma pilha de residuos pre-existente na faixa direita da via, curvada sobre o lixo por um periodo prolongado. Nao ha evidencia visual clara de material novo"
+      }
+    }
+  },
+  {
+    "id": "6e2e95ce",
+    "status": "INDET",
+    "n_frames": 37,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho com sacos de lixo pretos para na lateral da via e deposita os sacos na pilha de residuos ja existente, aumentando seu volume."
+      },
+      "arruda": {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing a value at line 8 column 15 [type=json_invalid, input_value='{\\n"
+      }
+    }
+  },
+  {
+    "id": "709008ea",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pé parou ao lado da pilha de resíduos pré-existente na calçada direita, permaneceu estacionária por vários frames e um novo saco de lixo (claro) apareceu no chão, adicionado à pilha exist"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho parou ao lado da pilha de lixo existente e depositou um saco branco ou objeto similar no chão, aumentando o volume de resíduos na via pública. O material novo é visív"
+      }
+    }
+  },
+  {
+    "id": "711dd084",
+    "status": "REJ",
+    "n_frames": 48,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho parou ao lado da pilha de lixo pre-existente e depositou material adicional, aumentando o volume da pilha. Um saco/material escuro e novo e visivel na pilha."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "A faixa à direita da via possui resíduo espalhado que já estava presente no primeiro frame e não houve adição de material novo. Pessoas com carrinhos e bicicletas passaram pela área, mas não foram obs"
+      }
+    }
+  },
+  {
+    "id": "71d9f186",
+    "status": "REJ",
+    "n_frames": 47,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pé parou na calçada direita, próximo a uma pilha de lixo pré-existente, e depositou um recipiente escuro (lixeira) no local, deixando-o ali. O recipiente não estava presente no início da "
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pé trouxe um recipiente preto (lixeira) e o deixou no chão ao lado da pilha de lixo existente na faixa direita da via, confirmando o descarte de material novo."
+      }
+    }
+  },
+  {
+    "id": "7ab5880b",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho parou próximo a uma pilha de resíduos pré-existente e depositou material adicional, aumentando visivelmente o volume da pilha."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa com um carrinho de mao parou proximo a uma pilha de lixo pre-existente na lateral da via. Nao ha evidencia visual clara de descarte de material novo no chao ou de material sendo largado do "
+      }
+    }
+  },
+  {
+    "id": "7aefa8da",
+    "status": "REJ",
+    "n_frames": 42,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas pessoas se aproximam de uma pilha de lixo pré-existente, param e depositam material adicional, aumentando o volume da pilha. A ação de descarte é visível entre 13:53:31 e 13:53:41."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Nenhum material novo foi depositado na pilha de lixo pré-existente. Pessoas e veículos passaram pela área sem realizar descarte, configurando tráfego normal ou aproximação sem largada."
+      }
+    }
+  },
+  {
+    "id": "7d78bc0b",
+    "status": "REJ",
+    "n_frames": 84,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um veiculo vermelho parou ao lado da pilha de lixo pre-existente. Duas pessoas sairam do veiculo e foram vistas depositando material na pilha, que aumentou de volume. O veiculo e as pessoas permanecer"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um veículo vermelho parou na faixa direita da via. Duas pessoas desceram e foram vistas adicionando material à pilha de lixo pré-existente. O volume da pilha de resíduos aumentou visivelmente entre o "
+      }
+    }
+  },
+  {
+    "id": "7dd7fc21",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa com um carrinho se aproximou da pilha de lixo pre-existente, manuseou o material e removeu parte dele, diminuindo o volume da pilha. Nao houve descarte de novos residuos."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa com um carrinho se aproximou de uma pilha de resíduos pré-existente na lateral da via, interagiu com o material e se afastou, sem evidência de descarte de novos resíduos no local."
+      }
+    }
+  },
+  {
+    "id": "7f70fb50",
+    "status": "REJ",
+    "n_frames": 46,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa com um carrinho de catador parou ao lado da pilha de lixo pré-existente e adicionou mais resíduos à pilha, aumentando seu volume."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas pessoas com um carrinho de mão param ao lado da pilha de lixo existente. Material novo, incluindo sacolas, é visivelmente adicionado à pilha durante a sequência, e uma das pessoas interage com o "
+      }
+    }
+  },
+  {
+    "id": "8657dafd",
+    "status": "COLETA",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Um veículo prata com reboque estaciona ao lado de uma pilha de lixo pré-existente. Uma pessoa descarrega ativamente diversos materiais, incluindo uma caixa de papelão grande, do reboque para a pilha d"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Um veículo prata com reboque estacionou na faixa direita da via. Duas pessoas descarregaram ativamente diversos materiais, incluindo um objeto branco grande e caixas de papelão, aumentando visivelment"
+      }
+    }
+  },
+  {
+    "id": "8f208f36",
+    "status": "REJ",
+    "n_frames": 48,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Poda",
+        "ev": "Uma pessoa com um carrinho parou ao lado da pilha de lixo pré-existente e depositou novos resíduos (poda e entulho), aumentando o volume da pilha. Este comportamento de descarte foi observado em múlti"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "A sequencia mostra trafego de veiculos e pedestres na via. Nao ha evidencia de material novo sendo depositado no chao, nem de agentes largando ou derramando residuos. A pilha de lixo pre-existente per"
+      }
+    }
+  },
+  {
+    "id": "9085ad0e",
+    "status": "CONF",
+    "n_frames": 41,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Uma pessoa a pe depositou um objeto grande e plano (aparentemente um colchao ou painel) na pilha de lixo pre-existente ao lado do muro branco."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Entulho",
+        "ev": "Uma pessoa carregou um objeto grande e plano, similar a um colchão ou peça de mobília, até a faixa de resíduos à direita da via e o depositou no chão. O material não estava presente no início da sequê"
+      }
+    }
+  },
+  {
+    "id": "95dd7824",
+    "status": "INDET",
+    "n_frames": 37,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um veículo vermelho parou na via, um indivíduo saiu do carro, abriu o porta-malas e descartou resíduos na pilha de lixo pré-existente ao lado do muro."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um veiculo vermelho parou ao lado da pilha de lixo. Uma pessoa saiu do carro, abriu o porta-malas e depositou material novo na pilha de residuos existente, que nao estava presente no primeiro frame."
+      }
+    }
+  },
+  {
+    "id": "9734831a",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa caminhou ate a pilha de residuos existente, depositou um objeto vermelho (aparentemente uma sacola) no chao proximo a pilha, e em seguida se afastou."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa caminhou pela via, aproximou-se da pilha de lixo existente na lateral da rua, parou brevemente e continuou seu caminho, sem evidência visual de descarte de material novo no chão. Veículos e"
+      }
+    }
+  },
+  {
+    "id": "9d6d4ede",
+    "status": "REJ",
+    "n_frames": 47,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas ocorrências de descarte. Primeiro, uma pessoa de camisa cinza depositou um saco branco na pilha de lixo existente. Segundo, duas pessoas, uma de camisa vermelha, adicionaram mais resíduos à pilha"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Múltiplos indivíduos foram observados aproximando-se e interagindo com uma pilha de resíduos pré-existente na faixa direita da via, consistentemente revirando ou passando. Não há evidência visual de m"
+      }
+    }
+  },
+  {
+    "id": "9d71a737",
+    "status": "REJ",
+    "n_frames": 46,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Entulho",
+        "ev": "Uma pessoa em cadeira de rodas vermelha parou junto à pilha de lixo pré-existente na calçada direita e depositou material novo, aumentando o volume da pilha. O descarte é visível entre os frames corre"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Nenhum material novo foi visivelmente depositado no chao. Pessoas foram observadas paradas proximo a pilha de residuos existente, mas sem evidencia de descarte de material novo."
+      }
+    }
+  },
+  {
+    "id": "9e112c6d",
+    "status": "INDET",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Entulho",
+        "ev": "Um veículo branco parou próximo à pilha de resíduos pré-existente. Uma pessoa saiu do veículo ou estava próxima a ele e manuseou material na área do descarte, antes do veículo seguir viagem."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa se aproximou da pilha de lixo pre-existente, curvou-se e manuseou o residuo por varios segundos antes de se afastar. Nao ha evidencia visual de material novo sendo depositado no chao."
+      }
+    }
+  },
+  {
+    "id": "a00ba69c",
+    "status": "REJ",
+    "n_frames": 45,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa caminhou até uma pilha de resíduos pré-existente na calçada, parou e permaneceu estacionária por um período prolongado, interagindo com a pilha e aparentemente adicionando material a ela."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa permaneceu estacionaria proxima a pilha de lixo pre-existente na faixa direita da via, aparentemente remexendo ou manuseando o residuo. Nao ha evidencia visual clara de descarte de material"
+      }
+    }
+  },
+  {
+    "id": "a5a72209",
+    "status": "CONF",
+    "n_frames": 86,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Um indivíduo descarregou material de um reboque acoplado a um carro prata na via pública, adicionando à pilha de resíduos já existente ao lado do muro."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho",
+        "ev": "Um indivíduo estacionou um veículo com reboque e descarregou ativamente uma quantidade considerável de resíduos no chão, adicionando à pilha existente na lateral da via. O material novo é visivelmente"
+      }
+    }
+  },
+  {
+    "id": "a70adde9",
+    "status": "REJ",
+    "n_frames": 47,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho com residuos para na via proximo a um ponto de descarte pre-existente e deposita sacos e outros materiais no chao, aumentando a pilha de lixo."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho carregado parou na faixa direita da via e descarregou material no chão, aumentando a pilha de resíduos existente. O descarte foi visível em múltiplos frames, com o ma"
+      }
+    }
+  },
+  {
+    "id": "b3b3505d",
+    "status": "REJ",
+    "n_frames": 39,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho carregado com caixas de papelao e outros materiais parou ao lado da pilha de lixo pre-existente. O material foi descarregado do carrinho, que ficou visivelmente mais "
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Um indivíduo empurrando um carrinho com caixas e outros materiais passa pela via, mas não para nem é observado descartando qualquer material no chão. A pilha de lixo preexistente permanece inalterada."
+      }
+    }
+  },
+  {
+    "id": "b797daa9",
+    "status": "INDET",
+    "n_frames": 39,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas pessoas se aproximam de um caminhão estacionado ao lado de uma pilha de lixo pré-existente. Elas permanecem estacionárias por vários segundos, interagindo com a área de descarte, e a pilha de res"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Pessoas foram observadas próximas a uma pilha de resíduos pré-existente, mas não há evidência visual de descarte de material novo ou de largada de resíduos no chão. A pilha de lixo na faixa direita pe"
+      }
+    }
+  },
+  {
+    "id": "bb4ff82a",
+    "status": "REJ",
+    "n_frames": 39,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho com objetos grandes (aparentemente uma geladeira e outros itens) parou ao lado da pilha de lixo existente na calçada direita e descartou os materiais, aumentando o vo"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho com um eletrodoméstico e outros itens volumosos parou ao lado da pilha de lixo existente e depositou os materiais no chão, que não estavam presentes no primeiro frame"
+      }
+    }
+  },
+  {
+    "id": "bba91276",
+    "status": "REJ",
+    "n_frames": 88,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa com carrinho e, posteriormente, uma caminhonete branca pararam e descartaram resíduos na pilha existente à direita da via, aumentando seu volume."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa com carrinho interage com a pilha de lixo existente, possivelmente catando materiais. Um veiculo utilitario branco para brevemente proximo a pilha, mas nao ha evidencia visual de descarte d"
+      }
+    }
+  },
+  {
+    "id": "bcb8038c",
+    "status": "CONF",
+    "n_frames": 80,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Entulho, Poda",
+        "ev": "Um veiculo branco permaneceu estacionado proximo a uma pilha de residuos pre-existente, com duas pessoas manuseando material na area. Posteriormente, a pilha de residuos aumentou visivelmente em volum"
+      },
+      "arruda": {
+        "ok": false,
+        "confirm": null,
+        "err": "RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport\n  Invalid JSON: EOF while parsing an object at line 7 column 23 [type=json_invalid, input_value='{"
+      }
+    }
+  },
+  {
+    "id": "bd466bda",
+    "status": "INDET",
+    "n_frames": 46,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa com um carrinho de mão para ao lado da pilha de lixo existente e deposita material, permanecendo estacionária por alguns segundos antes de seguir em frente."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa em bicicleta parou proximo a pilha de lixo pre-existente e a lixeira, parecendo manusear ou revirar itens, mas nao ha evidencia visual de descarte de material novo no chao."
+      }
+    }
+  },
+  {
+    "id": "c584359b",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa empurrando um carrinho com residuos parou proximo a pilha de lixo existente na calcada direita, depositou material e se afastou."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa com um carrinho se aproxima da pilha de lixo pre-existente na faixa direita da via, curva-se e manuseia o material. Nao ha evidencia visual de descarte de material novo no chao, caracteriza"
+      }
+    }
+  },
+  {
+    "id": "ce13f76c",
+    "status": "CONF",
+    "n_frames": 38,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Poda",
+        "ev": "Uma pessoa parou proximo ao muro a direita, e um veiculo utilitario parou atras dela. A pessoa depositou uma quantidade de galhos e folhagens no chao, aumentando a pilha de residuos existente. O veicu"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Poda e Entulho",
+        "ev": "Um veiculo branco parou na faixa direita da via. Duas pessoas foram observadas proximo ao veiculo e a pilha de residuos existente. Novo material, incluindo galhos e possivelmente entulho, foi deposita"
+      }
+    }
+  },
+  {
+    "id": "d05407dc",
+    "status": "REJ",
+    "n_frames": 43,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Um indivíduo em uma bicicleta com carrinho parou ao lado de uma pilha de resíduos existente e descartou material adicional no chão, aumentando visivelmente o volume da pilha."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Poda",
+        "ev": "Uma pessoa em bicicleta com carga para ao lado da pilha de lixo pre-existente e deposita material novo no chao, aumentando o volume de residuos. O material depositado e visivelmente novo ao comparar o"
+      }
+    }
+  },
+  {
+    "id": "d7822b53",
+    "status": "CONF",
+    "n_frames": 82,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Poda",
+        "ev": "Um veiculo pickup branco parou na via e duas pessoas descarregaram galhos e folhas (poda) na calcada, adicionando a uma pilha de residuos ja existente."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Poda",
+        "ev": "Um veiculo pickup branco parou na via e duas pessoas descarregaram ativamente uma grande quantidade de galhos e folhagem, aumentando significativamente a pilha de residuos pre-existente na lateral da "
+      }
+    }
+  },
+  {
+    "id": "dc28f6db",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma motocicleta com uma pessoa passou pela cena. Nao houve descarte de material novo, nem veiculos ou pessoas estacionarias realizando descarte. A pilha de lixo pre-existente permaneceu inalterada."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pé parou junto à pilha de lixo existente na faixa direita da via, curvou-se e depositou um objeto claro (provavelmente uma sacola) no chão, aumentando a pilha de resíduos. O material novo"
+      }
+    }
+  },
+  {
+    "id": "f0028803",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa parou ao lado de uma pilha de lixo pré-existente, permaneceu estacionária por vários frames e a pilha de resíduos parece ter aumentado após sua partida, indicando descarte de material."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa com um cachorro parou próximo à pilha de lixo pré-existente na faixa direita da via e permaneceu estacionária por um período, mas não foi observado descarte de material novo. A pilha de lix"
+      }
+    }
+  },
+  {
+    "id": "f4187c1e",
+    "status": "REJ",
+    "n_frames": 41,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pé, carregando uma sacola branca grande, parou junto à pilha de lixo existente na calçada direita e depositou o conteúdo ou a própria sacola, aumentando o volume de resíduos."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pé, carregando um saco branco, aproximou-se da pilha de lixo existente na faixa direita da via. Após a pessoa se posicionar junto à pilha, um novo material de cor clara apareceu no chão, "
+      }
+    }
+  },
+  {
+    "id": "f7913b02",
+    "status": "INDET",
+    "n_frames": 43,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": false,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas pessoas foram observadas descartando resíduos na pilha pré-existente à direita da via. A primeira pessoa depositou um objeto branco (visível em 13-40-33.jpg), e a segunda pessoa depositou um saco"
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Duas pessoas foram observadas descartando resíduos. A primeira pessoa, vindo de bicicleta, parou e depositou uma sacola branca na pilha de lixo existente (entre 16:40:18 e 16:40:33). Posteriormente, o"
+      }
+    }
+  },
+  {
+    "id": "fc7b1ca1",
+    "status": "REJ",
+    "n_frames": 40,
+    "g": {
+      "v1": {
+        "ok": true,
+        "confirm": true,
+        "waste": "Lixo domiciliar",
+        "ev": "Uma pessoa a pe parou proximo a pilha de residuos pre-existente na lateral da via e depositou um novo volume de lixo, permanecendo estacionaria durante a acao de descarte."
+      },
+      "arruda": {
+        "ok": true,
+        "confirm": false,
+        "waste": null,
+        "ev": "Uma pessoa com um carrinho se aproxima e permanece estacionária ao lado da pilha de lixo existente, remexendo os resíduos. Não há evidência visual clara de descarte de material novo no chão, configura"
+      }
+    }
+  }
+]

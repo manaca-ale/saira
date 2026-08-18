@@ -1,0 +1,57 @@
+# Campanha 19 — gate esp32_002 pedestre recall (2026-05-27)
+campaign_number: 19
+title: "gate esp32_002 pedestre recall"
+date: 2026-05-27
+type: prompt-ab
+hypothesis: >
+  Uma variante de gate mais permissiva (b4: descarte a pé de volumosos/entulho sem
+  veículo + carrinho parado na pilha) recupera os TPs que o b2/b3 perdem (incl. o FN
+  de 14:52 e o carrinho de mão d59d5309) mantendo escalações na baseline <= 5%.
+
+models:
+  gate: "gemini-2.5-flash-lite"
+  detail: "nao executado (gate-only)"
+  thinking_budget: 2048
+
+runner: "benchmarks/campaigns/19-gate-esp32-pedestre-recall-2026-05-27/bench_gate_esp32_b4.py"
+focus: "gate recall tuning para cam_mangabeira / esp32_002 — descarte de pedestre"
+
+arms:
+  - id: A_v1
+    description: "Gate V1 de produção (NEW_LITTER_SYSTEM_PROMPT) — controle; espera-se FALHAR no 14:52"
+    prompt_version: "current"
+  - id: C_v3_esp32_recall_b2
+    description: "V3 + recall B2 (material-transfer required) — addon atual no develop"
+    prompt_version: "v3"
+  - id: D_v3_esp32_recall_b3
+    description: "V3 + recall B3 (material-carrier recall)"
+    prompt_version: "v3"
+  - id: F_v3_esp32_recall_b4
+    description: "V3 + recall B4 (bulky/dismantling + carrinho parado, baseline-safe) — NOVO"
+    prompt_version: "v3"
+
+dataset: "data/datasets/official"
+filters:
+  camera:
+    - cam_mangabeira
+  device_id:
+    - esp32_002
+  category:
+    - tp
+    - fp
+  include_baseline:
+    - day
+    - night
+  baseline_sample_per_period: 30
+  notes: >
+    Conjunto de TP ampliado em 2026-05-27: 13 TP (7 originais + 5 CONFIRMADO baixados
+    da plataforma + 1 FN manual 14:52). Baseline day/night = negativo normal.
+
+success_criteria:
+  baseline_trigger_rate_max_pct: 5
+  tp_gate_recall_min_pct: 71   # bater o b2 atual (5/7 no set antigo)
+  must_catch_events:
+    - manual-20260527-1452     # o FN motivador
+  fp_rate_delta_max_pp: 10     # vs b2
+
+# Preenchido em runtime pelo compute_metrics.py após a Fase 3.

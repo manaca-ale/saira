@@ -1,0 +1,48 @@
+{
+  "campaign_number": 26,
+  "date": "2026-05-31",
+  "title": "DINOv2 pile-zone crop com polígonos novos + cruzamento vs Gemini",
+  "type": "cv-verifier + late-fusion",
+  "model": "dinov2_vits14 (384-d) + LogReg 5-fold",
+  "cost": "$0 (CPU, embeddings cacheados)",
+  "dataset": {"n": 67, "cam_10": {"con": 10, "rej": 17}, "cam_11": {"con": 21, "rej": 19}},
+  "bbox_new": {"cam_10": [6, 297, 995, 719], "cam_11": [461, 66, 939, 416]},
+  "method_caveat": "3 variáveis mudaram vs baseline 2026-05-29: polígono novo + crop (era frame inteiro) + ViT-S/384 mean (era base/2304 concat). Ganho não atribuído a uma só.",
+  "standalone": {
+    "cam_10": {"acc": 0.960, "auc": 1.000, "recall": 0.90, "spec": 1.00, "tp": 9, "tn": 17, "fp": 0, "fn": 1,
+               "baseline_2026_05_29": {"acc": 0.96, "auc": 0.933}},
+    "cam_11": {"acc": 0.750, "auc": 0.787, "recall": 0.714, "spec": 0.789, "tp": 15, "tn": 15, "fp": 4, "fn": 6,
+               "baseline_2026_05_29": {"acc": 0.47, "auc": 0.525, "note": "SALTOU 47->75 com crop+poligono novo"}}
+  },
+  "crossref_cam11_vs_gemini_ecrops": {
+    "both_right": 22, "both_wrong": 5,
+    "dino_fixes_gemini": 8,
+    "dino_fixes_ids": ["2bb86418", "45dc0327", "5896feaa", "62497a92", "686b5746", "69b8b0b6", "b96cef1b", "cf39d55f"],
+    "dino_breaks": 5,
+    "dino_breaks_note": "4 CON-vira-REJ (6b4d979d, 80fdbc2b, bc0528c2, d59d5309) + 1 REJ-vira-CON (85d56cc5)"
+  },
+  "ensembles_cam11": {
+    "gemini_ecrops_alone": {"acc": 0.675, "recall": 0.905, "spec": 0.421, "tp": 19, "tn": 8, "fp": 11, "fn": 2},
+    "dinov2_alone": {"acc": 0.750, "recall": 0.714, "spec": 0.789, "tp": 15, "tn": 15, "fp": 4, "fn": 6},
+    "AND_both_con": {"acc": 0.775, "recall": 0.714, "spec": 0.842, "tp": 15, "tn": 16, "fp": 3, "fn": 6,
+                     "note": "maximiza spec (42->84) com custo recall (90->71)"},
+    "OR_any_con": {"acc": 0.650, "recall": 0.905, "spec": 0.368, "tp": 19, "tn": 7, "fp": 12, "fn": 2},
+    "gemini_veto_dino_p_lt_0.2": {"acc": 0.750, "recall": 0.810, "spec": 0.684, "tp": 17, "tn": 13, "fp": 6, "fn": 4,
+                                  "note": "conservador: elimina 5 FPs perdendo 2 TPs"}
+  },
+  "todays_fp_49e304b7": {
+    "status_db": "PENDENTE (não rotulado ainda; verificado visualmente como FP)",
+    "gemini_decision": "CON (confabulou sacola nova)",
+    "dinov2_p_con": 0.44,
+    "dinov2_pred": "REJ",
+    "caught_by_AND": true,
+    "caught_by_veto_0.2": false,
+    "note": "DINOv2 corrige (p=0.44<0.5 -> REJ); AND pega; veto 0.2 NAO pega (0.44>0.2)"
+  },
+  "verdict": {
+    "cam_10": "DEPLOY-READY como verificador grátis: 96% acc, spec 100%, AUC 1.0. Single-camera win.",
+    "cam_11": "Complementar ao Gemini: corrige 8/11 FPs, teria pego o FP de hoje. AND leva spec a 84% com custo de recall (71%).",
+    "overall": "DINOv2 = filtro de FP grátis (Agent-3 zero-custo), não substituto do gate. Polígono novo destravou cam_11.",
+    "next": "Validação temporal out-of-sample antes de deploy (thresholds post-hoc). Testar máscara multi-polígono p/ cam_10. Isolar variável (crop+small com polígono ANTIGO) p/ atribuir ganho cam_11."
+  }
+}

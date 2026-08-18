@@ -1,0 +1,61 @@
+# Campanha 18 — gerada por scaffold_campaign.py em 2026-05-26
+campaign_number: 18
+title: "v3 vs esp32 recall baseline"
+date: 2026-05-26
+type: prompt-ab
+hypothesis: "O prompt v3 com recall mode para esp32_002 aumenta o recall em TP sem elevar demais FP e disparos em baseline dia/noite."
+
+models:
+  gate: "gemini-2.5-flash-lite"
+  detail: "gemini-2.5-flash"
+  thinking_budget: 2048
+
+runner: "benchmarks/campaigns/18-v3-vs-esp32-recall-baseline-2026-05-26/bench_gate_v3_vs_recall.py"
+focus: "gate recall tuning for cam_mangabeira / esp32_002"
+arms:
+  - id: A_v3
+    description: "V3 original posture-first"
+    prompt_version: "v3"
+  - id: B_v3_esp32_recall
+    description: "V3 + recall mode esp32_002"
+    prompt_version: "v3"
+    prompt_addon: "CAMERA-SPECIFIC RECALL MODE - esp32_002"
+  - id: C_v3_esp32_recall_b2
+    description: "V3 + recall mode esp32_002 B2 (material-transfer required)"
+    prompt_version: "v3"
+    prompt_addon: "CAMERA-SPECIFIC RECALL MODE B2 - esp32_002"
+  - id: D_v3_esp32_recall_b3
+    description: "V3 + recall mode esp32_002 B3 (material-carrier recall)"
+    prompt_version: "v3"
+    prompt_addon: "CAMERA-SPECIFIC RECALL MODE B3 - esp32_002"
+  - id: E_haiku_b2
+    description: "Claude Haiku 4.5 Bedrock as Agent-1 with B2 gate prompt"
+    provider: "aws-bedrock"
+    model: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+    prompt_addon: "CAMERA-SPECIFIC RECALL MODE B2 - esp32_002"
+
+filters:
+  camera:
+    - cam_mangabeira
+  device_id:
+    - esp32_002
+  category:
+    - tp
+    - fp
+  include_baseline:
+    - day
+    - night
+  baseline_sample_per_period: 10
+  exclude_category:
+    - missed
+    - indefinido
+  notes: "Baseline day/night deve ser tratado como negativo normal fora do manifest.csv."
+
+success_criteria:
+  tp_recall_delta_min_pp: 0
+  fp_rate_delta_max_pp: 10
+  baseline_trigger_rate_max_pct: 5
+  cost_delta_max_pct: 30
+
+# Preenchido em runtime pelo compute_metrics.py após Fase 3.
+# results_seen: []
