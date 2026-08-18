@@ -411,7 +411,13 @@ services:
     ports:
       - "127.0.0.1:9092:9090"   # acesso via SSH tunnel; não exposto publicamente
     depends_on:
-      - yolo-worker
+      # yolo-worker is gated behind --profile worker; required: false keeps the
+      # start ordering when the profile is active and skips the dependency when
+      # it is not — otherwise any compose command without the profile fails with
+      # 'service "prometheus" depends on undefined service "yolo-worker"'.
+      yolo-worker:
+        condition: service_started
+        required: false
     restart: always
 
   alertmanager:
