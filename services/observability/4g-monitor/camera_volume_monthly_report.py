@@ -108,7 +108,9 @@ def send(subject: str, html: str) -> None:
                           "subject": subject, "html": html}).encode("utf-8")
     req = urllib.request.Request(
         "https://api.resend.com/emails", data=payload, method="POST",
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
+                 # o WAF do Resend responde 403 ao User-Agent padrão do urllib
+                 "User-Agent": "saira-4g-monitor/1.0"})
     with urllib.request.urlopen(req, timeout=30) as resp:
         print(f"Resend: HTTP {resp.status} {resp.read().decode('utf-8')[:200]}")
 
