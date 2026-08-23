@@ -216,9 +216,20 @@ class TendaRouter:
             return False
 
     def login(self) -> bool:
+        """Imita o browser: GET login.html + /login/Usernum carimbam a sessão
+        ANTES do Auth — sem isso o firmware responde "login time expired"
+        (observado em campo 23/08/2026) e o Auth falha mesmo com senha certa."""
+        try:
+            self.reachable()
+            self._json("/login/Usernum")
+        except (urllib.error.URLError, OSError, ValueError):
+            pass
         pwd_md5 = hashlib.md5(self.password.encode()).hexdigest()
         r = self._json("/login/Auth", {"username": self.user, "password": pwd_md5})
-        return int(r.get("errCode", -1)) == 0
+        ok = int(r.get("errCode", -1)) == 0
+        if not ok:
+            log.warning("login no roteador recusado: %s", r)
+        return ok
 
     def get_modules(self, modules: str) -> dict:
         return self._json(f"/goform/getModules?modules={modules}&rand={time.time()}")

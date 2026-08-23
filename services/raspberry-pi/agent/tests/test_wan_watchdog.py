@@ -91,12 +91,15 @@ def test_tenda_client_login_md5_and_reboot_payload(monkeypatch):
 
     monkeypatch.setattr(r.opener, "open", fake_open)
     assert r.login() is True
-    url, method, body = seen[0]
+    # o browser carimba a sessão antes do Auth: login.html + Usernum + Auth
+    assert [u for u, _, _ in seen] == ["http://r/login.html", "http://r/login/Usernum",
+                                        "http://r/login/Auth"]
+    url, method, body = seen[2]
     assert url == "http://r/login/Auth" and method == "POST"
     assert json.loads(body) == {"username": "admin",
                                 "password": hashlib.md5(b"s3cret").hexdigest()}
     r.reboot()
-    url, method, body = seen[1]
+    url, method, body = seen[3]
     assert url == "http://r/goform/setModules"
     assert json.loads(body) == {"reboot": {"action": "reboot"}}
 
