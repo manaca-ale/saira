@@ -43,6 +43,18 @@ SNAPSHOT_WIDTH="${SNAPSHOT_WIDTH:-1280}"    # casa com a referência dos polígo
 SNAPSHOT_HEIGHT="${SNAPSHOT_HEIGHT:-720}"   # força 16:9 (substream 704x480 é anamórfico)
 SNAPSHOT_QUALITY="${SNAPSHOT_QUALITY:-4}"   # -q:v mjpeg (2=melhor, 31=pior)
 
+# Timeout de socket I/O do RTSP (s). Sem isso, RTSP-sobre-TCP sobrevive como
+# zumbi a uma queda de conexão (roteador reiniciou, câmera sumiu): o ffmpeg
+# fica "active (running)" para sempre sem escrever nada — foi exatamente o
+# travamento silencioso de 13→19/08/2026 (clipes mudos por 6 dias). Com o
+# timeout, o ffmpeg SAI quando o socket morre e o systemd (Restart=always)
+# religa limpo. 0 = desligado (comportamento antigo).
+RTSP_IO_TIMEOUT_S="${RTSP_IO_TIMEOUT_S:-15}"
+TIMEOUT_ARGS=()
+if [[ "$RTSP_IO_TIMEOUT_S" -gt 0 ]]; then
+    TIMEOUT_ARGS=(-timeout "$((RTSP_IO_TIMEOUT_S * 1000000))")
+fi
+
 mkdir -p "$SEG_DIR" "$(dirname "$SNAPSHOT_JPG")"
 
 # -rtsp_transport tcp: mais confiável em 4G. -an: descarta áudio.
@@ -60,7 +72,7 @@ SEGMENT_ARGS=(
 if [[ "$SNAPSHOT_FROM_RTSP" != "true" ]]; then
     # Só segmentos, sem snapshot.
     exec ffmpeg -nostdin -y -loglevel warning \
-        -rtsp_transport tcp -i "$RTSP_URL" \
+        -rtsp_transport tcp "${TIMEOUT_ARGS[@]}" -i "$RTSP_URL" \
         "${SEGMENT_ARGS[@]}"
 fi
 
@@ -71,8 +83,8 @@ if [[ "$SNAPSHOT_STREAM" == "sub" ]]; then
     # -y: o muxer image2 (-update 1) recusa sobrescrever um latest.jpg
     # pré-existente e, com -nostdin, sai com erro em vez de perguntar.
     exec ffmpeg -nostdin -y -loglevel warning \
-        -rtsp_transport tcp -i "$RTSP_URL" \
-        -rtsp_transport tcp -skip_frame nokey -i "$RTSP_SUB_URL" \
+        -rtsp_transport tcp "${TIMEOUT_ARGS[@]}" -i "$RTSP_URL" \
+        -rtsp_transport tcp "${TIMEOUT_ARGS[@]}" -skip_frame nokey -i "$RTSP_SUB_URL" \
         "${SEGMENT_ARGS[@]}" \
         -map 1 -an -vf "scale=${SNAPSHOT_WIDTH}:${SNAPSHOT_HEIGHT}" -q:v "$SNAPSHOT_QUALITY" \
         -fps_mode passthrough \
@@ -81,7 +93,7 @@ if [[ "$SNAPSHOT_STREAM" == "sub" ]]; then
 else
     # Legado: snapshot do MAIN (input 0), mantém aspecto nativo.
     exec ffmpeg -nostdin -y -loglevel warning \
-        -rtsp_transport tcp \
+        -rtsp_transport tcp "${TIMEOUT_ARGS[@]}" \
         -skip_frame nokey \
         -i "$RTSP_URL" \
         "${SEGMENT_ARGS[@]}" \
