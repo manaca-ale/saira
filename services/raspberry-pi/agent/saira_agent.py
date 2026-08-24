@@ -303,6 +303,10 @@ class Agent:
         # setado por qualquer thread, consumido pela thread de captura (dona do gate).
         self._recalibrate_requested = False
         self._disk_low = False
+        # Guard do cam-rtsp-buffer: inicia "em cooldown" de propósito — dá ao
+        # serviço um período de graça no boot antes do primeiro auto-restart.
+        self._buffer_restarted_at = time.time()
+        self._buffer_auto_restarts = 0
 
     def _build_gate(self):
         try:
@@ -1070,6 +1074,9 @@ class Agent:
             # lida / câmera sem zoom óptico. Alimenta o "Zoom atual" no painel.
             "zoom": self._last_zoom,
             "rtsp_buffer_ok": self._rtsp_buffer_ok(),
+            # Quantas vezes o watchdog reiniciou o cam-rtsp-buffer nesta vida do
+            # agente. >0 recorrente = câmera/RTSP instável, investigar.
+            "buffer_auto_restarts": self._buffer_auto_restarts,
             # Breaker do fallback HTTP ABERTO agora = a porta 80 está em cooldown
             # (morta/flapando); o RTSP segura a captura. Usa o relógio do breaker
             # (monotonic) e volta a False sozinho ao fim do cooldown — não fica
@@ -1216,6 +1223,44 @@ class Agent:
             return "mute"
         return None
 
+    def _buffer_stalled(self, wall: float, mono: float) -> Optional[str]:
+        """Motivo do stall do cam-rtsp-buffer, ou None. Separado do loop para
+        ser testável. O -timeout do ffmpeg cobre socket morto; este guard cobre
+        o resto (ffmpeg vivo mas sem escrever nada — ex.: muxer preso).
+
+        Primário: seg_*.ts parados (o serviço SEMPRE os produz quando ligado).
+        Secundário: segmentos fluem mas o latest.jpg congelou, com o snapshot
+        vindo do RTSP (auto/rtsp) — o "meio-morto" que já se viu em campo.
+        """
+        limit = self.cfg.buffer_stall_restart_s
+        if limit <= 0:
+            return None
+        if wall - self._buffer_restarted_at < self.cfg.buffer_restart_cooldown_s:
+            return None
+        try:
+            newest = max(
+                (s.stat().st_mtime for s in self.cfg.video_seg_dir.glob("seg_*.ts")),
+                default=0.0,
+            )
+        except OSError:
+            newest = 0.0
+        if newest <= 0.0:
+            # Nenhum segmento: só é anômalo se o agente já roda há mais que o
+            # limiar (no boot o buffer ainda está subindo).
+            if mono - self._start_monotonic > limit:
+                return "no-segments"
+            return None
+        if wall - newest > limit:
+            return "segments"
+        if self._snapshot_source in ("auto", "rtsp"):
+            try:
+                snap_age = wall - self.cfg.snapshot_jpg.stat().st_mtime
+            except OSError:
+                return None
+            if snap_age > limit:
+                return "snapshot"
+        return None
+
     def watchdog_loop(self) -> None:
         """Reinicia o processo (os._exit -> systemd) se uma thread travar
         ('vivo mas mudo') e bate o WatchdogSec do systemd a cada tick."""
@@ -1226,6 +1271,20 @@ class Agent:
                 if reason is not None:
                     log.critical("Watchdog: %s estourou o limiar — reiniciando processo", reason)
                     self._die()
+                buf_reason = self._buffer_stalled(time.time(), time.monotonic())
+                if buf_reason is not None:
+                    # Arma o cooldown ANTES do restart: mesmo que o systemctl
+                    # falhe, não martelamos o serviço a cada tick.
+                    self._buffer_restarted_at = time.time()
+                    self._buffer_auto_restarts += 1
+                    log.critical(
+                        "Watchdog: cam-rtsp-buffer parado (%s) — auto-restart #%d",
+                        buf_reason, self._buffer_auto_restarts,
+                    )
+                    self._post_status(
+                        f"buffer_stall:{buf_reason} auto-restart #{self._buffer_auto_restarts}"
+                    )
+                    self._restart_buffer()
             except Exception:  # noqa: BLE001 - watchdog jamais pode morrer
                 log.exception("Erro no watchdog (ignorado)")
             self._stop.wait(self.cfg.watchdog_tick_s)

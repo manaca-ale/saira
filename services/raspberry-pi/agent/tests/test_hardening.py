@@ -544,3 +544,65 @@ def test_calibration_probe():
     ann = probe.annotate(j1, ["linha 1", "linha 2"])
     assert ann is not None and ann[:2] == b"\xff\xd8"
     assert probe.measure(b"lixo") is None
+
+
+# ------------------------------------------------------------- buffer guard
+def _touch(path, mtime):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b"x")
+    os.utime(path, (mtime, mtime))
+
+
+def test_buffer_stalled_detector(agent):
+    wall = time.time()
+    limit = agent.cfg.buffer_stall_restart_s
+    mono = agent._start_monotonic + limit + 1
+    agent._buffer_restarted_at = 0.0  # sai da graça de boot
+    seg = agent.cfg.video_seg_dir / "seg_000.ts"
+    # segmentos e snapshot frescos -> saudável
+    _touch(seg, wall - 5)
+    _touch(agent.cfg.snapshot_jpg, wall - 5)
+    assert agent._buffer_stalled(wall, mono) is None
+    # segmentos parados -> stall primário (pega o zumbi de 13-19/08/2026)
+    os.utime(seg, (wall - limit - 1, wall - limit - 1))
+    assert agent._buffer_stalled(wall, mono) == "segments"
+    # segmentos fluem mas latest.jpg congelou (snapshot RTSP) -> secundário
+    os.utime(seg, (wall - 5, wall - 5))
+    os.utime(agent.cfg.snapshot_jpg, (wall - limit - 1, wall - limit - 1))
+    assert agent._snapshot_source == "auto"
+    assert agent._buffer_stalled(wall, mono) == "snapshot"
+    # em modo http o latest.jpg parado é esperado -> não reinicia
+    agent._snapshot_source = "http"
+    assert agent._buffer_stalled(wall, mono) is None
+    agent._snapshot_source = "auto"
+    # cooldown suprime restart repetido
+    os.utime(seg, (wall - limit - 1, wall - limit - 1))
+    agent._buffer_restarted_at = wall - 1
+    assert agent._buffer_stalled(wall, mono) is None
+
+
+def test_buffer_stalled_no_segments_grace(agent):
+    agent._buffer_restarted_at = 0.0
+    wall = time.time()
+    # sem nenhum segmento: graça enquanto o agente é jovem...
+    assert agent._buffer_stalled(wall, agent._start_monotonic + 1) is None
+    # ...anômalo depois que o serviço já deveria ter produzido algo
+    mono = agent._start_monotonic + agent.cfg.buffer_stall_restart_s + 1
+    assert agent._buffer_stalled(wall, mono) == "no-segments"
+
+
+def test_buffer_guard_disabled(tmp_path, monkeypatch):
+    monkeypatch.setenv("MOTION_ENABLED", "off")
+    monkeypatch.setenv("DEVICE_ID", "pi-test-001")
+    monkeypatch.setenv("SPOOL_DIR", str(tmp_path / "spool"))
+    monkeypatch.setenv("ARCHIVE_DIR", str(tmp_path / "archive"))
+    monkeypatch.setenv("CLIPS_DIR", str(tmp_path / "clips"))
+    monkeypatch.setenv("VIDEO_SEG_DIR", str(tmp_path / "segs"))
+    monkeypatch.setenv("SNAPSHOT_JPG", str(tmp_path / "latest.jpg"))
+    monkeypatch.setenv("LOG_FILE", str(tmp_path / "agent.log"))
+    monkeypatch.setenv("BUFFER_STALL_RESTART", "0")
+    ag = sa.Agent(cfgmod.load_config())
+    ag._buffer_restarted_at = 0.0
+    # tudo parado, guard desligado -> nunca acusa
+    mono = ag._start_monotonic + 9999.0
+    assert ag._buffer_stalled(time.time(), mono) is None

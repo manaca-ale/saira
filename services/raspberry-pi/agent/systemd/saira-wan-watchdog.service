@@ -1,0 +1,18 @@
+[Unit]
+Description=SAIRA - Watchdog de WAN (reinicia o roteador 4G pela LAN quando a internet some)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+# Segredo do roteador (ROUTER_PASSWORD) fica aqui, root-only — nunca no repo.
+EnvironmentFile=-/etc/saira/wan-watchdog.env
+ExecStart=/opt/saira/venv/bin/python /opt/saira/agent/wan_watchdog.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

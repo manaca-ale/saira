@@ -25,7 +25,7 @@ MIN_ANALYZE_INTERVAL_S = 1.0
 # Versão do agente reportada na telemetria de saúde. Pode ser sobrescrita no
 # deploy via AGENT_VERSION (ex.: git short sha) para o operador saber o que
 # está rodando em campo sem SSH.
-AGENT_VERSION = "clip-chain-2026-07"
+AGENT_VERSION = "buffer-guard-2026-08"
 
 
 def _load_env_file() -> None:
@@ -203,6 +203,13 @@ class Config:
     watchdog_tick_s: float
     watchdog_capture_stall_s: float
     watchdog_mute_restart_s: float
+    # Guard do cam-rtsp-buffer: se os seg_*.ts (ou o latest.jpg, quando o
+    # snapshot vem do RTSP) ficarem parados por mais que o limiar, o watchdog
+    # reinicia o SERVIÇO saira-rtsp-buffer (o ffmpeg trava zumbi em queda de
+    # conexão — incidente 13→19/08/2026). 0 desliga. O cooldown evita loop de
+    # restart quando a câmera está genuinamente fora do ar.
+    buffer_stall_restart_s: float
+    buffer_restart_cooldown_s: float
     # Piso de espaço livre (MB) antes de podar agressivamente e alertar.
     min_disk_free_mb: int
 
@@ -299,5 +306,7 @@ def load_config() -> Config:
         watchdog_tick_s=_env_float("WATCHDOG_TICK", 15.0, minimum=2.0),
         watchdog_capture_stall_s=_env_float("WATCHDOG_CAPTURE_STALL", 90.0, minimum=0.0),
         watchdog_mute_restart_s=_env_float("WATCHDOG_MUTE_RESTART", 600.0, minimum=0.0),
+        buffer_stall_restart_s=_env_float("BUFFER_STALL_RESTART", 180.0, minimum=0.0),
+        buffer_restart_cooldown_s=_env_float("BUFFER_RESTART_COOLDOWN", 600.0, minimum=60.0),
         min_disk_free_mb=_env_int("MIN_DISK_FREE_MB", 200, minimum=0),
     )
