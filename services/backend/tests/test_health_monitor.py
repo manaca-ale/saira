@@ -73,7 +73,8 @@ def test_evaluate_degraded_no_events_is_opt_in():
 
 # ------------------------------------------------------------ integration
 class FakeCamera:
-    def __init__(self, device_id="pi-cam-001", name="Via Mangue III-2"):
+    def __init__(self, device_id="pi-cam-001", name="Via Mangue III-2", id=15):
+        self.id = id
         self.device_id = device_id
         self.name = name
         self.bairro = "Boa Viagem"
@@ -145,6 +146,53 @@ def _run(redis, cameras, *, health):
 
 _RTSP_BAD = {"last_capture_age_s": 2, "rtsp_buffer_ok": False}
 _RTSP_OK = {"last_capture_age_s": 2, "rtsp_buffer_ok": True}
+
+
+def _run_capturing_heartbeats(redis, cameras, *, health, online=True):
+    """Roda um ciclo e devolve (linhas de CameraHeartbeat, mock do find_health).
+
+    `db.add_all` recebe um gerador que o AsyncMock não consome, então a própria
+    asserção o materializa.
+    """
+    db = _make_db(cameras)
+    mtime = time.time() - (60 if online else 999_999)
+    with patch.object(om, "get_redis", return_value=redis),          patch.object(om, "AsyncSessionLocal", return_value=_FakeSessionCtx(db)),          patch.object(om, "find_latest_image_for_device", return_value=(Path("x.jpg"), mtime)),          patch.object(om, "find_last_keepalive_for_device", return_value=mtime),          patch.object(om, "find_health_for_device", return_value=health) as health_mock,          patch.object(om, "send_email", return_value=True),          patch.object(om.settings, "OFFLINE_ALERT_RECIPIENTS", "ops@saira.com"),          patch.object(om.settings, "CAMERA_OFFLINE_THRESHOLD_SECONDS", 3600):
+        asyncio.run(om.run_offline_check())
+    rows = list(db.add_all.call_args[0][0])
+    return rows, health_mock
+
+
+def test_heartbeat_stores_health_payload_when_online():
+    """A série histórica que faltou na queda de 08→09/09/2026: sem ela, a
+    investigação só via o último throttled, um bitmask pegajoso desde o boot."""
+    health = {"rtsp_buffer_ok": True, "throttled": "0x70000", "last_capture_age_s": 2}
+    rows, _ = _run_capturing_heartbeats(FakeRedis(), [FakeCamera()], health=health)
+    assert len(rows) == 1
+    assert rows[0].is_online is True
+    assert rows[0].health == health
+    assert rows[0].health["throttled"] == "0x70000"
+
+
+def test_heartbeat_health_is_null_when_offline():
+    """Offline o .health.json fica congelado no último keepalive; regravá-lo a
+    cada ciclo inventaria uma série de amostras idênticas."""
+    rows, _ = _run_capturing_heartbeats(
+        FakeRedis(), [FakeCamera()], health=_RTSP_OK, online=False
+    )
+    assert rows[0].is_online is False
+    assert rows[0].health is None
+
+
+def test_health_file_is_read_once_per_camera_per_cycle():
+    rows, health_mock = _run_capturing_heartbeats(
+        FakeRedis(), [FakeCamera()], health=_RTSP_BAD
+    )
+    assert health_mock.call_count == 1
+
+
+def test_heartbeat_health_is_null_for_devices_that_do_not_report():
+    rows, _ = _run_capturing_heartbeats(FakeRedis(), [FakeCamera()], health=None)
+    assert rows[0].is_online is True and rows[0].health is None
 
 
 def test_degraded_debounced_first_tick_silent_second_alerts():

@@ -260,11 +260,14 @@ def _send_degraded_recovery_email(recipients: list[str], cam: Camera, cond: str)
     )
 
 
-async def _handle_degraded(redis, recipients: list[str], cam: Camera) -> None:
+async def _handle_degraded(redis, recipients: list[str], cam: Camera, health: dict | None) -> None:
     """Avalia a saúde degradada de UMA câmera viva e gere o episódio por
     condição no Redis (1 alerta ao entrar, re-alerta com cooldown, e-mail de
-    recuperação ao normalizar). Só dispositivos event-driven reportam health."""
-    health = find_health_for_device(cam.device_id)
+    recuperação ao normalizar). Só dispositivos event-driven reportam health.
+
+    Recebe o payload já lido pelo ciclo (o mesmo que vai para o histórico em
+    camera_heartbeats.health), para não abrir o arquivo duas vezes por câmera.
+    """
     if not health:
         return
     active = evaluate_degraded(health)
@@ -345,8 +348,9 @@ async def run_offline_check() -> None:
 
     now = time.time()
     checked_at = now_brazil()
-    # Série temporal de conectividade (indicador I1). 1 linha por câmera por ciclo.
-    heartbeats: list[tuple[int, str | None, bool]] = []
+    # Série temporal de conectividade (indicador I1) + saúde reportada. 1 linha
+    # por câmera por ciclo.
+    heartbeats: list[tuple[int, str | None, bool, dict | None]] = []
     for cam in cameras:
         try:
             # "Vivo" = última imagem OU keepalive recente. Aditivo: câmeras que
@@ -365,9 +369,15 @@ async def run_offline_check() -> None:
                 last_iso = datetime.fromtimestamp(mtime, BRT).strftime("%Y-%m-%d %H:%M:%S %Z")
                 offline = age > threshold
 
+            # Lido uma vez por ciclo: alimenta o histórico E a avaliação de
+            # saúde degradada. Só guardamos o payload quando a câmera está viva
+            # — offline o arquivo está congelado no último keepalive e repeti-lo
+            # a cada ciclo produziria uma série falsa de amostras idênticas.
+            health = find_health_for_device(cam.device_id) if not offline else None
+
             cam_id = getattr(cam, "id", None)
             if cam_id is not None:
-                heartbeats.append((cam_id, cam.device_id, not offline))
+                heartbeats.append((cam_id, cam.device_id, not offline, health))
 
             if not can_email:
                 continue
@@ -393,7 +403,7 @@ async def run_offline_check() -> None:
             # .health.json. Só quando NÃO offline (senão o alerta de offline já
             # cobre, e o health estaria velho de qualquer forma).
             if not offline and settings.CAMERA_HEALTH_MONITOR_ENABLED:
-                await _handle_degraded(redis, recipients, cam)
+                await _handle_degraded(redis, recipients, cam, health)
         except Exception:
             logger.exception("offline_monitor: erro avaliando device=%s", cam.device_id)
 
@@ -407,8 +417,9 @@ async def run_offline_check() -> None:
                         camera_id=cam_id,
                         device_id=dev_id,
                         is_online=online,
+                        health=health,
                     )
-                    for cam_id, dev_id, online in heartbeats
+                    for cam_id, dev_id, online, health in heartbeats
                 )
                 await db.commit()
         except Exception:
