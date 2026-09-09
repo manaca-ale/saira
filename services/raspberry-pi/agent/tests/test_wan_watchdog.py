@@ -12,7 +12,8 @@ def _cfg(**over):
     base = dict(
         router_url="http://192.168.0.1", router_user="admin", router_password="x",
         check_interval_s=60.0, wan_down_reboot_s=900.0, reboot_retry_s=1800.0,
-        max_reboots_per_day=3, vpn_peer="10.8.0.1", http_probe_urls=("http://p/204",),
+        reboot_fast_attempts=12, reboot_retry_max_s=14400.0, max_reboots_per_outage=0,
+        vpn_peer="10.8.0.1", http_probe_urls=("http://p/204",),
         state_file=Path("/tmp/x.json"), ec2_base="", device_id="pi-test",
     )
     base.update(over)
@@ -36,17 +37,63 @@ def test_decide_grace_then_reboot_then_retry_spacing():
     assert st.reboots_this_outage == 2 and st.total_reboots == 2
 
 
-def test_decide_daily_cap_and_reset_on_new_day():
-    cfg, st = _cfg(max_reboots_per_day=2), ww.State()
+def test_retry_interval_is_flat_then_doubles_up_to_ceiling():
+    cfg = _cfg(reboot_fast_attempts=3, reboot_retry_s=1800.0, reboot_retry_max_s=14400.0)
+    # bloco rápido: as 3 primeiras tentativas saem no intervalo cheio
+    assert [ww.retry_interval_s(cfg, n) for n in (0, 1, 2)] == [1800.0, 1800.0, 1800.0]
+    # depois dobra a cada tentativa...
+    assert ww.retry_interval_s(cfg, 3) == 3600.0
+    assert ww.retry_interval_s(cfg, 4) == 7200.0
+    assert ww.retry_interval_s(cfg, 5) == 14400.0
+    # ...e satura no teto, nunca desiste
+    assert ww.retry_interval_s(cfg, 20) == 14400.0
+
+
+def test_decide_never_gives_up_across_day_rollover():
+    """Regressão da queda 08→09/09/2026: com teto DIÁRIO o watchdog parava no meio
+    da queda e ficava ~20h sem tentar. Agora a virada do dia é irrelevante."""
+    cfg, st = _cfg(reboot_fast_attempts=100), ww.State()
     st.down_since = 0.0
-    for i in range(2):
-        now = 10_000.0 + i * 2000
+    now = 10_000.0
+    for _ in range(20):
         assert ww.decide(cfg, st, False, now, "d1") == "reboot"
         ww.record_reboot(st, now, ok=True)
-    # teto do dia atingido -> não reinicia mais, mesmo com WAN morta
-    assert ww.decide(cfg, st, False, 30_000.0, "d1") is None
-    # dia virou -> contador zera e volta a agir
-    assert ww.decide(cfg, st, False, 40_000.0, "d2") == "reboot"
+        now += cfg.reboot_retry_s + 1
+    assert st.reboots_this_outage == 20
+    # o contador diário segue vivo como telemetria, mas não barra nada
+    assert st.reboots_today == 20 and st.reboots_day == "d1"
+    # e continua tentando no dia seguinte, sem depender da virada
+    assert ww.decide(cfg, st, False, now, "d2") == "reboot"
+
+
+def test_decide_backoff_spaces_out_after_fast_attempts():
+    cfg, st = _cfg(reboot_fast_attempts=2), ww.State()
+    st.down_since = 0.0
+    now = 10_000.0
+    for _ in range(2):  # gasta o bloco rápido
+        assert ww.decide(cfg, st, False, now, "d1") == "reboot"
+        ww.record_reboot(st, now, ok=True)
+        now += 1801
+    # 3ª tentativa agora exige 1h (não mais 30 min), contada do último reboot
+    last = st.last_reboot_at
+    assert ww.decide(cfg, st, False, last + 1801, "d1") is None
+    assert ww.decide(cfg, st, False, last + 3601, "d1") == "reboot"
+
+
+def test_decide_per_outage_cap_is_opt_in_and_resets_between_outages():
+    cfg, st = _cfg(max_reboots_per_outage=2), ww.State()
+    st.down_since = 0.0
+    now = 10_000.0
+    for _ in range(2):
+        assert ww.decide(cfg, st, False, now, "d1") == "reboot"
+        ww.record_reboot(st, now, ok=True)
+        now += 1801
+    # teto do episódio atingido -> para NESTA queda
+    assert ww.decide(cfg, st, False, now + 100_000, "d1") is None
+    # WAN volta e cai de novo -> episódio novo, orçamento novo
+    ww.decide(cfg, st, True, now, "d1")
+    st.down_since = now
+    assert ww.decide(cfg, st, False, now + 100_000, "d1") == "reboot"
 
 
 def test_decide_wan_up_resets_outage_and_logs_history():

@@ -2,6 +2,8 @@ from sqlalchemy import (
     Column, BigInteger, Integer, String, Boolean, DateTime, Date,
     ForeignKey, Computed, Index,
 )
+from sqlalchemy.dialects.postgresql import JSONB
+
 from app.core.database import Base
 
 
@@ -13,6 +15,13 @@ class CameraHeartbeat(Base):
     imagem dentro do threshold. É a série temporal que alimenta o indicador
     I1 (Confiabilidade da vigilância): uptime% = online_checks / total_checks
     no período, por câmera; média dos pontos e pior ponto.
+
+    `health` guarda o .health.json que o dispositivo reportou naquele ciclo
+    (só os event-driven mandam; nos demais fica NULL). Existe por causa da queda
+    de 08→09/09/2026 na pi-cam-001: o arquivo é sobrescrito a cada keepalive, e
+    a investigação ficou com UMA amostra de `throttled` — um bitmask
+    "desde o boot", que não distingue um pico no religamento de subtensão
+    crônica. Sem série temporal não dá para responder se um sintoma piorou.
     """
 
     __tablename__ = "camera_heartbeats"
@@ -30,6 +39,7 @@ class CameraHeartbeat(Base):
     )
     device_id = Column(String(64), nullable=True)
     is_online = Column(Boolean, nullable=False)
+    health = Column(JSONB, nullable=True)
     check_date_brt = Column(
         Date,
         Computed(
