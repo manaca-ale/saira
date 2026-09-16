@@ -125,6 +125,18 @@ class FakeRedis:
     async def delete(self, key):
         return 1 if self.store.pop(key, None) is not None else 0
 
+    async def incr(self, key):
+        self.store[key] = int(self.store.get(key, 0)) + 1
+        return self.store[key]
+
+    async def expire(self, key, ttl):
+        return 1 if key in self.store else 0
+
+    def expire_cooldowns(self):
+        """Simula o TTL do cooldown vencendo entre ciclos (o Fake ignora TTLs)."""
+        for k in [k for k in self.store if ":cooldown:" in k]:
+            del self.store[k]
+
 
 def _fresh():
     return (Path("x.jpg"), time.time() - 60)  # 1min -> online
@@ -188,6 +200,85 @@ def test_health_file_is_read_once_per_camera_per_cycle():
         FakeRedis(), [FakeCamera()], health=_RTSP_BAD
     )
     assert health_mock.call_count == 1
+
+
+def test_realert_interval_doubles_then_saturates():
+    f = om.realert_interval_s
+    assert f(21600, 0, 86400) == 21600      # 1º aviso: sem espera acumulada
+    assert f(21600, 1, 86400) == 21600      # depois do 1º: +6h
+    assert f(21600, 2, 86400) == 43200      # depois do 2º: +12h
+    assert f(21600, 3, 86400) == 86400      # depois do 3º: +24h (teto)
+    assert f(21600, 9, 86400) == 86400      # satura, não cresce sem limite
+
+
+def _run_many_cycles(redis, cameras, *, health, online, cycles):
+    """Roda N ciclos vencendo o cooldown entre eles. Devolve nº de e-mails."""
+    sent = 0
+    for _ in range(cycles):
+        redis.expire_cooldowns()
+        mock = _run_offline_cycle(redis, cameras, health=health, online=online)
+        sent += mock.call_count
+    return sent
+
+
+def _run_offline_cycle(redis, cameras, *, health, online):
+    db = _make_db(cameras)
+    mtime = time.time() - (60 if online else 999_999)
+    with patch.object(om, "get_redis", return_value=redis),          patch.object(om, "AsyncSessionLocal", return_value=_FakeSessionCtx(db)),          patch.object(om, "find_latest_image_for_device", return_value=(Path("x.jpg"), mtime)),          patch.object(om, "find_last_keepalive_for_device", return_value=mtime),          patch.object(om, "find_health_for_device", return_value=health),          patch.object(om, "send_email", return_value=True) as send_mock,          patch.object(om.settings, "OFFLINE_ALERT_RECIPIENTS", "ops@saira.com"),          patch.object(om.settings, "CAMERA_OFFLINE_THRESHOLD_SECONDS", 3600):
+        asyncio.run(om.run_offline_check())
+    return send_mock
+
+
+def test_offline_stops_after_three_alerts_per_outage():
+    """Regressão da queda 08→16/09/2026: re-alerta fixo de 6h rendeu 31 e-mails
+    para uma câmera que ninguém podia consertar. Três avisos e silêncio."""
+    redis = FakeRedis()
+    with patch.object(om.settings, "CAMERA_OFFLINE_MAX_ALERTS_PER_OUTAGE", 3):
+        # 20 ciclos com a câmera muda o tempo todo
+        total = _run_many_cycles(redis, [FakeCamera()], health=None,
+                                 online=False, cycles=20)
+    assert total == 3
+
+
+def test_offline_quota_resets_when_camera_comes_back():
+    redis = FakeRedis()
+    with patch.object(om.settings, "CAMERA_OFFLINE_MAX_ALERTS_PER_OUTAGE", 3):
+        _run_many_cycles(redis, [FakeCamera()], health=None, online=False, cycles=10)
+        # volta: dispara recuperação e zera a cota
+        back = _run_offline_cycle(redis, [FakeCamera()], health=None, online=True)
+        assert back.call_count == 1
+        # cai de novo: queda nova, orçamento novo
+        again = _run_many_cycles(redis, [FakeCamera()], health=None,
+                                 online=False, cycles=10)
+    assert again == 3
+
+
+def test_offline_unlimited_when_cap_is_zero():
+    redis = FakeRedis()
+    with patch.object(om.settings, "CAMERA_OFFLINE_MAX_ALERTS_PER_OUTAGE", 0):
+        total = _run_many_cycles(redis, [FakeCamera()], health=None,
+                                 online=False, cycles=8)
+    assert total == 8
+
+
+def test_degraded_stops_after_three_alerts_per_episode():
+    """Em 08/09/2026 só 'rtsp_travado' rendeu 11 e-mails num dia."""
+    redis = FakeRedis()
+    with patch.object(om.settings, "CAMERA_HEALTH_MAX_ALERTS_PER_EPISODE", 3),          patch.object(om.settings, "CAMERA_HEALTH_DEBOUNCE_ENABLED", False):
+        total = _run_many_cycles(redis, [FakeCamera()], health=_RTSP_BAD,
+                                 online=True, cycles=15)
+    assert total == 3
+
+
+def test_degraded_quota_resets_after_recovery():
+    redis = FakeRedis()
+    with patch.object(om.settings, "CAMERA_HEALTH_MAX_ALERTS_PER_EPISODE", 3),          patch.object(om.settings, "CAMERA_HEALTH_DEBOUNCE_ENABLED", False):
+        _run_many_cycles(redis, [FakeCamera()], health=_RTSP_BAD, online=True, cycles=10)
+        rec = _run_offline_cycle(redis, [FakeCamera()], health=_RTSP_OK, online=True)
+        assert rec.call_count == 1            # e-mail de normalização
+        again = _run_many_cycles(redis, [FakeCamera()], health=_RTSP_BAD,
+                                 online=True, cycles=10)
+    assert again == 3
 
 
 def test_heartbeat_health_is_null_for_devices_that_do_not_report():

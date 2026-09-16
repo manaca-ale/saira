@@ -47,11 +47,13 @@ _scheduler: AsyncIOScheduler | None = None
 _TICK_LOCK_KEY = "saira:camera_offline:tick_lock"
 _ACTIVE_KEY = "saira:camera_offline:active:{device_id}"      # set enquanto em episódio offline
 _COOLDOWN_KEY = "saira:camera_offline:cooldown:{device_id}"  # rate-limit do (re)alerta
+_ALERTS_KEY = "saira:camera_offline:alerts:{device_id}"      # quantos e-mails já saíram nesta queda
 
 # Alerta de saúde DEGRADADA — episódio POR (device, condição).
 _HEALTH_ACTIVE_KEY = "saira:camera_health:active:{device_id}:{cond}"
 _HEALTH_COOLDOWN_KEY = "saira:camera_health:cooldown:{device_id}:{cond}"
 _HEALTH_SEEN_KEY = "saira:camera_health:seen:{device_id}:{cond}"  # debounce 1º avistamento
+_HEALTH_ALERTS_KEY = "saira:camera_health:alerts:{device_id}:{cond}"  # e-mails no episódio
 _HEALTH_ACTIVE_TTL = 7 * 24 * 3600  # hygiene: expira se o episódio ficar preso
 
 # Título (emoji, rótulo) e causa provável por condição. Iterado também na
@@ -158,6 +160,32 @@ def _send_recovery_email(recipients: list[str], cam: Camera, last_iso: str | Non
     logger.info(
         "offline_monitor: RECOVERY device=%s last=%s sent=%s", cam.device_id, last_iso, ok,
     )
+
+
+def realert_interval_s(base: float, alerts_sent: int, cap: float) -> float:
+    """Espaçamento até o PRÓXIMO e-mail, dado quantos já saíram neste episódio.
+    Dobra a cada aviso e satura em `cap`: 6h, 12h, 24h, 24h…
+
+    Um problema que dura muda de natureza: nas primeiras horas o aviso é
+    acionável, no terceiro dia é ruído. Intervalo fixo trata os dois igual — foi
+    o que produziu 31 e-mails na queda da pi-cam-001 (08→16/09/2026).
+    """
+    if alerts_sent <= 0:
+        return base
+    return min(base * (2 ** (alerts_sent - 1)), cap)
+
+
+async def _alerts_sent(redis, key: str) -> int:
+    """Quantos e-mails já saíram neste episódio (0 se a chave sumiu/expirou)."""
+    try:
+        return int(await redis.get(key) or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+async def _record_alert(redis, key: str) -> None:
+    await redis.incr(key)
+    await redis.expire(key, _HEALTH_ACTIVE_TTL)
 
 
 def _has_undervoltage(throttled) -> bool:
@@ -272,6 +300,8 @@ async def _handle_degraded(redis, recipients: list[str], cam: Camera, health: di
         return
     active = evaluate_degraded(health)
     realert = settings.CAMERA_HEALTH_REALERT_SECONDS
+    realert_cap = settings.CAMERA_HEALTH_REALERT_MAX_SECONDS
+    max_alerts = settings.CAMERA_HEALTH_MAX_ALERTS_PER_EPISODE
     debounce = settings.CAMERA_HEALTH_DEBOUNCE_ENABLED
     # 'seen' vive ~2,5 ciclos: sobrevive a UM tick para o ciclo seguinte
     # confirmar, mas some se a condição não repetir (flap descartado).
@@ -281,6 +311,7 @@ async def _handle_degraded(redis, recipients: list[str], cam: Camera, health: di
         active_key = _HEALTH_ACTIVE_KEY.format(device_id=cam.device_id, cond=cond)
         cooldown_key = _HEALTH_COOLDOWN_KEY.format(device_id=cam.device_id, cond=cond)
         seen_key = _HEALTH_SEEN_KEY.format(device_id=cam.device_id, cond=cond)
+        alerts_key = _HEALTH_ALERTS_KEY.format(device_id=cam.device_id, cond=cond)
         if not await redis.get(active_key):
             # Debounce: 1º avistamento só marca 'seen'; só vira episódio ATIVO se
             # a condição persistir no ciclo seguinte (histerese p/ flaps).
@@ -289,8 +320,16 @@ async def _handle_degraded(redis, recipients: list[str], cam: Camera, health: di
                 continue
             await redis.set(active_key, "1", ex=_HEALTH_ACTIVE_TTL)
             await redis.delete(seen_key)
-        # (re)alerta só com o cooldown livre (1º alerta ou após REALERT)
-        if await redis.set(cooldown_key, "1", ex=realert, nx=True):
+        # Cota do episódio esgotada: silêncio até a condição normalizar (aí sai a
+        # recuperação e o contador zera). Em 08/09/2026 só 'rtsp_travado' rendeu
+        # 11 e-mails num dia, todos dizendo a mesma coisa.
+        sent = await _alerts_sent(redis, alerts_key)
+        if max_alerts and sent >= max_alerts:
+            continue
+        # (re)alerta só com o cooldown livre; o espaçamento dobra a cada aviso
+        if await redis.set(cooldown_key, "1",
+                           ex=int(realert_interval_s(realert, sent, realert_cap)), nx=True):
+            await _record_alert(redis, alerts_key)
             _send_degraded_email(recipients, cam, cond, detail)
 
     # Condições que não estão mais ativas: descarta o 'seen' pendente (flap) e,
@@ -303,6 +342,10 @@ async def _handle_degraded(redis, recipients: list[str], cam: Camera, health: di
         if await redis.delete(active_key):
             await redis.delete(
                 _HEALTH_COOLDOWN_KEY.format(device_id=cam.device_id, cond=cond)
+            )
+            # zera a cota: o próximo episódio desta condição começa do zero
+            await redis.delete(
+                _HEALTH_ALERTS_KEY.format(device_id=cam.device_id, cond=cond)
             )
             _send_degraded_recovery_email(recipients, cam, cond)
 
@@ -335,6 +378,8 @@ async def run_offline_check() -> None:
 
     threshold = settings.CAMERA_OFFLINE_THRESHOLD_SECONDS
     realert = settings.CAMERA_OFFLINE_REALERT_SECONDS
+    realert_cap = settings.CAMERA_OFFLINE_REALERT_MAX_SECONDS
+    max_alerts = settings.CAMERA_OFFLINE_MAX_ALERTS_PER_OUTAGE
 
     try:
         async with AsyncSessionLocal() as db:
@@ -384,19 +429,30 @@ async def run_offline_check() -> None:
 
             active_key = _ACTIVE_KEY.format(device_id=cam.device_id)
             cooldown_key = _COOLDOWN_KEY.format(device_id=cam.device_id)
+            alerts_key = _ALERTS_KEY.format(device_id=cam.device_id)
 
             if offline:
                 was_active = await redis.get(active_key)
                 if not was_active:
                     await redis.set(active_key, datetime.fromtimestamp(now, BRT).isoformat())
-                # (re)alerta só se o cooldown estiver livre (1º alerta ou após REALERT)
-                if await redis.set(cooldown_key, "1", ex=realert, nx=True):
+                # Cota da queda esgotada: silêncio até a câmera voltar. Do 4º
+                # e-mail em diante nenhum traz informação nova — só repete que
+                # segue muda, e quem precisa lembrar disso é o painel, não a caixa.
+                sent = await _alerts_sent(redis, alerts_key)
+                if max_alerts and sent >= max_alerts:
+                    pass
+                # (re)alerta só se o cooldown estiver livre; espaçamento dobra a cada aviso
+                elif await redis.set(cooldown_key, "1",
+                                     ex=int(realert_interval_s(realert, sent, realert_cap)),
+                                     nx=True):
+                    await _record_alert(redis, alerts_key)
                     _send_offline_email(recipients, cam, age, last_iso)
             else:
                 # estava offline e voltou: só o worker que remove o active_key envia recovery
                 removed = await redis.delete(active_key)
                 if removed:
                     await redis.delete(cooldown_key)
+                    await redis.delete(alerts_key)  # zera a cota p/ a próxima queda
                     _send_recovery_email(recipients, cam, last_iso)
 
             # Câmera viva (keepalive fresco): avalia saúde DEGRADADA a partir do
