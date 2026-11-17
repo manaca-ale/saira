@@ -138,12 +138,15 @@ DETAIL_ARMS = {
     # `est` = preco de LISTA por chamada (o runner aplica 50% com --flex).
     # passo 1 (resolucao baixa): separar o efeito do prompt do efeito do thinking
     "d35l_v1_low_min":  {"model": "gemini-3.5-flash-lite", "prompt": "v1", "think": "minimal", "media": "low", "est": 0.005},
-    "d35l_v1_low_high": {"model": "gemini-3.5-flash-lite", "prompt": "v1", "think": "high", "media": "low", "est": 0.014},
+    "d35l_v1_low_high": {"model": "gemini-3.5-flash-lite", "prompt": "v1", "think": "high", "media": "low", "est": 0.011},
+    "d35l_v1_med_high": {"model": "gemini-3.5-flash-lite", "prompt": "v1", "think": "high", "media": "medium", "est": 0.014},
+    "d35l_g3_low_med":  {"model": "gemini-3.5-flash-lite", "prompt": "g3", "think": "medium", "media": "low", "est": 0.009},
+    "d35l_g3_med_high": {"model": "gemini-3.5-flash-lite", "prompt": "g3", "think": "high", "media": "medium", "est": 0.014},
     "d35l_v4_low_min":  {"model": "gemini-3.5-flash-lite", "prompt": "v4", "think": "minimal", "media": "low", "est": 0.005},
     "d35l_v4_low_low":  {"model": "gemini-3.5-flash-lite", "prompt": "v4", "think": "low", "media": "low", "est": 0.008},
     "d35l_v4_low_med":  {"model": "gemini-3.5-flash-lite", "prompt": "v4", "think": "medium", "media": "low", "est": 0.011},
     "d35l_v4_low_high": {"model": "gemini-3.5-flash-lite", "prompt": "v4", "think": "high", "media": "low", "est": 0.014},
-    "d35l_g3_low_high": {"model": "gemini-3.5-flash-lite", "prompt": "g3", "think": "high", "media": "low", "est": 0.014},
+    "d35l_g3_low_high": {"model": "gemini-3.5-flash-lite", "prompt": "g3", "think": "high", "media": "low", "est": 0.011},
     "d35l_v1_low_med":  {"model": "gemini-3.5-flash-lite", "prompt": "v1", "think": "medium", "media": "low", "est": 0.011},
     # passo 2: mais resolucao no melhor par prompt x thinking
     "d35l_v4_med_med":  {"model": "gemini-3.5-flash-lite", "prompt": "v4", "think": "medium", "media": "medium", "est": 0.015},
@@ -152,6 +155,11 @@ DETAIL_ARMS = {
     "d35l_v4_def_high": {"model": "gemini-3.5-flash-lite", "prompt": "v4", "think": "high", "media": None, "est": 0.024},
     "d35l_v1_def_high": {"model": "gemini-3.5-flash-lite", "prompt": "v1", "think": "high", "media": None, "est": 0.024},
     "d35l_g3_def_high": {"model": "gemini-3.5-flash-lite", "prompt": "g3", "think": "high", "media": None, "est": 0.024},
+    # modelo mais forte como detail: teto do que se recupera trocando de modelo. Preco de
+    # lista 0,75 / 3,75 hoje e 1,50 / 7,50 a partir de 01/01/2027 (com thinking, passa de +20%).
+    "d38f_g3_low_med":  {"model": "gemini-3.8-flash", "prompt": "g3", "think": "medium", "media": "low", "est": 0.020},
+    "d38f_v1_low_med":  {"model": "gemini-3.8-flash", "prompt": "v1", "think": "medium", "media": "low", "est": 0.020},
+    "d38f_v1_low_min":  {"model": "gemini-3.8-flash", "prompt": "v1", "think": "minimal", "media": "low", "est": 0.010},
     # 3.1-flash-lite como detail (mais barato por token; desliga em 07/05/2027)
     "d31l_v4_low_high": {"model": "gemini-3.1-flash-lite", "prompt": "v4", "think": "high", "media": "low", "est": 0.008},
     "d31l_v4_low_med":  {"model": "gemini-3.1-flash-lite", "prompt": "v4", "think": "medium", "media": "low", "est": 0.007},
@@ -169,18 +177,30 @@ def _gcloud_exe() -> str:
 
 
 def _mint_token():
-    cmd = [_gcloud_exe(), "auth", "print-access-token"]
+    """Token de acesso + validade REAL, pelo `gcloud config config-helper`.
+
+    `gcloud auth print-access-token` devolve o token em cache sem dizer quando vence; a
+    primeira versao deste runner assumia 40 min e tomou 401 UNAUTHENTICATED no meio de uma
+    execucao (16/11/2026). `--min-expiry=20m` faz o gcloud renovar se faltar menos que isso.
+    O JSON traz o token: e lido em memoria e nunca impresso."""
+    cmd = [_gcloud_exe(), "config", "config-helper", "--min-expiry=20m", "--format=json"]
     if GCLOUD_ACCOUNT:
         cmd.append(f"--account={GCLOUD_ACCOUNT}")
-    out = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
-    tok = (out.stdout or "").strip()
-    if out.returncode != 0 or not tok:
+    out = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    tok, exp = "", None
+    try:
+        cred = json.loads(out.stdout or "{}").get("credential") or {}
+        tok = (cred.get("access_token") or "").strip()
+        exp = dt.datetime.strptime(cred["token_expiry"], "%Y-%m-%dT%H:%M:%SZ")
+    except Exception:  # noqa: BLE001
+        pass
+    if out.returncode != 0 or not tok or exp is None:
         raise RuntimeError(
             "sessao do gcloud invalida ou expirada — o Alexandre precisa rodar "
             "`gcloud auth login contato@manaca.tech` (aprovacao no navegador). "
             f"stderr: {(out.stderr or '')[:200]}")
-    # tokens do gcloud valem ~60 min; renova aos 40
-    return tok, dt.datetime.utcnow() + dt.timedelta(minutes=40)
+    # google-auth considera expirado ~3 min 45 s antes de `expiry`; tiramos mais 2 min.
+    return tok, exp - dt.timedelta(minutes=2)
 
 
 _creds = None
@@ -262,7 +282,39 @@ dg._call_model = _metered_call_model
 
 
 # ── Dataset / janela ─────────────────────────────────────────────────────────
+DS = {"name": "official"}
+TESTSPACE = Path(os.environ.get("SAIRA_TESTSPACE_DATASETS", r"C:\Saira-testspace\datasets"))
+
+
+def _load_testspace(name, cats, only):
+    """Datasets do testspace do Gabriel (ex.: pi-inicial-v1). Gabarito = status do operador
+    (CONFIRMADO -> tp, REJEITADO -> fp). So tem eventos em que a PRODUCAO criou deteccao,
+    entao mede retencao do que o pipeline atual pega, nao o que ele deixa passar. Eventos que
+    tambem estao no dataset oficial ficam de fora, para o conjunto servir de holdout temporal.
+    Sem informacao de coalescencia: cada evento conta como uma deteccao."""
+    root = TESTSPACE / name
+    cat = json.loads((root / "catalogo.json").read_text(encoding="utf-8"))
+    official = {p.name for c in ("tp", "fp", "indefinido", "baseline")
+                for p in (CAM / c).iterdir() if p.is_dir()}
+    rows = []
+    for e in cat["eventos"]:
+        eid = e["event_id"]
+        if eid in official:
+            continue
+        c = {"CONFIRMADO": "tp", "REJEITADO": "fp"}.get(e.get("estado_plataforma"), "indefinido")
+        if (cats and c not in cats) or (only and eid not in only):
+            continue
+        frames = sorted((root / e.get("origem_dispositivo", "pi-cam-001") / "frames" / eid).glob("*.jpg"))
+        if len(frames) < 2:
+            continue
+        rows.append({"event_id": eid, "category": c, "frames": frames, "det_id": eid})
+    rows.sort(key=lambda r: r["event_id"])
+    return rows
+
+
 def load_events(cats=None, limit=None, only=None):
+    if DS["name"] != "official":
+        return _load_testspace(DS["name"], cats, only)
     rows = []
     for cat in ("tp", "fp", "indefinido", "baseline"):
         if cats and cat not in cats:
@@ -370,8 +422,14 @@ def usage_tuple(usage):
 
 
 # ── Estagios ─────────────────────────────────────────────────────────────────
+def out_dir() -> Path:
+    d = RESULTS if DS["name"] == "official" else RESULTS / DS["name"]
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def out_path(stage: str, arm: str, rep: int) -> Path:
-    return RESULTS / f"{stage}__{arm}__r{rep}.jsonl"
+    return out_dir() / f"{stage}__{arm}__r{rep}.jsonl"
 
 
 def read_jsonl(path: Path) -> list[dict]:
@@ -546,7 +604,7 @@ def run_stage(stage: str, a) -> None:
     _BUDGET.require(est, f"{stage}/{a.arm}")
     _RUN_CTX.update({"stage": stage, "arm": a.arm, "rep": a.rep})
     # trava por (estagio, braco, rep): duas execucoes iguais ao mesmo tempo pagariam em dobro
-    lock = RESULTS / f".lock__{stage}__{a.arm}__r{a.rep}"
+    lock = out_dir() / f".lock__{stage}__{a.arm}__r{a.rep}"
     if lock.exists():
         try:
             other = int(lock.read_text(encoding="utf-8").split()[0])
@@ -591,6 +649,18 @@ def run_stage(stage: str, a) -> None:
 # ── Score (offline) ──────────────────────────────────────────────────────────
 def _rate(hit, n):
     return round(100 * hit / n, 1) if n else None
+
+
+def _wilson(hit, n, z=1.96):
+    """Intervalo de Wilson de 95% em pontos percentuais, como 'lo-hi'. Com n pequeno
+    (19 deteccoes reais) o intervalo e largo: e isso que impede declarar vencedor cedo."""
+    if not n:
+        return None
+    p = hit / n
+    den = 1 + z * z / n
+    mid = (p + z * z / (2 * n)) / den
+    half = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / den
+    return f"{max(0.0, 100 * (mid - half)):.0f}-{min(100.0, 100 * (mid + half)):.0f}"
 
 
 def score_pair(gate_ref: str, detail_ref: str, quiet=False) -> dict:
@@ -645,7 +715,9 @@ def score_pair(gate_ref: str, detail_ref: str, quiet=False) -> dict:
         "gate": gate_ref, "detail": detail_ref, "n_events": n,
         "missing_gate": len(missing_gate), "missing_detail": len(missing_detail),
         "recall_det": _rate(tp_d, tp_dn), "tp_det": f"{tp_d}/{tp_dn}",
+        "recall_det_ci95": _wilson(tp_d, tp_dn),
         "fp_rate_det": _rate(fp_d, fp_dn), "fp_det": f"{fp_d}/{fp_dn}",
+        "fp_rate_det_ci95": _wilson(fp_d, fp_dn),
         "precision_det": _rate(tp_d, tp_d + fp_d),
         "recall_evt": _rate(tp_e, tp_en), "tp_evt": f"{tp_e}/{tp_en}",
         "fp_rate_evt": _rate(fp_e, fp_en), "fp_evt": f"{fp_e}/{fp_en}",
@@ -668,9 +740,9 @@ def score_pair(gate_ref: str, detail_ref: str, quiet=False) -> dict:
 def run_matrix(a) -> None:
     """Tabela de todos os pares (gate, detail) que ja tem resultado em disco."""
     gates = sorted(p.name[len("gate__"):-len(".jsonl")].replace("__r", ":")
-                   for p in RESULTS.glob("gate__*__r*.jsonl") if not p.name.endswith("__r0.jsonl"))
+                   for p in out_dir().glob("gate__*__r*.jsonl") if not p.name.endswith("__r0.jsonl"))
     details = sorted(p.name[len("detail__"):-len(".jsonl")].replace("__r", ":")
-                     for p in RESULTS.glob("detail__*__r*.jsonl") if not p.name.endswith("__r0.jsonl"))
+                     for p in out_dir().glob("detail__*__r*.jsonl") if not p.name.endswith("__r0.jsonl"))
     if a.gate:
         gates = [g for g in gates if g in a.gate.split(",")]
     rows = []
@@ -679,14 +751,15 @@ def run_matrix(a) -> None:
             s = score_pair(g, d, quiet=True)
             if s["n_events"] and s["missing_detail"] <= a.max_missing:
                 rows.append(s)
-    cols = ["gate", "detail", "tp_det", "recall_det", "fp_det", "fp_rate_det", "precision_det",
+    cols = ["gate", "detail", "tp_det", "recall_det", "recall_det_ci95", "fp_det", "fp_rate_det",
+            "precision_det",
             "baseline", "tp_evt", "fp_evt", "cost_detail_per_call", "cost_per_event_dataset",
             "cost_per_event_prod", "missing_detail"]
     print(" | ".join(cols))
     for s in rows:
         print(" | ".join(str(s[c]) for c in cols))
-    (RESULTS / "matrix.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2),
-                                         encoding="utf-8")
+    (out_dir() / "matrix.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2),
+                                           encoding="utf-8")
 
 
 def run_probe(a) -> None:
@@ -714,6 +787,9 @@ def run_probe(a) -> None:
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--dataset", default="official",
+                    help="official (cam_picam001) ou um dataset do testspace, ex.: pi-inicial-v1; "
+                         "vem ANTES do subcomando")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list")
     for stage in ("gate", "detail"):
@@ -744,6 +820,8 @@ def main():
     p.add_argument("--max-usd", type=float, default=0.15)
     p.add_argument("--flex", action="store_true")
     a = ap.parse_args()
+    DS["name"] = a.dataset
+    _RUN_CTX["dataset"] = a.dataset
     try:
         if a.cmd == "list":
             print("GATE:", json.dumps(GATE_ARMS, indent=1))

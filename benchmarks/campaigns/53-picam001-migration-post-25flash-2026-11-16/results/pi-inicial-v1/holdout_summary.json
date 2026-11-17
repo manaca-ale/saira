@@ -1,0 +1,92 @@
+{
+  "dataset": "pi-inicial-v1",
+  "gate": "g25l_v1:1",
+  "gate_pass_tp": "26/44",
+  "gate_pass_fp": "27/45",
+  "arms": [
+    {
+      "arm": "d25f_v1:1",
+      "scope": "todos",
+      "complete": false,
+      "tp_yes": "26/26",
+      "tp_rate": 100.0,
+      "tp_ci95": "87-100",
+      "fp_yes": "18/27",
+      "fp_rate": 66.7,
+      "fp_ci95": "48-81",
+      "cost_per_call": 0.010519,
+      "latency_p50_s": 19.9,
+      "flex": false
+    },
+    {
+      "arm": "d25f_v1:1",
+      "scope": "passou no gate",
+      "complete": true,
+      "tp_yes": "26/26",
+      "tp_rate": 100.0,
+      "tp_ci95": "87-100",
+      "fp_yes": "18/27",
+      "fp_rate": 66.7,
+      "fp_ci95": "48-81",
+      "cost_per_call": 0.010519,
+      "latency_p50_s": 19.9,
+      "flex": false
+    },
+    {
+      "arm": "d35l_g3_low_high:1",
+      "scope": "todos",
+      "complete": true,
+      "tp_yes": "37/44",
+      "tp_rate": 84.1,
+      "tp_ci95": "71-92",
+      "fp_yes": "25/45",
+      "fp_rate": 55.6,
+      "fp_ci95": "41-69",
+      "cost_per_call": 0.010154,
+      "latency_p50_s": 18.3,
+      "flex": true
+    },
+    {
+      "arm": "d35l_g3_low_high:1",
+      "scope": "passou no gate",
+      "complete": true,
+      "tp_yes": "22/26",
+      "tp_rate": 84.6,
+      "tp_ci95": "66-94",
+      "fp_yes": "19/27",
+      "fp_rate": 70.4,
+      "fp_ci95": "52-84",
+      "cost_per_call": 0.009995,
+      "latency_p50_s": 18.1,
+      "flex": true
+    },
+    {
+      "arm": "d35l_v1_low_high:1",
+      "scope": "todos",
+      "complete": true,
+      "tp_yes": "32/44",
+      "tp_rate": 72.7,
+      "tp_ci95": "58-84",
+      "fp_yes": "18/45",
+      "fp_rate": 40.0,
+      "fp_ci95": "27-55",
+      "cost_per_call": 0.00993,
+      "latency_p50_s": 17.5,
+      "flex": true
+    },
+    {
+      "arm": "d35l_v1_low_high:1",
+      "scope": "passou no gate",
+      "complete": true,
+      "tp_yes": "19/26",
+      "tp_rate": 73.1,
+      "tp_ci95": "54-86",
+      "fp_yes": "12/27",
+      "fp_rate": 44.4,
+      "fp_ci95": "28-63",
+      "cost_per_call": 0.009406,
+      "latency_p50_s": 17.1,
+      "flex": true
+    }
+  ]
+}
