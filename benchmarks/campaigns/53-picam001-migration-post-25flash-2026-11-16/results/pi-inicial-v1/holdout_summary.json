@@ -61,6 +61,34 @@
       "flex": true
     },
     {
+      "arm": "d35l_g3_med_high:1",
+      "scope": "todos",
+      "complete": false,
+      "tp_yes": "20/26",
+      "tp_rate": 76.9,
+      "tp_ci95": "58-89",
+      "fp_yes": "20/27",
+      "fp_rate": 74.1,
+      "fp_ci95": "55-87",
+      "cost_per_call": 0.012353,
+      "latency_p50_s": 17.2,
+      "flex": true
+    },
+    {
+      "arm": "d35l_g3_med_high:1",
+      "scope": "passou no gate",
+      "complete": true,
+      "tp_yes": "20/26",
+      "tp_rate": 76.9,
+      "tp_ci95": "58-89",
+      "fp_yes": "20/27",
+      "fp_rate": 74.1,
+      "fp_ci95": "55-87",
+      "cost_per_call": 0.012353,
+      "latency_p50_s": 17.2,
+      "flex": true
+    },
+    {
       "arm": "d35l_v1_low_high:1",
       "scope": "todos",
       "complete": true,
@@ -86,6 +114,34 @@
       "fp_ci95": "28-63",
       "cost_per_call": 0.009406,
       "latency_p50_s": 17.1,
+      "flex": true
+    },
+    {
+      "arm": "d38f_g3_low_med:1",
+      "scope": "todos",
+      "complete": false,
+      "tp_yes": "25/26",
+      "tp_rate": 96.2,
+      "tp_ci95": "81-99",
+      "fp_yes": "16/27",
+      "fp_rate": 59.3,
+      "fp_ci95": "41-75",
+      "cost_per_call": 0.01406,
+      "latency_p50_s": 28.8,
+      "flex": true
+    },
+    {
+      "arm": "d38f_g3_low_med:1",
+      "scope": "passou no gate",
+      "complete": true,
+      "tp_yes": "25/26",
+      "tp_rate": 96.2,
+      "tp_ci95": "81-99",
+      "fp_yes": "16/27",
+      "fp_rate": 59.3,
+      "fp_ci95": "41-75",
+      "cost_per_call": 0.01406,
+      "latency_p50_s": 28.8,
       "flex": true
     }
   ]
