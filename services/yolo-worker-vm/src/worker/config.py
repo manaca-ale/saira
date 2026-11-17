@@ -139,6 +139,16 @@ GEMINI_AGENT1_TIMEOUT_SECONDS = int(os.getenv("GEMINI_AGENT1_TIMEOUT_SECONDS", s
 GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE", "85"))
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
+# Detail (Agent-2) on Gemini 3 models: reasoning level and media resolution.
+# Empty = do not send the parameter (historical behaviour; gemini-2.5-flash reasons
+# by default). gemini-3.5-flash-lite — where gemini-2.5-flash requests are routed
+# from 2026-12-01 — does NOT reason by default: in campaign 53 the unchanged request
+# dropped detail recall from 15/19 to 9/19 on pi-cam-001, and thinking_level=high with
+# media_resolution=low brought it back to 15/19 with fewer false positives.
+# Values: thinking minimal|low|medium|high; media low|medium|high.
+# With thinking on, keep GEMINI_MAX_OUTPUT_TOKENS >= 8192 and GEMINI_TIMEOUT_SECONDS >= 90.
+GEMINI_DETAIL_THINKING_LEVEL = os.getenv("GEMINI_DETAIL_THINKING_LEVEL", "").strip().lower()
+GEMINI_DETAIL_MEDIA_RESOLUTION = os.getenv("GEMINI_DETAIL_MEDIA_RESOLUTION", "").strip().lower()
 
 # --- Gemini circuit breaker (G2, resilience) --------------------------------
 # During a 429/RESOURCE_EXHAUSTED storm each window otherwise pays up to

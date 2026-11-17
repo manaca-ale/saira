@@ -676,13 +676,22 @@ def _call_model(
 _MODEL_PRICES = {
     "gemini-2.5-flash-lite": (0.10, 0.40),
     "gemini-2.5-flash": (0.30, 2.50),
-    "gemini-3.1-flash-lite": (0.125, 0.75),
+    # Preço Standard (chamada síncrona), conferido em 2026-11-16. Até a camp 53 esta
+    # linha trazia (0.125, 0.75), que é o preço Batch/Flex: o custo registrado do 3.1
+    # saía pela metade.
+    "gemini-3.1-flash-lite": (0.25, 1.50),
+    "gemini-3.5-flash-lite": (0.30, 2.50),
 }
 
 
 def _price_key(model_name: str) -> str:
     """Normaliza nomes versionados (ex.: gemini-2.5-flash-002) para a chave de preço."""
     m = (model_name or "").strip().lower()
+    # Nome conhecido (ou versão dele) primeiro, do mais específico para o mais genérico,
+    # para "gemini-2.5-flash-lite" não cair em "gemini-2.5-flash".
+    for key in sorted(_MODEL_PRICES, key=len, reverse=True):
+        if m.startswith(key):
+            return key
     if "flash-lite" in m:
         # Gemini-3.x flash-lite tem preço próprio; senão cai no 2.5.
         if "gemini-3" in m or "-3." in m or "3.1" in m:
@@ -1038,8 +1047,14 @@ def analyze_with_gemini(
                         schema_cls.model_json_schema(),
                         (override.max_output_tokens if override and override.max_output_tokens
                          else None),
-                        thinking_level=(override.thinking_level if override else None),
-                        media_resolution=(override.media_resolution if override else None),
+                        # Sem override (prod): nível de raciocínio e resolução vêm do
+                        # ambiente; vazio = não envia (comportamento do 2.5-flash).
+                        thinking_level=(
+                            override.thinking_level if override
+                            else (getattr(config, "GEMINI_DETAIL_THINKING_LEVEL", "") or None)),
+                        media_resolution=(
+                            override.media_resolution if override
+                            else (getattr(config, "GEMINI_DETAIL_MEDIA_RESOLUTION", "") or None)),
                         client=(override.client if override else None),
                     )
                     response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
