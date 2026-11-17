@@ -38,6 +38,7 @@ import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
 import bench53 as b
 from bench_budget import Budget, BudgetExceeded, cost_usd
@@ -128,8 +129,14 @@ def get_key() -> str:
     global _key
     if _key is None:
         env = os.environ.get("GEMINI_TEST_API_KEY", "").strip()
+        key_file = Path(os.environ.get("BENCH_AISTUDIO_KEY_FILE",
+                                       str(Path.home() / ".saira-bench" / "aistudio_key.txt")))
         if env:
             _key = env
+        elif key_file.exists():
+            # chave do AI Studio entregue pelo Alexandre em 16/11/2026 (projeto no nivel pago,
+            # fora do saira-tests-260520). Fica fora do repo; nunca imprimir nem commitar.
+            _key = key_file.read_text(encoding="utf-8").strip()
         else:
             out = subprocess.run(
                 [b._gcloud_exe(), "services", "api-keys", "get-key-string", KEY_UID,
