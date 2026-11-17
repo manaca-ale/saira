@@ -682,10 +682,12 @@ _MODEL_PRICES = {
     "gemini-3.1-flash-lite": (0.25, 1.50),
     "gemini-3.5-flash-lite": (0.30, 2.50),
     # Sem estas linhas o 3.6/3.8-flash caía no preço do gemini-2.5-flash (via "flash" em
-    # _price_key) e o custo registrado saía ~2,5x menor que o cobrado. Preço Standard
-    # conferido em 2026-11-16; o anunciado para 01/01/2027 é o dobro (1.50 / 7.50).
-    "gemini-3.6-flash": (0.75, 3.75),
-    "gemini-3.8-flash": (0.75, 3.75),
+    # _price_key) e o custo registrado saía várias vezes menor que o cobrado. Preço do
+    # Vertex (global, chamada síncrona) conferido no catálogo de cobrança do Google Cloud em
+    # 2026-11-17 para o 3.8-flash; o 3.6-flash foi assumido igual. A página da API do AI
+    # Studio lista 0.75 / 3.75 até 31/12/2026: NÃO vale para o Vertex, que a produção usa.
+    "gemini-3.6-flash": (1.50, 7.50),
+    "gemini-3.8-flash": (1.50, 7.50),
 }
 
 

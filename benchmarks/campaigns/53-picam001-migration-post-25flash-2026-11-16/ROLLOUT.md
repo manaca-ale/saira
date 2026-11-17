@@ -39,7 +39,7 @@ Com as variáveis vazias o código novo se comporta como o de hoje (241 testes d
 | Hoje, holdout | 26/44 | 18/45 | — |
 | Recomendado (2 repetições), holdout | 24/44 e 25/44 | 13/45 e 15/45 | — |
 
-Custo por evento da cascata: 4% menor que hoje com os preços atuais, 10% maior com os preços anunciados para 2027. Latência mediana do detail menor.
+Custo por evento da cascata: 10% maior que hoje, com o preço do Vertex conferido no catálogo de cobrança em 17/11 (US$ 1,50 / 7,50 por 1M no 3.8-flash). Latência mediana do detail menor.
 
 ## A regra do bbox: decidido em 17/11/2026
 
@@ -118,7 +118,7 @@ docker compose -p saira-test --profile worker -f docker-compose.test.yml up -d -
 
 Para o gate de test ficar igual ao de produção nesse ensaio, acrescentar ao mesmo comando `TEST_GEMINI_PROMPT_VERSION=current GEMINI_GATE_MID_FRAMES=3 GEMINI_GATE_REVOTE_ENABLED=false` (são os nomes que o compose de test lê). Conferir com o `docker exec ... env | grep` acima e com a linha `GEMINI_MODEL = ...` no log de partida do worker. Um deploy de test (push em `develop`) recria o container com os valores do `.env` e desfaz essa troca.
 
-**3. Observar em test** por pelo menos um dia com eventos: confirmações por dia contra a semana anterior; quantos details voltam com `infraction_confirmed=false` e confiança 0 (com `GEMINI_REQUIRE_BBOX=false` não deve haver nenhum); latência e timeouts; custo por chamada de detail em `gemini_call_log` (esperado: cerca de US$ 0,0085). Em 13/11 nenhuma câmera gerava detecção desde 28/09: se continuar assim, test não mostra nada e a validação é a do dataset.
+**3. Observar em test** por pelo menos um dia com eventos: confirmações por dia contra a semana anterior; quantos details voltam com `infraction_confirmed=false` e confiança 0 (com `GEMINI_REQUIRE_BBOX=false` não deve haver nenhum); latência e timeouts; custo por chamada de detail em `gemini_call_log` (esperado: cerca de US$ 0,017). Em 13/11 nenhuma câmera gerava detecção desde 28/09: se continuar assim, test não mostra nada e a validação é a do dataset.
 
 **4. Produção, com o ok do Alexandre, antes de as câmeras voltarem.** O projeto está parado (nenhuma câmera gera detecção desde 28/09) e volta em janeiro de 2027. Sem eventos, o roteamento de 01/12 não derruba nada na prática; mas qualquer evento que chegue depois de 01/12 com a configuração de hoje cai no detail roteado, de recall medido em 9/19. Por isso a troca deve estar feita antes de a primeira câmera ser religada. Aplicar com o projeto parado é o momento de menor risco. Gravar no `.env` as variáveis da tabela "O que muda" e recriar só o worker de produção:
 
@@ -140,5 +140,5 @@ Restaurar o `.env` da cópia (`.env.bak-...`) e repetir o comando de recriação
 
 - **Só câmeras do tipo da pi-cam-001.** Decisão do Alexandre em 17/11: o projeto volta em janeiro de 2027 com todas as câmeras no estilo da Raspberry, e as câmeras ESP32 (Mangabeira, Imbiribeira e as demais) ficam fora de escopo; não foram medidas com o detail novo e não serão. Se alguma delas voltar a operar, vale o aviso: `GEMINI_MODEL`, o thinking e a resolução são variáveis únicas para todas as câmeras, e na Mangabeira (esp32_002) o prompt próprio com recortes tem precedência sobre o `g3`.
 - **Um ponto só.** A medição é de uma câmera num ponto. As câmeras novas ficam em outros pontos: nos primeiros dias de cada uma, conferir a taxa de falsos e, se o gate Decisions vier a ser usado, o limiar.
-- **Preço**: o 3.8-flash dobra de preço em 01/01/2027 (anunciado). A conta de +10% já considera isso.
+- **Preço**: no Vertex o 3.8-flash custa US$ 1,50 / 7,50 por 1M, e a conta de +10% usa esse preço. A página da API do AI Studio lista a metade até 31/12/2026, mas não é o que o Vertex cobra; as primeiras versões deste documento diziam −4% por causa disso.
 - **Gate Decisions** (segunda proposta) não faz parte deste rollout: entra depois, em shadow. Desenho em [`DECISIONS-GATE-DESIGN.md`](DECISIONS-GATE-DESIGN.md).

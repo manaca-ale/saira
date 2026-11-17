@@ -23,7 +23,9 @@ import bench53 as b
 GATES = ["g25l_v1:1", "gdec_q1_gate5_low_deposit_t20:1", "gdec_q1_gate5_low_deposit_t25:1",
          "gdec_q1_gate5_low_deposit_t30:1", "gdec_q1_gate5_low_deposit_t40:1"]
 DETAILS = ["d25f_v1:1", "d38f_g3_low_low:1"]
-PRICE_2027_FACTOR = {"d38f_g3_low_low:1": 2.0}      # o 3.8-flash dobra em 2027-01-01
+# Sem coluna de 2027: no Vertex o 3.8-flash ja custa 1,50 / 7,50 (catalogo de cobranca de
+# 2026-11-17), que e o valor que a pagina do AI Studio anuncia para 2027. Nao ha aumento
+# conhecido adiante.
 
 
 def exists(stage, ref):
@@ -57,7 +59,7 @@ def main():
         b.DS["name"] = ds
         print(f"\n=== {ds} ===")
         print("gate | detail | recall (det.) | IC95 | falsos (det.) | vazias | gate passa reais / falsos | "
-              "US$ gate | US$ detail | US$ evento | vs atual | US$ evento 2027 | vs atual | faltam")
+              "US$ gate | US$ detail | US$ evento | vs atual | faltam")
         rows = []
         for g in GATES:
             for d in DETAILS:
@@ -68,27 +70,25 @@ def main():
                     continue
                 p = p_prod.get(g, b.P_PASS_PROD)
                 ev = s["cost_gate_per_call"] + p * s["cost_detail_per_call"]
-                ev27 = s["cost_gate_per_call"] + p * s["cost_detail_per_call"] * PRICE_2027_FACTOR.get(d, 1.0)
                 if ds == "official" and g == "g25l_v1:1" and d == "d25f_v1:1":
                     base_cost = ev
-                rows.append((g, d, s, ev, ev27))
-        for g, d, s, ev, ev27 in rows:
+                rows.append((g, d, s, ev))
+        for g, d, s, ev in rows:
             rel = f"{100 * (ev / base_cost - 1):+.0f}%" if base_cost else "?"
-            rel27 = f"{100 * (ev27 / base_cost - 1):+.0f}%" if base_cost else "?"
             # tp/fp/baseline que disparam o gate mas nao tem detail: o par esta incompleto
             flag = f"{s['missing_detail']}" if s["missing_detail"] else "0"
             print(f"{g} | {d} | {s['tp_det']} = {s['recall_det']}% | {s['recall_det_ci95']} | "
                   f"{s['fp_det']} | {s['baseline']} | {s['gate_pass_tp_det']} / {s['gate_pass_fp_det']} | "
                   f"{s['cost_gate_per_call']:.5f} | {s['cost_detail_per_call']:.4f} | {ev:.5f} | {rel} | "
-                  f"{ev27:.5f} | {rel27} | {flag}")
+                  f"{flag}")
             out.setdefault(ds, []).append({
                 "gate": g, "detail": d, "tp_det": s["tp_det"], "recall_det": s["recall_det"],
                 "recall_ci95": s["recall_det_ci95"], "fp_det": s["fp_det"], "baseline": s["baseline"],
                 "gate_pass_tp_det": s["gate_pass_tp_det"], "gate_pass_fp_det": s["gate_pass_fp_det"],
                 "cost_gate": s["cost_gate_per_call"], "cost_detail": s["cost_detail_per_call"],
                 "p_pass_prod": round(p_prod.get(g, b.P_PASS_PROD), 4),
-                "cost_event": round(ev, 6), "cost_event_2027": round(ev27, 6),
-                "vs_current": rel, "vs_current_2027": rel27, "missing_detail": s["missing_detail"]})
+                "cost_event": round(ev, 6), "vs_current": rel,
+                "missing_detail": s["missing_detail"]})
     b.DS["name"] = "official"
     (b.RESULTS / "cascade_summary.json").write_text(
         json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")

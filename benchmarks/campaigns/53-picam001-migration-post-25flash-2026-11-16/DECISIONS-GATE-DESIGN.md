@@ -74,7 +74,7 @@ Guardar a probabilidade crua permite reavaliar qualquer limiar depois, sem chama
 ## Fases
 
 1. **Fase 1, só o gate.** Mede taxa de passagem por limiar, concordância com o gate de produção, estabilidade, latência e erros. Custo: a pi-cam-001 gerou cerca de 500 eventos por dia entre 28/07 e 04/08 (3.988 em 8 dias); 500 × US$ 0,00021 dá cerca de US$ 0,11 por dia, ou US$ 3 por mês, por câmera.
-2. **Fase 2, com detail.** Nos eventos em que o Decisions passa e o gate de produção não, chamar o detail recomendado (um `ModelOverride`, como os shadows atuais) e registrar o resultado, sem criar detecção. É o que diz se os eventos a mais são descarte ou ruído. Custo máximo no limiar 0,20: 7,3% × 500 × US$ 0,0085 ≈ US$ 0,31 por dia. Só ligar depois de a fase 1 mostrar a taxa de passagem real.
+2. **Fase 2, com detail.** Nos eventos em que o Decisions passa e o gate de produção não, chamar o detail recomendado (um `ModelOverride`, como os shadows atuais) e registrar o resultado, sem criar detecção. É o que diz se os eventos a mais são descarte ou ruído. Custo máximo no limiar 0,20: 7,3% × 500 × US$ 0,017 ≈ US$ 0,62 por dia (o 3.8-flash custa US$ 1,50 / 7,50 por 1M no Vertex). Só ligar depois de a fase 1 mostrar a taxa de passagem real.
 
 ## Critério para sair do shadow
 

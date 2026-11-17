@@ -95,8 +95,9 @@ def test_list_prices():
     assert dg._MODEL_PRICES["gemini-3.5-flash-lite"] == (0.30, 2.50)
     # synchronous calls pay Standard, not Batch/Flex (0.125 / 0.75)
     assert dg._MODEL_PRICES["gemini-3.1-flash-lite"] == (0.25, 1.50)
-    assert dg._MODEL_PRICES["gemini-3.8-flash"] == (0.75, 3.75)
-    assert dg._MODEL_PRICES["gemini-3.6-flash"] == (0.75, 3.75)
+    # Vertex billing catalog, 2026-11-17 (the AI Studio page lists half of this)
+    assert dg._MODEL_PRICES["gemini-3.8-flash"] == (1.50, 7.50)
+    assert dg._MODEL_PRICES["gemini-3.6-flash"] == (1.50, 7.50)
 
 
 def test_38_flash_cost_uses_its_own_price():
@@ -110,7 +111,7 @@ def test_38_flash_cost_uses_its_own_price():
         usage_metadata = _Meta()
 
     usage = dg._extract_usage(_R(), "gemini-3.8-flash")
-    expected = 9163 / 1e6 * 0.75 + (420 + 11) / 1e6 * 3.75
+    expected = 9163 / 1e6 * 1.50 + (420 + 11) / 1e6 * 7.50
     assert usage.estimated_cost_usd == pytest.approx(expected, rel=1e-3)
 
 

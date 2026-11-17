@@ -559,6 +559,18 @@ def pid_alive(pid: int) -> bool:
         return False
 
 
+def rec_cost(r: dict) -> float:
+    """Custo de lista de um registro, RECALCULADO dos tokens com a tabela vigente.
+
+    O `cost_usd` gravado no registro foi calculado com a tabela do dia da execucao, e ela
+    estava errada para o gemini-3.8-flash ate 2026-11-17 (metade do preco do Vertex)."""
+    try:
+        return cost_usd(r["model"], int(r.get("tok_in") or 0), int(r.get("tok_out") or 0),
+                        int(r.get("tok_think") or 0))
+    except KeyError:
+        return float(r.get("cost_usd") or 0.0)
+
+
 def parse_ref(ref: str) -> tuple[str, int]:
     arm, _, rep = ref.partition(":")
     return arm, int(rep or 1)
@@ -702,8 +714,8 @@ def score_pair(gate_ref: str, detail_ref: str, quiet=False) -> dict:
         rows.append({"event_id": ev["event_id"], "det_id": ev["det_id"],
                      "category": ev["category"], "gate_fire": int(fired),
                      "disposal": int(bool(fired and d and d.get("disposal") == 1)),
-                     "gate_cost": float(g.get("cost_usd") or 0.0),
-                     "detail_cost": float(d.get("cost_usd") or 0.0) if d else 0.0})
+                     "gate_cost": rec_cost(g),
+                     "detail_cost": rec_cost(d) if d else 0.0})
 
     def evt(cat, field):
         sub = [r for r in rows if r["category"] == cat]

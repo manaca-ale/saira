@@ -29,25 +29,31 @@ import threading
 from pathlib import Path
 
 # USD por 1M tokens: (entrada, saida). Thinking e cobrado como saida.
-# Tabela Standard conferida em 2026-11-16 em aistudio.google.com/docs/pricing.
-# O Vertex (global) bateu com esta tabela no 3.1-flash-lite em 2026-11-13 (catalogo
-# de SKUs); para os demais modelos a igualdade Vertex == Developer API e SUPOSICAO.
+# Precos do VERTEX (endpoint global, chamada sincrona), que e onde os benchmarks e a
+# producao rodam. Conferidos em 2026-11-17 no catalogo de cobranca do Google Cloud
+# (`python vertex_sku_prices.py`) para 2.5-flash, 2.5-flash-lite, 3.5-flash-lite e
+# 3.8-flash; o 3.1-flash-lite foi conferido em 2026-11-13. Flex PayGo = metade, tambem
+# conferido no catalogo.
+# ATENCAO: a pagina de precos da API do AI Studio lista o 3.6/3.8-flash a 0,75 / 3,75
+# "ate 31/12/2026". No Vertex o catalogo ja cobra 1,50 / 7,50. Esta tabela usou o preco
+# do AI Studio ate 2026-11-17 e subestimou pela metade todo gasto com o 3.8-flash; o
+# ledger recebeu um registro de ajuste. O 3.6-flash NAO foi conferido no catalogo (a API
+# respondeu 429): assumido igual ao 3.8-flash, como na pagina do AI Studio. O
+# gemini-4-hydrogen e o gemini-3-flash-preview vem da pagina do AI Studio, sem conferencia.
 PRICES = {
     "gemini-2.5-flash-lite": (0.10, 0.40),
     "gemini-2.5-flash": (0.30, 2.50),
     "gemini-3.1-flash-lite": (0.25, 1.50),
     "gemini-3.5-flash-lite": (0.30, 2.50),
     "gemini-3-flash-preview": (0.50, 3.00),
-    "gemini-3.6-flash": (0.75, 3.75),
-    "gemini-3.8-flash": (0.75, 3.75),
+    "gemini-3.6-flash": (1.50, 7.50),
+    "gemini-3.8-flash": (1.50, 7.50),
     "gemini-4-hydrogen": (1.50, 7.50),
     "gemini-decision-1": (0.10, 0.0),
 }
-# Precos anunciados a partir de 2027-01-01 (so os que mudam).
-PRICES_2027 = {
-    "gemini-3.6-flash": (1.50, 7.50),
-    "gemini-3.8-flash": (1.50, 7.50),
-}
+# Mudancas de preco anunciadas para 2027-01-01. No Vertex nao ha nenhuma conhecida: o
+# 3.8-flash ja esta no valor que a pagina do AI Studio anuncia para 2027.
+PRICES_2027: dict = {}
 # Faturamento separado: o teto vale para a conta "Saira - Testes" (Vertex). A API de
 # Decisoes roda numa chave do AI Studio de outro projeto, com creditos proprios (informado
 # pelo Alexandre em 2026-11-17: "chave separada, com creditos separados"). Esses registros

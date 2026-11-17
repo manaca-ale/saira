@@ -1,6 +1,6 @@
 # Camp 53 — pi-cam-001 depois do `gemini-2.5-flash`: qual detail e qual gate
 
-**Data**: 16 e 17/11/2026 · **Custo de API**: US$ 8,72 de um teto de US$ 15,00 (conta "Saira - Testes") · **Runner**: `scripts/bench53.py` e `scripts/bench_decisions.py`, que importam o código real do worker · **Estado**: pi-cam-001 medida; Mangabeira e Imbiribeira ainda não (bloco H).
+**Data**: 16 e 17/11/2026 · **Custo de API**: US$ 11,22 de um teto de US$ 15,00 (conta "Saira - Testes"; estimativa: tokens conferidos com a medição do Google, preço do catálogo do Vertex), mais US$ 0,18 na chave do AI Studio, que tem créditos separados · **Runner**: `scripts/bench53.py` e `scripts/bench_decisions.py`, que importam o código real do worker · **Estado**: pi-cam-001 medida; Mangabeira e Imbiribeira ainda não (bloco H).
 
 Documentos irmãos nesta pasta: [`ROLLOUT.md`](ROLLOUT.md) (como aplicar a troca do detail), [`DECISIONS-GATE-DESIGN.md`](DECISIONS-GATE-DESIGN.md) (desenho do shadow do gate Decisions) e [`results/exemplos.md`](results/exemplos.md) (análise de erros olhando os frames).
 
@@ -41,8 +41,8 @@ O gate de hoje passou 18/19 detecções reais, 18/25 falsas e 3/40 "sem ocorrên
 | `d35l_v1_routed`: 3.5-flash-lite, requisição idêntica (**01/12 sem mexer**) | **9/19 = 47%** (27–68) | 4/25 | 1/40 | 0,0098 | 0,00132 | −2% |
 | `d35l_v1_low_high`: 3.5-flash-lite, V1, thinking alto, resolução baixa, 2 repetições | 15/19 e 16/19 | 8/25 e 10/25 | 0/40 e 0/40 | 0,0094 | 0,00131 | −2% |
 | `d35l_g3_low_high`: idem com prompt g3, 2 repetições | 16/19 e 15/19 | 10/25 e 11/25 | 2/40 e 1/40 | 0,0102 | 0,00133 | −1% |
-| `d38f_g3_low_low`: **3.8-flash**, g3, thinking baixo, resolução baixa (**recomendado**), 3 repetições | **16/19, 16/19 e 16/19** | **5/25, 4/25 e 4/25** | 2/40, 1/40 e 2/40 | 0,0085 | 0,00129 | **−4%** (preço de 2027: +10%) |
-| `d38f_g3_low_med`: 3.8-flash, g3, thinking médio | 17/19 | 5/25 | 2/40 | 0,0150 | 0,00143 | +7% (2027: +31%) |
+| `d38f_g3_low_low`: **3.8-flash**, g3, thinking baixo, resolução baixa (**recomendado**), 3 repetições | **16/19, 16/19 e 16/19** | **5/25, 4/25 e 4/25** | 2/40, 1/40 e 2/40 | 0,0169 | 0,00148 | **+10%** |
+| `d38f_g3_low_med`: 3.8-flash, g3, thinking médio | 17/19 | 5/25 | 2/40 | 0,0299 | 0,00176 | +31% |
 | `d35l_v1_low_min`: 3.5-flash-lite, V1, sem thinking, resolução baixa | 13/19 | 6/25 | 0/40 | 0,0036 | 0,00118 | −12% |
 | `d35l_v4_low_high`: 3.5-flash-lite, V4, thinking alto | 10/19 | 0/25 | 0/40 | 0,0090 | 0,00130 | −3% |
 | `d35l_v4_low_min`: 3.5-flash-lite, V4, sem thinking | 8/19 | 1/25 | 0/40 | 0,0037 | 0,00119 | −11% |
@@ -50,7 +50,7 @@ O gate de hoje passou 18/19 detecções reais, 18/25 falsas e 3/40 "sem ocorrên
 - **Sem mexer, o recall cai de 15–17/19 para 9/19 em 01/12**, com o mesmo custo. O 3.5-flash-lite não raciocina por padrão (0 tokens de thinking, contra cerca de 3,1 mil no 2.5-flash) e nega 14 dos 27 eventos reais que o modelo atual confirma.
 - **Thinking é a alavanca principal.** Com o mesmo prompt V1, `thinking_level=high` e `media_resolution=low` devolvem o recall de hoje com menos falsos.
 - **O prompt V4 é rígido demais para o 3.5-flash-lite**: quase zero falsos, recall de 42% a 53%.
-- **O 3.8-flash com thinking baixo é o melhor braço**: mesmo recall, um terço dos falsos e chamada de detail mais barata que a de hoje. Ele não aceita `thinking_level=minimal` (HTTP 400): o piso é `low`.
+- **O 3.8-flash com thinking baixo é o melhor braço**: mesmo recall e um terço dos falsos. A chamada de detail sai 56% mais cara que a de hoje (US$ 0,0169 contra 0,0108), o que vira +10% por evento porque só ~2% dos eventos chegam ao detail. Ele não aceita `thinking_level=minimal` (HTTP 400): o piso é `low`.
 
 Tabela de todos os pares: `python bench53.py matrix --max-missing 7` (grava `results/matrix.json`).
 
@@ -103,13 +103,13 @@ AUC por evento de `deposit`: reais × falsos 0,73; reais × "sem ocorrência" 0,
 
 Cascata completa com o detail recomendado (`python agg_cascade.py`). O custo é projeção: a taxa de passagem em produção foi escalada pelas 40 cenas "sem ocorrência" (gate de hoje 3/40 → 2,2%; Decisions 0,30 → 2,9%; 0,25 → 3,7%; 0,20 → 7,3%).
 
-| Gate + detail | Oficial: reais / falsos / "sem ocorrência" | Holdout: reais / falsos | US$ por evento | Δ custo | Com preço de 2027 |
-|---|---|---|---|---|---|
-| Hoje: 2.5-flash-lite + 2.5-flash | 15/19 / 12/25 / 1/40 | 26/44 / 18/45 | 0,00134 | — | — |
-| Gate de hoje + detail recomendado | 16/19 / 5/25 / 2/40 | 25/44 / 13/45 | 0,00129 | −4% | +10% |
-| Decisions 0,30 + detail recomendado | 16/19 / 9/25 / 3/40 | 29/44 / 16/45 | 0,00047 | −65% | −46% |
-| Decisions 0,25 + detail recomendado | 16/19 / 10/25 / 3/40 | 31/44 / 18/45 | 0,00052 | −61% | −38% |
-| Decisions 0,20 + detail recomendado | 16/19 / 10/25 / 3/40 | 38/44 / 19/45 | 0,00082 | −39% | +6% |
+| Gate + detail | Oficial: reais / falsos / "sem ocorrência" | Holdout: reais / falsos | US$ por evento | Δ custo |
+|---|---|---|---|---|
+| Hoje: 2.5-flash-lite + 2.5-flash | 15/19 / 12/25 / 1/40 | 26/44 / 18/45 | 0,00134 | — |
+| Gate de hoje + detail recomendado | 16/19 / 5/25 / 2/40 | 25/44 / 13/45 | 0,00148 | +10% |
+| Decisions 0,30 + detail recomendado | 16/19 / 9/25 / 3/40 | 29/44 / 16/45 | 0,00072 | −46% |
+| Decisions 0,25 + detail recomendado | 16/19 / 10/25 / 3/40 | 31/44 / 18/45 | 0,00084 | −38% |
+| Decisions 0,20 + detail recomendado | 16/19 / 10/25 / 3/40 | 38/44 / 19/45 | 0,00142 | +6% |
 
 Os três limiares dão o mesmo recall no oficial; quem os separa é o holdout. Escolher o limiar pelo holdout é otimista, por isso os três ficam reportados.
 
@@ -132,18 +132,19 @@ Detalhes em [`results/exemplos.md`](results/exemplos.md).
 ## Decisão
 
 1. ❌ **Não deixar o roteamento acontecer sozinho.** Com a requisição de hoje no 3.5-flash-lite o recall medido cai para 9/19 (47%), abaixo do critério.
-2. ✅ **Trocar o detail antes de 01/12** por `gemini-3.8-flash`, prompt g3, `thinking_level=low`, `media_resolution=low`, com `GEMINI_REQUIRE_BBOX=false` (item 3). Passa em todos os critérios nos dois conjuntos: no oficial, 18/19 de recall e 6/25 de falsos sem o veto do bbox (16/19 e 4–5/25 com ele), contra 15–17/19 e 12–14/25 de hoje; custo por evento 4% menor hoje e 10% maior com o preço anunciado para 2027. É só configuração, com os commits 464adb8, 5e90e43, cd78f19 e cc13846 desta branch. Passos em [`ROLLOUT.md`](ROLLOUT.md). **Vale para câmeras do tipo da pi-cam-001**, que é o que o projeto terá quando voltar, em janeiro de 2027 (decisão do Alexandre em 17/11: as câmeras ESP32 ficam fora de escopo e não foram medidas).
+2. ✅ **Trocar o detail antes de 01/12** por `gemini-3.8-flash`, prompt g3, `thinking_level=low`, `media_resolution=low`, com `GEMINI_REQUIRE_BBOX=false` (item 3). Passa em todos os critérios nos dois conjuntos: no oficial, 18/19 de recall e 6/25 de falsos sem o veto do bbox (16/19 e 4–5/25 com ele), contra 15–17/19 e 12–14/25 de hoje; custo por evento 10% maior que o de hoje, dentro do limite de 20%. É só configuração, com os commits 464adb8, 5e90e43, cd78f19 e cc13846 desta branch. Passos em [`ROLLOUT.md`](ROLLOUT.md). **Vale para câmeras do tipo da pi-cam-001**, que é o que o projeto terá quando voltar, em janeiro de 2027 (decisão do Alexandre em 17/11: as câmeras ESP32 ficam fora de escopo e não foram medidas).
 3. ✅ **Regra do bbox: decidido em 17/11.** O Alexandre respondeu "não preciso de bbox": o rollout usa `GEMINI_REQUIRE_BBOX=false` e vale a resposta do modelo (18/19 reais, 6/25 falsos, 2/40 "sem ocorrência" no oficial, pela repetição 3 com a resposta crua). O commit cc13846 faz os composes repassarem a variável e torna a área mínima da caixa configurável (`GEMINI_BBOX_MIN_AREA_RATIO`), para as caixas justas do 3.8-flash poderem ser gravadas. O relatório diário tem um indicador (I3, meta de 80%) que conta detecções com caixa do infrator: na repetição 3, 34 das 39 confirmações do modelo têm caixa com 1% ou mais da imagem (87%) e as 39 têm com 0,25% ou mais.
 4. ⚠️ **Gate Decisions: shadow primeiro.** No dataset ele iguala o gate de hoje em recall, recupera confirmados do holdout que o gate de hoje não repete e custa um quinto por chamada. Mas o modelo tem uma semana de vida, só existe na API do AI Studio, o custo da cascata é projeção e o limiar foi visto em uma câmera. Desenho em [`DECISIONS-GATE-DESIGN.md`](DECISIONS-GATE-DESIGN.md), sem implementação.
 
-Alternativas de detail, se o 3.8-flash não puder ser usado: `d35l_g3_low_high` (3.5-flash-lite; custo igual ao de hoje e sem aumento anunciado; recall igual no oficial, 22/26 no holdout, falsos como os de hoje) e `d38f_g3_low_med` (qualidade igual à do recomendado; +7% hoje e +31% em 2027, fora do critério).
+Alternativas de detail, se o 3.8-flash não puder ser usado: `d35l_g3_low_high` (3.5-flash-lite; custo igual ao de hoje e sem aumento anunciado; recall igual no oficial, 22/26 no holdout, falsos como os de hoje) e `d38f_g3_low_med` (qualidade igual à do recomendado; +31% de custo, fora do critério).
 
 ## Caveats
 
 - **Uma câmera, um ponto.** Tudo foi medido na pi-cam-001. O projeto volta em janeiro de 2027 só com câmeras desse tipo, mas em outros pontos: enquadramento e cena mudam, e a taxa de falsos (e o limiar do Decisions, se for usado) precisa ser conferida nos primeiros dias de cada câmera nova. As câmeras ESP32 ficaram fora de escopo por decisão do Alexandre.
 - **Amostra pequena.** 19 detecções reais no oficial: o intervalo de 16/19 vai de 62% a 94%. O holdout tem 44 confirmados, mas só mede o detail em eventos escolhidos pela produção.
 - **Validação offline.** Em 13/11 nenhuma câmera gerava detecção desde 28/09; não há tráfego para um teste ao vivo.
-- **Preço do 3.8-flash dobra em 01/01/2027** (anunciado). A conta de +10% já usa o preço novo; com thinking médio estouraria os 20%.
+- **Preço do 3.8-flash: corrigido em 17/11.** No Vertex, que é o que os testes e a produção usam, ele custa US$ 1,50 / 7,50 por 1M de tokens (catálogo de cobrança do Google Cloud, `python benchmarks/scripts/vertex_sku_prices.py`). A página de preços da API do AI Studio lista a metade até 31/12/2026, e as primeiras versões deste relatório usaram esse valor: diziam −4% de custo por evento para o recomendado. O certo é +10%. Com thinking médio seria +31%, fora dos 20%. Os demais modelos (2.5-flash, 2.5-flash-lite, 3.5-flash-lite) batem com o catálogo.
+- **Gasto dos testes: estimado, com os tokens conferidos.** O registro de gastos soma tokens × preço. Os tokens batem exatamente com a medição do Google no projeto (Cloud Monitoring, 14,95 milhões de entrada nos quatro modelos; `python benchmarks/scripts/vertex_usage_check.py`). O preço vem do catálogo. A fatura, em reais e com impostos, só aparece no console de faturamento, com atraso.
 - **Custo da cascata com o Decisions é projeção** a partir de 40 cenas. Só um shadow dá a taxa de passagem real.
 - **Paridade com produção conferida em 17/11/2026** (leitura das variáveis do `saira-yolo-worker-prod`, a pedido do Alexandre; tabela no `ROLLOUT.md`). O gate de produção é o `gemini-2.5-flash-lite` e modelo, thinking 2048, limiar 85, 48 frames, 3 frames intermediários, sem re-voto, prompt V1, temperatura 0 e 8192 tokens de saída no detail batem com o runner. Diferem os timeouts: produção usa 45 s no detail e 15 s no gate; o runner usou 180 s. O worker de test NÃO é espelho do de produção (gate com prompt `v3`, 10 frames intermediários, re-voto, API do AI Studio).
 - **Flex.** Parte das repetições rodou em Flex PayGo (metade do preço, latência maior). O recomendado foi repetido em modo padrão nos dois conjuntos, com o mesmo resultado.

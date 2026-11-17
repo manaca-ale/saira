@@ -56,7 +56,7 @@ def main():
             need_fp = sum(1 for e in ids if events[e]["category"] == "fp")
             complete = len(tp) == need_tp and len(fp) == need_fp
             tp_yes, fp_yes = sum(r["disposal"] for r in tp), sum(r["disposal"] for r in fp)
-            costs = [r["cost_usd"] for r in sub]
+            costs = [b.rec_cost(r) for r in sub]
             lats = sorted(r["latency_ms"] for r in sub)
             row = {"arm": arm, "scope": scope, "complete": complete,
                    "tp_yes": f"{tp_yes}/{len(tp)}", "tp_rate": b._rate(tp_yes, len(tp)),
