@@ -915,7 +915,7 @@ def _process_with_gemini(
                 use_pilecrops_prompt = False
 
     selected_prompt_version = (
-        "mangabeira_with_pilecrops" if use_pilecrops_prompt else config.GEMINI_PROMPT_VERSION
+        "mangabeira_with_pilecrops" if use_pilecrops_prompt else _detail_prompt_version()
     )
 
     def _cleanup_pilecrops() -> None:
@@ -2119,6 +2119,18 @@ def _shadow_camera_context(camera, device_id: str, last_frame_name: str) -> dict
     }
 
 
+def _detail_prompt_version() -> str:
+    """Prompt version for the detail (Agent-2) call.
+
+    GEMINI_DETAIL_PROMPT_VERSION=g3 switches ONLY the detail to the Gemini-3 prompt while
+    the gate keeps GEMINI_PROMPT_VERSION (campaign 53: the gate model is not deprecated,
+    the detail model is). Every other value of that variable stays inert, as it has been
+    since the audit experiments, so a stale .env entry cannot change production."""
+    if getattr(config, "GEMINI_DETAIL_PROMPT_VERSION", "") == "g3":
+        return "g3"
+    return config.GEMINI_PROMPT_VERSION
+
+
 def _shadow_prior_ctx(prior_had: bool, prior_waste: Optional[str]) -> Optional[str]:
     if not prior_had:
         return None
@@ -2133,7 +2145,7 @@ def _shadow_detail(window: list[Path], device_id: str, camera, prior_had: bool,
     cam_ctx = _shadow_camera_context(camera, device_id, window[-1].name)
     prior_ctx = _shadow_prior_ctx(prior_had, prior_waste)
     pile_crops = None
-    prompt_v = config.GEMINI_PROMPT_VERSION
+    prompt_v = _detail_prompt_version()
     tmp_dir: Optional[Path] = None
     if (config.GEMINI_DETAIL_PILECROP_ENABLED and device_id in config.DETAIL_PILECROP_DEVICES
             and len(window) >= 2):

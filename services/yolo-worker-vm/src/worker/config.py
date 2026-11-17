@@ -356,10 +356,14 @@ if GEMINI_PROMPT_VERSION not in ("current", "v2", "v3", "audit"):
 # Separate flag for the Detail agent (Agent-2). Allows running gate with V1
 # (default, validated) while testing the audit prompt only on the detail side.
 # Values: "current" (V1) | "v2" | "v3" | "audit" | "audit_v2"
+# - g3: Gemini-3 recall-first prompt (_prompts_g3), detail only. This is the ONLY value
+#   the worker honours today (main._detail_prompt_version, campaign 53); the other values
+#   have been inert since the audit experiments and stay inert, so deploying this change
+#   cannot switch a prompt on by accident through a stale .env entry.
 # - audit: V1 adversarial reviewer, force-false unless real_dumping (camp 15 FAIL)
 # - audit_v2: relaxed, force-false only for 5 unambiguous FP patterns (camp 16)
 GEMINI_DETAIL_PROMPT_VERSION = os.getenv("GEMINI_DETAIL_PROMPT_VERSION", "").strip().lower()
-if GEMINI_DETAIL_PROMPT_VERSION not in ("", "current", "v2", "v3", "audit", "audit_v2"):
+if GEMINI_DETAIL_PROMPT_VERSION not in ("", "current", "v2", "v3", "audit", "audit_v2", "g3"):
     logging.getLogger(__name__).warning(
         "Invalid GEMINI_DETAIL_PROMPT_VERSION=%s. Falling back to GEMINI_PROMPT_VERSION.",
         GEMINI_DETAIL_PROMPT_VERSION,

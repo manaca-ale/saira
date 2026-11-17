@@ -92,3 +92,43 @@ def test_list_prices():
     assert dg._MODEL_PRICES["gemini-3.5-flash-lite"] == (0.30, 2.50)
     # synchronous calls pay Standard, not Batch/Flex (0.125 / 0.75)
     assert dg._MODEL_PRICES["gemini-3.1-flash-lite"] == (0.25, 1.50)
+
+
+# --- detail-only prompt selection (main._detail_prompt_version) ---------------
+def test_detail_prompt_defaults_to_global(monkeypatch):
+    from worker import main
+    monkeypatch.setattr(config, "GEMINI_PROMPT_VERSION", "current", raising=False)
+    monkeypatch.setattr(config, "GEMINI_DETAIL_PROMPT_VERSION", "", raising=False)
+    assert main._detail_prompt_version() == "current"
+
+
+def test_detail_prompt_g3_switches_only_the_detail(monkeypatch):
+    from worker import main
+    monkeypatch.setattr(config, "GEMINI_PROMPT_VERSION", "current", raising=False)
+    monkeypatch.setattr(config, "GEMINI_DETAIL_PROMPT_VERSION", "g3", raising=False)
+    assert main._detail_prompt_version() == "g3"
+    # the gate keeps reading the global version
+    assert config.GEMINI_PROMPT_VERSION == "current"
+
+
+@pytest.mark.parametrize("legacy", ["audit", "audit_v2", "v2", "v3", "current"])
+def test_legacy_detail_values_stay_inert(monkeypatch, legacy):
+    """These values were never read by the worker; deploying must not activate them."""
+    from worker import main
+    monkeypatch.setattr(config, "GEMINI_PROMPT_VERSION", "current", raising=False)
+    monkeypatch.setattr(config, "GEMINI_DETAIL_PROMPT_VERSION", legacy, raising=False)
+    assert main._detail_prompt_version() == "current"
+
+
+def test_g3_detail_uses_the_g3_system_prompt(captured, monkeypatch):
+    from worker import _prompts_g3
+    seen_prompt = {}
+    orig = dg._call_model
+
+    def spy(image_paths, system_prompt, *a, **k):
+        seen_prompt["system"] = system_prompt
+        return orig(image_paths, system_prompt, *a, **k)
+
+    monkeypatch.setattr(dg, "_call_model", spy)
+    _run(captured, prompt_version="g3")
+    assert seen_prompt["system"] == _prompts_g3.G3_DETAIL_PROMPT
