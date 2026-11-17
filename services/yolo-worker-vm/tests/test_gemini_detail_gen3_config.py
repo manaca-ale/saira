@@ -83,6 +83,9 @@ def test_override_wins_over_env(captured, monkeypatch):
     ("gemini-3.1-flash-lite", "gemini-3.1-flash-lite"),
     ("gemini-3.5-flash-lite", "gemini-3.5-flash-lite"),
     ("GEMINI-3.5-FLASH-LITE", "gemini-3.5-flash-lite"),
+    # must not fall back to the gemini-2.5-flash price through the generic "flash" rule
+    ("gemini-3.8-flash", "gemini-3.8-flash"),
+    ("gemini-3.6-flash", "gemini-3.6-flash"),
 ])
 def test_price_key(name, key):
     assert dg._price_key(name) == key
@@ -92,6 +95,23 @@ def test_list_prices():
     assert dg._MODEL_PRICES["gemini-3.5-flash-lite"] == (0.30, 2.50)
     # synchronous calls pay Standard, not Batch/Flex (0.125 / 0.75)
     assert dg._MODEL_PRICES["gemini-3.1-flash-lite"] == (0.25, 1.50)
+    assert dg._MODEL_PRICES["gemini-3.8-flash"] == (0.75, 3.75)
+    assert dg._MODEL_PRICES["gemini-3.6-flash"] == (0.75, 3.75)
+
+
+def test_38_flash_cost_uses_its_own_price():
+    class _Meta:
+        prompt_token_count = 9163
+        candidates_token_count = 420
+        thoughts_token_count = 11
+        total_token_count = 9594
+
+    class _R:
+        usage_metadata = _Meta()
+
+    usage = dg._extract_usage(_R(), "gemini-3.8-flash")
+    expected = 9163 / 1e6 * 0.75 + (420 + 11) / 1e6 * 3.75
+    assert usage.estimated_cost_usd == pytest.approx(expected, rel=1e-3)
 
 
 # --- detail-only prompt selection (main._detail_prompt_version) ---------------

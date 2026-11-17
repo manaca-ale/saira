@@ -681,6 +681,11 @@ _MODEL_PRICES = {
     # saía pela metade.
     "gemini-3.1-flash-lite": (0.25, 1.50),
     "gemini-3.5-flash-lite": (0.30, 2.50),
+    # Sem estas linhas o 3.6/3.8-flash caía no preço do gemini-2.5-flash (via "flash" em
+    # _price_key) e o custo registrado saía ~2,5x menor que o cobrado. Preço Standard
+    # conferido em 2026-11-16; o anunciado para 01/01/2027 é o dobro (1.50 / 7.50).
+    "gemini-3.6-flash": (0.75, 3.75),
+    "gemini-3.8-flash": (0.75, 3.75),
 }
 
 
