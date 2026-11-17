@@ -1,0 +1,1860 @@
+{
+  "gate": "gdec_q1_gate5_low_deposit_t20:1",
+  "detail": "d38f_g3_low_low",
+  "official": {
+    "tp_perdida": [
+      {
+        "det_id": "2a7571b8-d7ed-4e92-94a6-97cc13f2d3f1",
+        "perdida_no": "detail",
+        "eventos": [
+          {
+            "event_id": "evt-20260715_085108",
+            "category": "tp",
+            "det_id": "2a7571b8-d7ed-4e92-94a6-97cc13f2d3f1",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\tp\\evt-20260715_085108\\frames",
+            "n_frames": 18,
+            "gate_fire": 1,
+            "p_deposit": 0.8,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "nao(0)",
+              "2": "nao(0)"
+            },
+            "old": {
+              "1": "SIM(95)",
+              "2": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduos desembarcam de veículo tipo Kombi branca e manuseiam sacos/resíduos na área de descarte crônico, pegando e depositando sacos junto à pilha existente e na traseira/frente da van.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "839bee07-649b-427c-9168-ed534d3a67f0",
+        "perdida_no": "detail",
+        "eventos": [
+          {
+            "event_id": "evt-20260715_222047",
+            "category": "tp",
+            "det_id": "839bee07-649b-427c-9168-ed534d3a67f0",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\tp\\evt-20260715_222047\\frames",
+            "n_frames": 27,
+            "gate_fire": 1,
+            "p_deposit": 0.67,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "nao(0)",
+              "2": "nao(0)"
+            },
+            "old": {
+              "1": "nao(90)",
+              "2": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Individuo empurrando carrinho de mao aproxima-se da pilha de lixo/entulho, para junto a ela, despeja/manipula o conteudo no local e em seguida se retira com o carrinho vazio.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "1d04290a-962c-497e-8f0c-a2816ac7be5a",
+        "perdida_no": "gate",
+        "eventos": [
+          {
+            "event_id": "evt-20260717_180936",
+            "category": "tp",
+            "det_id": "1d04290a-962c-497e-8f0c-a2816ac7be5a",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\tp\\evt-20260717_180936\\frames",
+            "n_frames": 66,
+            "gate_fire": 0,
+            "p_deposit": 0.134,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {},
+            "old": {},
+            "new_yes": 0,
+            "old_yes_any": 0,
+            "evidence_new": "",
+            "cascade_yes": 0
+          }
+        ]
+      }
+    ],
+    "fp_confirmada": [
+      {
+        "det_id": "132e7692-e530-44e2-8d52-da564b5c61c8",
+        "eventos": [
+          {
+            "event_id": "evt-20260716_123717",
+            "category": "fp",
+            "det_id": "132e7692-e530-44e2-8d52-da564b5c61c8",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_123717\\frames",
+            "n_frames": 100,
+            "gate_fire": 1,
+            "p_deposit": 0.62,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0,
+              "2": 0
+            },
+            "new": {
+              "1": "SIM(95)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "No início da sequência, indivíduo com boné roxo e camisa estampada empurra um carrinho de mão cheio de resíduos de poda em direção à borda inferior direita. Em seguida, o carrinho e a carga são descarregados fora do ângulo imediato ou na borda da pilha, e a pessoa retorna a pé sem o carrinho com carga.",
+            "cascade_yes": 1
+          },
+          {
+            "event_id": "evt-20260716_123920",
+            "category": "fp",
+            "det_id": "132e7692-e530-44e2-8d52-da564b5c61c8",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_123920\\frames",
+            "n_frames": 91,
+            "gate_fire": 1,
+            "p_deposit": 0.798,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "No primeiro frame, um indivíduo com boné roxo e camisa estampada empurra um carrinho de mão carregado com galhos/podas verdes em direção à pilha de resíduos. Nos frames subsequentes, o carrinho não está mais presente e o indivíduo retorna a pé sem o carrinho, confirmando o descarte de poda sobre a pilha pré-existente.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "caebb65d-f99b-469f-9067-208285e527df",
+        "eventos": [
+          {
+            "event_id": "evt-20260716_151227",
+            "category": "fp",
+            "det_id": "caebb65d-f99b-469f-9067-208285e527df",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_151227\\frames",
+            "n_frames": 76,
+            "gate_fire": 1,
+            "p_deposit": 0.377,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "SIM(85)",
+              "2": "SIM(85)"
+            },
+            "old": {
+              "1": "SIM(90)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo sem camisa caminha até a pilha de lixo, para junto dela a partir de 15:14:04, inclina-se e manuseia material diretamente sobre e ao redor da pilha e da caçamba até o final da sequência.",
+            "cascade_yes": 1
+          },
+          {
+            "event_id": "evt-20260716_152303",
+            "category": "fp",
+            "det_id": "caebb65d-f99b-469f-9067-208285e527df",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_152303\\frames",
+            "n_frames": 86,
+            "gate_fire": 1,
+            "p_deposit": 0.227,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(92)"
+            },
+            "old": {
+              "1": "nao(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Dois indivíduos operando junto a um carrinho com tela laranja e à pilha de descarte; homem sem camisa manipula sacos, balde e materiais residuais, descartando e remexendo resíduos na pilha irregular continuamente.",
+            "cascade_yes": 1
+          },
+          {
+            "event_id": "evt-20260716_153511",
+            "category": "fp",
+            "det_id": "caebb65d-f99b-469f-9067-208285e527df",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_153511\\frames",
+            "n_frames": 89,
+            "gate_fire": 1,
+            "p_deposit": 0.225,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 0,
+              "2": 0
+            },
+            "new": {
+              "1": "SIM(90)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Individuo sem camisa e mulher manuseiam sacos e objetos na area de descarte. O homem deposita e ajusta saco/volumes escuros no chao junto ao acumulo de lixo.",
+            "cascade_yes": 1
+          },
+          {
+            "event_id": "evt-20260716_161144",
+            "category": "fp",
+            "det_id": "caebb65d-f99b-469f-9067-208285e527df",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_161144\\frames",
+            "n_frames": 80,
+            "gate_fire": 1,
+            "p_deposit": 0.509,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "SIM(85)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo sem camisa, de boné e bermuda vermelha/preta aproxima-se da área de resíduos, mexe e coleta/deposita materiais entre o chão e a carroça de reciclagem, manipulando papelão/resíduos volumosos nos frames 2026-07-16_16-12-17-367838-000.jpg até 2026-07-16_16-13-47-279197-004.jpg. Pela regra de recall e ambiguidade, manuseio ativo no ponto crônico de descarte é registrado.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "ed0b1eb9-3439-4848-8a93-38e309715839",
+        "eventos": [
+          {
+            "event_id": "evt-20260716_165803",
+            "category": "fp",
+            "det_id": "ed0b1eb9-3439-4848-8a93-38e309715839",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_165803\\frames",
+            "n_frames": 81,
+            "gate_fire": 1,
+            "p_deposit": 0.278,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(90)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Homem arrasta um grande saco/big bag de ráfia contendo materiais até a pilha e passa a descarregar/organizar resíduos e papelão sobre a pilha existente.",
+            "cascade_yes": 1
+          },
+          {
+            "event_id": "evt-20260716_170433",
+            "category": "fp",
+            "det_id": "ed0b1eb9-3439-4848-8a93-38e309715839",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_170433\\frames",
+            "n_frames": 72,
+            "gate_fire": 1,
+            "p_deposit": 0.355,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "SIM(85)",
+              "2": "SIM(85)"
+            },
+            "old": {
+              "1": "SIM(90)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo de camisa preta, boné e bermuda vermelha se aproxima da borda da pilha de resíduos com itens na mão, curva-se/agacha-se junto à pilha (frame 17:04:44 a 17:04:52) manuseando/despejando material, e depois se afasta em direção ao fundo.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "eea58cf7-35b4-4d76-8211-af741571e5bd",
+        "eventos": [
+          {
+            "event_id": "evt-20260716_183233",
+            "category": "fp",
+            "det_id": "eea58cf7-35b4-4d76-8211-af741571e5bd",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_183233\\frames",
+            "n_frames": 108,
+            "gate_fire": 1,
+            "p_deposit": 0.492,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0,
+              "2": 0
+            },
+            "new": {
+              "1": "SIM(95)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo a pé entra na área carregando uma placa retangular de madeira/compensado (visível nos frames de 18:33:53 a 18:34:01) e a deposita na margem direita da pilha de entulho, saindo sem ela.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "781cd838-85f9-493f-83ad-45c55a6b3d89",
+        "eventos": [
+          {
+            "event_id": "evt-20260717_131804",
+            "category": "fp",
+            "det_id": "781cd838-85f9-493f-83ad-45c55a6b3d89",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260717_131804\\frames",
+            "n_frames": 53,
+            "gate_fire": 1,
+            "p_deposit": 0.806,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "SIM(98)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Ao longo da sequência ocorrem passagens de pedestres e motocicletas. No frame final (2026-07-17_13-21-11-380125-000.jpg), um indivíduo do sexo masculino, sem camisa, para diretamente na pilha de lixo em primeiro plano manipulando um grande saco de entulho/recicláveis (bag de ráfia), caracterizando descarte/depósito de material volumoso.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "78663961-ee5c-45a7-966f-ec34b748dc65",
+        "eventos": [
+          {
+            "event_id": "evt-20260717_171512",
+            "category": "fp",
+            "det_id": "78663961-ee5c-45a7-966f-ec34b748dc65",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260717_171512\\frames",
+            "n_frames": 86,
+            "gate_fire": 1,
+            "p_deposit": 0.273,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(90)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Homem com camisa branca e bermuda escura permanece junto ao carrinho aramado e à pilha de descarte, manuseando, selecionando e depositando resíduos na área pública (exemplo em 17:15:51 com objeto lançado ao chão e 17:17:02 manuseando itens junto aos sacos). Sob a regra de ambiguidade e interação contínua no ponto crônico, configura descarte irregular.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "635f7de2-0919-4366-8255-d40fcfa791ae",
+        "eventos": [
+          {
+            "event_id": "evt-20260718_074618",
+            "category": "fp",
+            "det_id": "635f7de2-0919-4366-8255-d40fcfa791ae",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260718_074618\\frames",
+            "n_frames": 100,
+            "gate_fire": 1,
+            "p_deposit": 0.322,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(0)",
+              "2": "nao(0)"
+            },
+            "old": {
+              "1": "nao(0)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo chega puxando uma carroça com caçamba preta e a estaciona junto à área de descarte. Ele manuseia sacos plásticos pretos e os descarrega/arremessa na área de descarte ao fundo antes de se afastar.",
+            "cascade_yes": 0
+          },
+          {
+            "event_id": "evt-20260718_074821",
+            "category": "fp",
+            "det_id": "635f7de2-0919-4366-8255-d40fcfa791ae",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260718_074821\\frames",
+            "n_frames": 16,
+            "gate_fire": 1,
+            "p_deposit": 0.333,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(90)",
+              "2": "nao(10)"
+            },
+            "old": {
+              "1": "nao(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 0,
+            "evidence_new": "Uma pedestre de roupa rosa caminha pela via da esquerda para a direita sem interagir com as pilhas de lixo. Não houve adição de resíduos nem parada para descarte.",
+            "cascade_yes": 0
+          },
+          {
+            "event_id": "evt-20260718_074955",
+            "category": "fp",
+            "det_id": "635f7de2-0919-4366-8255-d40fcfa791ae",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260718_074955\\frames",
+            "n_frames": 94,
+            "gate_fire": 1,
+            "p_deposit": 0.547,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(85)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "nao(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Ao longo da sequência ocorrem passagens de pedestres e um gari com lixeira. Aos 07:51:35 um homem sem camisa com objeto/ferramenta na mão se aproxima da pilha de resíduos em primeiro plano e, nos frames 07:51:48 e 07:51:53, abaixa-se/inclina-se manipulando e descarregando/remexendo resíduos diretamente na pilha.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "617caa9b-706d-4d0b-b597-8489b3cb5949",
+        "eventos": [
+          {
+            "event_id": "evt-20260718_190242",
+            "category": "fp",
+            "det_id": "617caa9b-706d-4d0b-b597-8489b3cb5949",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260718_190242\\frames",
+            "n_frames": 22,
+            "gate_fire": 1,
+            "p_deposit": 0.943,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(98)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Uma pessoa vestindo roupas claras caminha até a margem da pilha de lixo carregando um saco branco, abaixa-se e deposita o saco plástico volumoso sobre a pilha, afastando-se em seguida e deixando o resíduo permanentemente no local.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "168c6958-45e6-4f0d-a8bf-2c24672e1e64",
+        "eventos": [
+          {
+            "event_id": "evt-20260721_161751",
+            "category": "fp",
+            "det_id": "168c6958-45e6-4f0d-a8bf-2c24672e1e64",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260721_161751\\frames",
+            "n_frames": 11,
+            "gate_fire": 1,
+            "p_deposit": 0.777,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(98)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo a pé vestindo camisa branca e calça estampada se aproxima da pilha de descarte carregando um saco de ráfia/embalagem de ração ou farinha, posiciona-se sobre a borda da pilha, despeja e manuseia resíduos no local antes de se afastar carregando a embalagem vazia.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "dc0d4026-4cd8-4622-9e63-914f104275de",
+        "eventos": [
+          {
+            "event_id": "evt-20260722_120856",
+            "category": "fp",
+            "det_id": "dc0d4026-4cd8-4622-9e63-914f104275de",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260722_120856\\frames",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.413,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(95)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Homem a pé caminha carregando um saco volumoso no ombro, aproxima-se da pilha no canto inferior esquerdo e esvazia/deposita o conteúdo do saco sobre a pilha de resíduos existente, saindo em seguida apenas com o saco vazio dobrado na mão.",
+            "cascade_yes": 1
+          }
+        ]
+      }
+    ],
+    "fp_so_o_atual_confirma": [
+      {
+        "det_id": "1fcd4f3e-dc8f-468a-8284-13dd6871d86f",
+        "eventos": [
+          {
+            "event_id": "evt-20260715_073056",
+            "category": "fp",
+            "det_id": "1fcd4f3e-dc8f-468a-8284-13dd6871d86f",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260715_073056\\frames",
+            "n_frames": 31,
+            "gate_fire": 1,
+            "p_deposit": 0.273,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "SIM(85)",
+              "2": "SIM(85)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo de camisa azul, bermuda e boné branco caminha em direção à pilha de resíduos com as mãos vazias, se abaixa/curva para catar ou mexer em algo e retira uma vara/haste fina da pilha, manuseando-a e permanecendo com ela. Não há adição de resíduos.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "5785e3d6-f2ef-4ae5-ad0b-e3a6a8214c74",
+        "eventos": [
+          {
+            "event_id": "evt-20260715_120735",
+            "category": "fp",
+            "det_id": "5785e3d6-f2ef-4ae5-ad0b-e3a6a8214c74",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260715_120735\\frames",
+            "n_frames": 31,
+            "gate_fire": 1,
+            "p_deposit": 0.344,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(90)"
+            },
+            "old": {
+              "1": "nao(95)",
+              "2": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Terreno com pilha volumosa de entulho em primeiro plano, caminhão baú estacionado e pilha ao fundo. 2) ATORES: Indivíduo com camisa amarela afasta-se a pé pelo caminho de terra sem carregar materiais; uma motocicleta passa trafegando. Ninguém interage com o caminhão nem com as pilhas de lixo. 3) DELTA: As pilhas de resíduos permanecem inalteradas ao longo de toda a sequência.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "56e59ca0-63ff-4cae-9f35-c10291ef1055",
+        "eventos": [
+          {
+            "event_id": "evt-20260716_012139",
+            "category": "fp",
+            "det_id": "56e59ca0-63ff-4cae-9f35-c10291ef1055",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_012139\\frames",
+            "n_frames": 106,
+            "gate_fire": 1,
+            "p_deposit": 0.64,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "nao(0)",
+              "2": "nao(0)"
+            },
+            "old": {
+              "1": "SIM(95)",
+              "2": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo entra no local puxando uma carroça com lona laranja, para junto à área de descarte e retira materiais/placas da carroça, descartando-os diretamente sobre o solo/pilha de resíduos ao fundo.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "f3c41d66-5fcb-444f-adb1-9001a21bb359",
+        "eventos": [
+          {
+            "event_id": "evt-20260716_175905",
+            "category": "fp",
+            "det_id": "f3c41d66-5fcb-444f-adb1-9001a21bb359",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260716_175905\\frames",
+            "n_frames": 107,
+            "gate_fire": 1,
+            "p_deposit": 0.659,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1,
+              "2": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(90)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Terreno com ampla pilha de entulho e materiais dispersos. 2) ATORES: Um pedestre se aproxima da pilha de entulho, mexe e cata materiais/peças de móveis brancos, pegando duas peças e levando-as embora com ele (cata/coleta reversa). Outro pedestre com uma carroça passa ao fundo sem descarregar nada. 3) DELTA: Nenhum resíduo novo foi adicionado à pilha; pelo contrário, o indivíduo retiro",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "99a55c6f-36a5-4a6a-b0f1-c2eb848dc9b9",
+        "eventos": [
+          {
+            "event_id": "evt-20260717_154354",
+            "category": "fp",
+            "det_id": "99a55c6f-36a5-4a6a-b0f1-c2eb848dc9b9",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260717_154354\\frames",
+            "n_frames": 33,
+            "gate_fire": 1,
+            "p_deposit": 0.205,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Terreno com pilhas de resíduos ao fundo e em primeiro plano. 2) ATORES E TRAJETÓRIA: Inicialmente passam um pedestre e uma moto. Em seguida, um caminhão passa e um homem sem camisa surge ao fundo, mexe/pega sacolas plásticas e uma lata/pote no chão, e caminha carregando esses objetos atravessando o pátio até sair do quadro pela esquerda inferior. 3) DELTA: O homem recolhe material e o",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "9a4aef17-b231-46a4-ada9-497e77007fec",
+        "eventos": [
+          {
+            "event_id": "evt-20260717_201306",
+            "category": "fp",
+            "det_id": "9a4aef17-b231-46a4-ada9-497e77007fec",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260717_201306\\frames",
+            "n_frames": 62,
+            "gate_fire": 0,
+            "p_deposit": 0.098,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(98)",
+              "2": "nao(98)"
+            },
+            "old": {
+              "1": "SIM(90)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Caminhão compactador de lixo municipal posicionado à esquerda com trabalhadores uniformizados da limpeza urbana atuando sobre a pilha. 2) ATORES E TRAJETÓRIA: Três garis uniformizados com pás e ferramentas recolhem ativamente os resíduos do chão e carregam para o caminhão coletor; alguns pedestres ao fundo apenas transitam sem depositar lixo na pilha. 3) DELTA: Ação típica e exclusiva",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "003e3ccb-f28b-42ec-93c6-c9e939005417",
+        "eventos": [
+          {
+            "event_id": "evt-20260719_221320",
+            "category": "fp",
+            "det_id": "003e3ccb-f28b-42ec-93c6-c9e939005417",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260719_221320\\frames",
+            "n_frames": 23,
+            "gate_fire": 1,
+            "p_deposit": 0.325,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(95)",
+              "2": "nao(90)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Veículos manobram e transitam na via e pedestres caminham ao fundo sem qualquer aproximação ou interação com a pilha de resíduos. A pilha permanece inalterada entre o primeiro e o último frame.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "95947cb7-11a8-4662-be4e-ed7daec78d65",
+        "eventos": [
+          {
+            "event_id": "evt-20260720_193207",
+            "category": "fp",
+            "det_id": "95947cb7-11a8-4662-be4e-ed7daec78d65",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260720_193207\\frames",
+            "n_frames": 22,
+            "gate_fire": 1,
+            "p_deposit": 0.228,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(90)",
+              "2": "nao(90)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Carro escuro manobrando na rua, grande pilha de descarte acumulada na parte inferior. 2) ATORES: O carro manobra e vai embora; pedestres e um ciclista passam ao fundo da via sem interagir com a pilha de lixo. 3) DELTA: A pilha de resíduos permanece completamente inalterada entre o primeiro e o último frame, sem descarte.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "ba60b6fd-21dc-468d-9e7b-9271372f7ea2",
+        "eventos": [
+          {
+            "event_id": "evt-20260722_115613",
+            "category": "fp",
+            "det_id": "ba60b6fd-21dc-468d-9e7b-9271372f7ea2",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\fp\\evt-20260722_115613\\frames",
+            "n_frames": 12,
+            "gate_fire": 0,
+            "p_deposit": 0.129,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo mexe na pilha de resíduos e retira materiais/objetos empilhados (coleta/catador), afastando-se com os itens nos braços sem adicionar novos resíduos.",
+            "cascade_yes": 0
+          }
+        ]
+      }
+    ],
+    "baseline_confirmada": [
+      {
+        "det_id": "evt-20260722_114117",
+        "eventos": [
+          {
+            "event_id": "evt-20260722_114117",
+            "category": "baseline",
+            "det_id": "evt-20260722_114117",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\baseline\\evt-20260722_114117\\frames",
+            "n_frames": 9,
+            "gate_fire": 1,
+            "p_deposit": 0.369,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(98)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "No primeiro frame (11:39:30), uma carroça/reboque manual de metal carregada de materiais está cercada por vários indivíduos descartando/manuseando resíduos diretamente na pilha de lixo. Nos frames subsequentes, a carroça se retira deixando o local e os resíduos.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260722_115439",
+        "eventos": [
+          {
+            "event_id": "evt-20260722_115439",
+            "category": "baseline",
+            "det_id": "evt-20260722_115439",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\baseline\\evt-20260722_115439\\frames",
+            "n_frames": 11,
+            "gate_fire": 1,
+            "p_deposit": 0.31,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(85)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo sem camisa manuseia materiais e sacos brancos junto à pilha de resíduos e ao big bag, depositando e mexendo em sacos de resíduos no local (regra de ambiguidade: manuseio em ponto crônico de descarte indica infração).",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260722_121140",
+        "eventos": [
+          {
+            "event_id": "evt-20260722_121140",
+            "category": "baseline",
+            "det_id": "evt-20260722_121140",
+            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\baseline\\evt-20260722_121140\\frames",
+            "n_frames": 26,
+            "gate_fire": 1,
+            "p_deposit": 0.325,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(95)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo a pé se aproxima da pilha carregando materiais (balde/lata e grade/objeto circular) e uma gaveta/caixa de madeira. Ele se posiciona junto à pilha, manipula os itens e abandona uma gaveta/caixa de madeira no chão junto à pilha (visível no delta entre o início e o final da sequência).",
+            "cascade_yes": 1
+          }
+        ]
+      }
+    ]
+  },
+  "pi-inicial-v1": {
+    "tp_perdida": [
+      {
+        "det_id": "evt-20260724_084344",
+        "perdida_no": "detail",
+        "eventos": [
+          {
+            "event_id": "evt-20260724_084344",
+            "category": "tp",
+            "det_id": "evt-20260724_084344",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260724_084344",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.449,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "nao(0)"
+            },
+            "old": {},
+            "new_yes": 0,
+            "old_yes_any": 0,
+            "evidence_new": "1) BASELINE: O primeiro frame mostra uma pilha pré-existente de entulho e lixo, com caçamba verde. 2) ATORES: Vários transeuntes passam. Aos 08:44:58, um homem empurrando um carrinho de mão carregado com resíduos/entulho se aproxima da pilha, para junto à borda, manuseia e descarrega os materiais diretamente na pilha (08:45:02 a 08:45:14). Em seguida, sai com o carrinho vazio. 3) DELTA: Materiais ",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260724_130940",
+        "perdida_no": "gate",
+        "eventos": [
+          {
+            "event_id": "evt-20260724_130940",
+            "category": "tp",
+            "det_id": "evt-20260724_130940",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260724_130940",
+            "n_frames": 32,
+            "gate_fire": 0,
+            "p_deposit": 0.193,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {},
+            "old": {},
+            "new_yes": 0,
+            "old_yes_any": 0,
+            "evidence_new": "",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260803_094821",
+        "perdida_no": "gate",
+        "eventos": [
+          {
+            "event_id": "evt-20260803_094821",
+            "category": "tp",
+            "det_id": "evt-20260803_094821",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260803_094821",
+            "n_frames": 29,
+            "gate_fire": 0,
+            "p_deposit": 0.195,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {},
+            "old": {},
+            "new_yes": 0,
+            "old_yes_any": 0,
+            "evidence_new": "",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260805_104753",
+        "perdida_no": "gate",
+        "eventos": [
+          {
+            "event_id": "evt-20260805_104753",
+            "category": "tp",
+            "det_id": "evt-20260805_104753",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260805_104753",
+            "n_frames": 32,
+            "gate_fire": 0,
+            "p_deposit": 0.199,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(98)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Homem sem camisa empurrando uma lixeira/contêiner com rodas amarelo se aproxima da pilha de lixo, vira o contêiner de cabeça para baixo despejando os resíduos diretamente sobre o monte acumulado e em seguida se retira puxando a lixeira vazia.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260825_033529",
+        "perdida_no": "detail",
+        "eventos": [
+          {
+            "event_id": "evt-20260825_033529",
+            "category": "tp",
+            "det_id": "evt-20260825_033529",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260825_033529",
+            "n_frames": 15,
+            "gate_fire": 1,
+            "p_deposit": 0.289,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(75)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "SIM(100)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Terreno aberto com resíduos e entulho espalhados ao fundo. 2) ATORES E TRAJETÓRIA: Caminhão caçamba realiza manobra no local (entra de ré/frente e se posiciona). 3) DELTA: O caminhão permanece manobrando/parado de frente para a câmera nos frames finais, sem basculamento confirmado nem descarte visível concluído no solo durante este recorte temporal.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260905_122758",
+        "perdida_no": "gate",
+        "eventos": [
+          {
+            "event_id": "evt-20260905_122758",
+            "category": "tp",
+            "det_id": "evt-20260905_122758",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260905_122758",
+            "n_frames": 32,
+            "gate_fire": 0,
+            "p_deposit": 0.178,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(98)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Individuo sem camisa e de bermuda vermelha chega empurrando um carrinho de mao carregado de residuos para junto da pilha pre-existente, descarrega sacos e materiais no chao/pilha e permanece manipulando o descarte.",
+            "cascade_yes": 0
+          }
+        ]
+      }
+    ],
+    "fp_confirmada": [
+      {
+        "det_id": "evt-20260723_102504",
+        "eventos": [
+          {
+            "event_id": "evt-20260723_102504",
+            "category": "fp",
+            "det_id": "evt-20260723_102504",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260723_102504",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.496,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Homem de boné azul e camisa preta empurra carrinho de mão com resíduos e sacos plásticos até a pilha existente. Em seguida, descarrega um saco plástico volumoso diretamente sobre a pilha de lixo e se retira empurrando o carrinho vazio.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260726_124009",
+        "eventos": [
+          {
+            "event_id": "evt-20260726_124009",
+            "category": "fp",
+            "det_id": "evt-20260726_124009",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260726_124009",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.396,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "No primeiro frame (12:39:55), um homem de camisa vermelha carrega uma caixa de papelao em direcao a pilha. No frame seguinte (12:40:03), ele se inclina e descarrega o conteudo da caixa diretamente sobre a cacamba/pilha de lixo, saindo em seguida sem o material.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260801_132931",
+        "eventos": [
+          {
+            "event_id": "evt-20260801_132931",
+            "category": "fp",
+            "det_id": "evt-20260801_132931",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260801_132931",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.914,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(95)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Homem de camiseta preta e bermuda cinza se aproxima carregando um saco plástico branco (frames 13:30:22 a 13:30:26), despeja o saco na pilha de resíduos e se afasta sem ele a partir do frame 13:30:30.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260803_091210",
+        "eventos": [
+          {
+            "event_id": "evt-20260803_091210",
+            "category": "fp",
+            "det_id": "evt-20260803_091210",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260803_091210",
+            "n_frames": 15,
+            "gate_fire": 1,
+            "p_deposit": 0.206,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(90)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo vestindo colete refletivo laranja e capacete verde empurra um carrinho de mão até a margem da pilha crônica de resíduos, inclina/manuseia o carrinho junto à pilha (09:12:05 a 09:12:17) adicionando material/entulho e depois sai com o carrinho vazio.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260803_153930",
+        "eventos": [
+          {
+            "event_id": "evt-20260803_153930",
+            "category": "fp",
+            "det_id": "evt-20260803_153930",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260803_153930",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.614,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(95)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Individuo chega com carrinho de mao carregado de madeiras/moveis descartados, para em frente a pilha cronica de residuos e descarrega pecas de madeira diretamente no chao/pilha, manipulando e deixando materiais volumosos no local.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260804_093511",
+        "eventos": [
+          {
+            "event_id": "evt-20260804_093511",
+            "category": "fp",
+            "det_id": "evt-20260804_093511",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260804_093511",
+            "n_frames": 21,
+            "gate_fire": 1,
+            "p_deposit": 0.276,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(85)",
+              "2": "SIM(90)"
+            },
+            "old": {
+              "1": "nao(90)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Um indivíduo vestindo camisa preta, bermuda escura e boné vermelho surge no canto inferior direito junto à pilha de resíduos crônica, agacha-se e manipula materiais diretamente na pilha entre os frames 09:35:05 e 09:35:45, caracterizando descarte irregular no ponto crônico sob a regra de ambiguidade.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260806_132652",
+        "eventos": [
+          {
+            "event_id": "evt-20260806_132652",
+            "category": "fp",
+            "det_id": "evt-20260806_132652",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260806_132652",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.431,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(92)",
+              "2": "SIM(95)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Individuo sem camisa carrega um objeto/caixa de papelao no canto inferior esquerdo e se abaixa/curva diretamente sobre a borda da pilha de lixo para descarta-lo nos frames entre 13:27:06 e 13:27:22, deixando o residuo no local.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260812_074108",
+        "eventos": [
+          {
+            "event_id": "evt-20260812_074108",
+            "category": "fp",
+            "det_id": "evt-20260812_074108",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260812_074108",
+            "n_frames": 33,
+            "gate_fire": 1,
+            "p_deposit": 0.373,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(90)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo sem camisa aproxima-se do ponto crônico de descarte no canto inferior esquerdo, abaixa-se e manipula/deposita resíduos junto ao montículo de descarte pré-existente.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260812_123952",
+        "eventos": [
+          {
+            "event_id": "evt-20260812_123952",
+            "category": "fp",
+            "det_id": "evt-20260812_123952",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260812_123952",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.789,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(95)"
+            },
+            "old": {
+              "1": "SIM(90)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo sem camisa aproxima-se do ponto de descarte no canto inferior esquerdo carregando saco/material (frames 12:41:04 a 12:41:08), agacha-se junto à pilha manipulando o resíduo e deposita o material diretamente no chão/pilha.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260814_134339",
+        "eventos": [
+          {
+            "event_id": "evt-20260814_134339",
+            "category": "fp",
+            "det_id": "evt-20260814_134339",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260814_134339",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.343,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(95)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Pilha volumosa de resíduos diversos visível no canto inferior esquerdo. 2) ATORES E TRAJETÓRIA: Uma pessoa a pé caminha até a pilha carregando saco plástico e materiais, curva-se e mexe junto à pilha repetidamente entre 13:43:35 e 13:45:03. 3) DELTA: O indivíduo deposita sacos e resíduos na pilha, aumentando o volume e adicionando material esbranquiçado no topo da pilha antes de se af",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260815_114903",
+        "eventos": [
+          {
+            "event_id": "evt-20260815_114903",
+            "category": "fp",
+            "det_id": "evt-20260815_114903",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260815_114903",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.777,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(98)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo puxando carroça com entulho e madeira encosta junto à pilha existente e descarrega placas e materiais diretamente sobre ela.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260815_143506",
+        "eventos": [
+          {
+            "event_id": "evt-20260815_143506",
+            "category": "fp",
+            "det_id": "evt-20260815_143506",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260815_143506",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.404,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(85)",
+              "2": "SIM(90)"
+            },
+            "old": {
+              "1": "nao(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo chega em uma bicicleta com caixote de transporte, estaciona junto ao ponto de descarte no canto inferior esquerdo, desce e passa a mexer e manipular materiais diretamente na pilha existente de resíduos.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260818_090248",
+        "eventos": [
+          {
+            "event_id": "evt-20260818_090248",
+            "category": "fp",
+            "det_id": "evt-20260818_090248",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260818_090248",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.474,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(90)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Individuo sem camisa e de bermuda se aproxima da pilha de residuos carregando um saco branco volumoso. Ele para junto a pilha, se abaixa, manipula materiais e adiciona resíduos ao local ao longo da sequencia.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260818_160927",
+        "eventos": [
+          {
+            "event_id": "evt-20260818_160927",
+            "category": "fp",
+            "det_id": "evt-20260818_160927",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260818_160927",
+            "n_frames": 11,
+            "gate_fire": 1,
+            "p_deposit": 0.471,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(98)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Homem com camisa rosa carrega caixa/recipiente com resíduos em direção à pilha existente e despeja o material na borda esquerda da pilha, afastando-se em seguida de mãos vazias.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260820_205821",
+        "eventos": [
+          {
+            "event_id": "evt-20260820_205821",
+            "category": "fp",
+            "det_id": "evt-20260820_205821",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260820_205821",
+            "n_frames": 12,
+            "gate_fire": 1,
+            "p_deposit": 0.599,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(92)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "No primeiro frame há um pedestre carregando um saco plástico volumoso. Ele caminha em direção ao fundo, larga/descarta o saco na margem superior esquerda da via e sai andando sem o objeto, configurando descarte irregular a pé.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260824_132908",
+        "eventos": [
+          {
+            "event_id": "evt-20260824_132908",
+            "category": "fp",
+            "det_id": "evt-20260824_132908",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260824_132908",
+            "n_frames": 30,
+            "gate_fire": 1,
+            "p_deposit": 0.653,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(98)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo empurra carrinho de mão carregado com resíduos variados em direção ao ponto de descarte no canto inferior esquerdo/fora do quadro e retorna minutos depois empurrando o carrinho de mão totalmente vazio, caracterizando descarte irregular.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260828_155547",
+        "eventos": [
+          {
+            "event_id": "evt-20260828_155547",
+            "category": "fp",
+            "det_id": "evt-20260828_155547",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260828_155547",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.794,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 0
+            },
+            "new": {
+              "1": "SIM(98)"
+            },
+            "old": {},
+            "new_yes": 1,
+            "old_yes_any": 0,
+            "evidence_new": "Indivíduo chega puxando uma carroça de mão carregada de resíduos (móvel/placa branca, sacos pretos). Ele para junto ao ponto de descarte no canto inferior e descarrega múltiplos sacos pretos volumosos e materiais sobre a pilha existente, aumentando consideravelmente o volume do descarte no local antes de afastar a carroça.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260902_113018",
+        "eventos": [
+          {
+            "event_id": "evt-20260902_113018",
+            "category": "fp",
+            "det_id": "evt-20260902_113018",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260902_113018",
+            "n_frames": 29,
+            "gate_fire": 1,
+            "p_deposit": 0.272,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(85)",
+              "2": "SIM(88)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo conduzindo bicicleta com caixote de plástico acoplado para em frente ao ponto de descarte no primeiro plano inferior (11:30:37 a 11:30:45), abaixa-se e descarrega/manipula resíduos junto aos materiais descartados no local.",
+            "cascade_yes": 1
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260906_193456",
+        "eventos": [
+          {
+            "event_id": "evt-20260906_193456",
+            "category": "fp",
+            "det_id": "evt-20260906_193456",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260906_193456",
+            "n_frames": 23,
+            "gate_fire": 1,
+            "p_deposit": 0.69,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(98)",
+              "2": "SIM(98)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Um pedestre usando boné aproxima-se da pilha de resíduos carregando material e, curvando-se sobre ela a partir de 19:35:03, deposita sacos plásticos pretos e outros resíduos domiciliares diretamente sobre a pilha existente, saindo em seguida.",
+            "cascade_yes": 1
+          }
+        ]
+      }
+    ],
+    "fp_so_o_atual_confirma": [
+      {
+        "det_id": "evt-20260724_123630",
+        "eventos": [
+          {
+            "event_id": "evt-20260724_123630",
+            "category": "fp",
+            "det_id": "evt-20260724_123630",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260724_123630",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.269,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(88)",
+              "2": "nao(88)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Raciocínio: Um indivíduo vestindo boné e roupa escura caminha pela direita da via em direção à pilha de resíduos. Ele se aproxima e se inclina sobre a borda da pilha entre os frames 12:37:12 e 12:37:40, porém observa-se que ele pega/coleta algo da pilha (catador de recicláveis/materiais) e sai carregando um pacote/objeto consigo, mantendo-o nos braços até os frames finais. Não há adição de resíduo",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260728_095001",
+        "eventos": [
+          {
+            "event_id": "evt-20260728_095001",
+            "category": "fp",
+            "det_id": "evt-20260728_095001",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260728_095001",
+            "n_frames": 13,
+            "gate_fire": 0,
+            "p_deposit": 0.096,
+            "scene": "COLLECTION",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(98)",
+              "2": "nao(98)"
+            },
+            "old": {
+              "1": "SIM(100)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Trata-se de operação oficial de limpeza urbana municipal ('Recife Limpa'). Uma retroescavadeira/pá carregadeira e um caminhão caçamba basculante de coleta atuam no local junto a garis com vassouras realizando a limpeza e remoção de resíduos, sem qualquer descarte irregular.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260819_211523",
+        "eventos": [
+          {
+            "event_id": "evt-20260819_211523",
+            "category": "fp",
+            "det_id": "evt-20260819_211523",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260819_211523",
+            "n_frames": 32,
+            "gate_fire": 0,
+            "p_deposit": 0.139,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "SIM(90)",
+              "2": "SIM(95)"
+            },
+            "old": {
+              "1": "SIM(90)"
+            },
+            "new_yes": 1,
+            "old_yes_any": 1,
+            "evidence_new": "Nos primeiros frames (21:15:20 a 21:15:28), uma pessoa se aproxima da pilha de lixo no canto inferior direito, carrega/manuseia uma sacola plástica branca e a descarta/larga sobre a pilha existente antes de se afastar.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260825_113156",
+        "eventos": [
+          {
+            "event_id": "evt-20260825_113156",
+            "category": "fp",
+            "det_id": "evt-20260825_113156",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260825_113156",
+            "n_frames": 32,
+            "gate_fire": 0,
+            "p_deposit": 0.176,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(95)",
+              "2": "nao(90)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Durante toda a sequência, diversos veículos (carros brancos, vermelhos, prata, caminhão baú) e pedestres apenas transitam pela via sem parar ou descartar qualquer material na pilha de resíduos. A pilha permanece inalterada.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260827_102113",
+        "eventos": [
+          {
+            "event_id": "evt-20260827_102113",
+            "category": "fp",
+            "det_id": "evt-20260827_102113",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260827_102113",
+            "n_frames": 19,
+            "gate_fire": 1,
+            "p_deposit": 0.823,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(0)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "1) BASELINE: Terreno aberto com resíduos esparsos e mureta ao fundo. 2) ATORES: Pedestre cruza a lateral direita; carro branco transita e estaciona brevemente ao fundo; motoqueiro com carretinha de gás passa direto; ao final, indivíduo com carrinho de mão/coleta para na via ao fundo à esquerda sem depositar resíduos no ponto monitorado. 3) DELTA: A área monitorada e a pilha permanecem inalteradas ",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260828_182703",
+        "eventos": [
+          {
+            "event_id": "evt-20260828_182703",
+            "category": "fp",
+            "det_id": "evt-20260828_182703",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260828_182703",
+            "n_frames": 32,
+            "gate_fire": 1,
+            "p_deposit": 0.424,
+            "scene": "TRAFFIC",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "SIM(90)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "No primeiro frame há uma pessoa agachada junto à pilha mas logo sai; ao longo da sequência pedestres, ciclistas e veículos apenas transitam pela via sem interagir com o ponto de descarte. A pilha permanece inalterada.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260904_220749",
+        "eventos": [
+          {
+            "event_id": "evt-20260904_220749",
+            "category": "fp",
+            "det_id": "evt-20260904_220749",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260904_220749",
+            "n_frames": 31,
+            "gate_fire": 1,
+            "p_deposit": 0.441,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Ao longo da sequência temporal, observam-se motocicletas passando no fundo, pedestres transitando e cães se movendo. Entre os frames de 22:08:12 e 22:08:44, indivíduos passam próximos à pilha, e mais tarde um pedestre carrega ripas/tábuas longas erguidas atravessando o pátio sem descartá-las (frames 22:09:08 a 22:09:12). Não há depósito de resíduos, descarregamento ou alteração perceptível na pilh",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260905_063923",
+        "eventos": [
+          {
+            "event_id": "evt-20260905_063923",
+            "category": "fp",
+            "det_id": "evt-20260905_063923",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260905_063923",
+            "n_frames": 9,
+            "gate_fire": 1,
+            "p_deposit": 0.449,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(0)",
+              "2": "nao(0)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo vestindo capa/casaco amarelo carrega uma placa de madeira/material rígido em direção à carroça/área de descarte ao fundo e a deposita junto à carroça/chão.",
+            "cascade_yes": 0
+          }
+        ]
+      },
+      {
+        "det_id": "evt-20260907_102208",
+        "eventos": [
+          {
+            "event_id": "evt-20260907_102208",
+            "category": "fp",
+            "det_id": "evt-20260907_102208",
+            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260907_102208",
+            "n_frames": 10,
+            "gate_fire": 1,
+            "p_deposit": 0.342,
+            "scene": "DUMPING",
+            "gate_today": {
+              "1": 1
+            },
+            "new": {
+              "1": "nao(85)",
+              "2": "nao(85)"
+            },
+            "old": {
+              "1": "SIM(95)"
+            },
+            "new_yes": 0,
+            "old_yes_any": 1,
+            "evidence_new": "Indivíduo sem camisa caminha segurando um saco amarelo, porém apenas atravessa a via em direção ao topo esquerdo, saindo do enquadramento sem interagir com a pilha de resíduos. A pilha permanece inalterada.",
+            "cascade_yes": 0
+          }
+        ]
+      }
+    ],
+    "baseline_confirmada": []
+  }
+}

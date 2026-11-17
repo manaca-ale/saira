@@ -1,0 +1,77 @@
+{
+  "arm": "g25l_v1",
+  "dataset": "official",
+  "reps": {
+    "1": {
+      "tp_det": "18/19",
+      "fp_det": "18/25",
+      "tp_evt": "31/35",
+      "fp_evt": "23/32",
+      "indefinido_evt": "7/15",
+      "baseline_evt": "3/40",
+      "ts": "2026-11-16T20:59:21",
+      "cost_per_call": 0.001101
+    },
+    "2": {
+      "tp_det": "18/19",
+      "fp_det": "18/25",
+      "tp_evt": "31/35",
+      "fp_evt": "23/32",
+      "indefinido_evt": "7/15",
+      "baseline_evt": "3/40",
+      "ts": "2026-11-16T23:10:58",
+      "cost_per_call": 0.001103
+    },
+    "3": {
+      "tp_det": "18/19",
+      "fp_det": "18/25",
+      "tp_evt": "31/35",
+      "fp_evt": "23/32",
+      "indefinido_evt": "7/15",
+      "baseline_evt": "3/40",
+      "ts": "2026-11-16T23:15:22",
+      "cost_per_call": 0.001103
+    }
+  },
+  "flips": {
+    "tp": {
+      "por_numero_de_sins": {
+        "0": 4,
+        "3": 31
+      },
+      "instaveis": []
+    },
+    "fp": {
+      "por_numero_de_sins": {
+        "0": 9,
+        "3": 23
+      },
+      "instaveis": []
+    },
+    "indefinido": {
+      "por_numero_de_sins": {
+        "0": 8,
+        "3": 7
+      },
+      "instaveis": []
+    },
+    "baseline": {
+      "por_numero_de_sins": {
+        "0": 37,
+        "3": 3
+      },
+      "instaveis": []
+    }
+  },
+  "tp_det_perdidas": {
+    "1": [
+      "1d04290a"
+    ],
+    "2": [
+      "1d04290a"
+    ],
+    "3": [
+      "1d04290a"
+    ]
+  }
+}

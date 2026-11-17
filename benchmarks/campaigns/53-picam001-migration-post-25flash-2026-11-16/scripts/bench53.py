@@ -526,9 +526,24 @@ def run_detail_one(ev, arm, spec, rep, pv):
             "tok_in": ti, "tok_out": to, "tok_think": tt,
             "cost_usd": round(cost_usd(spec["model"], ti, to, tt), 8),
             "latency_ms": int((time.time() - t0) * 1000)})
+        rec.update(raw_verdict(getattr(d, "raw_json", None), rec["disposal"]))
     except Exception as exc:  # noqa: BLE001
         rec["error"] = f"{type(exc).__name__}: {str(exc)[:300]}"
     return rec
+
+
+def raw_verdict(raw_json, final_disposal: int) -> dict:
+    """O que o MODELO respondeu, antes do `_sanitize_report` do worker. Com
+    GEMINI_REQUIRE_BBOX (padrao true), um "sim" sem bbox valido vira "nao" com confianca 0
+    (grounding_rejection): sem estes campos, esse veto do worker se confunde com erro do modelo."""
+    try:
+        raw = json.loads(raw_json or "{}")
+    except (TypeError, ValueError):
+        return {}
+    raw_yes = int(bool(raw.get("infraction_confirmed")))
+    return {"raw_disposal": raw_yes, "raw_conf": raw.get("confidence_0_100"),
+            "raw_waste_bbox": raw.get("waste_bbox"), "raw_offender_bbox": raw.get("offender_bbox"),
+            "grounding_rejected": int(raw_yes == 1 and final_disposal == 0)}
 
 
 def pid_alive(pid: int) -> bool:
@@ -570,10 +585,12 @@ def run_stage(stage: str, a) -> None:
     cats = a.cats.split(",") if a.cats else None
     only = None
     if stage == "detail":
-        if a.events_from:
+        if a.only:
+            only = {e.strip() for e in a.only.split(",") if e.strip()}
+        elif a.events_from:
             only = events_from(a.events_from)
         elif not cats:
-            raise SystemExit("detail exige --events-from <gate:rep,...> ou --cats")
+            raise SystemExit("detail exige --events-from <gate:rep,...>, --only ou --cats")
     events = load_events(cats, a.limit, only)
     path = out_path(stage, a.arm, a.rep)
     done = latest_ok(path)
@@ -809,6 +826,9 @@ def main():
         if stage == "detail":
             p.add_argument("--events-from", default=None,
                            help="gate(s) cujos disparos definem os eventos: braco:rep[,braco:rep]")
+            p.add_argument("--only", default=None,
+                           help="lista explicita de eventos (evt-...,evt-...); para diagnostico, "
+                                "use --rep 0 (fica fora da matriz)")
     p = sub.add_parser("score")
     p.add_argument("--gate", required=True)
     p.add_argument("--detail", required=True)
