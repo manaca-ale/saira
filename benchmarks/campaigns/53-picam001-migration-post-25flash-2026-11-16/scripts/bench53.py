@@ -159,9 +159,9 @@ DETAIL_ARMS = {
     # lista 0,75 / 3,75 hoje e 1,50 / 7,50 a partir de 01/01/2027 (com thinking, passa de +20%).
     "d38f_g3_low_med":  {"model": "gemini-3.8-flash", "prompt": "g3", "think": "medium", "media": "low", "est": 0.016},
     "d38f_g3_low_low":  {"model": "gemini-3.8-flash", "prompt": "g3", "think": "low", "media": "low", "est": 0.013},
-    "d38f_g3_low_min":  {"model": "gemini-3.8-flash", "prompt": "g3", "think": "minimal", "media": "low", "est": 0.010},
+    # o 3.8-flash NAO aceita thinking_level=minimal (HTTP 400, sem cobranca): o piso e "low".
     "d38f_v1_low_med":  {"model": "gemini-3.8-flash", "prompt": "v1", "think": "medium", "media": "low", "est": 0.020},
-    "d38f_v1_low_min":  {"model": "gemini-3.8-flash", "prompt": "v1", "think": "minimal", "media": "low", "est": 0.010},
+    "d38f_v1_low_low":  {"model": "gemini-3.8-flash", "prompt": "v1", "think": "low", "media": "low", "est": 0.013},
     # 3.1-flash-lite como detail (mais barato por token; desliga em 07/05/2027)
     "d31l_v4_low_high": {"model": "gemini-3.1-flash-lite", "prompt": "v4", "think": "high", "media": "low", "est": 0.008},
     "d31l_v4_low_med":  {"model": "gemini-3.1-flash-lite", "prompt": "v4", "think": "medium", "media": "low", "est": 0.007},

@@ -117,6 +117,34 @@
       "flex": true
     },
     {
+      "arm": "d38f_g3_low_low:1",
+      "scope": "todos",
+      "complete": false,
+      "tp_yes": "25/26",
+      "tp_rate": 96.2,
+      "tp_ci95": "81-99",
+      "fp_yes": "13/27",
+      "fp_rate": 48.1,
+      "fp_ci95": "31-66",
+      "cost_per_call": 0.008391,
+      "latency_p50_s": 20.1,
+      "flex": true
+    },
+    {
+      "arm": "d38f_g3_low_low:1",
+      "scope": "passou no gate",
+      "complete": true,
+      "tp_yes": "25/26",
+      "tp_rate": 96.2,
+      "tp_ci95": "81-99",
+      "fp_yes": "13/27",
+      "fp_rate": 48.1,
+      "fp_ci95": "31-66",
+      "cost_per_call": 0.008391,
+      "latency_p50_s": 20.1,
+      "flex": true
+    },
+    {
       "arm": "d38f_g3_low_med:1",
       "scope": "todos",
       "complete": false,
