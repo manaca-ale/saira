@@ -235,7 +235,7 @@ def run(a) -> None:
           f"estimativa=US$ {est:.4f}")
     if a.dry_run or not todo:
         return
-    budget = Budget()
+    budget = Budget(wallet="aistudio")
     budget.run_cap = a.max_usd
     budget.require(est, f"dgate/{tag_of(a)}")
     ctx = {"campaign": "53", "stage": "dgate", "arm": tag_of(a), "rep": a.rep,

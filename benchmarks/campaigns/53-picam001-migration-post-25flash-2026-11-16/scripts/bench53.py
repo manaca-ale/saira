@@ -246,8 +246,50 @@ def get_flex_client():
     return _flex_client
 
 
+_BACKEND = {"name": "vertex"}
+_ais_client = None
+
+
+def aistudio_key() -> str:
+    """Chave do AI Studio (creditos separados). Nunca imprimir."""
+    env = os.environ.get("GEMINI_TEST_API_KEY", "").strip()
+    if env:
+        return env
+    f = Path(os.environ.get("BENCH_AISTUDIO_KEY_FILE",
+                            str(Path.home() / ".saira-bench" / "aistudio_key.txt")))
+    if not f.exists():
+        raise RuntimeError(f"chave do AI Studio nao encontrada em {f}")
+    return f.read_text(encoding="utf-8").strip()
+
+
+def use_backend(name: str) -> None:
+    """vertex (padrao: conta 'Saira - Testes') ou aistudio (chave do AI Studio).
+
+    O AI Studio serve os mesmos modelos por outra API. Usar quando o teto do Vertex acabar
+    (autorizado pelo Alexandre em 2026-11-17). Producao roda no Vertex: resultado medido no
+    AI Studio leva a marca `backend` no registro e o sufixo `_ais` no nome do arquivo, e um
+    numero que va para decisao deve ser reconfirmado no Vertex quando houver saldo."""
+    global _ais_client
+    _BACKEND["name"] = name
+    if name == "aistudio":
+        from google import genai
+        if _ais_client is None:
+            _ais_client = genai.Client(api_key=aistudio_key())
+        dg._client = _ais_client
+        cfg.GEMINI_USE_VERTEX = False       # sem fallback de regiao do Vertex
+    else:
+        get_client()
+
+
+def label_of(arm: str) -> str:
+    return arm + ("_ais" if _BACKEND["name"] == "aistudio" else "")
+
+
 def flex_ok(model: str) -> bool:
+    if _BACKEND["name"] == "aistudio":
+        return False            # o Flex daqui e o do Vertex (cabecalho HTTP)
     return model.startswith("gemini-3")
+
 
 
 # ── Medicao: toda resposta do modelo e cobrada no ledger (inclui retries) ────
@@ -604,7 +646,8 @@ def run_stage(stage: str, a) -> None:
         elif not cats:
             raise SystemExit("detail exige --events-from <gate:rep,...>, --only ou --cats")
     events = load_events(cats, a.limit, only)
-    path = out_path(stage, a.arm, a.rep)
+    _BACKEND["name"] = getattr(a, "backend", "vertex")
+    path = out_path(stage, label_of(a.arm), a.rep)
     done = latest_ok(path)
     todo = [e for e in events if e["event_id"] not in done]
     _FLEX["on"] = bool(getattr(a, "flex", False)) and flex_ok(spec["model"])
@@ -628,14 +671,15 @@ def run_stage(stage: str, a) -> None:
     if not todo:
         print("  nada a rodar")
         return
-    _BUDGET = Budget()
+    _BUDGET = Budget(wallet=_BACKEND["name"])
     _BUDGET.run_cap = a.max_usd
-    print(f"  orcamento: teto US$ {_BUDGET.cap:.2f} gasto US$ {_BUDGET.spent:.4f} "
+    print(f"  orcamento ({_BACKEND['name']}): teto US$ {_BUDGET.cap:.2f} gasto US$ {_BUDGET.spent:.4f} "
           f"teto desta execucao US$ {a.max_usd:.2f}")
     _BUDGET.require(est, f"{stage}/{a.arm}")
-    _RUN_CTX.update({"stage": stage, "arm": a.arm, "rep": a.rep})
+    _RUN_CTX.update({"stage": stage, "arm": label_of(a.arm), "rep": a.rep,
+                     "backend": _BACKEND["name"]})
     # trava por (estagio, braco, rep): duas execucoes iguais ao mesmo tempo pagariam em dobro
-    lock = out_dir() / f".lock__{stage}__{a.arm}__r{a.rep}"
+    lock = out_dir() / f".lock__{stage}__{label_of(a.arm)}__r{a.rep}"
     if lock.exists():
         try:
             other = int(lock.read_text(encoding="utf-8").split()[0])
@@ -646,7 +690,7 @@ def run_stage(stage: str, a) -> None:
                              f"(pid {other}); nao relance — espere ou confira o log.")
     lock.write_text(f"{os.getpid()} {dt.datetime.now().isoformat(timespec='seconds')}",
                     encoding="utf-8")
-    get_client()
+    use_backend(_BACKEND["name"])
     pv = apply_prompt(spec["prompt"])
     fn = run_gate_one if stage == "gate" else run_detail_one
     n_ok = n_err = 0
@@ -656,7 +700,9 @@ def run_stage(stage: str, a) -> None:
             futs = [pool.submit(fn, ev, a.arm, spec, a.rep, pv) for ev in todo]
             for i, fut in enumerate(as_completed(futs), 1):
                 r = fut.result()
-                r["flex"] = _FLEX["on"]      # cost_usd do registro e sempre PRECO DE LISTA
+                r["flex"] = _FLEX["on"]      # cost_usd do registro e sempre PRECO DE LISTA (Vertex)
+                r["backend"] = _BACKEND["name"]
+                r["arm"] = label_of(a.arm)
                 append_jsonl(path, r)
                 if r["error"]:
                     n_err += 1
@@ -798,14 +844,15 @@ def run_probe(a) -> None:
     global _BUDGET
     spec = DETAIL_ARMS[a.arm]
     events = [e for e in load_events(["tp", "fp"]) if len(e["frames"]) >= 30][: a.n]
-    _BUDGET = Budget()
+    _BACKEND["name"] = getattr(a, "backend", "vertex")
+    _BUDGET = Budget(wallet=_BACKEND["name"])
     _BUDGET.run_cap = a.max_usd
     _BUDGET.require(len(events) * spec["est"], f"probe/{a.arm}")
     _RUN_CTX.update({"stage": "probe", "arm": a.arm, "rep": 0})
     _FLEX["on"] = bool(a.flex) and flex_ok(spec["model"])
     if _FLEX["on"]:
         cfg.GEMINI_TIMEOUT_SECONDS = FLEX_TIMEOUT_S
-    get_client()
+    use_backend(_BACKEND["name"])
     pv = apply_prompt(spec["prompt"])
     for ev in events:
         r = run_detail_one(ev, a.arm, spec, 0, pv)
@@ -835,6 +882,8 @@ def main():
         p.add_argument("--dry-run", action="store_true")
         p.add_argument("--flex", action="store_true",
                        help="Flex PayGo (50%% de desconto; so Gemini 3.x; latencia maior)")
+        p.add_argument("--backend", default="vertex", choices=["vertex", "aistudio"],
+                       help="aistudio = chave do AI Studio, carteira propria (arquivos com sufixo _ais)")
         if stage == "detail":
             p.add_argument("--events-from", default=None,
                            help="gate(s) cujos disparos definem os eventos: braco:rep[,braco:rep]")
@@ -853,6 +902,7 @@ def main():
     p.add_argument("--n", type=int, default=2)
     p.add_argument("--max-usd", type=float, default=0.15)
     p.add_argument("--flex", action="store_true")
+    p.add_argument("--backend", default="vertex", choices=["vertex", "aistudio"])
     a = ap.parse_args()
     DS["name"] = a.dataset
     _RUN_CTX["dataset"] = a.dataset
