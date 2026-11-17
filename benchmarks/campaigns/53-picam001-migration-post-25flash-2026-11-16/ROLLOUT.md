@@ -54,7 +54,7 @@ O worker troca um "sim" do modelo por "não" com confiança 0 quando nenhuma cai
 
 No holdout o recall quase não muda (quem limita é o gate) e entram de 2 a 3 falsos a mais em 45 (estimativa pelas repetições sem a resposta crua). O pipeline de hoje, no oficial, faz 15/19 a 17/19 reais com 12/25 a 14/25 falsos.
 
-Efeito colateral a saber: o relatório diário tem o indicador I3, "qualidade da identificação" (`backend/app/services/daily_report_service.py`): percentual de detecções com caixa do infrator, com meta de 80%. Com o piso de 1% as caixas justas do 3.8-flash são descartadas e esse indicador cai. Para as caixas continuarem sendo gravadas, definir também `GEMINI_BBOX_MIN_AREA_RATIO=0.0025` (aceita caixa a partir de 0,25% da imagem; as vetadas na campanha tinham de 0,25% a 0,99%). Com `GEMINI_REQUIRE_BBOX=false` essa variável não muda nenhuma decisão, só quais caixas ficam no banco. O frontend não usa as caixas.
+Efeito colateral a saber: o relatório diário tem o indicador I3, "qualidade da identificação" (`backend/app/services/daily_report_service.py`): percentual de detecções com caixa do infrator, com meta de 80%. Medido na repetição 3: das 39 respostas "sim" do modelo, 34 têm caixa do infrator com 1% ou mais da imagem (87%, acima da meta) e as 39 têm caixa com 0,25% ou mais (100%). O indicador não corre risco com o piso de hoje; baixá-lo para 0,25% (`GEMINI_BBOX_MIN_AREA_RATIO=0.0025`) só grava as 5 caixas que faltam. Com `GEMINI_REQUIRE_BBOX=false` essa variável não muda nenhuma decisão, só quais caixas ficam no banco. O frontend não usa as caixas.
 
 ## Lido em produção em 17/11/2026 (06:55, somente leitura)
 
@@ -120,7 +120,7 @@ Para o gate de test ficar igual ao de produção nesse ensaio, acrescentar ao me
 
 **3. Observar em test** por pelo menos um dia com eventos: confirmações por dia contra a semana anterior; quantos details voltam com `infraction_confirmed=false` e confiança 0 (com `GEMINI_REQUIRE_BBOX=false` não deve haver nenhum); latência e timeouts; custo por chamada de detail em `gemini_call_log` (esperado: cerca de US$ 0,0085). Em 13/11 nenhuma câmera gerava detecção desde 28/09: se continuar assim, test não mostra nada e a validação é a do dataset.
 
-**4. Produção, com o ok do Alexandre, antes de 01/12/2026.** Gravar no `.env` as variáveis da tabela "O que muda" e recriar só o worker de produção:
+**4. Produção, com o ok do Alexandre, antes de as câmeras voltarem.** O projeto está parado (nenhuma câmera gera detecção desde 28/09) e volta em janeiro de 2027. Sem eventos, o roteamento de 01/12 não derruba nada na prática; mas qualquer evento que chegue depois de 01/12 com a configuração de hoje cai no detail roteado, de recall medido em 9/19. Por isso a troca deve estar feita antes de a primeira câmera ser religada. Aplicar com o projeto parado é o momento de menor risco. Gravar no `.env` as variáveis da tabela "O que muda" e recriar só o worker de produção:
 
 ```
 cd /home/ubuntu/saira/services
@@ -138,6 +138,7 @@ Restaurar o `.env` da cópia (`.env.bak-...`) e repetir o comando de recriação
 
 ## Limites desta recomendação
 
-- **Outras câmeras**: `GEMINI_MODEL`, o thinking e a resolução são variáveis únicas e valem para todas. O prompt não: na Mangabeira (esp32_002), com os recortes da pilha ligados, o worker usa o prompt próprio `mangabeira_with_pilecrops`, que tem precedência sobre `GEMINI_DETAIL_PROMPT_VERSION=g3` (`main.py`, linhas 918 e 2148 a 2163); lá mudam só o modelo, o thinking e a resolução, e a resolução baixa pode pesar sobre os recortes. Na Imbiribeira (esp32_001) o prompt do detail passa do atual para o g3. Nenhuma das duas combinações foi medida (bloco H). Até lá a recomendação vale para a pi-cam-001.
+- **Só câmeras do tipo da pi-cam-001.** Decisão do Alexandre em 17/11: o projeto volta em janeiro de 2027 com todas as câmeras no estilo da Raspberry, e as câmeras ESP32 (Mangabeira, Imbiribeira e as demais) ficam fora de escopo; não foram medidas com o detail novo e não serão. Se alguma delas voltar a operar, vale o aviso: `GEMINI_MODEL`, o thinking e a resolução são variáveis únicas para todas as câmeras, e na Mangabeira (esp32_002) o prompt próprio com recortes tem precedência sobre o `g3`.
+- **Um ponto só.** A medição é de uma câmera num ponto. As câmeras novas ficam em outros pontos: nos primeiros dias de cada uma, conferir a taxa de falsos e, se o gate Decisions vier a ser usado, o limiar.
 - **Preço**: o 3.8-flash dobra de preço em 01/01/2027 (anunciado). A conta de +10% já considera isso.
 - **Gate Decisions** (segunda proposta) não faz parte deste rollout: entra depois, em shadow. Desenho em [`DECISIONS-GATE-DESIGN.md`](DECISIONS-GATE-DESIGN.md).

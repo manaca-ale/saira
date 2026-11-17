@@ -48,6 +48,19 @@ PRICES_2027 = {
     "gemini-3.6-flash": (1.50, 7.50),
     "gemini-3.8-flash": (1.50, 7.50),
 }
+# Faturamento separado: o teto vale para a conta "Saira - Testes" (Vertex). A API de
+# Decisoes roda numa chave do AI Studio de outro projeto, com creditos proprios (informado
+# pelo Alexandre em 2026-11-17: "chave separada, com creditos separados"). Esses registros
+# ficam no ledger e aparecem no resumo, mas NAO contam no teto.
+SEPARATE_BILLING_MODELS = {"gemini-decision-1"}
+SEPARATE_BILLING_ARMS = {"sondas_chave_aistudio"}
+
+
+def is_separate(rec: dict) -> bool:
+    return (str(rec.get("model", "")).lower() in SEPARATE_BILLING_MODELS
+            or str(rec.get("arm", "")) in SEPARATE_BILLING_ARMS)
+
+
 # Margem: para de submeter chamadas novas quando faltar menos que isto para o teto
 # (chamadas em voo ainda terminam e sao cobradas).
 SAFETY_MARGIN_USD = 0.25
@@ -106,7 +119,7 @@ class Budget:
                         rec = json.loads(line)
                     except json.JSONDecodeError:
                         continue
-                    if str(rec.get("ts", ""))[:10] >= self.since:
+                    if str(rec.get("ts", ""))[:10] >= self.since and not is_separate(rec):
                         total += float(rec.get("cost_usd") or 0.0)
         return total
 
@@ -155,8 +168,9 @@ class Budget:
             self.dir.mkdir(parents=True, exist_ok=True)
             with self.ledger_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
-            self._spent += c
             self._run_spent += c
+            if not is_separate(rec):
+                self._spent += c
             if self._spent >= self.cap - SAFETY_MARGIN_USD:
                 self.stop = True
             if self.run_cap is not None and self._run_spent >= self.run_cap:
@@ -166,6 +180,7 @@ class Budget:
     def summary(self) -> dict:
         by: dict[str, float] = {}
         n = 0
+        separate = 0.0
         if self.ledger_path.exists():
             with self.ledger_path.open(encoding="utf-8") as fh:
                 for line in fh:
@@ -176,10 +191,14 @@ class Budget:
                     if str(rec.get("ts", ""))[:10] < self.since:
                         continue
                     n += 1
+                    if is_separate(rec):
+                        separate += float(rec.get("cost_usd") or 0.0)
                     key = f"{rec.get('campaign', '?')}/{rec.get('stage', '?')}/{rec.get('arm', '?')}"
                     by[key] = by.get(key, 0.0) + float(rec.get("cost_usd") or 0.0)
         return {"cap_usd": self.cap, "spent_usd": round(self._spent, 4),
-                "remaining_usd": round(self.remaining, 4), "calls": n, "since": self.since,
+                "remaining_usd": round(self.remaining, 4),
+                "separate_billing_usd": round(separate, 4),   # AI Studio, fora do teto
+                "calls": n, "since": self.since,
                 "by_arm": {k: round(v, 4) for k, v in sorted(by.items())}}
 
 
