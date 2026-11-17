@@ -70,6 +70,7 @@ O que conferir na saída:
 3. `GEMINI_MAX_OUTPUT_TOKENS` e `GEMINI_TIMEOUT_SECONDS` atuais, para saber de onde se parte.
 4. `GEMINI_REQUIRE_BBOX` não deve aparecer (nenhum compose repassa): vale o padrão `true`.
 5. `GEMINI_PROMPT_VERSION`: o compose de test lê `TEST_GEMINI_PROMPT_VERSION` (padrão `v3`), não a de produção. Para o teste valer, o gate de test precisa estar com o mesmo prompt de produção.
+6. Recortes da pilha: `GEMINI_DETAIL_PILECROP_ENABLED` (já sai no filtro acima) e a lista de dispositivos, com `docker exec saira-yolo-worker-prod env | grep -E '^DETAIL_(PILECROP|HIGHBAR)_DEVICES='`. Diz em quais câmeras o prompt próprio com recortes vence o `g3` (ver "Limites desta recomendação").
 
 ## Ordem e comandos
 
@@ -109,6 +110,6 @@ Restaurar o `.env` da cópia (`.env.bak-...`) e repetir o comando de recriação
 
 ## Limites desta recomendação
 
-- **Outras câmeras**: `GEMINI_MODEL` é uma variável só e vale para todas. Mangabeira e Imbiribeira ainda não foram medidas (bloco H). Até lá a recomendação vale para a pi-cam-001.
+- **Outras câmeras**: `GEMINI_MODEL`, o thinking e a resolução são variáveis únicas e valem para todas. O prompt não: na Mangabeira (esp32_002), com os recortes da pilha ligados, o worker usa o prompt próprio `mangabeira_with_pilecrops`, que tem precedência sobre `GEMINI_DETAIL_PROMPT_VERSION=g3` (`main.py`, linhas 918 e 2148 a 2163); lá mudam só o modelo, o thinking e a resolução, e a resolução baixa pode pesar sobre os recortes. Na Imbiribeira (esp32_001) o prompt do detail passa do atual para o g3. Nenhuma das duas combinações foi medida (bloco H). Até lá a recomendação vale para a pi-cam-001.
 - **Preço**: o 3.8-flash dobra de preço em 01/01/2027 (anunciado). A conta de +10% já considera isso.
 - **Gate Decisions** (segunda proposta) não faz parte deste rollout: entra depois, em shadow. Desenho em [`DECISIONS-GATE-DESIGN.md`](DECISIONS-GATE-DESIGN.md).
