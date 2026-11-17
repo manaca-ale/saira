@@ -809,7 +809,8 @@ def _validate_bbox(bbox: object, label: str) -> Optional[list[int]]:
     if ratio > 0.60:
         logger.info("bbox_rejected_%s: covers %.1f%% of image (too large)", label, ratio * 100)
         return None
-    if ratio < 0.01:
+    min_ratio = float(getattr(config, "GEMINI_BBOX_MIN_AREA_RATIO", 0.01))
+    if ratio < min_ratio:
         logger.info("bbox_rejected_%s: covers %.2f%% of image (too small)", label, ratio * 100)
         return None
     return coords

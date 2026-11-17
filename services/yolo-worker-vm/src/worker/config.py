@@ -593,6 +593,17 @@ GEMINI_MOSAIC_AGENT2: str = os.getenv("GEMINI_MOSAIC_AGENT2", "off").strip().low
 
 # Visual grounding — require bounding box for Agent 2 infraction confirmation.
 GEMINI_REQUIRE_BBOX = os.getenv("GEMINI_REQUIRE_BBOX", "true").strip().lower() in ("true", "1", "yes")
+# Smallest bbox area, as a fraction of the image, that _validate_bbox keeps. 0.01 is the
+# historical value, tuned on ESP32 frames. On the HD Pi camera a person covers less than
+# 1% of the frame and gemini-3.8-flash draws tight boxes (0.25% to 0.99% in campaign 53),
+# so every box was dropped and, with GEMINI_REQUIRE_BBOX=true, real confirmations were
+# turned into "no". This setting only decides which boxes are KEPT; whether a
+# confirmation needs a box at all is GEMINI_REQUIRE_BBOX.
+try:
+    GEMINI_BBOX_MIN_AREA_RATIO = float(os.getenv("GEMINI_BBOX_MIN_AREA_RATIO", "0.01"))
+except ValueError:
+    GEMINI_BBOX_MIN_AREA_RATIO = 0.01
+GEMINI_BBOX_MIN_AREA_RATIO = min(0.60, max(0.0, GEMINI_BBOX_MIN_AREA_RATIO))
 
 # Token cost estimation (USD per 1M tokens) — gemini-2.5-flash pricing (non-thinking).
 GEMINI_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_INPUT_TOKEN_PRICE_PER_1M", "0.15"))
