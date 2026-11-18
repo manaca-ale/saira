@@ -23,6 +23,7 @@ from . import detector_bedrock
 from . import detector_dinov2
 from . import detector_structural
 from . import event_windows
+from . import _shadow_decisions
 from . import _shadow_gate51
 from ._prompts_v4picam import V4_DETAIL_PROMPT
 from .schemas_gemini import GeminiInfractionReport
@@ -915,7 +916,7 @@ def _process_with_gemini(
                 use_pilecrops_prompt = False
 
     selected_prompt_version = (
-        "mangabeira_with_pilecrops" if use_pilecrops_prompt else config.GEMINI_PROMPT_VERSION
+        "mangabeira_with_pilecrops" if use_pilecrops_prompt else _detail_prompt_version()
     )
 
     def _cleanup_pilecrops() -> None:
@@ -2119,6 +2120,18 @@ def _shadow_camera_context(camera, device_id: str, last_frame_name: str) -> dict
     }
 
 
+def _detail_prompt_version() -> str:
+    """Prompt version for the detail (Agent-2) call.
+
+    GEMINI_DETAIL_PROMPT_VERSION=g3 switches ONLY the detail to the Gemini-3 prompt while
+    the gate keeps GEMINI_PROMPT_VERSION (campaign 53: the gate model is not deprecated,
+    the detail model is). Every other value of that variable stays inert, as it has been
+    since the audit experiments, so a stale .env entry cannot change production."""
+    if getattr(config, "GEMINI_DETAIL_PROMPT_VERSION", "") == "g3":
+        return "g3"
+    return config.GEMINI_PROMPT_VERSION
+
+
 def _shadow_prior_ctx(prior_had: bool, prior_waste: Optional[str]) -> Optional[str]:
     if not prior_had:
         return None
@@ -2133,7 +2146,7 @@ def _shadow_detail(window: list[Path], device_id: str, camera, prior_had: bool,
     cam_ctx = _shadow_camera_context(camera, device_id, window[-1].name)
     prior_ctx = _shadow_prior_ctx(prior_had, prior_waste)
     pile_crops = None
-    prompt_v = config.GEMINI_PROMPT_VERSION
+    prompt_v = _detail_prompt_version()
     tmp_dir: Optional[Path] = None
     if (config.GEMINI_DETAIL_PILECROP_ENABLED and device_id in config.DETAIL_PILECROP_DEVICES
             and len(window) >= 2):
@@ -2880,6 +2893,19 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
                 prod_disposal=final_disposal,
                 prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
                 log_call=_log_gemini_call,
+            )
+
+        # SHADOW Camp 53: gate candidato `gemini-decision-1` (API de Decisões) sobre os
+        # mesmos 5 frames do gate. Mede taxa de passagem por limiar e estabilidade em
+        # tráfego real. Log-only, falha aberta, cliente e chave próprios.
+        if config.SHADOW_DECISIONS_ENABLED and device_id in config.SHADOW_DECISIONS_DEVICES:
+            _shadow_decisions.run(
+                window_paths, device_id, camera, manifest,
+                prod_disposal=final_disposal,
+                prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
+                log_call=_log_gemini_call,
+                prod_gate_triggered=cascade_payload.get("agent1_triggered"),
+                prod_gate_confidence=cascade_payload.get("agent1_confidence"),
             )
 
         moved_frames: list[Path] = []

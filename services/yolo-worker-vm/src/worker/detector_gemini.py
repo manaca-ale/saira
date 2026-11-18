@@ -676,13 +676,29 @@ def _call_model(
 _MODEL_PRICES = {
     "gemini-2.5-flash-lite": (0.10, 0.40),
     "gemini-2.5-flash": (0.30, 2.50),
-    "gemini-3.1-flash-lite": (0.125, 0.75),
+    # Preço Standard (chamada síncrona), conferido em 2026-11-16. Até a camp 53 esta
+    # linha trazia (0.125, 0.75), que é o preço Batch/Flex: o custo registrado do 3.1
+    # saía pela metade.
+    "gemini-3.1-flash-lite": (0.25, 1.50),
+    "gemini-3.5-flash-lite": (0.30, 2.50),
+    # Sem estas linhas o 3.6/3.8-flash caía no preço do gemini-2.5-flash (via "flash" em
+    # _price_key) e o custo registrado saía várias vezes menor que o cobrado. Preço do
+    # Vertex (global, chamada síncrona) conferido no catálogo de cobrança do Google Cloud em
+    # 2026-11-17 para o 3.8-flash; o 3.6-flash foi assumido igual. A página da API do AI
+    # Studio lista 0.75 / 3.75 até 31/12/2026: NÃO vale para o Vertex, que a produção usa.
+    "gemini-3.6-flash": (1.50, 7.50),
+    "gemini-3.8-flash": (1.50, 7.50),
 }
 
 
 def _price_key(model_name: str) -> str:
     """Normaliza nomes versionados (ex.: gemini-2.5-flash-002) para a chave de preço."""
     m = (model_name or "").strip().lower()
+    # Nome conhecido (ou versão dele) primeiro, do mais específico para o mais genérico,
+    # para "gemini-2.5-flash-lite" não cair em "gemini-2.5-flash".
+    for key in sorted(_MODEL_PRICES, key=len, reverse=True):
+        if m.startswith(key):
+            return key
     if "flash-lite" in m:
         # Gemini-3.x flash-lite tem preço próprio; senão cai no 2.5.
         if "gemini-3" in m or "-3." in m or "3.1" in m:
@@ -795,7 +811,8 @@ def _validate_bbox(bbox: object, label: str) -> Optional[list[int]]:
     if ratio > 0.60:
         logger.info("bbox_rejected_%s: covers %.1f%% of image (too large)", label, ratio * 100)
         return None
-    if ratio < 0.01:
+    min_ratio = float(getattr(config, "GEMINI_BBOX_MIN_AREA_RATIO", 0.01))
+    if ratio < min_ratio:
         logger.info("bbox_rejected_%s: covers %.2f%% of image (too small)", label, ratio * 100)
         return None
     return coords
@@ -1038,8 +1055,14 @@ def analyze_with_gemini(
                         schema_cls.model_json_schema(),
                         (override.max_output_tokens if override and override.max_output_tokens
                          else None),
-                        thinking_level=(override.thinking_level if override else None),
-                        media_resolution=(override.media_resolution if override else None),
+                        # Sem override (prod): nível de raciocínio e resolução vêm do
+                        # ambiente; vazio = não envia (comportamento do 2.5-flash).
+                        thinking_level=(
+                            override.thinking_level if override
+                            else (getattr(config, "GEMINI_DETAIL_THINKING_LEVEL", "") or None)),
+                        media_resolution=(
+                            override.media_resolution if override
+                            else (getattr(config, "GEMINI_DETAIL_MEDIA_RESOLUTION", "") or None)),
                         client=(override.client if override else None),
                     )
                     response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
