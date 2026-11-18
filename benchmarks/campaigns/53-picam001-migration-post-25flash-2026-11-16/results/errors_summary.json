@@ -18,11 +18,14 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(0)",
-              "2": "nao(0)"
+              "2": "nao(0)",
+              "3": "nao(0)"
             },
             "old": {
               "1": "SIM(95)",
@@ -50,11 +53,14 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(0)",
-              "2": "nao(0)"
+              "2": "nao(0)",
+              "3": "nao(0)"
             },
             "old": {
               "1": "nao(90)",
@@ -63,31 +69,6 @@
             "new_yes": 0,
             "old_yes_any": 1,
             "evidence_new": "Individuo empurrando carrinho de mao aproxima-se da pilha de lixo/entulho, para junto a ela, despeja/manipula o conteudo no local e em seguida se retira com o carrinho vazio.",
-            "cascade_yes": 0
-          }
-        ]
-      },
-      {
-        "det_id": "1d04290a-962c-497e-8f0c-a2816ac7be5a",
-        "perdida_no": "gate",
-        "eventos": [
-          {
-            "event_id": "evt-20260717_180936",
-            "category": "tp",
-            "det_id": "1d04290a-962c-497e-8f0c-a2816ac7be5a",
-            "frames_dir": "C:\\Saira\\data\\datasets\\official\\cam_picam001\\tp\\evt-20260717_180936\\frames",
-            "n_frames": 66,
-            "gate_fire": 0,
-            "p_deposit": 0.134,
-            "scene": "TRAFFIC",
-            "gate_today": {
-              "1": 0
-            },
-            "new": {},
-            "old": {},
-            "new_yes": 0,
-            "old_yes_any": 0,
-            "evidence_new": "",
             "cascade_yes": 0
           }
         ]
@@ -108,7 +89,9 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 0,
-              "2": 0
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(95)"
@@ -130,14 +113,18 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(95)",
-              "2": "SIM(98)"
+              "2": "SIM(98)",
+              "3": "SIM(95)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 1,
             "old_yes_any": 1,
@@ -160,14 +147,18 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(85)",
-              "2": "SIM(85)"
+              "2": "SIM(85)",
+              "3": "SIM(95)"
             },
             "old": {
-              "1": "SIM(90)"
+              "1": "SIM(90)",
+              "2": "nao(95)"
             },
             "new_yes": 1,
             "old_yes_any": 1,
@@ -185,14 +176,18 @@
             "scene": "COLLECTION",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(95)",
-              "2": "SIM(92)"
+              "2": "SIM(92)",
+              "3": "SIM(90)"
             },
             "old": {
-              "1": "nao(95)"
+              "1": "nao(95)",
+              "2": "nao(95)"
             },
             "new_yes": 1,
             "old_yes_any": 0,
@@ -210,7 +205,9 @@
             "scene": "COLLECTION",
             "gate_today": {
               "1": 0,
-              "2": 0
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(90)"
@@ -232,14 +229,18 @@
             "scene": "COLLECTION",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(85)",
-              "2": "nao(85)"
+              "2": "nao(85)",
+              "3": "nao(70)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 1,
             "old_yes_any": 1,
@@ -262,14 +263,18 @@
             "scene": "COLLECTION",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(95)",
-              "2": "SIM(90)"
+              "2": "SIM(90)",
+              "3": "SIM(95)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 1,
             "old_yes_any": 1,
@@ -287,14 +292,18 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(85)",
-              "2": "SIM(85)"
+              "2": "SIM(85)",
+              "3": "SIM(95)"
             },
             "old": {
-              "1": "SIM(90)"
+              "1": "SIM(90)",
+              "2": "SIM(90)"
             },
             "new_yes": 1,
             "old_yes_any": 1,
@@ -317,7 +326,9 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 0,
-              "2": 0
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(95)"
@@ -344,14 +355,18 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(98)",
-              "2": "SIM(98)"
+              "2": "SIM(98)",
+              "3": "SIM(98)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 1,
             "old_yes_any": 1,
@@ -373,7 +388,10 @@
             "p_deposit": 0.273,
             "scene": "COLLECTION",
             "gate_today": {
-              "1": 0
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(90)"
@@ -399,17 +417,22 @@
             "p_deposit": 0.322,
             "scene": "TRAFFIC",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(0)",
-              "2": "nao(0)"
+              "2": "nao(0)",
+              "3": "nao(0)"
             },
             "old": {
-              "1": "nao(0)"
+              "1": "nao(0)",
+              "2": "SIM(95)"
             },
             "new_yes": 0,
-            "old_yes_any": 0,
+            "old_yes_any": 1,
             "evidence_new": "Indivíduo chega puxando uma carroça com caçamba preta e a estaciona junto à área de descarte. Ele manuseia sacos plásticos pretos e os descarrega/arremessa na área de descarte ao fundo antes de se afastar.",
             "cascade_yes": 0
           },
@@ -423,17 +446,22 @@
             "p_deposit": 0.333,
             "scene": "TRAFFIC",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(90)",
-              "2": "nao(10)"
+              "2": "nao(10)",
+              "3": "nao(95)"
             },
             "old": {
-              "1": "nao(95)"
+              "1": "nao(95)",
+              "2": "SIM(85)"
             },
             "new_yes": 0,
-            "old_yes_any": 0,
+            "old_yes_any": 1,
             "evidence_new": "Uma pedestre de roupa rosa caminha pela via da esquerda para a direita sem interagir com as pilhas de lixo. Não houve adição de resíduos nem parada para descarte.",
             "cascade_yes": 0
           },
@@ -447,14 +475,19 @@
             "p_deposit": 0.547,
             "scene": "DUMPING",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "SIM(85)",
-              "2": "nao(85)"
+              "2": "nao(85)",
+              "3": "nao(85)"
             },
             "old": {
-              "1": "nao(95)"
+              "1": "nao(95)",
+              "2": "nao(95)"
             },
             "new_yes": 1,
             "old_yes_any": 0,
@@ -476,7 +509,10 @@
             "p_deposit": 0.943,
             "scene": "DUMPING",
             "gate_today": {
-              "1": 0
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(98)"
@@ -502,7 +538,10 @@
             "p_deposit": 0.777,
             "scene": "DUMPING",
             "gate_today": {
-              "1": 0
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(98)"
@@ -528,7 +567,10 @@
             "p_deposit": 0.413,
             "scene": "TRAFFIC",
             "gate_today": {
-              "1": 0
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(95)"
@@ -557,11 +599,14 @@
             "scene": "TRAFFIC",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(85)",
-              "2": "nao(85)"
+              "2": "nao(85)",
+              "3": "nao(85)"
             },
             "old": {
               "1": "SIM(85)",
@@ -588,11 +633,14 @@
             "scene": "TRAFFIC",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(85)",
-              "2": "nao(90)"
+              "2": "nao(90)",
+              "3": "nao(95)"
             },
             "old": {
               "1": "nao(95)",
@@ -619,11 +667,14 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(0)",
-              "2": "nao(0)"
+              "2": "nao(0)",
+              "3": "nao(0)"
             },
             "old": {
               "1": "SIM(95)",
@@ -650,14 +701,18 @@
             "scene": "DUMPING",
             "gate_today": {
               "1": 1,
-              "2": 1
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(85)",
-              "2": "nao(90)"
+              "2": "nao(90)",
+              "3": "nao(90)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 0,
             "old_yes_any": 1,
@@ -679,14 +734,19 @@
             "p_deposit": 0.205,
             "scene": "COLLECTION",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(85)",
-              "2": "nao(85)"
+              "2": "nao(85)",
+              "3": "nao(85)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 0,
             "old_yes_any": 1,
@@ -708,14 +768,19 @@
             "p_deposit": 0.098,
             "scene": "COLLECTION",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(98)",
-              "2": "nao(98)"
+              "2": "nao(98)",
+              "3": "nao(95)"
             },
             "old": {
-              "1": "SIM(90)"
+              "1": "SIM(90)",
+              "2": "SIM(90)"
             },
             "new_yes": 0,
             "old_yes_any": 1,
@@ -737,14 +802,19 @@
             "p_deposit": 0.325,
             "scene": "TRAFFIC",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(95)",
-              "2": "nao(90)"
+              "2": "nao(90)",
+              "3": "nao(90)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 0,
             "old_yes_any": 1,
@@ -766,14 +836,19 @@
             "p_deposit": 0.228,
             "scene": "TRAFFIC",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(90)",
-              "2": "nao(90)"
+              "2": "nao(90)",
+              "3": "nao(90)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 0,
             "old_yes_any": 1,
@@ -795,14 +870,19 @@
             "p_deposit": 0.129,
             "scene": "COLLECTION",
             "gate_today": {
-              "1": 1
+              "1": 1,
+              "2": 1,
+              "3": 1,
+              "4": 1
             },
             "new": {
               "1": "nao(85)",
-              "2": "nao(85)"
+              "2": "nao(85)",
+              "3": "nao(85)"
             },
             "old": {
-              "1": "SIM(95)"
+              "1": "SIM(95)",
+              "2": "SIM(95)"
             },
             "new_yes": 0,
             "old_yes_any": 1,
@@ -826,7 +906,10 @@
             "p_deposit": 0.369,
             "scene": "COLLECTION",
             "gate_today": {
-              "1": 0
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(98)"
@@ -852,7 +935,10 @@
             "p_deposit": 0.31,
             "scene": "COLLECTION",
             "gate_today": {
-              "1": 0
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(85)"
@@ -878,7 +964,10 @@
             "p_deposit": 0.325,
             "scene": "DUMPING",
             "gate_today": {
-              "1": 0
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 0
             },
             "new": {
               "1": "SIM(95)"
@@ -1346,32 +1435,6 @@
         ]
       },
       {
-        "det_id": "evt-20260815_114903",
-        "eventos": [
-          {
-            "event_id": "evt-20260815_114903",
-            "category": "fp",
-            "det_id": "evt-20260815_114903",
-            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260815_114903",
-            "n_frames": 32,
-            "gate_fire": 1,
-            "p_deposit": 0.777,
-            "scene": "DUMPING",
-            "gate_today": {
-              "1": 0
-            },
-            "new": {
-              "1": "SIM(98)"
-            },
-            "old": {},
-            "new_yes": 1,
-            "old_yes_any": 0,
-            "evidence_new": "Indivíduo puxando carroça com entulho e madeira encosta junto à pilha existente e descarrega placas e materiais diretamente sobre ela.",
-            "cascade_yes": 1
-          }
-        ]
-      },
-      {
         "det_id": "evt-20260815_143506",
         "eventos": [
           {
@@ -1422,35 +1485,6 @@
             "new_yes": 1,
             "old_yes_any": 0,
             "evidence_new": "Individuo sem camisa e de bermuda se aproxima da pilha de residuos carregando um saco branco volumoso. Ele para junto a pilha, se abaixa, manipula materiais e adiciona resíduos ao local ao longo da sequencia.",
-            "cascade_yes": 1
-          }
-        ]
-      },
-      {
-        "det_id": "evt-20260818_160927",
-        "eventos": [
-          {
-            "event_id": "evt-20260818_160927",
-            "category": "fp",
-            "det_id": "evt-20260818_160927",
-            "frames_dir": "C:\\Saira-testspace\\datasets\\pi-inicial-v1\\pi-cam-001\\frames\\evt-20260818_160927",
-            "n_frames": 11,
-            "gate_fire": 1,
-            "p_deposit": 0.471,
-            "scene": "DUMPING",
-            "gate_today": {
-              "1": 1
-            },
-            "new": {
-              "1": "SIM(98)",
-              "2": "SIM(98)"
-            },
-            "old": {
-              "1": "SIM(95)"
-            },
-            "new_yes": 1,
-            "old_yes_any": 1,
-            "evidence_new": "Homem com camisa rosa carrega caixa/recipiente com resíduos em direção à pilha existente e despeja o material na borda esquerda da pilha, afastando-se em seguida de mãos vazias.",
             "cascade_yes": 1
           }
         ]

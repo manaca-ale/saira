@@ -1,0 +1,75 @@
+{
+  "dataset": "pi-avancado-v1",
+  "n_eventos": 488,
+  "gate_hoje": "g25l_v1:1",
+  "dgate": "q1_gate5_low:1",
+  "ressalva": "fracao absoluta nao e a de producao (amostra com ~24% de deteccoes); usar a razao entre os gates",
+  "gates": {
+    "decisions_t20": {
+      "total": {
+        "passa": 213,
+        "n": 488,
+        "pct": 43.6
+      },
+      "sem estado": {
+        "passa": 125,
+        "n": 378,
+        "pct": 33.1
+      },
+      "REJEITADO": {
+        "passa": 88,
+        "n": 109,
+        "pct": 80.7
+      },
+      "CONFIRMADO": {
+        "passa": 0,
+        "n": 1,
+        "pct": 0.0
+      }
+    },
+    "decisions_t25": {
+      "total": {
+        "passa": 121,
+        "n": 488,
+        "pct": 24.8
+      },
+      "sem estado": {
+        "passa": 55,
+        "n": 378,
+        "pct": 14.6
+      },
+      "REJEITADO": {
+        "passa": 66,
+        "n": 109,
+        "pct": 60.6
+      },
+      "CONFIRMADO": {
+        "passa": 0,
+        "n": 1,
+        "pct": 0.0
+      }
+    },
+    "decisions_t30": {
+      "total": {
+        "passa": 82,
+        "n": 488,
+        "pct": 16.8
+      },
+      "sem estado": {
+        "passa": 29,
+        "n": 378,
+        "pct": 7.7
+      },
+      "REJEITADO": {
+        "passa": 53,
+        "n": 109,
+        "pct": 48.6
+      },
+      "CONFIRMADO": {
+        "passa": 0,
+        "n": 1,
+        "pct": 0.0
+      }
+    }
+  }
+}

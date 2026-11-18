@@ -5,7 +5,8 @@
   "ts": {
     "1": "2026-11-16T22:24:07",
     "2": "2026-11-16T22:25:53",
-    "3": "2026-11-17T02:11:16"
+    "3": "2026-11-17T02:11:16",
+    "4": "2026-11-17T23:13:27"
   },
   "contra_referencia": {
     "2": {
@@ -35,6 +36,32 @@
       }
     },
     "3": {
+      "eventos": 122,
+      "max_abs_diff": {
+        "actor_at_pile": 0.0,
+        "carrying_in": 0.0,
+        "deposit": 0.0,
+        "pile_grew": 0.0,
+        "removal": 0.0,
+        "scene": 0.0
+      },
+      "eventos_com_diferenca": {
+        "actor_at_pile": 0,
+        "carrying_in": 0,
+        "deposit": 0,
+        "pile_grew": 0,
+        "removal": 0,
+        "scene": 0
+      },
+      "trocas_de_lado": {
+        "0.20": [],
+        "0.25": [],
+        "0.30": [],
+        "0.40": [],
+        "0.50": []
+      }
+    },
+    "4": {
       "eventos": 122,
       "max_abs_diff": {
         "actor_at_pile": 0.0,

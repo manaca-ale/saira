@@ -162,6 +162,8 @@ DETAIL_ARMS = {
     # o 3.8-flash NAO aceita thinking_level=minimal (HTTP 400, sem cobranca): o piso e "low".
     "d38f_v1_low_med":  {"model": "gemini-3.8-flash", "prompt": "v1", "think": "medium", "media": "low", "est": 0.030},
     "d38f_v1_low_low":  {"model": "gemini-3.8-flash", "prompt": "v1", "think": "low", "media": "low", "est": 0.018},
+    # bloco M: prompt V4 (flagrante + clausula de catador, camp 49) no modelo recomendado
+    "d38f_v4_low_low":  {"model": "gemini-3.8-flash", "prompt": "v4", "think": "low", "media": "low", "est": 0.018},
     # 3.1-flash-lite como detail (mais barato por token; desliga em 07/05/2027)
     "d31l_v4_low_high": {"model": "gemini-3.1-flash-lite", "prompt": "v4", "think": "high", "media": "low", "est": 0.008},
     "d31l_v4_low_med":  {"model": "gemini-3.1-flash-lite", "prompt": "v4", "think": "medium", "media": "low", "est": 0.007},
@@ -330,6 +332,29 @@ DS = {"name": "official"}
 TESTSPACE = Path(os.environ.get("SAIRA_TESTSPACE_DATASETS", r"C:\Saira-testspace\datasets"))
 
 
+def _load_label_overrides() -> dict[str, str]:
+    """Correcoes de rotulo (event_id -> categoria) de results/label_overrides.json.
+
+    Em 17/11/2026 o Gabriel confirmou que tres rotulos estavam errados no original. O dataset
+    oficial e o catalogo do testspace nao sao editados: a correcao entra aqui, no carregamento
+    dos eventos E na leitura dos registros ja gravados (que guardam a categoria da epoca), para
+    todo agregador enxergar o mesmo rotulo. BENCH_NO_LABEL_OVERRIDES=1 desliga."""
+    if os.environ.get("BENCH_NO_LABEL_OVERRIDES", "").strip() in ("1", "true", "yes"):
+        return {}
+    f = RESULTS / "label_overrides.json"
+    if not f.exists():
+        return {}
+    data = json.loads(f.read_text(encoding="utf-8"))
+    return {eid: o["category"] for eid, o in (data.get("overrides") or {}).items()}
+
+
+LABEL_OVERRIDES = _load_label_overrides()
+
+
+def label_for(event_id: str, category: str) -> str:
+    return LABEL_OVERRIDES.get(event_id, category)
+
+
 def _load_testspace(name, cats, only):
     """Datasets do testspace do Gabriel (ex.: pi-inicial-v1). Gabarito = status do operador
     (CONFIRMADO -> tp, REJEITADO -> fp). So tem eventos em que a PRODUCAO criou deteccao,
@@ -346,6 +371,7 @@ def _load_testspace(name, cats, only):
         if eid in official:
             continue
         c = {"CONFIRMADO": "tp", "REJEITADO": "fp"}.get(e.get("estado_plataforma"), "indefinido")
+        c = label_for(eid, c)
         if (cats and c not in cats) or (only and eid not in only):
             continue
         frames = sorted((root / e.get("origem_dispositivo", "pi-cam-001") / "frames" / eid).glob("*.jpg"))
@@ -360,11 +386,12 @@ def load_events(cats=None, limit=None, only=None):
     if DS["name"] != "official":
         return _load_testspace(DS["name"], cats, only)
     rows = []
-    for cat in ("tp", "fp", "indefinido", "baseline"):
-        if cats and cat not in cats:
-            continue
-        for lab in sorted((CAM / cat).glob("*/label.json")):
+    for folder in ("tp", "fp", "indefinido", "baseline"):
+        for lab in sorted((CAM / folder).glob("*/label.json")):
             L = json.loads(lab.read_text(encoding="utf-8"))
+            cat = label_for(L["event_id"], folder)      # a pasta e o rotulo original
+            if cats and cat not in cats:
+                continue
             if only and L["event_id"] not in only:
                 continue
             frames = sorted((lab.parent / "frames").glob("*.jpg"))
@@ -484,7 +511,13 @@ def read_jsonl(path: Path) -> list[dict]:
         for line in fh:
             line = line.strip()
             if line:
-                out.append(json.loads(line))
+                rec = json.loads(line)
+                # o registro guarda a categoria do dia da execucao; vale o rotulo corrigido
+                eid = rec.get("event_id")
+                if eid in LABEL_OVERRIDES and rec.get("category") != LABEL_OVERRIDES[eid]:
+                    rec["category_orig"] = rec.get("category")
+                    rec["category"] = LABEL_OVERRIDES[eid]
+                out.append(rec)
     return out
 
 

@@ -1,5 +1,7 @@
 # Camp 53 — rollout do detail novo (17/11/2026)
 
+> **Rótulos corrigidos em 17/11/2026 (correções do Gabriel Candelária em três eventos).** As contagens deste documento usam os rótulos corrigidos: 18 detecções reais e 26 falsas no oficial; 46 confirmados e 43 rejeitados no holdout. Nenhuma conclusão mudou; detalhes no início de Resultados do `report.md`. Ele não revisou todos os eventos caso a caso: os demais rótulos podem ter ruído.
+
 Conferido contra os composes, o `config.py` e o `deploy.yml` desta branch. As variáveis dos dois workers foram lidas no servidor em 17/11/2026 (seção "Lido em produção"). Nada aqui foi aplicado em test nem em produção. Números e método no [`report.md`](report.md).
 
 ## O que muda
@@ -33,11 +35,11 @@ Com as variáveis vazias o código novo se comporta como o de hoje (241 testes d
 
 | | Reais | Falsos | "Sem ocorrência" |
 |---|---|---|---|
-| Hoje (`d25f_v1`, 2 repetições), oficial | 15/19 e 17/19 | 12/25 e 14/25 | 1/40 |
-| Recomendado com o veto do bbox (3 repetições), oficial | 16/19 | 4/25 a 5/25 | 1/40 a 2/40 |
-| **Recomendado sem o veto do bbox** (repetição 3, resposta do modelo), oficial | **18/19** | 6/25 | 2/40 |
-| Hoje, holdout | 26/44 | 18/45 | — |
-| Recomendado (2 repetições), holdout | 24/44 e 25/44 | 13/45 e 15/45 | — |
+| Hoje (`d25f_v1`, 2 repetições), oficial | 15/18 e 17/18 | 12/26 e 14/26 | 1/40 |
+| Recomendado com o veto do bbox (3 repetições), oficial | 16/18 | 4/26 a 5/26 | 1/40 a 2/40 |
+| **Recomendado sem o veto do bbox** (repetição 3, resposta do modelo), oficial | **18/18** | 6/26 | 2/40 |
+| Hoje, holdout | 27/46 | 17/43 | — |
+| Recomendado (2 repetições), holdout | 25/46 e 26/46 | 12/43 e 14/43 | — |
 
 Custo por evento da cascata: 10% maior que hoje, com o preço do Vertex conferido no catálogo de cobrança em 17/11 (US$ 1,50 / 7,50 por 1M no 3.8-flash). Latência mediana do detail menor.
 
@@ -49,10 +51,10 @@ O worker troca um "sim" do modelo por "não" com confiança 0 quando nenhuma cai
 
 | Regra | Reais | Falsos | "Sem ocorrência" |
 |---|---|---|---|
-| Veto de 1% (como está hoje) | 16/19 | 4/25 | 2/40 |
-| **Sem veto (`GEMINI_REQUIRE_BBOX=false`)** | **18/19** | 6/25 | 2/40 |
+| Veto de 1% (como está hoje) | 16/18 | 4/26 | 2/40 |
+| **Sem veto (`GEMINI_REQUIRE_BBOX=false`)** | **18/18** | 6/26 | 2/40 |
 
-No holdout o recall quase não muda (quem limita é o gate) e entram de 2 a 3 falsos a mais em 45 (estimativa pelas repetições sem a resposta crua). O pipeline de hoje, no oficial, faz 15/19 a 17/19 reais com 12/25 a 14/25 falsos.
+No holdout o recall quase não muda (quem limita é o gate) e entram de 2 a 3 falsos a mais em 43 (estimativa pelas repetições sem a resposta crua). O pipeline de hoje, no oficial, faz 15/18 a 17/18 reais com 12/26 a 14/26 falsos.
 
 Efeito colateral a saber: o relatório diário tem o indicador I3, "qualidade da identificação" (`backend/app/services/daily_report_service.py`): percentual de detecções com caixa do infrator, com meta de 80%. Medido na repetição 3: das 39 respostas "sim" do modelo, 34 têm caixa do infrator com 1% ou mais da imagem (87%, acima da meta) e as 39 têm caixa com 0,25% ou mais (100%). O indicador não corre risco com o piso de hoje; baixá-lo para 0,25% (`GEMINI_BBOX_MIN_AREA_RATIO=0.0025`) só grava as 5 caixas que faltam. Com `GEMINI_REQUIRE_BBOX=false` essa variável não muda nenhuma decisão, só quais caixas ficam no banco. O frontend não usa as caixas.
 
@@ -120,7 +122,7 @@ Para o gate de test ficar igual ao de produção nesse ensaio, acrescentar ao me
 
 **3. Observar em test** por pelo menos um dia com eventos: confirmações por dia contra a semana anterior; quantos details voltam com `infraction_confirmed=false` e confiança 0 (com `GEMINI_REQUIRE_BBOX=false` não deve haver nenhum); latência e timeouts; custo por chamada de detail em `gemini_call_log` (esperado: cerca de US$ 0,017). Em 13/11 nenhuma câmera gerava detecção desde 28/09: se continuar assim, test não mostra nada e a validação é a do dataset.
 
-**4. Produção, com o ok do Alexandre, antes de as câmeras voltarem.** O projeto está parado (nenhuma câmera gera detecção desde 28/09) e volta em janeiro de 2027. Sem eventos, o roteamento de 01/12 não derruba nada na prática; mas qualquer evento que chegue depois de 01/12 com a configuração de hoje cai no detail roteado, de recall medido em 9/19. Por isso a troca deve estar feita antes de a primeira câmera ser religada. Aplicar com o projeto parado é o momento de menor risco. Gravar no `.env` as variáveis da tabela "O que muda" e recriar só o worker de produção:
+**4. Produção, com o ok do Alexandre, antes de as câmeras voltarem.** O projeto está parado (nenhuma câmera gera detecção desde 28/09) e volta em janeiro de 2027. Sem eventos, o roteamento de 01/12 não derruba nada na prática; mas qualquer evento que chegue depois de 01/12 com a configuração de hoje cai no detail roteado, de recall medido em 9/18. Por isso a troca deve estar feita antes de a primeira câmera ser religada. Aplicar com o projeto parado é o momento de menor risco. Gravar no `.env` as variáveis da tabela "O que muda" e recriar só o worker de produção:
 
 ```
 cd /home/ubuntu/saira/services
@@ -134,7 +136,7 @@ Atenção: depois de editado o `.env`, qualquer deploy (test ou prod) recria o r
 
 ## Como voltar atrás
 
-Restaurar o `.env` da cópia (`.env.bak-...`) e repetir o comando de recriação do worker de produção. Até 30/11 isso volta ao comportamento atual. De 01/12 em diante `gemini-2.5-flash` passa a ser atendido pelo gemini-3.5-flash-lite: o "voltar" vira o cenário roteado (`d35l_v1_routed`, 9/19 de recall), não o de hoje. Depois de 01/12, a alternativa de retorno medida é `GEMINI_MODEL=gemini-3.5-flash-lite` com `GEMINI_DETAIL_PROMPT_VERSION=g3`, `GEMINI_DETAIL_THINKING_LEVEL=high` e `GEMINI_DETAIL_MEDIA_RESOLUTION=low` (`d35l_g3_low_high`).
+Restaurar o `.env` da cópia (`.env.bak-...`) e repetir o comando de recriação do worker de produção. Até 30/11 isso volta ao comportamento atual. De 01/12 em diante `gemini-2.5-flash` passa a ser atendido pelo gemini-3.5-flash-lite: o "voltar" vira o cenário roteado (`d35l_v1_routed`, 9/18 de recall), não o de hoje. Depois de 01/12, a alternativa de retorno medida é `GEMINI_MODEL=gemini-3.5-flash-lite` com `GEMINI_DETAIL_PROMPT_VERSION=g3`, `GEMINI_DETAIL_THINKING_LEVEL=high` e `GEMINI_DETAIL_MEDIA_RESOLUTION=low` (`d35l_g3_low_high`).
 
 ## Limites desta recomendação
 

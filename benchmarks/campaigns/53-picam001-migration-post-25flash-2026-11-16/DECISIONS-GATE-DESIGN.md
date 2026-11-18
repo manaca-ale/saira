@@ -4,7 +4,7 @@ Desenho, sem implementação. Nada aqui existe no worker ainda. Os números vêm
 
 ## Por que shadow e não troca direta
 
-No dataset o Decisions iguala o gate de hoje em recall (18/19 detecções reais passam nos limiares 0,20 a 0,30), repete melhor os confirmados do holdout (30 a 40 de 44, contra 26 do gate de hoje) e custa US$ 0,00021 por chamada, contra US$ 0,0011. O que o dataset não responde:
+No dataset o Decisions iguala o gate de hoje em recall (18/18 detecções reais passam nos limiares 0,20 a 0,30), repete melhor os confirmados do holdout (30 a 40 de 44, contra 26 do gate de hoje) e custa US$ 0,00021 por chamada, contra US$ 0,0011. O que o dataset não responde:
 
 - **Taxa de passagem em tráfego real.** O custo da cascata depende de quantos eventos chegam ao detail. A projeção (2,9% a 7,3%, conforme o limiar) sai de 40 cenas; em produção o gate de hoje deixa passar cerca de 2,2%.
 - **Estabilidade entre dias.** Três execuções em quatro horas devolveram probabilidades idênticas, o que pode ser cache do lado do Google.
