@@ -1,0 +1,4 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[dgate54] qset=q2 (17 perguntas) res=low rep=2 split=dev eventos=158 ja_feitos=118 a_rodar=40 sem_frames=0 estimativa=US$ 0.0198
+  [40/40] ok=40 erros=0 gasto=US$ 0.0124 (9 s)
+  fim: ok=40 erros=0 gasto_desta_execucao=US$ 0.0124 total_carteira=US$ 1.3838 (9 s)

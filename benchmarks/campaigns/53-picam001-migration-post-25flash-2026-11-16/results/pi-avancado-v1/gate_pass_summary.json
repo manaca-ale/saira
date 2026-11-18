@@ -5,6 +5,28 @@
   "dgate": "q1_gate5_low:1",
   "ressalva": "fracao absoluta nao e a de producao (amostra com ~24% de deteccoes); usar a razao entre os gates",
   "gates": {
+    "g25l_v1:1": {
+      "total": {
+        "passa": 82,
+        "n": 488,
+        "pct": 16.8
+      },
+      "sem estado": {
+        "passa": 18,
+        "n": 378,
+        "pct": 4.8
+      },
+      "REJEITADO": {
+        "passa": 63,
+        "n": 109,
+        "pct": 57.8
+      },
+      "CONFIRMADO": {
+        "passa": 1,
+        "n": 1,
+        "pct": 100.0
+      }
+    },
     "decisions_t20": {
       "total": {
         "passa": 213,
@@ -70,6 +92,67 @@
         "n": 1,
         "pct": 0.0
       }
+    }
+  },
+  "razao": {
+    "n_comum": 488,
+    "gate_hoje_passa": 82,
+    "custo_evento_hoje_recomendado": 0.001472,
+    "decisions_t20": {
+      "passa": 213,
+      "so_decisions": 151,
+      "so_gate_hoje": 20,
+      "razao": 2.598,
+      "p_prod": 0.0571,
+      "custo_evento": 0.001176,
+      "vs_gate_hoje_pct": -20.1,
+      "vs_producao_hoje_pct": -12.1
+    },
+    "decisions_t25": {
+      "passa": 121,
+      "so_decisions": 74,
+      "so_gate_hoje": 35,
+      "razao": 1.476,
+      "p_prod": 0.0325,
+      "custo_evento": 0.000759,
+      "vs_gate_hoje_pct": -48.5,
+      "vs_producao_hoje_pct": -43.3
+    },
+    "decisions_t30": {
+      "passa": 82,
+      "so_decisions": 45,
+      "so_gate_hoje": 45,
+      "razao": 1.0,
+      "p_prod": 0.022,
+      "custo_evento": 0.000582,
+      "vs_gate_hoje_pct": -60.5,
+      "vs_producao_hoje_pct": -56.5
+    }
+  },
+  "producao_hoje_custo_evento": 0.001338,
+  "razao_sem_estado": {
+    "n": 378,
+    "gate_hoje_passa": 18,
+    "decisions_t20": {
+      "passa": 125,
+      "razao": 6.944,
+      "p_prod": 0.1528,
+      "custo_evento": 0.002792,
+      "vs_producao_hoje_pct": 108.7
+    },
+    "decisions_t25": {
+      "passa": 55,
+      "razao": 3.056,
+      "p_prod": 0.0672,
+      "custo_evento": 0.001346,
+      "vs_producao_hoje_pct": 0.6
+    },
+    "decisions_t30": {
+      "passa": 29,
+      "razao": 1.611,
+      "p_prod": 0.0354,
+      "custo_evento": 0.000809,
+      "vs_producao_hoje_pct": -39.5
     }
   }
 }

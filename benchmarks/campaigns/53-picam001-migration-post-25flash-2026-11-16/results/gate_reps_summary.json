@@ -41,34 +41,44 @@
       "baseline_evt": "3/40",
       "ts": "2026-11-17T02:11:17",
       "cost_per_call": 0.001103
+    },
+    "5": {
+      "tp_det": "18/18",
+      "fp_det": "18/26",
+      "tp_evt": "31/34",
+      "fp_evt": "23/33",
+      "indefinido_evt": "7/15",
+      "baseline_evt": "3/40",
+      "ts": "2026-11-18T11:18:12",
+      "cost_per_call": 0.001103
     }
   },
   "flips": {
     "tp": {
       "por_numero_de_sins": {
         "0": 3,
-        "4": 31
+        "5": 31
       },
       "instaveis": []
     },
     "fp": {
       "por_numero_de_sins": {
         "0": 10,
-        "4": 23
+        "5": 23
       },
       "instaveis": []
     },
     "indefinido": {
       "por_numero_de_sins": {
         "0": 8,
-        "4": 7
+        "5": 7
       },
       "instaveis": []
     },
     "baseline": {
       "por_numero_de_sins": {
         "0": 37,
-        "4": 3
+        "5": 3
       },
       "instaveis": []
     }
@@ -77,6 +87,7 @@
     "1": [],
     "2": [],
     "3": [],
-    "4": []
+    "4": [],
+    "5": []
   }
 }

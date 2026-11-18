@@ -1,0 +1,9 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[detail] braco=d38f_v4_low_low rep=1 modelo=gemini-3.8-flash prompt=v4 think=low media=low frames=None flex=True
+  eventos=57 ja_feitos=55 a_rodar=2 estimativa=US$ 0.018
+  orcamento (vertex): teto US$ 15.00 gasto US$ 12.3690 teto desta execucao US$ 0.05
+  [1/2] fp         evt-20260718_074821 disposal=0 conf=95
+gemini timeout request_id=d8676d6a-1516-4b27-8b74-8b72195ad58f attempt=1/3
+gemini error request_id=d8676d6a-1516-4b27-8b74-8b72195ad58f attempt=2/3 error=504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}
+  [2/2] tp         evt-20260717_163744 disposal=1 conf=98
+  fim: ok=2 erros=0 chamadas_cobradas=2 (flex=2 standard=0) gasto_desta_execucao=US$ 0.0152 total_semana=US$ 12.3842 (621 s)

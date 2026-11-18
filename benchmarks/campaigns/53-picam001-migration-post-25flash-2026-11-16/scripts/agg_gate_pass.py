@@ -26,6 +26,7 @@ THRESHOLDS = (0.20, 0.25, 0.30)
 GROUPS = (("indefinido", "sem estado"), ("fp", "REJEITADO"), ("tp", "CONFIRMADO"))
 # custo medio por chamada medido no oficial (cascade_summary.json): gate de hoje, Decisions, detail recomendado
 C_GATE, C_DGATE, C_DETAIL = 0.00110, 0.00021, 0.0169
+C_DETAIL_HOJE = 0.0108      # detail de producao (d25f_v1), para a base "producao de hoje"
 
 
 def frac(votes: dict[str, int], events) -> dict:
@@ -94,6 +95,39 @@ def main():
             print(f"  {name}: passa {d_pass} (so ele {so_d}, so o de hoje {so_g}); razao {r['razao']}; "
                   f"p = {100 * p:.1f}%; US$ {cost:.5f} por evento ({r['vs_gate_hoje_pct']:+.0f}%)"
                   if p is not None else f"  {name}: passa {d_pass}")
+        # A razao depende do MIX da amostra: aqui ~22% dos eventos tem deteccao (REJEITADO/CONFIRMADO),
+        # onde o gate de hoje passa muito; em producao sao ~2%. Por isso a mesma conta so nos eventos
+        # "sem estado" (o tipo que domina a producao), e o custo contra a producao de hoje
+        # (gate de hoje + detail de hoje, a base do agg_cascade.py).
+        prod_today = C_GATE + b.P_PASS_PROD * C_DETAIL_HOJE
+        cat = {e["event_id"]: e["category"] for e in events}
+        se = [k for k in both if cat[k] == "indefinido"]
+        g_se = sum(gate[k] for k in se)
+        out["producao_hoje_custo_evento"] = round(prod_today, 6)
+        out["razao_sem_estado"] = {"n": len(se), "gate_hoje_passa": g_se}
+        print(f"\ncontra a producao de hoje (gate de hoje + detail de hoje, US$ {prod_today:.5f} por evento); "
+              f"razao no total da amostra e so nos {len(se)} eventos sem estado (gate de hoje passa {g_se}):")
+        for thr in THRESHOLDS:
+            name = f"decisions_t{int(round(thr * 100)):02d}"
+            r_tot = out["razao"][name]
+            cost_tot = r_tot["custo_evento"]
+            r_tot["vs_producao_hoje_pct"] = round(100 * (cost_tot / prod_today - 1), 1) if cost_tot is not None else None
+            d_se = sum(rows[name][k] for k in se)
+            ratio = d_se / g_se if g_se else None
+            p = b.P_PASS_PROD * ratio if ratio is not None else None
+            cost = C_DGATE + p * C_DETAIL if p is not None else None
+            out["razao_sem_estado"][name] = {
+                "passa": d_se, "razao": round(ratio, 3) if ratio is not None else None,
+                "p_prod": round(p, 4) if p is not None else None,
+                "custo_evento": round(cost, 6) if cost is not None else None,
+                "vs_producao_hoje_pct": round(100 * (cost / prod_today - 1), 1) if cost is not None else None}
+            s = out["razao_sem_estado"][name]
+            if p is not None and cost_tot is not None:
+                print(f"  {name}: total razao {r_tot['razao']} -> US$ {cost_tot:.5f} ({r_tot['vs_producao_hoje_pct']:+.0f}%)"
+                      f" | sem estado: passa {d_se}, razao {s['razao']}, p = {100 * p:.1f}% -> "
+                      f"US$ {cost:.5f} ({s['vs_producao_hoje_pct']:+.0f}%)")
+        print("  (com so " + str(g_se) + " eventos sem estado passando no gate de hoje, a razao por estrato e grosseira: "
+              "serve para mostrar a faixa, nao para fixar um numero)")
     elif not gate:
         print(f"\nfalta o gate de hoje neste conjunto ({gp.name}): a razao entre os gates so fecha quando ele rodar.")
     (b.out_dir() / "gate_pass_summary.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
