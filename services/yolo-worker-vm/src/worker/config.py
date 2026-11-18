@@ -343,6 +343,36 @@ SHADOW_C51_TRIGGER_THR = int(os.getenv("SHADOW_C51_TRIGGER_THR", "85"))
 # corte silencioso faria os dados parecerem completos quando não estão.
 SHADOW_C51_DAILY_BUDGET_USD = float(os.getenv("SHADOW_C51_DAILY_BUDGET_USD", "3.50"))
 
+# ── SHADOW Camp 53 (gate candidato `gemini-decision-1`, API de Decisões) ─────────
+# Uma chamada por janela com os mesmos 5 frames do gate de produção; registra as
+# probabilidades cruas e nunca decide nada. O modelo só existe na API do AI Studio:
+# endpoint, chave e modelo são próprios deste shadow, para trocar pelo Vertex quando
+# o Google liberar. Sem chave o shadow fica desligado. Audit em
+# STATE_DIR/shadow_decisions_audit/{date}/{device}.jsonl. Default OFF.
+SHADOW_DECISIONS_ENABLED = os.getenv("SHADOW_DECISIONS_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+SHADOW_DECISIONS_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("SHADOW_DECISIONS_DEVICES", "").split(",")
+    if d.strip()
+}
+SHADOW_DECISIONS_API_KEY = os.getenv("SHADOW_DECISIONS_API_KEY", "").strip()
+SHADOW_DECISIONS_ENDPOINT = os.getenv(
+    "SHADOW_DECISIONS_ENDPOINT", "https://generativelanguage.googleapis.com/v1beta/decisions").strip()
+SHADOW_DECISIONS_MODEL = os.getenv("SHADOW_DECISIONS_MODEL", "gemini-decision-1").strip()
+SHADOW_DECISIONS_RESOLUTION = os.getenv("SHADOW_DECISIONS_RESOLUTION", "low").strip()
+# Limiares sobre a probabilidade de `deposit`: só viram campos `fire_t*` no registro.
+SHADOW_DECISIONS_THRESHOLDS = tuple(
+    float(x)
+    for x in os.getenv("SHADOW_DECISIONS_THRESHOLDS", "0.20,0.25,0.30").split(",")
+    if x.strip()
+)
+SHADOW_DECISIONS_GATE_MIDS = int(os.getenv("SHADOW_DECISIONS_GATE_MIDS", "3"))
+SHADOW_DECISIONS_TIMEOUT_SECONDS = float(os.getenv("SHADOW_DECISIONS_TIMEOUT_SECONDS", "15"))
+# US$ por 1M de tokens de entrada (a API de Decisões não cobra saída).
+SHADOW_DECISIONS_PRICE_IN_PER_1M = float(os.getenv("SHADOW_DECISIONS_PRICE_IN_PER_1M", "0.10"))
+# Teto de gasto por dia (US$): ~500 eventos/dia por câmera custam cerca de US$ 0,11.
+SHADOW_DECISIONS_DAILY_BUDGET_USD = float(os.getenv("SHADOW_DECISIONS_DAILY_BUDGET_USD", "0.50"))
+
 # Prompt version selector — "current" (V1, default) or "v2" (behavioral discriminators).
 # V2 adds material_flow_direction + pile_volume_change + UNIFORM IS NOT A DISCRIMINATOR.
 # Default stays on V1 until campanha 11 validates V2 against the official dataset.

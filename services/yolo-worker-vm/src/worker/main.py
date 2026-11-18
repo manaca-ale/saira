@@ -23,6 +23,7 @@ from . import detector_bedrock
 from . import detector_dinov2
 from . import detector_structural
 from . import event_windows
+from . import _shadow_decisions
 from . import _shadow_gate51
 from ._prompts_v4picam import V4_DETAIL_PROMPT
 from .schemas_gemini import GeminiInfractionReport
@@ -2892,6 +2893,19 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
                 prod_disposal=final_disposal,
                 prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
                 log_call=_log_gemini_call,
+            )
+
+        # SHADOW Camp 53: gate candidato `gemini-decision-1` (API de Decisões) sobre os
+        # mesmos 5 frames do gate. Mede taxa de passagem por limiar e estabilidade em
+        # tráfego real. Log-only, falha aberta, cliente e chave próprios.
+        if config.SHADOW_DECISIONS_ENABLED and device_id in config.SHADOW_DECISIONS_DEVICES:
+            _shadow_decisions.run(
+                window_paths, device_id, camera, manifest,
+                prod_disposal=final_disposal,
+                prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
+                log_call=_log_gemini_call,
+                prod_gate_triggered=cascade_payload.get("agent1_triggered"),
+                prod_gate_confidence=cascade_payload.get("agent1_confidence"),
             )
 
         moved_frames: list[Path] = []

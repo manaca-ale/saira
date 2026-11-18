@@ -1,15 +1,15 @@
 # Camp 53 — desenho do gate `gemini-decision-1` em shadow (17/11/2026)
 
-Desenho, sem implementação. Nada aqui existe no worker ainda. Os números vêm do [`report.md`](report.md), seção 5.
+**Estado em 17/11/2026: aprovado pelo Alexandre e implementado na fase 1** (só o gate, desligado por padrão) na branch `feature/decisions-gate-shadow`: módulo `_shadow_decisions.py`, variáveis `SHADOW_DECISIONS_*` e testes em `tests/test_shadow_decisions.py`. A fase 2 (detail) não está implementada e nada foi ligado em servidor nenhum. Os números vêm do [`report.md`](report.md), seção 5, já com os rótulos corrigidos em 17/11.
 
 ## Por que shadow e não troca direta
 
-No dataset o Decisions iguala o gate de hoje em recall (18/18 detecções reais passam nos limiares 0,20 a 0,30), repete melhor os confirmados do holdout (30 a 40 de 44, contra 26 do gate de hoje) e custa US$ 0,00021 por chamada, contra US$ 0,0011. O que o dataset não responde:
+No dataset o Decisions iguala o gate de hoje em recall (18/18 detecções reais passam nos limiares 0,20 a 0,30), repete melhor os confirmados do holdout (32 a 42 de 46, contra 27 do gate de hoje) e custa US$ 0,00021 por chamada, contra US$ 0,0011. O que o dataset não responde:
 
-- **Taxa de passagem em tráfego real.** O custo da cascata depende de quantos eventos chegam ao detail. A projeção (2,9% a 7,3%, conforme o limiar) sai de 40 cenas; em produção o gate de hoje deixa passar cerca de 2,2%.
-- **Estabilidade entre dias.** Três execuções em quatro horas devolveram probabilidades idênticas, o que pode ser cache do lado do Google.
+- **Taxa de passagem em tráfego real.** O custo da cascata depende de quantos eventos chegam ao detail. A projeção (2,9% a 7,3%, conforme o limiar) sai de 40 cenas; em produção o gate de hoje deixa passar cerca de 2,2%. Em 17/11 o Decisions rodou em 488 eventos do `pi-avancado-v1`: passam 43,6% (limiar 0,20), 24,8% (0,25) e 16,8% (0,30). A amostra tem cerca de 24% de detecções, então a fração não é a de produção; a razão contra o gate de hoje nos mesmos eventos ainda não foi medida (depende do Vertex).
+- **Estabilidade entre dias.** Três execuções em quatro horas devolveram probabilidades idênticas, o que pode ser cache do lado do Google. Uma quarta execução, 25 horas depois da primeira (17/11, 23:13), devolveu as mesmas 122 probabilidades, sem nenhuma troca de lado. Falta ver em tráfego real e ao longo de mais dias.
 - **Limiar.** Os três limiares dão o mesmo recall no oficial; só o holdout os separa, e 4 descartes reais do holdout ficam entre 0,178 e 0,199.
-- **Operação.** O modelo foi lançado em 11/11/2026 e só existe na API do AI Studio (v1beta), não no Vertex.
+- **Operação.** O modelo foi lançado em 11/11/2026 e só existe na API do AI Studio (v1beta), não no Vertex. O Google anuncia o modelo como "coming soon to Gemini in Google Cloud", sem data. O crédito do AI Studio é pré-pago e separado do faturamento do Vertex: são dois saldos para acompanhar.
 
 O shadow mede os três primeiros itens sem tocar no que a produção decide.
 
@@ -38,6 +38,8 @@ Um módulo novo, `services/yolo-worker-vm/src/worker/_shadow_decisions.py`, irm�
           prod_disposal=final_disposal,
           prod_detection_id=((cascade_payload.get("agent2_result") or {}).get("detection_id")),
           log_call=_log_gemini_call,
+          prod_gate_triggered=cascade_payload.get("agent1_triggered"),
+          prod_gate_confidence=cascade_payload.get("agent1_confidence"),
       )
   ```
 
@@ -45,19 +47,24 @@ Um módulo novo, `services/yolo-worker-vm/src/worker/_shadow_decisions.py`, irm�
 - **Peças copiadas do `_shadow_gate51.py`**: disjuntor próprio (`_BREAKER`), orçamento diário em arquivo (`_budget_path`, `_budget_spent`, `_budget_add`), auditoria em jsonl por dispositivo (`_append_audit`) e seleção de frames (`_gate_mids`).
 - **HTTP**: `urllib.request`, como no script da campanha, que é a chamada medida. O `google-genai` 3.4.0 do venv da campanha traz um módulo `decisions`, que não foi usado nem testado aqui; se a implementação preferir o SDK, conferir antes a versão que o worker instala e a paridade de tokens (2.097 por chamada).
 
-### Variáveis novas (`config.py` e os três composes)
+### Variáveis novas (`config.py` e os composes de produção e de teste)
 
 | Variável | Padrão | Para quê |
 |---|---|---|
 | `SHADOW_DECISIONS_ENABLED` | `false` | liga o shadow |
 | `SHADOW_DECISIONS_DEVICES` | vazio | lista de dispositivos, separados por vírgula (começar por `pi-cam-001`) |
 | `SHADOW_DECISIONS_API_KEY` | vazio | chave do AI Studio; sem chave o shadow fica desligado e registra isso uma vez |
+| `SHADOW_DECISIONS_ENDPOINT` | `https://generativelanguage.googleapis.com/v1beta/decisions` | endpoint e versão da API; é o que muda quando o modelo chegar ao Vertex |
 | `SHADOW_DECISIONS_MODEL` | `gemini-decision-1` | modelo |
 | `SHADOW_DECISIONS_RESOLUTION` | `low` | resolução das imagens |
 | `SHADOW_DECISIONS_THRESHOLDS` | `0.20,0.25,0.30` | limiares registrados (nenhum decide nada) |
 | `SHADOW_DECISIONS_TIMEOUT_SECONDS` | `15` | timeout da chamada |
 | `SHADOW_DECISIONS_DAILY_BUDGET_USD` | `0.50` | teto diário; estourou, para até o dia seguinte |
-| `SHADOW_DECISIONS_DETAIL_ENABLED` | `false` | fase 2: chamar o detail nos eventos que só o Decisions passa |
+| `SHADOW_DECISIONS_GATE_MIDS` | `3` | frames do meio (1º + 3 + último = os 5 do gate) |
+| `SHADOW_DECISIONS_PRICE_IN_PER_1M` | `0.10` | preço de entrada, em US$ por 1M de tokens, usado no custo registrado |
+| `SHADOW_DECISIONS_DETAIL_ENABLED` | `false` | fase 2: chamar o detail nos eventos que só o Decisions passa. **Não implementada: a variável ainda não existe** |
+
+Os composes de produção e de teste repassam todas, menos `GATE_MIDS` e `PRICE_IN_PER_1M` (só no `config.py`). No de teste, `ENABLED` e `DEVICES` leem `TEST_SHADOW_DECISIONS_ENABLED` e `TEST_SHADOW_DECISIONS_DEVICES`, como nos outros shadows.
 
 ### O que cada registro guarda
 
@@ -102,7 +109,7 @@ A promoção a gate de verdade é outro desenho: seletor de backend do gate, com
 - O compose de produção prevê o Vertex sem chave (`GEMINI_USE_VERTEX=true`, federação de identidade com `vertex-cred-config.json`); qual caminho está ativo no servidor faz parte da leitura de produção pendente. O Decisions obriga a ter uma chave de API e crédito pré-pago em outro produto do Google: é mais um segredo e mais um saldo para acompanhar.
 - As imagens das câmeras passariam a ir também para a API do AI Studio. Conferir se isso cabe no que o contrato diz sobre tratamento de imagens antes de ligar em produção.
 
-## Testes a escrever junto com a implementação
+## Testes (escritos em `tests/test_shadow_decisions.py`)
 
 - montagem do corpo: 5 frames, ordem, resolução, as seis perguntas;
 - leitura de `noul` e de `probabilities`; resposta malformada;
@@ -113,6 +120,8 @@ A promoção a gate de verdade é outro desenho: seletor de backend do gate, com
 - a chave não aparece em nenhum registro.
 
 ## Decisões em aberto (do Alexandre)
+
+A aprovação de 17/11 cobre implementar o shadow e abrir o PR em rascunho. Ligar em qualquer servidor continua dependendo destas decisões:
 
 1. Aceitar uma dependência da API do AI Studio (chave e crédito pré-pago) ao lado do Vertex.
 2. Em que projeto e com que saldo a chave de produção seria criada.
