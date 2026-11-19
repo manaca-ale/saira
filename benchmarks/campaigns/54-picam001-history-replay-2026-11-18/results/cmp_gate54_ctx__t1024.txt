@@ -1,0 +1,8 @@
+g25l_v1_t2048_ctx (r1) x g25l_v1_t1024_ctx (r1)  pares=576
+  g25l_v1_t2048_ctx            dispara 2.34% dos eventos [1.90% a 2.83%] = 1.05x a producao
+  g25l_v1_t1024_ctx            dispara 2.38% dos eventos [1.94% a 2.87%] = 1.07x a producao
+  S0   n=304  os dois   3 | so o 1o  12 | so o 2o  13 | nenhum 276
+  S1   n=131  os dois  63 | so o 1o  19 | so o 2o  23 | nenhum  26
+  S2C  n= 61  os dois  35 | so o 1o  11 | so o 2o   3 | nenhum  12
+  S2R  n= 72  os dois  33 | so o 1o  10 | so o 2o  10 | nenhum  19
+  S2X  n=  8  os dois   5 | so o 1o   1 | so o 2o   2 | nenhum   0

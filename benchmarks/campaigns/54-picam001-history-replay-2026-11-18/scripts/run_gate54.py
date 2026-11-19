@@ -99,6 +99,8 @@ ARMS = {
     # temperatura 0.1 = padrao do docker-compose.prod.yml (o replay roda em 0.0, padrao do config.py)
     "g25l_v1_t2048_ctx_t01": {"model": "gemini-2.5-flash-lite", "prompt": "v1", "budget": 2048,
                               "prior": "prod", "temp": 0.1, "est": 0.0012},
+    "g25l_v1_t1024_ctx": {"model": "gemini-2.5-flash-lite", "prompt": "v1", "budget": 1024,
+                          "prior": "prod", "est": 0.0009},
     "g31l_v1p_min_low_ctx": {"model": "gemini-3.1-flash-lite", "prompt": "v1p", "think": "minimal",
                              "media": "low", "prior": "prod", "est": 0.0012},
 }

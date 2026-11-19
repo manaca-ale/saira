@@ -16,6 +16,12 @@ g25l_v1_t1024  n=577/577  (flex pedido em 577)
   funil: dispara 2.66% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000675 (-49% [-54% a -42%]) | Flex US$ 0.000616 (-54%)
   sem filtro: S0 abaixo do limiar dispara 1/200; dispara 3.73% dos eventos; custo/evento US$ 0.001124 (-15%), Flex (-37%)
 
+g25l_v1_t1024_ctx  n=576/577  (flex pedido em 576)
+  disparo: S0 16/304 = 5% | S1 86/131 = 66% | S2C 38/61 = 62% | S2R 43/72 = 60% | S2X 7/8 = 88%
+  deteccoes confirmadas mantidas 19/32 | rejeitadas que disparam 38/60
+  tokens: entrada 2061, saida 222, thinking 726 | US$ 0.000586/chamada padrao (0.57x o gate de hoje), Flex US$ 0.000293 | latencia p50 4.2 s, p90 5.6 s
+  funil: dispara 2.38% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000635 (-52% [-56% a -46%]) | Flex US$ 0.000576 (-57%)
+
 g25l_v1_t2048  n=577/577  (flex pedido em 577)
   disparo: S0 26/304 = 9% | S1 84/131 = 64% | S2C 50/61 = 82% | S2R 46/73 = 63% | S2X 4/8 = 50%
   deteccoes confirmadas mantidas 29/32 | rejeitadas que disparam 39/61
