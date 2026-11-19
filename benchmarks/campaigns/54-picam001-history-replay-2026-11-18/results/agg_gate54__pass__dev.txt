@@ -1,3 +1,4 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
 conjunto=pass limiar do filtro=0.3 disparo: new_litter e conf >= 85 | eventos=577
 pesos: S0 0.9676, S1 0.0188, S2C 0.0045, S2R 0.0079, S2X 0.0013 | passa no filtro: S0 304/1623, S1 131/246, S2C 61/61, S2R 73/88, S2X 8/9 | vai ao gate 20.3%
 hoje US$ 0.001327/evento | filtro + gate de producao (decisao gravada) + detail novo: US$ 0.000701 (-47%); gate de producao US$ 0.001028/chamada
@@ -21,6 +22,12 @@ g25l_v1_t2048  n=577/577  (flex pedido em 577)
   tokens: entrada 2016, saida 208, thinking 1767 | US$ 0.000992/chamada padrao (0.96x o gate de hoje), Flex US$ 0.000496 | latencia p50 6.7 s, p90 8.3 s
   funil: dispara 3.03% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000812 (-39% [-44% a -31%]) | Flex US$ 0.000712 (-46%)
   sem filtro: S0 abaixo do limiar dispara 1/200; dispara 4.07% dos eventos; custo/evento US$ 0.001587 (+20%), Flex (-18%)
+
+g25l_v1_t2048_ctx  n=577/577  (flex pedido em 577)
+  disparo: S0 15/304 = 5% | S1 82/131 = 63% | S2C 46/61 = 75% | S2R 43/73 = 59% | S2X 6/8 = 75%
+  deteccoes confirmadas mantidas 22/32 | rejeitadas que disparam 38/61
+  tokens: entrada 2061, saida 214, thinking 1793 | US$ 0.001009/chamada padrao (0.98x o gate de hoje), Flex US$ 0.000505 | latencia p50 7.3 s, p90 9.9 s
+  funil: dispara 2.33% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000714 (-46% [-50% a -40%]) | Flex US$ 0.000611 (-54%)
 
 g25l_v1_t512  n=211/577  (flex pedido em 0)
   disparo: S0 9/60 = 15% | S1 42/50 = 84% | S2C 48/61 = 79% | S2R 32/40 = 80% | S2X 0/0
@@ -70,6 +77,12 @@ g31l_v1p_min_low  n=577/577  (flex pedido em 577)
   tokens: entrada 2097, saida 224, thinking 0 | US$ 0.000860/chamada padrao (0.84x o gate de hoje), Flex US$ 0.000430 | latencia p50 3.9 s, p90 9.9 s
   funil: dispara 5.16% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.001097 (-17% [-26% a -7%]) | Flex US$ 0.001010 (-24%)
   sem filtro: S0 abaixo do limiar dispara 1/200; dispara 6.11% dos eventos; custo/evento US$ 0.001752 (+32%), Flex (-0%)
+
+g31l_v1p_min_low_ctx  n=577/577  (flex pedido em 577)
+  disparo: S0 53/304 = 17% | S1 47/131 = 36% | S2C 46/61 = 75% | S2R 42/73 = 58% | S2X 4/8 = 50%
+  deteccoes confirmadas mantidas 27/32 | rejeitadas que disparam 35/61
+  tokens: entrada 2142, saida 223, thinking 0 | US$ 0.000871/chamada padrao (0.85x o gate de hoje), Flex US$ 0.000435 | latencia p50 4.5 s, p90 20.5 s
+  funil: dispara 4.29% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000972 (-27% [-34% a -17%]) | Flex US$ 0.000884 (-33%)
 
 g31l_v4_min_low  n=211/577  (flex pedido em 211)
   disparo: S0 6/60 = 10% | S1 4/50 = 8% | S2C 32/61 = 52% | S2R 10/40 = 25% | S2X 0/0

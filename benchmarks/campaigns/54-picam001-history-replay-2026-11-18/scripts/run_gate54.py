@@ -92,7 +92,60 @@ ARMS = {
                          "media": "low", "est": 0.0016},
     "g38f_v1p_low_low": {"model": "gemini-3.8-flash", "prompt": "v1p", "think": "low",
                          "media": "low", "est": 0.0030},
+    # 19/11 (missao 4, fidelidade): os mesmos bracos com o "Prior window context" que a producao
+    # mandou no gate em 98,7% dos eventos do periodo (ver prior_contexts()).
+    "g25l_v1_t2048_ctx": {"model": "gemini-2.5-flash-lite", "prompt": "v1", "budget": 2048,
+                          "prior": "prod", "est": 0.0012},
+    # temperatura 0.1 = padrao do docker-compose.prod.yml (o replay roda em 0.0, padrao do config.py)
+    "g25l_v1_t2048_ctx_t01": {"model": "gemini-2.5-flash-lite", "prompt": "v1", "budget": 2048,
+                              "prior": "prod", "temp": 0.1, "est": 0.0012},
+    "g31l_v1p_min_low_ctx": {"model": "gemini-3.1-flash-lite", "prompt": "v1p", "think": "minimal",
+                             "media": "low", "prior": "prod", "est": 0.0012},
 }
+
+# Contexto da janela anterior, como o worker monta (main.py, _process_with_gemini_cascade_window).
+PRIOR_TAIL = "Confirm NEW_SOLID_WASTE only if a NEW object appeared or the volume visibly increased."
+PROD_GATE_TOK_NO_CTX = 2429   # entrada do gate em producao (Vertex) sem o bloco de contexto
+# tokens a mais na entrada -> tipo de residuo gravado no estado (contagem do countTokens, 19/11):
+# 41 = sem tipo; 46 = Entulho (tambem Poda e Plastico); 48 = Lixo domiciliar. Os de 45, 49 e 51
+# nao dao para saber pela contagem: entra um texto do mesmo tamanho (palpite marcado no registro).
+PRIOR_BY_DELTA = {41: "", 45: "Mixed", 46: "Entulho", 47: "Entulho", 48: "Lixo domiciliar",
+                  49: "Entulho, Poda", 50: "Entulho, Poda", 51: "Entulho, Lixo domiciliar"}
+
+
+def prior_text(waste_type):
+    """None = sem contexto; "" = contexto sem tipo; texto = contexto com o tipo."""
+    if waste_type is None:
+        return None
+    label = f" (type: {waste_type})" if waste_type else ""
+    return f"- The previous 2-minute window ALREADY had waste at this location{label}. {PRIOR_TAIL}"
+
+
+def prior_contexts() -> dict:
+    """event_id -> (tipo, delta de tokens, origem). O worker nao grava o contexto que mandou, mas a
+    contagem de tokens de entrada da chamada de producao (gemini_call_log) o denuncia: 2.429 sem
+    contexto, +41 com contexto sem tipo, +46 com "Entulho" etc. Evento sem par no log leva o caso
+    mais comum (contexto com "Entulho", 56% das chamadas do periodo)."""
+    tok = {}
+    with (ROOT / "raw" / "gemini_call_log_picam.csv").open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            if r["agent"] == "gate" and r["success"] == "t" and r["input_tokens"]:
+                tok[r["request_id"]] = int(r["input_tokens"])
+    out = {}
+    with (ROOT / "base" / "base_eventos.csv").open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            t = tok.get(r["agent1_request_id"])
+            if t is None:
+                out[r["event_id"]] = ("Entulho", None, "sem_par")
+                continue
+            d = t - PROD_GATE_TOK_NO_CTX
+            if d < 30:
+                out[r["event_id"]] = (None, d, "log")
+            elif d in PRIOR_BY_DELTA:
+                out[r["event_id"]] = (PRIOR_BY_DELTA[d], d, "log" if d in (41, 46, 48) else "log_palpite")
+            else:
+                out[r["event_id"]] = ("" if d < 44 else "Entulho", d, "log_palpite")
+    return out
 
 
 def apply_gate_prompt(variant: str) -> str:
@@ -217,8 +270,11 @@ def main():
     b._RUN_CTX.update({"campaign": "54", "stage": "gate54", "arm": a.arm, "rep": a.rep,
                        "dataset": "picam-historico", "backend": "aistudio"})
     pv = apply_gate_prompt(spec["prompt"])
+    prior = prior_contexts() if spec.get("prior") == "prod" else {}
     if spec.get("budget") is not None:
         b.cfg.GEMINI_AGENT1_THINKING_BUDGET = spec["budget"]
+    if spec.get("temp") is not None:
+        b.cfg.GEMINI_TEMPERATURE = spec["temp"]
     if a.flex:
         if not b.flex_ok(spec["model"]):
             raise SystemExit(f"{spec['model']} nao tem Flex na API do AI Studio")
@@ -231,9 +287,11 @@ def main():
         rec = {"stage": "gate54", "arm": a.arm, "rep": a.rep, "event_id": ev["event_id"],
                "estrato": ev["estrato"], "sub": ev["sub"], "split": ev["split"], "status": ev["status"],
                "detection_id": ev["detection_id"], "score": ev["score"], "model": spec["model"],
-               "prompt": spec["prompt"], "budget": spec.get("budget"), "think": spec.get("think"),
+               "prompt": spec["prompt"], "budget": spec.get("budget"), "temp": b.cfg.GEMINI_TEMPERATURE, "think": spec.get("think"),
                "media": spec.get("media"), "flex_requested": bool(a.flex), "n_sent": len(fr),
                "backend": "aistudio", "ts": dt.datetime.now().isoformat(timespec="seconds"), "error": ""}
+        p_type, p_delta, p_src = prior.get(ev["event_id"], (None, None, "desligado"))
+        rec.update({"prior_type": p_type, "prior_delta": p_delta, "prior_src": p_src})
         if budget.stop:
             rec["error"] = "budget_stop"
             return rec
@@ -241,7 +299,7 @@ def main():
             t0 = time.time()
             g = b.call_backoff(lambda: b.dg.analyze_new_litter_with_gemini(
                 first_frame=fr[0], last_frame=fr[-1], camera_context=b.camera_context(fr),
-                request_id=str(uuid4()), prior_window_context=None,
+                request_id=str(uuid4()), prior_window_context=prior_text(p_type),
                 use_mosaic=b.cfg.GEMINI_MOSAIC_AGENT1, mid_frames=fr[1:-1] or None, prompt_version=pv,
                 override=b.make_override(spec, "gemini-2.5-flash-lite")))
             gr = g.report
@@ -257,6 +315,9 @@ def main():
                 "person_handling": bool(getattr(gr, "person_handling_material", False)),
                 "new_ground": bool(getattr(gr, "new_ground_material", False)),
                 "evidence": (getattr(gr, "evidence_summary", "") or "")[:300],
+                # o que o worker grava no estado para a janela seguinte (vira o contexto dela)
+                "last_has_litter": bool(getattr(gr, "last_frame_has_litter", False)),
+                "waste_type": getattr(gr, "waste_type", None),
                 "tok_in": ti, "tok_out": to, "tok_think": tt,
                 "cost_usd": round(cost_usd(spec["model"], ti, to, tt, wallet="aistudio"), 8),
                 "latency_ms": int((time.time() - t0) * 1000)})

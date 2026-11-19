@@ -1,0 +1,25 @@
+producao: dispara e passa no filtro em 2.22% dos eventos
+
+g25l_v1_t2048 (r1) x g25l_v1_t2048_ctx (r1)  pares=577
+  g25l_v1_t2048                dispara 3.03% dos eventos [2.48% a 3.63%] = 1.36x a producao
+  g25l_v1_t2048_ctx            dispara 2.33% dos eventos [1.88% a 2.82%] = 1.05x a producao
+  S0   n=304  os dois   6 | so o 1o  20 | so o 2o   9 | nenhum 269
+  S1   n=131  os dois  63 | so o 1o  21 | so o 2o  19 | nenhum  28
+  S2C  n= 61  os dois  42 | so o 1o   8 | so o 2o   4 | nenhum   7
+  S2R  n= 73  os dois  34 | so o 1o  12 | so o 2o   9 | nenhum  18
+  S2X  n=  8  os dois   3 | so o 1o   1 | so o 2o   3 | nenhum   1
+  sem contexto       n=  4  dispara: 1o   0, 2o   0
+  contexto sem tipo  n= 61  dispara: 1o  11, 2o   9
+  contexto com tipo  n=512  dispara: 1o 199, 2o 183
+
+g31l_v1p_min_low (r1) x g31l_v1p_min_low_ctx (r1)  pares=577
+  g31l_v1p_min_low             dispara 5.17% dos eventos [4.32% a 6.04%] = 2.33x a producao
+  g31l_v1p_min_low_ctx         dispara 4.29% dos eventos [3.50% a 5.13%] = 1.93x a producao
+  S0   n=304  os dois  49 | so o 1o  14 | so o 2o   4 | nenhum 237
+  S1   n=131  os dois  47 | so o 1o  20 | so o 2o   0 | nenhum  64
+  S2C  n= 61  os dois  46 | so o 1o   4 | so o 2o   0 | nenhum  11
+  S2R  n= 73  os dois  41 | so o 1o  10 | so o 2o   1 | nenhum  21
+  S2X  n=  8  os dois   4 | so o 1o   1 | so o 2o   0 | nenhum   3
+  sem contexto       n=  4  dispara: 1o   1, 2o   1
+  contexto sem tipo  n= 61  dispara: 1o  15, 2o  13
+  contexto com tipo  n=512  dispara: 1o 220, 2o 178
