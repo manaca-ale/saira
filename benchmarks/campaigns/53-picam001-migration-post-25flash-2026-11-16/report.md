@@ -54,7 +54,7 @@ O gate de hoje passou 18/18 detecções reais, 18/26 falsas e 3/40 "sem ocorrên
 | `d38f_g3_low_med`: 3.8-flash, g3, thinking médio | 17/18 | 5/26 | 2/40 | 0,0299 | 0,00206 | +42% |
 | `d35l_v1_low_min`: 3.5-flash-lite, V1, sem thinking, resolução baixa | 13/18 | 6/26 | 0/40 | 0,0036 | 0,00122 | −16% |
 | `d35l_v4_low_high`: 3.5-flash-lite, V4, thinking alto | 10/18 | 0/26 | 0/40 | 0,0090 | 0,00139 | −4% |
-| `d35l_v4_low_min`: 3.5-flash-lite, V4, sem thinking | 8/18 | 1/26 | 0/40 | 0,0037 | 0,00119 | −11% |
+| `d35l_v4_low_min`: 3.5-flash-lite, V4, sem thinking | 8/18 | 1/26 | 0/40 | 0,0037 | 0,00122 | −16% |
 
 - **Sem mexer, o recall cai de 15–17/18 para 9/18 em 01/12**, com o mesmo custo. O 3.5-flash-lite não raciocina por padrão (0 tokens de thinking, contra cerca de 3,1 mil no 2.5-flash) e nega 14 dos 27 eventos reais que o modelo atual confirma.
 - **Thinking é a alavanca principal.** Com o mesmo prompt V1, `thinking_level=high` e `media_resolution=low` devolvem o recall de hoje com menos falsos.
@@ -147,7 +147,7 @@ Detalhes em [`results/exemplos.md`](results/exemplos.md).
 3. ✅ **Regra do bbox: decidido em 17/11.** O Alexandre respondeu "não preciso de bbox": o rollout usa `GEMINI_REQUIRE_BBOX=false` e vale a resposta do modelo (18/18 reais, 6/26 falsos, 2/40 "sem ocorrência" no oficial, pela repetição 3 com a resposta crua). O commit cc13846 faz os composes repassarem a variável e torna a área mínima da caixa configurável (`GEMINI_BBOX_MIN_AREA_RATIO`), para as caixas justas do 3.8-flash poderem ser gravadas. O relatório diário tem um indicador (I3, meta de 80%) que conta detecções com caixa do infrator: na repetição 3, 34 das 39 confirmações do modelo têm caixa com 1% ou mais da imagem (87%) e as 39 têm com 0,25% ou mais.
 4. ⚠️ **Gate Decisions: shadow primeiro.** No dataset ele iguala o gate de hoje em recall, recupera confirmados do holdout que o gate de hoje não repete e custa um quinto por chamada. Mas o modelo tem uma semana de vida, só existe na API do AI Studio, o custo da cascata é projeção e o limiar foi visto em uma câmera. Desenho em [`DECISIONS-GATE-DESIGN.md`](DECISIONS-GATE-DESIGN.md), sem implementação.
 
-Alternativas de detail, se o 3.8-flash não puder ser usado: `d35l_g3_low_high` (3.5-flash-lite; custo igual ao de hoje e sem aumento anunciado; recall igual no oficial, 23/27 no holdout, falsos como os de hoje) e `d38f_g3_low_med` (qualidade igual à do recomendado; +31% de custo, fora do critério).
+Alternativas de detail, se o 3.8-flash não puder ser usado: `d35l_g3_low_high` (3.5-flash-lite; custo igual ao de hoje e sem aumento anunciado; recall igual no oficial, 23/27 no holdout, falsos como os de hoje) e `d38f_g3_low_med` (qualidade igual à do recomendado; +42% de custo, fora do critério).
 
 ## Caveats
 
