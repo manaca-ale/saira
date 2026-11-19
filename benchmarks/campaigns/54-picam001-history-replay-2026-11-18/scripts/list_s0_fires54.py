@@ -7,7 +7,8 @@ Um gate que aceita descarte a pe dispara em S0 que o gate de hoje deixou passar 
 justificativas e por frames (secao 12.4 do handoff), parte disso e descarte real que a producao perde, e
 parte e catador. So o detail (e depois o operador) separa. Esta lista diz quais eventos rodar e quais ja
 tem a janela completa em disco (`amostra/s0_nota_alta_dev_ids.txt`: os 48 de nota >= 0,70 buscados em
-18/11); os demais so tem os 5 frames do gate e pedem busca em producao (sessao interativa, com o ok dele).
+18/11; `amostra/s0_fires_pass_ids.txt`: os 79 do `pass` buscados em 19/11); os demais so tem os 5 frames
+do gate e pedem busca em producao (sessao interativa, com o ok dele).
 
 Uso: python list_s0_fires54.py [--arms g31l_v1p_min_low,nvl_v1p_low] [--set pass]
 Saida: ../results/s0_fires54__<conjunto>.tsv
@@ -22,6 +23,9 @@ import run_gate54 as g
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 CTRL = ("g25l_v1_t2048", "g25l_v1_t1024")
+# Listas de eventos S0 com a janela completa em disco (buscas em producao, so leitura, com o ok do Alexandre):
+# 18/11 (48 de nota >= 0,70) e 19/11 (79 do `pass` em que os candidatos a gate disparam).
+ID_LISTS = ("s0_nota_alta_dev_ids.txt", "s0_fires_pass_ids.txt")
 
 
 def load(arm: str) -> dict:
@@ -43,8 +47,11 @@ def main():
     a = ap.parse_args()
     arms = [x for x in a.arms.split(",") if x]
     recs = {x: load(x) for x in arms + list(CTRL)}
-    ids_file = g.ROOT / "amostra" / "s0_nota_alta_dev_ids.txt"
-    on_disk = set(ids_file.read_text(encoding="utf-8").split()) if ids_file.exists() else set()
+    on_disk = set()
+    for name in ID_LISTS:
+        ids_file = g.ROOT / "amostra" / name
+        if ids_file.exists():
+            on_disk |= set(ids_file.read_text(encoding="utf-8").split())
     rows = []
     for ev in g.build_set(a.set, 0.30):
         if ev["sub"] != "S0":
