@@ -106,11 +106,13 @@ CAMERA_ROW = {"name": "Residencial Via Mangue III - 2", "device_id": "pi-cam-001
               "bairro": "Imbiribeira", "rpa": "RPA-1"}
 TRIGGER_THR = 85
 # Fracao dos eventos da pi-cam-001 que passa no gate EM PRODUCAO (no dataset passa ~metade,
-# porque ele so tem eventos que viraram deteccao + 40 cenas vazias). Derivada do custo medido
-# em producao (US$ 0,00135/evento, 28/07 a 04/08/2026, 3.988 eventos, validado contra a
-# fatura) e dos custos por chamada medidos nesta campanha: 0,00135 = 0,0011 + p * 0,0112
-# -> p ~ 2,2%. Confere com a ordem de grandeza das deteccoes do periodo (54 a 90 em 3.988).
-P_PASS_PROD = 0.022
+# porque ele so tem eventos que viraram deteccao + 40 cenas vazias). MEDIDA no registro de
+# chamadas da producao, periodo inteiro (14/07 a 08/09/2026): 1.023 chamadas de detail com
+# sucesso em 31.976 chamadas de gate = 3,20%; custo real US$ 0,001326 por evento.
+# Fonte: C:\Saira\data\historico-picam\raw\gemini_call_log_picam.csv (campanha 54; conferido
+# de novo em review54.py, secao A). Ate 18/11/2026 este valor era 0,022, DERIVADO de uma
+# unica semana (28/07 a 04/08, 0,00135 = 0,0011 + p * 0,0112): subestimava a passagem.
+P_PASS_PROD = 0.032
 _V1_GATE, _V1_DETAIL = dg.NEW_LITTER_SYSTEM_PROMPT, dg.SYSTEM_PROMPT
 
 # ── Bracos ───────────────────────────────────────────────────────────────────

@@ -4,11 +4,11 @@
 detail atual x detail recomendado, nos dois conjuntos.
 
 Custo por evento no mix de producao = custo_gate + p_passa * custo_detail. A taxa de passagem
-de producao do gate ATUAL e 2,2% (derivada do custo medido; ver bench53.P_PASS_PROD). Para
+de producao do gate ATUAL e 3,2% (medida no registro de chamadas; ver bench53.P_PASS_PROD). Para
 outro gate ela e escalada pela razao de passagem nas cenas VAZIAS do dataset oficial (40
 eventos `baseline`), que sao o tipo de evento que domina a producao:
 
-    p(gate) = 2,2% * vazias_que_passam(gate) / vazias_que_passam(gate atual)
+    p(gate) = 3,2% * vazias_que_passam(gate) / vazias_que_passam(gate atual)
 
 E uma projecao, nao uma medida: so um shadow em producao da o numero real.
 

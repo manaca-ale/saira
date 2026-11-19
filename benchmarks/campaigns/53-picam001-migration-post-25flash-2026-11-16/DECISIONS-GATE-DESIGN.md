@@ -2,11 +2,13 @@
 
 Desenho, sem implementação. Nada aqui existe no worker ainda. Os números vêm do [`report.md`](report.md), seção 5.
 
+> **Aviso de 18 e 19/11/2026.** Os números de custo deste desenho vinham da projeção por 40 cenas do `report.md`, que foi retirada. O que vale hoje está na campanha 54 ([`../54-picam001-history-replay-2026-11-18/`](../54-picam001-history-replay-2026-11-18/)): o Decisions como filtro barato **antes** do gate de hoje, e não no lugar dele. Dois riscos a mais para o shadow: o Decisions está em Beta e só existe no AI Studio; e o gate de hoje guarda memória entre eventos (`last_window_*` no worker), que envelhece se um filtro descartar cerca de 80% dos eventos (não medido; a etapa de filtro deve salvar o último frame de todo evento).
+
 ## Por que shadow e não troca direta
 
 No dataset o Decisions iguala o gate de hoje em recall (18/18 detecções reais passam nos limiares 0,20 a 0,30), repete melhor os confirmados do holdout (30 a 40 de 44, contra 26 do gate de hoje) e custa US$ 0,00021 por chamada, contra US$ 0,0011. O que o dataset não responde:
 
-- **Taxa de passagem em tráfego real.** O custo da cascata depende de quantos eventos chegam ao detail. A projeção (2,9% a 7,3%, conforme o limiar) sai de 40 cenas; em produção o gate de hoje deixa passar cerca de 2,2%.
+- **Taxa de passagem em tráfego real.** O custo da cascata depende de quantos eventos chegam ao detail. **Corrigido em 18/11:** a projeção antiga (2,9% a 7,3%, conforme o limiar, escalada por 40 cenas) está retirada. O gate de hoje deixa passar 3,2% em produção (medido no registro de chamadas, 14/07 a 08/09/2026). A campanha 54 mediu o Decisions no histórico real, como filtro antes do gate de hoje: no conjunto de desenvolvimento, com a pergunta única `wl_v2` e limiar 0,30, 20% dos eventos chegam ao gate, as 32 detecções confirmadas passam e a cascata custa −47% (−49% a −45%). A medida que vale sai do conjunto de avaliação, em 24/11.
 - **Estabilidade entre dias.** Três execuções em quatro horas devolveram probabilidades idênticas, o que pode ser cache do lado do Google.
 - **Limiar.** Os três limiares dão o mesmo recall no oficial; só o holdout os separa, e 4 descartes reais do holdout ficam entre 0,178 e 0,199.
 - **Operação.** O modelo foi lançado em 11/11/2026 e só existe na API do AI Studio (v1beta), não no Vertex.

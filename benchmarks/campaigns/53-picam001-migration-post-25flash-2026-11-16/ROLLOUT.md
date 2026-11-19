@@ -4,13 +4,15 @@
 
 Conferido contra os composes, o `config.py` e o `deploy.yml` desta branch. As variáveis dos dois workers foram lidas no servidor em 17/11/2026 (seção "Lido em produção"). Nada aqui foi aplicado em test nem em produção. Números e método no [`report.md`](report.md).
 
+> **Correções de 18 e 19/11/2026.** (1) O custo por evento da cascata com o detail novo é **13% maior** que o de hoje (+9% a +17% conforme a semana), não 10%: a passagem do gate em produção, medida no registro de chamadas de 14/07 a 08/09/2026, é 3,2% e não 2,2%. Continua dentro do limite de 20%. (2) A produção roda no Vertex, e lá o `gemini-2.5-flash` **e o gate `gemini-2.5-flash-lite`** têm aposentadoria oficial em 20/10/2026 (já passou; os dois ainda respondiam em 18/11). A data de 01/12/2026 citada neste documento é a do roteamento no AI Studio. A escolha da plataforma é do Alexandre e está em aberto; nada neste documento troca o gate. (3) Bloco M (18/11): o prompt V1 no 3.8-flash também passa nas duas regras (oficial 17/18, 4/26, 0/40 sem o veto do bbox; holdout mantém 25 de 27) e o V4 falha (13/18). O recomendado continua g3; só muda para V1 depois de uma repetição. Detalhes no aviso do topo do [`report.md`](report.md).
+
 ## O que muda
 
 Só o detail. O gate fica como está (gemini-2.5-flash-lite, prompt V1).
 
 | Variável | Valor novo | Hoje |
 |---|---|---|
-| `GEMINI_MODEL` | `gemini-3.8-flash` | `gemini-2.5-flash` (roteado para gemini-3.5-flash-lite em 01/12/2026) |
+| `GEMINI_MODEL` | `gemini-3.8-flash` | `gemini-2.5-flash` (no AI Studio, roteado para gemini-3.5-flash-lite em 01/12/2026; no Vertex, aposentadoria oficial em 20/10/2026) |
 | `GEMINI_DETAIL_PROMPT_VERSION` | `g3` | vazio |
 | `GEMINI_DETAIL_THINKING_LEVEL` | `low` | vazio |
 | `GEMINI_DETAIL_MEDIA_RESOLUTION` | `low` | vazio |
@@ -41,7 +43,7 @@ Com as variáveis vazias o código novo se comporta como o de hoje (241 testes d
 | Hoje, holdout | 27/46 | 17/43 | — |
 | Recomendado (2 repetições), holdout | 25/46 e 26/46 | 12/43 e 14/43 | — |
 
-Custo por evento da cascata: 10% maior que hoje, com o preço do Vertex conferido no catálogo de cobrança em 17/11 (US$ 1,50 / 7,50 por 1M no 3.8-flash). Latência mediana do detail menor.
+Custo por evento da cascata: 13% maior que hoje (corrigido em 18/11 com a passagem medida de 3,2%; +9% a +17% conforme a semana), com o preço do Vertex conferido no catálogo de cobrança em 17/11 (US$ 1,50 / 7,50 por 1M no 3.8-flash). Latência mediana do detail menor.
 
 ## A regra do bbox: decidido em 17/11/2026
 
@@ -92,7 +94,7 @@ docker exec saira-yolo-worker-prod env | grep -E '^(GEMINI_(MODEL|AGENT1_MODEL|A
 
 O que isso responde:
 
-1. **O gate de produção é o `gemini-2.5-flash-lite`**, o mesmo medido na campanha. Só o detail usa o modelo que será roteado em 01/12.
+1. **O gate de produção é o `gemini-2.5-flash-lite`**, o mesmo medido na campanha. Só o detail usa o modelo que será roteado em 01/12 no AI Studio. (Corrigido em 18/11: no Vertex, onde a produção roda, o gate também tem aposentadoria oficial em 20/10/2026; ver o aviso no topo.)
 2. **A campanha mediu a produção**: modelo do gate, thinking 2048, limiar 85, 48 frames, 3 frames intermediários, sem re-voto, prompt V1, temperatura 0 e 8192 tokens de saída no detail batem com o runner. As diferenças são só de timeout (o runner usou 180 s).
 3. `GEMINI_DETAIL_PROMPT_VERSION` está vazia: o ponto de partida é o medido.
 4. `GEMINI_MAX_OUTPUT_TOKENS` já é 8192. Só o timeout do detail precisa subir (45 → 90).

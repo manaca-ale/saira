@@ -9,7 +9,7 @@ no total e por estado do operador (sem estado, REJEITADO, CONFIRMADO).
 RESSALVA: nao se sabe como os 500 eventos do `pi-avancado-v1` foram escolhidos, e cerca de 24%
 deles tem deteccao (a producao tinha ~2%). A fracao absoluta NAO e a de producao. O numero util
 e a RAZAO entre os dois gates nos mesmos eventos, que escala a taxa de passagem de producao
-(P_PASS_PROD = 2,2%) no lugar da razao das 40 cenas vazias do oficial usada no agg_cascade.py.
+(P_PASS_PROD = 3,2%) no lugar da razao das 40 cenas vazias do oficial usada no agg_cascade.py.
 
 Uso: python agg_gate_pass.py [--dataset pi-avancado-v1] [--gate g25l_v1:1] [--tag q1_gate5_low] [--drep 1]
 Grava results/<dataset>/gate_pass_summary.json.
