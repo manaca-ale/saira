@@ -60,6 +60,12 @@ PRICES = {
     "gemini-3.8-flash": (1.50, 7.50),
     "gemini-4-hydrogen": (1.50, 7.50),
     "gemini-decision-1": (0.10, 0.0),
+    # AWS Bedrock, modelos Nova (carteira `bedrock`): tarifa padrao sob demanda em us-east-1, lida em
+    # 2026-11-19 da lista publica de precos da AWS (offers/v1.0/aws/AmazonBedrock, publicada em 2026-11-11).
+    # O Nova 2 Lite so roda por perfil de inferencia; `us.` cobra o preco regional abaixo, `global.` 0,30 / 2,50.
+    "nova-lite": (0.06, 0.24),
+    "nova-2-lite": (0.33, 2.75),
+    "nova-pro": (0.80, 3.20),
 }
 # Onde a API do AI Studio cobra diferente do Vertex (pagina aistudio.google.com/docs/pricing,
 # lida em 2026-11-16; NAO conferido em fatura). Vale ate 2026-12-31; depois, 1,50 / 7,50.
@@ -71,7 +77,9 @@ PRICES_AISTUDIO = {
 # 3.8-flash ja esta no valor que a pagina do AI Studio anuncia para 2027.
 PRICES_2027: dict = {}
 
-WALLETS = ("vertex", "aistudio")
+# `bedrock` entrou em 2026-11-19 (triagem do Nova, teto aprovado pelo Alexandre no budget.json). A carteira
+# `deepseek` ja tem teto no budget.json, mas ainda NAO esta aqui: falta o preco (pico e fora do pico).
+WALLETS = ("vertex", "aistudio", "bedrock")
 # Registros antigos nao tem o campo `wallet`: estes eram os que rodavam na chave do AI Studio.
 SEPARATE_BILLING_MODELS = {"gemini-decision-1"}
 SEPARATE_BILLING_ARMS = {"sondas_chave_aistudio"}

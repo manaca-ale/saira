@@ -28,6 +28,18 @@ g25l_v1_t512  n=211/577  (flex pedido em 0)
   tokens: entrada 2016, saida 222, thinking 378 | US$ 0.000441/chamada padrao (0.43x o gate de hoje), Flex US$ 0.000221 | latencia p50 3.2 s, p90 4.2 s
   funil: dispara 4.52% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000919 (-31% [-44% a -9%]) | Flex US$ 0.000874 (-34%)
 
+g31l_g3_low_low  n=211/577  (flex pedido em 211)
+  disparo: S0 33/60 = 55% | S1 32/50 = 64% | S2C 57/61 = 93% | S2R 37/40 = 92% | S2X 0/0
+  deteccoes confirmadas mantidas 29/32 | rejeitadas que disparam 33/36
+  tokens: entrada 2419, saida 276, thinking 106 | US$ 0.001177/chamada padrao (1.14x o gate de hoje), Flex US$ 0.000588 | latencia p50 3.5 s, p90 6.0 s
+  funil: dispara 11.74% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.002122 (+60% [+35% a +84%]) | Flex US$ 0.002002 (+51%)
+
+g31l_g3_min_low  n=211/577  (flex pedido em 211)
+  disparo: S0 33/60 = 55% | S1 33/50 = 66% | S2C 57/61 = 93% | S2R 37/40 = 92% | S2X 0/0
+  deteccoes confirmadas mantidas 31/32 | rejeitadas que disparam 33/36
+  tokens: entrada 2419, saida 263, thinking 0 | US$ 0.000999/chamada padrao (0.97x o gate de hoje), Flex US$ 0.000499 | latencia p50 3.0 s, p90 7.4 s
+  funil: dispara 11.76% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.002088 (+57% [+32% a +81%]) | Flex US$ 0.001987 (+50%)
+
 g31l_v1_low_low  n=211/577  (flex pedido em 211)
   disparo: S0 1/60 = 2% | S1 5/50 = 10% | S2C 41/61 = 67% | S2R 13/40 = 32% | S2X 0/0
   deteccoes confirmadas mantidas 21/32 | rejeitadas que disparam 12/36
@@ -46,17 +58,42 @@ g31l_v1_min_med  n=211/577  (flex pedido em 211)
   tokens: entrada 3361, saida 225, thinking 0 | US$ 0.001178/chamada padrao (1.15x o gate de hoje), Flex US$ 0.000589 | latencia p50 3.5 s, p90 4.9 s
   funil: dispara 2.43% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000763 (-42% [-52% a -23%]) | Flex US$ 0.000643 (-52%)
 
+g31l_v1p_low_low  n=211/577  (flex pedido em 211)
+  disparo: S0 19/60 = 32% | S1 19/50 = 38% | S2C 53/61 = 87% | S2R 32/40 = 80% | S2X 0/0
+  deteccoes confirmadas mantidas 28/32 | rejeitadas que disparam 29/36
+  tokens: entrada 2097, saida 246, thinking 105 | US$ 0.001051/chamada padrao (1.02x o gate de hoje), Flex US$ 0.000525 | latencia p50 3.2 s, p90 10.0 s
+  funil: dispara 7.13% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.001423 (+7% [-13% a +32%]) | Flex US$ 0.001316 (-1%)
+
+g31l_v1p_min_low  n=577/577  (flex pedido em 577)
+  disparo: S0 63/304 = 21% | S1 67/131 = 51% | S2C 50/61 = 82% | S2R 51/73 = 70% | S2X 5/8 = 62%
+  deteccoes confirmadas mantidas 28/32 | rejeitadas que disparam 43/61
+  tokens: entrada 2097, saida 224, thinking 0 | US$ 0.000860/chamada padrao (0.84x o gate de hoje), Flex US$ 0.000430 | latencia p50 3.9 s, p90 9.9 s
+  funil: dispara 5.16% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.001097 (-17% [-26% a -7%]) | Flex US$ 0.001010 (-24%)
+  sem filtro: S0 abaixo do limiar dispara 1/200; dispara 6.11% dos eventos; custo/evento US$ 0.001752 (+32%), Flex (-0%)
+
 g31l_v4_min_low  n=211/577  (flex pedido em 211)
   disparo: S0 6/60 = 10% | S1 4/50 = 8% | S2C 32/61 = 52% | S2R 10/40 = 25% | S2X 0/0
   deteccoes confirmadas mantidas 17/32 | rejeitadas que disparam 10/36
   tokens: entrada 2470, saida 261, thinking 0 | US$ 0.001009/chamada padrao (0.98x o gate de hoje), Flex US$ 0.000504 | latencia p50 2.9 s, p90 4.1 s
   funil: dispara 2.34% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000715 (-46% [-57% a -26%]) | Flex US$ 0.000613 (-54%)
 
+g35l_g3_min_low  n=211/577  (flex pedido em 211)
+  disparo: S0 13/60 = 22% | S1 13/50 = 26% | S2C 41/61 = 67% | S2R 23/40 = 57% | S2X 0/0
+  deteccoes confirmadas mantidas 23/32 | rejeitadas que disparam 20/36
+  tokens: entrada 2419, saida 263, thinking 0 | US$ 0.001383/chamada padrao (1.34x o gate de hoje), Flex US$ 0.000691 | latencia p50 3.2 s, p90 7.4 s
+  funil: dispara 4.94% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.001171 (-12% [-29% a +12%]) | Flex US$ 0.001030 (-22%)
+
 g35l_v1_min_low  n=211/577  (flex pedido em 0)
   disparo: S0 1/60 = 2% | S1 1/50 = 2% | S2C 27/61 = 44% | S2R 6/40 = 15% | S2X 0/0
   deteccoes confirmadas mantidas 15/32 | rejeitadas que disparam 6/36
   tokens: entrada 2046, saida 227, thinking 0 | US$ 0.001180/chamada padrao (1.15x o gate de hoje), Flex US$ 0.000590 | latencia p50 2.7 s, p90 3.8 s
   funil: dispara 0.66% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000505 (-62% [-65% a -48%]) | Flex US$ 0.000385 (-71%)
+
+g35l_v1p_min_low  n=211/577  (flex pedido em 211)
+  disparo: S0 8/60 = 13% | S1 4/50 = 8% | S2C 43/61 = 70% | S2R 13/40 = 32% | S2X 0/0
+  deteccoes confirmadas mantidas 23/32 | rejeitadas que disparam 12/36
+  tokens: entrada 2097, saida 229, thinking 0 | US$ 0.001201/chamada padrao (1.17x o gate de hoje), Flex US$ 0.000600 | latencia p50 2.4 s, p90 3.5 s
+  funil: dispara 3.09% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000864 (-35% [-48% a -13%]) | Flex US$ 0.000742 (-44%)
 
 g35l_v4_min_low  n=211/577  (flex pedido em 211)
   disparo: S0 2/60 = 3% | S1 1/50 = 2% | S2C 16/61 = 26% | S2R 3/40 = 8% | S2X 0/0
@@ -70,9 +107,40 @@ g38f_v1_low_low  n=211/577  (flex pedido em 0)
   tokens: entrada 2046, saida 231, thinking 7 | US$ 0.002429/chamada padrao (2.36x o gate de hoje), Flex US$ 0.001214 | latencia p50 6.6 s, p90 11.8 s
   funil: dispara 0.42% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000725 (-45% [-45% a -33%]) | Flex US$ 0.000478 (-64%)
 
-g38f_v4_low_low  n=12/577  (flex pedido em 12)
-  disparo: S0 0/0 | S1 0/0 | S2C 7/12 = 58% | S2R 0/0 | S2X 0/0
-  deteccoes confirmadas mantidas 3/6 | rejeitadas que disparam 0/0
-  tokens: entrada 2470, saida 244, thinking 0 | US$ 0.002767/chamada padrao (2.69x o gate de hoje), Flex US$ 0.001384 | latencia p50 366.8 s, p90 495.0 s
-  funil: dispara 11.86% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.002464 (+86% [-31% a -31%]) | Flex US$ 0.002182 (+65%)
+g38f_v4_low_low  n=14/577  (flex pedido em 14)
+  disparo: S0 0/0 | S1 0/0 | S2C 8/14 = 57% | S2R 0/0 | S2X 0/0
+  deteccoes confirmadas mantidas 4/7 | rejeitadas que disparam 0/0
+  tokens: entrada 2470, saida 246, thinking 0 | US$ 0.002774/chamada padrao (2.70x o gate de hoje), Flex US$ 0.001387 | latencia p50 361.5 s, p90 495.0 s
+  funil: dispara 11.62% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.002430 (+83% [-31% a -31%]) | Flex US$ 0.002148 (+62%)
+
+nv2l_v1_low  n=211/577  (flex pedido em 0)
+  disparo: S0 8/60 = 13% | S1 33/50 = 66% | S2C 49/61 = 80% | S2R 22/40 = 55% | S2X 0/0
+  deteccoes confirmadas mantidas 24/32 | rejeitadas que disparam 19/36
+  tokens: entrada 2179, saida 195, thinking 0 | US$ 0.001256/chamada padrao (1.22x o gate de hoje), Flex US$ 0.000628 | latencia p50 8.0 s, p90 20.7 s
+  funil: dispara 3.87% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.000990 (-25% [-38% a -4%]) | Flex US$ 0.000862 (-35%)
+
+nv2l_v1p_low  n=211/577  (flex pedido em 0)
+  disparo: S0 19/60 = 32% | S1 41/50 = 82% | S2C 54/61 = 89% | S2R 30/40 = 75% | S2X 0/0
+  deteccoes confirmadas mantidas 28/32 | rejeitadas que disparam 26/36
+  tokens: entrada 2232, saida 197, thinking 0 | US$ 0.001279/chamada padrao (1.24x o gate de hoje), Flex US$ 0.000639 | latencia p50 8.3 s, p90 22.0 s
+  funil: dispara 7.54% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.001530 (+15% [-5% a +40%]) | Flex US$ 0.001400 (+6%)
+
+nvl_v1_low  n=210/577  (flex pedido em 0)
+  disparo: S0 22/60 = 37% | S1 38/50 = 76% | S2C 57/61 = 93% | S2R 28/39 = 72% | S2X 0/0
+  deteccoes confirmadas mantidas 30/32 | rejeitadas que disparam 24/35
+  tokens: entrada 4724, saida 192, thinking 0 | US$ 0.000329/chamada padrao (0.32x o gate de hoje), Flex US$ 0.000165 | latencia p50 3.1 s, p90 3.9 s
+  funil: dispara 8.39% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.001461 (+10% [-12% a +35%]) | Flex US$ 0.001427 (+8%)
+
+nvl_v1p_low  n=576/577  (flex pedido em 0)
+  disparo: S0 73/303 = 24% | S1 96/131 = 73% | S2C 57/61 = 93% | S2R 53/73 = 73% | S2X 7/8 = 88%
+  deteccoes confirmadas mantidas 29/32 | rejeitadas que disparam 43/61
+  tokens: entrada 4774, saida 183, thinking 0 | US$ 0.000330/chamada padrao (0.32x o gate de hoje), Flex US$ 0.000165 | latencia p50 3.0 s, p90 3.9 s
+  funil: dispara 6.09% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.001125 (-15% [-24% a -5%]) | Flex US$ 0.001092 (-18%)
+  sem filtro: S0 abaixo do limiar dispara 35/200; dispara 20.61% dos eventos; custo/evento US$ 0.003338 (+152%), Flex (+139%)
+
+nvp_v1_low  n=102/577  (flex pedido em 0)
+  disparo: S0 17/41 = 41% | S1 0/0 | S2C 52/61 = 85% | S2R 0/0 | S2X 0/0
+  deteccoes confirmadas mantidas 26/32 | rejeitadas que disparam 0/0
+  tokens: entrada 4724, saida 188, thinking 0 | US$ 0.004380/chamada padrao (4.26x o gate de hoje), Flex US$ 0.002190 | latencia p50 9.1 s, p90 37.3 s
+  funil: dispara 9.40% dos eventos (producao 3,20%) | custo/evento padrao US$ 0.002432 (+83% [+56% a +114%]) | Flex US$ 0.001987 (+50%)
 

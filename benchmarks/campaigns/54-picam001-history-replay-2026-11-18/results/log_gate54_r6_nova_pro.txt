@@ -1,0 +1,6 @@
+[gate54/bedrock] braco=nvp_v1_low modelo=nova-pro (amazon.nova-pro-v1:0) prompt=v1 imagens=low
+  conjunto=tri (limiar 0.3) eventos=121 {'S0': 60, 'S2C': 61} ja_feitos=2 a_rodar=119 sem_frames=0 estimativa=US$ 0.5355
+  [1/119] ok=1 erros=0 tok_in=4724 tok_out=179 US$/chamada=0.004352 lat=4187 ms | gasto=US$ 0.0044 (4 s)
+  [2/119] ok=2 erros=0 tok_in=4724 tok_out=187 US$/chamada=0.004378 lat=4234 ms | gasto=US$ 0.0087 (4 s)
+  [50/119] ok=50 erros=0 tok_in=4724 tok_out=193 US$/chamada=0.004397 lat=19109 ms | gasto=US$ 0.2197 (175 s)
+  [100/119] ok=100 erros=0 tok_in=4724 tok_out=171 US$/chamada=0.004326 lat=18780 ms | gasto=US$ 0.4379 (406 s)

@@ -1,0 +1,266 @@
+conjunto=pass limiar do filtro=0.3 eventos=577 | hoje US$ 0.001327/evento | vai ao gate 20.3%
+
+g31l_g3_low_low  n=211/577  US$ 0.001177/chamada
+  cena/sinais em S2C: DUMPING/3 39, DUMPING/2 18, TRAFFIC/0 2, TRAFFIC/1 1, PARKED/1 1
+  cena/sinais em S2R: DUMPING/3 19, DUMPING/2 18, TRAFFIC/0 2, TRAFFIC/1 1
+  cena/sinais em S1: DUMPING/2 19, DUMPING/3 13, TRAFFIC/0 7, TRAFFIC/2 5, TRAFFIC/1 3, PARKED/1 2, EMPTY/0 1
+  cena/sinais em S0: DUMPING/2 27, TRAFFIC/0 20, DUMPING/3 6, TRAFFIC/1 3, EMPTY/0 2, DUMPING/1 1, PARKED/0 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 33/60 | dispara 11.74% | custo +60% [+35% a +84%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 33/60 | dispara 11.74% | custo +60% [+35% a +84%]
+  DUMPING e 1 de 3                       confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 34/60 | dispara 12.04% | custo +63% [+38% a +87%]
+  so cena DUMPING                        confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 34/60 | dispara 12.04% | custo +63% [+38% a +87%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 34/60 | dispara 12.04% | custo +63% [+38% a +87%]
+  DUMPING ou pessoa manuseando           confirmadas 29/32 | rejeitadas 33/36 | S1 38/50 | S0 34/60 | dispara 12.16% | custo +65% [+40% a +88%]
+  DUMPING ou chao novo                   confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 34/60 | dispara 12.04% | custo +63% [+38% a +87%]
+  pessoa manuseando (qualquer cena)      confirmadas 29/32 | rejeitadas 33/36 | S1 38/50 | S0 33/60 | dispara 11.86% | custo +61% [+36% a +85%]
+  worker e conf>=90                      confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 33/60 | dispara 11.74% | custo +60% [+35% a +84%]
+  worker e conf>=95                      confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 31/60 | dispara 11.13% | custo +53% [+29% a +78%]
+  worker e chao novo                     confirmadas 29/32 | rejeitadas 33/36 | S1 30/50 | S0 33/60 | dispara 11.70% | custo +59% [+35% a +83%]
+  worker e pessoa manuseando             confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 33/60 | dispara 11.74% | custo +60% [+35% a +84%]
+  worker e pessoa e chao novo            confirmadas 29/32 | rejeitadas 33/36 | S1 30/50 | S0 33/60 | dispara 11.70% | custo +59% [+35% a +83%]
+  worker e 3 de 3                        confirmadas 22/32 | rejeitadas 16/36 | S1 13/50 | S0  6/60 | dispara 2.73% | custo -39% [-50% a -19%]
+  worker e nota>=0,40                    confirmadas 29/32 | rejeitadas 30/36 | S1 22/50 | S0 25/60 | dispara 9.04% | custo +30% [+7% a +55%]
+  worker e nota>=0,50                    confirmadas 26/32 | rejeitadas 26/36 | S1 17/50 | S0 17/60 | dispara 6.43% | custo +2% [-18% a +26%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 29/32 | rejeitadas 33/36 | S1 32/50 | S0 31/60 | dispara 11.13% | custo +53% [+29% a +78%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 29/32 | rejeitadas 30/36 | S1 26/50 | S0 22/60 | dispara 8.23% | custo +21% [-1% a +47%]
+
+g31l_g3_min_low  n=211/577  US$ 0.000999/chamada
+  cena/sinais em S2C: DUMPING/3 38, DUMPING/2 19, TRAFFIC/0 2, TRAFFIC/1 1, EMPTY/0 1
+  cena/sinais em S2R: DUMPING/3 20, DUMPING/2 17, TRAFFIC/0 2, TRAFFIC/1 1
+  cena/sinais em S1: DUMPING/2 22, DUMPING/3 11, TRAFFIC/0 5, TRAFFIC/1 5, TRAFFIC/2 3, PARKED/1 2, EMPTY/0 2
+  cena/sinais em S0: DUMPING/2 28, TRAFFIC/0 22, DUMPING/3 5, EMPTY/0 3, PARKED/1 1, TRAFFIC/1 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  DUMPING e 1 de 3                       confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  so cena DUMPING                        confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  DUMPING ou pessoa manuseando           confirmadas 31/32 | rejeitadas 33/36 | S1 36/50 | S0 33/60 | dispara 11.82% | custo +58% [+33% a +82%]
+  DUMPING ou chao novo                   confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  pessoa manuseando (qualquer cena)      confirmadas 31/32 | rejeitadas 33/36 | S1 36/50 | S0 33/60 | dispara 11.82% | custo +58% [+33% a +82%]
+  worker e conf>=90                      confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  worker e conf>=95                      confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  worker e chao novo                     confirmadas 31/32 | rejeitadas 33/36 | S1 32/50 | S0 33/60 | dispara 11.74% | custo +57% [+32% a +81%]
+  worker e pessoa manuseando             confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  worker e pessoa e chao novo            confirmadas 31/32 | rejeitadas 33/36 | S1 32/50 | S0 33/60 | dispara 11.74% | custo +57% [+32% a +81%]
+  worker e 3 de 3                        confirmadas 22/32 | rejeitadas 17/36 | S1 11/50 | S0  5/60 | dispara 2.40% | custo -46% [-55% a -26%]
+  worker e nota>=0,40                    confirmadas 31/32 | rejeitadas 32/36 | S1 22/50 | S0 24/60 | dispara 8.78% | custo +25% [+2% a +50%]
+  worker e nota>=0,50                    confirmadas 28/32 | rejeitadas 28/36 | S1 18/50 | S0 19/60 | dispara 7.10% | custo +6% [-15% a +31%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 31/32 | rejeitadas 33/36 | S1 33/50 | S0 33/60 | dispara 11.76% | custo +57% [+32% a +81%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 30/32 | rejeitadas 32/36 | S1 26/50 | S0 23/60 | dispara 8.57% | custo +22% [-0% a +48%]
+
+g31l_v1p_low_low  n=211/577  US$ 0.001051/chamada
+  cena/sinais em S2C: DUMPING/3 41, DUMPING/2 12, PARKED/1 5, TRAFFIC/1 2, TRAFFIC/0 1
+  cena/sinais em S2R: DUMPING/3 18, DUMPING/2 14, TRAFFIC/0 4, TRAFFIC/1 2, PARKED/0 1, PARKED/1 1
+  cena/sinais em S1: PARKED/1 13, DUMPING/2 10, DUMPING/3 9, PARKED/0 5, TRAFFIC/1 4, TRAFFIC/0 4, TRAFFIC/2 3, PARKED/2 2
+  cena/sinais em S0: TRAFFIC/0 23, DUMPING/2 17, PARKED/0 6, TRAFFIC/1 5, PARKED/1 4, EMPTY/0 3, DUMPING/3 2
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  DUMPING e 1 de 3                       confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  so cena DUMPING                        confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  DUMPING ou pessoa manuseando           confirmadas 29/32 | rejeitadas 30/36 | S1 27/50 | S0 20/60 | dispara 7.61% | custo +13% [-9% a +38%]
+  DUMPING ou chao novo                   confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  pessoa manuseando (qualquer cena)      confirmadas 29/32 | rejeitadas 30/36 | S1 27/50 | S0 20/60 | dispara 7.61% | custo +13% [-9% a +38%]
+  worker e conf>=90                      confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  worker e conf>=95                      confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  worker e chao novo                     confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  worker e pessoa manuseando             confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  worker e pessoa e chao novo            confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  worker e 3 de 3                        confirmadas 23/32 | rejeitadas 16/36 | S1  9/50 | S0  2/60 | dispara 1.45% | custo -55% [-60% a -39%]
+  worker e nota>=0,40                    confirmadas 28/32 | rejeitadas 26/36 | S1 16/50 | S0 16/60 | dispara 6.11% | custo -4% [-23% a +21%]
+  worker e nota>=0,50                    confirmadas 25/32 | rejeitadas 23/36 | S1 15/50 | S0 13/60 | dispara 5.10% | custo -15% [-32% a +9%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 28/32 | rejeitadas 29/36 | S1 19/50 | S0 19/60 | dispara 7.13% | custo +7% [-13% a +32%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 27/32 | rejeitadas 28/36 | S1 19/50 | S0 15/60 | dispara 5.89% | custo -6% [-25% a +18%]
+
+g31l_v1p_min_low  n=577/577  US$ 0.000860/chamada
+  cena/sinais em S2C: DUMPING/3 40, DUMPING/2 10, PARKED/1 5, TRAFFIC/0 3, TRAFFIC/1 2, PARKED/0 1
+  cena/sinais em S2R: DUMPING/3 31, DUMPING/2 20, TRAFFIC/0 12, PARKED/1 3, TRAFFIC/1 3, PARKED/0 2, PARKED/2 1, DUMPING/1 1
+  cena/sinais em S1: DUMPING/3 37, PARKED/1 30, DUMPING/2 30, PARKED/0 14, TRAFFIC/0 14, TRAFFIC/1 4, EMPTY/0 2
+  cena/sinais em S0: TRAFFIC/0 168, DUMPING/2 54, EMPTY/0 34, PARKED/1 15, PARKED/0 12, TRAFFIC/1 10, DUMPING/3 9, DUMPING/1 1, TRAFFIC/2 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 28/32 | rejeitadas 43/61 | S1 67/131 | S0 63/304 | dispara 5.16% | custo -17% [-26% a -7%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 28/32 | rejeitadas 43/61 | S1 67/131 | S0 63/304 | dispara 5.16% | custo -17% [-26% a -7%]
+  DUMPING e 1 de 3                       confirmadas 28/32 | rejeitadas 44/61 | S1 67/131 | S0 64/304 | dispara 5.23% | custo -17% [-25% a -7%]
+  so cena DUMPING                        confirmadas 28/32 | rejeitadas 44/61 | S1 67/131 | S0 64/304 | dispara 5.23% | custo -17% [-25% a -7%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 28/32 | rejeitadas 44/61 | S1 67/131 | S0 64/304 | dispara 5.23% | custo -17% [-25% a -7%]
+  DUMPING ou pessoa manuseando           confirmadas 28/32 | rejeitadas 45/61 | S1 67/131 | S0 65/304 | dispara 5.30% | custo -16% [-24% a -6%]
+  DUMPING ou chao novo                   confirmadas 28/32 | rejeitadas 44/61 | S1 67/131 | S0 64/304 | dispara 5.23% | custo -17% [-25% a -7%]
+  pessoa manuseando (qualquer cena)      confirmadas 28/32 | rejeitadas 45/61 | S1 67/131 | S0 65/304 | dispara 5.30% | custo -16% [-24% a -6%]
+  worker e conf>=90                      confirmadas 28/32 | rejeitadas 43/61 | S1 67/131 | S0 63/304 | dispara 5.16% | custo -17% [-26% a -7%]
+  worker e conf>=95                      confirmadas 28/32 | rejeitadas 43/61 | S1 67/131 | S0 63/304 | dispara 5.16% | custo -17% [-26% a -7%]
+  worker e chao novo                     confirmadas 28/32 | rejeitadas 43/61 | S1 66/131 | S0 62/304 | dispara 5.09% | custo -18% [-26% a -8%]
+  worker e pessoa manuseando             confirmadas 28/32 | rejeitadas 43/61 | S1 67/131 | S0 63/304 | dispara 5.16% | custo -17% [-26% a -7%]
+  worker e pessoa e chao novo            confirmadas 28/32 | rejeitadas 43/61 | S1 66/131 | S0 62/304 | dispara 5.09% | custo -18% [-26% a -8%]
+  worker e 3 de 3                        confirmadas 24/32 | rejeitadas 25/61 | S1 37/131 | S0  9/304 | dispara 1.43% | custo -58% [-61% a -53%]
+  worker e nota>=0,40                    confirmadas 28/32 | rejeitadas 41/61 | S1 59/131 | S0 54/304 | dispara 4.54% | custo -24% [-32% a -15%]
+  worker e nota>=0,50                    confirmadas 25/32 | rejeitadas 36/61 | S1 46/131 | S0 45/304 | dispara 3.82% | custo -32% [-39% a -23%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 28/32 | rejeitadas 43/61 | S1 67/131 | S0 63/304 | dispara 5.16% | custo -17% [-26% a -7%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 27/32 | rejeitadas 41/61 | S1 63/131 | S0 49/304 | dispara 4.27% | custo -27% [-34% a -18%]
+
+g35l_g3_min_low  n=211/577  US$ 0.001383/chamada
+  cena/sinais em S2C: DUMPING/3 31, DUMPING/2 10, TRAFFIC/0 7, TRAFFIC/2 6, TRAFFIC/1 4, PARKED/1 2, EMPTY/0 1
+  cena/sinais em S2R: DUMPING/2 14, TRAFFIC/0 10, DUMPING/3 9, TRAFFIC/1 5, TRAFFIC/2 1, PARKED/1 1
+  cena/sinais em S1: TRAFFIC/0 11, TRAFFIC/2 10, TRAFFIC/1 9, DUMPING/3 7, DUMPING/2 6, PARKED/1 4, EMPTY/0 3
+  cena/sinais em S0: TRAFFIC/0 27, DUMPING/2 11, TRAFFIC/1 10, EMPTY/0 9, DUMPING/3 2, PARKED/1 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.94% | custo -12% [-29% a +12%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.94% | custo -12% [-29% a +12%]
+  DUMPING e 1 de 3                       confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.94% | custo -12% [-29% a +12%]
+  so cena DUMPING                        confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.94% | custo -12% [-29% a +12%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.94% | custo -12% [-29% a +12%]
+  DUMPING ou pessoa manuseando           confirmadas 26/32 | rejeitadas 25/36 | S1 27/50 | S0 21/60 | dispara 7.77% | custo +19% [-2% a +45%]
+  DUMPING ou chao novo                   confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.94% | custo -12% [-29% a +12%]
+  pessoa manuseando (qualquer cena)      confirmadas 26/32 | rejeitadas 25/36 | S1 27/50 | S0 21/60 | dispara 7.77% | custo +19% [-2% a +45%]
+  worker e conf>=90                      confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.93% | custo -12% [-29% a +12%]
+  worker e conf>=95                      confirmadas 23/32 | rejeitadas 19/36 | S1 13/50 | S0 12/60 | dispara 4.60% | custo -15% [-32% a +8%]
+  worker e chao novo                     confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.93% | custo -12% [-29% a +12%]
+  worker e pessoa manuseando             confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.94% | custo -12% [-29% a +12%]
+  worker e pessoa e chao novo            confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 13/60 | dispara 4.93% | custo -12% [-29% a +12%]
+  worker e 3 de 3                        confirmadas 19/32 | rejeitadas  8/36 | S1  7/50 | S0  2/60 | dispara 1.16% | custo -53% [-58% a -37%]
+  worker e nota>=0,40                    confirmadas 23/32 | rejeitadas 19/36 | S1 12/50 | S0 11/60 | dispara 4.29% | custo -19% [-34% a +4%]
+  worker e nota>=0,50                    confirmadas 21/32 | rejeitadas 18/36 | S1 12/50 | S0 10/60 | dispara 3.96% | custo -23% [-37% a +0%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 23/32 | rejeitadas 20/36 | S1 13/50 | S0 12/60 | dispara 4.63% | custo -15% [-31% a +8%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 23/32 | rejeitadas 19/36 | S1 13/50 | S0 11/60 | dispara 4.31% | custo -19% [-34% a +5%]
+
+g35l_v1p_min_low  n=211/577  US$ 0.001201/chamada
+  cena/sinais em S2C: DUMPING/3 33, DUMPING/2 10, TRAFFIC/1 6, PARKED/1 5, TRAFFIC/0 3, EMPTY/0 2, TRAFFIC/2 2
+  cena/sinais em S2R: TRAFFIC/0 16, DUMPING/2 8, TRAFFIC/1 5, DUMPING/3 5, PARKED/1 4, TRAFFIC/2 1, EMPTY/0 1
+  cena/sinais em S1: TRAFFIC/1 17, TRAFFIC/0 15, PARKED/1 7, DUMPING/2 4, PARKED/0 3, TRAFFIC/2 2, EMPTY/0 2
+  cena/sinais em S0: TRAFFIC/0 36, TRAFFIC/1 8, DUMPING/2 7, EMPTY/0 5, PARKED/0 2, DUMPING/3 1, PARKED/1 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  DUMPING e 1 de 3                       confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  so cena DUMPING                        confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  DUMPING ou pessoa manuseando           confirmadas 25/32 | rejeitadas 15/36 | S1  8/50 | S0  9/60 | dispara 3.54% | custo -30% [-44% a -8%]
+  DUMPING ou chao novo                   confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  pessoa manuseando (qualquer cena)      confirmadas 25/32 | rejeitadas 15/36 | S1  8/50 | S0  9/60 | dispara 3.54% | custo -30% [-44% a -8%]
+  worker e conf>=90                      confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  worker e conf>=95                      confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  worker e chao novo                     confirmadas 22/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.07% | custo -35% [-48% a -13%]
+  worker e pessoa manuseando             confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  worker e pessoa e chao novo            confirmadas 22/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.07% | custo -35% [-48% a -13%]
+  worker e 3 de 3                        confirmadas 18/32 | rejeitadas  5/36 | S1  0/50 | S0  1/60 | dispara 0.67% | custo -61% [-64% a -47%]
+  worker e nota>=0,40                    confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  7/60 | dispara 2.79% | custo -38% [-50% a -17%]
+  worker e nota>=0,50                    confirmadas 21/32 | rejeitadas 12/36 | S1  4/50 | S0  7/60 | dispara 2.77% | custo -38% [-50% a -17%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 23/32 | rejeitadas 12/36 | S1  4/50 | S0  8/60 | dispara 3.09% | custo -35% [-48% a -13%]
+
+nv2l_v1_low  n=211/577  US$ 0.001256/chamada
+  cena/sinais em S2C: DUMPING/3 47, PARKED/1 7, DUMPING/2 2, TRAFFIC/0 2, EMPTY/0 1, TRAFFIC/1 1, PARKED/0 1
+  cena/sinais em S2R: DUMPING/3 17, TRAFFIC/0 8, DUMPING/2 5, PARKED/1 4, PARKED/0 2, EMPTY/0 2, TRAFFIC/1 2
+  cena/sinais em S1: DUMPING/3 25, PARKED/1 8, DUMPING/2 8, TRAFFIC/0 5, TRAFFIC/1 2, PARKED/0 2
+  cena/sinais em S0: TRAFFIC/0 23, EMPTY/0 14, DUMPING/2 7, PARKED/0 7, PARKED/1 6, TRAFFIC/1 2, DUMPING/3 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  DUMPING e 1 de 3                       confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  so cena DUMPING                        confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  DUMPING ou pessoa manuseando           confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  DUMPING ou chao novo                   confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  pessoa manuseando (qualquer cena)      confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  worker e conf>=90                      confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  worker e conf>=95                      confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  worker e chao novo                     confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  worker e pessoa manuseando             confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  worker e pessoa e chao novo            confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  worker e 3 de 3                        confirmadas 23/32 | rejeitadas 15/36 | S1 25/50 | S0  1/60 | dispara 1.50% | custo -52% [-54% a -37%]
+  worker e nota>=0,40                    confirmadas 24/32 | rejeitadas 16/36 | S1 24/50 | S0  7/60 | dispara 3.33% | custo -31% [-43% a -10%]
+  worker e nota>=0,50                    confirmadas 21/32 | rejeitadas 15/36 | S1 16/50 | S0  6/60 | dispara 2.83% | custo -37% [-48% a -17%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 24/32 | rejeitadas 19/36 | S1 33/50 | S0  8/60 | dispara 3.87% | custo -25% [-38% a -4%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 24/32 | rejeitadas 18/36 | S1 30/50 | S0  6/60 | dispara 3.19% | custo -33% [-44% a -13%]
+
+nv2l_v1p_low  n=211/577  US$ 0.001279/chamada
+  cena/sinais em S2C: DUMPING/3 49, DUMPING/2 5, PARKED/1 4, TRAFFIC/0 2, EMPTY/0 1
+  cena/sinais em S2R: DUMPING/3 16, DUMPING/2 14, PARKED/1 4, TRAFFIC/0 3, TRAFFIC/1 2, EMPTY/0 1
+  cena/sinais em S1: DUMPING/3 25, DUMPING/2 16, PARKED/1 5, TRAFFIC/1 3, PARKED/0 1
+  cena/sinais em S0: DUMPING/2 16, TRAFFIC/0 13, EMPTY/0 10, PARKED/0 10, PARKED/1 5, DUMPING/3 3, TRAFFIC/1 3
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  DUMPING e 1 de 3                       confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  so cena DUMPING                        confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  DUMPING ou pessoa manuseando           confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  DUMPING ou chao novo                   confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  pessoa manuseando (qualquer cena)      confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  worker e conf>=90                      confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  worker e conf>=95                      confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  worker e chao novo                     confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  worker e pessoa manuseando             confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  worker e pessoa e chao novo            confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  worker e 3 de 3                        confirmadas 25/32 | rejeitadas 15/36 | S1 25/50 | S0  3/60 | dispara 2.10% | custo -45% [-51% a -27%]
+  worker e nota>=0,40                    confirmadas 28/32 | rejeitadas 23/36 | S1 26/50 | S0 14/60 | dispara 5.65% | custo -5% [-23% a +19%]
+  worker e nota>=0,50                    confirmadas 24/32 | rejeitadas 21/36 | S1 19/50 | S0 10/60 | dispara 4.23% | custo -21% [-36% a +2%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 28/32 | rejeitadas 26/36 | S1 41/50 | S0 19/60 | dispara 7.54% | custo +15% [-5% a +40%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 27/32 | rejeitadas 24/36 | S1 35/50 | S0 12/60 | dispara 5.24% | custo -10% [-26% a +14%]
+
+nvl_v1_low  n=210/577  US$ 0.000329/chamada
+  cena/sinais em S2C: DUMPING/3 35, DUMPING/2 22, TRAFFIC/0 2, DUMPING/1 1, PARKED/1 1
+  cena/sinais em S2R: DUMPING/2 14, DUMPING/3 14, TRAFFIC/1 5, TRAFFIC/0 3, PARKED/1 3
+  cena/sinais em S1: DUMPING/2 24, DUMPING/3 14, PARKED/1 4, TRAFFIC/0 3, DUMPING/1 3, TRAFFIC/1 1, EMPTY/0 1
+  cena/sinais em S0: DUMPING/2 15, TRAFFIC/0 14, PARKED/1 12, EMPTY/0 10, DUMPING/3 7, TRAFFIC/1 1, PARKED/0 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 30/32 | rejeitadas 24/35 | S1 38/50 | S0 22/60 | dispara 8.39% | custo +10% [-12% a +35%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 30/32 | rejeitadas 24/35 | S1 38/50 | S0 22/60 | dispara 8.39% | custo +10% [-12% a +35%]
+  DUMPING e 1 de 3                       confirmadas 31/32 | rejeitadas 24/35 | S1 41/50 | S0 22/60 | dispara 8.46% | custo +11% [-11% a +36%]
+  so cena DUMPING                        confirmadas 31/32 | rejeitadas 24/35 | S1 41/50 | S0 22/60 | dispara 8.46% | custo +11% [-11% a +36%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 31/32 | rejeitadas 24/35 | S1 41/50 | S0 22/60 | dispara 8.46% | custo +11% [-11% a +36%]
+  DUMPING ou pessoa manuseando           confirmadas 31/32 | rejeitadas 27/35 | S1 41/50 | S0 23/60 | dispara 8.81% | custo +15% [-8% a +40%]
+  DUMPING ou chao novo                   confirmadas 31/32 | rejeitadas 24/35 | S1 41/50 | S0 22/60 | dispara 8.46% | custo +11% [-11% a +36%]
+  pessoa manuseando (qualquer cena)      confirmadas 31/32 | rejeitadas 27/35 | S1 40/50 | S0 23/60 | dispara 8.79% | custo +15% [-8% a +40%]
+  worker e conf>=90                      confirmadas 30/32 | rejeitadas 24/35 | S1 38/50 | S0 22/60 | dispara 8.39% | custo +10% [-12% a +35%]
+  worker e conf>=95                      confirmadas 30/32 | rejeitadas 24/35 | S1 38/50 | S0 22/60 | dispara 8.39% | custo +10% [-12% a +35%]
+  worker e chao novo                     confirmadas 21/32 | rejeitadas 12/35 | S1 14/50 | S0  7/60 | dispara 2.94% | custo -50% [-62% a -29%]
+  worker e pessoa manuseando             confirmadas 30/32 | rejeitadas 24/35 | S1 38/50 | S0 22/60 | dispara 8.39% | custo +10% [-12% a +35%]
+  worker e pessoa e chao novo            confirmadas 21/32 | rejeitadas 12/35 | S1 14/50 | S0  7/60 | dispara 2.94% | custo -50% [-62% a -29%]
+  worker e 3 de 3                        confirmadas 21/32 | rejeitadas 12/35 | S1 14/50 | S0  7/60 | dispara 2.94% | custo -50% [-62% a -29%]
+  worker e nota>=0,40                    confirmadas 30/32 | rejeitadas 22/35 | S1 23/50 | S0 16/60 | dispara 6.22% | custo -14% [-33% a +11%]
+  worker e nota>=0,50                    confirmadas 26/32 | rejeitadas 21/35 | S1 16/50 | S0 12/60 | dispara 4.82% | custo -29% [-45% a -6%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 30/32 | rejeitadas 24/35 | S1 38/50 | S0 22/60 | dispara 8.39% | custo +10% [-12% a +35%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 29/32 | rejeitadas 22/35 | S1 20/50 | S0 14/60 | dispara 5.55% | custo -21% [-39% a +3%]
+
+nvl_v1p_low  n=576/577  US$ 0.000330/chamada
+  cena/sinais em S2C: DUMPING/2 31, DUMPING/3 26, DUMPING/1 3, TRAFFIC/0 1
+  cena/sinais em S2R: DUMPING/2 35, DUMPING/3 18, TRAFFIC/0 5, DUMPING/1 5, EMPTY/0 4, PARKED/1 4, TRAFFIC/1 2
+  cena/sinais em S1: DUMPING/2 71, DUMPING/3 25, DUMPING/1 11, PARKED/1 10, EMPTY/0 8, TRAFFIC/0 5, PARKED/2 1
+  cena/sinais em S0: EMPTY/0 84, DUMPING/1 73, DUMPING/2 58, TRAFFIC/0 42, PARKED/1 24, DUMPING/3 15, TRAFFIC/1 4, PARKED/0 2, PARKED/2 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 29/32 | rejeitadas 43/61 | S1 96/131 | S0 73/303 | dispara 6.09% | custo -15% [-24% a -5%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 29/32 | rejeitadas 43/61 | S1 96/131 | S0 73/303 | dispara 6.09% | custo -15% [-24% a -5%]
+  DUMPING e 1 de 3                       confirmadas 32/32 | rejeitadas 48/61 | S1 107/131 | S0 146/303 | dispara 10.61% | custo +35% [+23% a +46%]
+  so cena DUMPING                        confirmadas 32/32 | rejeitadas 48/61 | S1 107/131 | S0 146/303 | dispara 10.61% | custo +35% [+23% a +46%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 32/32 | rejeitadas 48/61 | S1 107/131 | S0 146/303 | dispara 10.61% | custo +35% [+23% a +46%]
+  DUMPING ou pessoa manuseando           confirmadas 32/32 | rejeitadas 48/61 | S1 108/131 | S0 148/303 | dispara 10.74% | custo +36% [+25% a +47%]
+  DUMPING ou chao novo                   confirmadas 32/32 | rejeitadas 48/61 | S1 107/131 | S0 146/303 | dispara 10.61% | custo +35% [+23% a +46%]
+  pessoa manuseando (qualquer cena)      confirmadas 32/32 | rejeitadas 48/61 | S1 106/131 | S0 148/303 | dispara 10.72% | custo +36% [+25% a +47%]
+  worker e conf>=90                      confirmadas 29/32 | rejeitadas 43/61 | S1 96/131 | S0 73/303 | dispara 6.09% | custo -15% [-24% a -5%]
+  worker e conf>=95                      confirmadas 29/32 | rejeitadas 43/61 | S1 96/131 | S0 73/303 | dispara 6.09% | custo -15% [-24% a -5%]
+  worker e chao novo                     confirmadas 14/32 | rejeitadas 18/61 | S1 28/131 | S0 24/303 | dispara 2.09% | custo -59% [-64% a -52%]
+  worker e pessoa manuseando             confirmadas 29/32 | rejeitadas 43/61 | S1 95/131 | S0 73/303 | dispara 6.08% | custo -15% [-24% a -5%]
+  worker e pessoa e chao novo            confirmadas 14/32 | rejeitadas 18/61 | S1 27/131 | S0 24/303 | dispara 2.09% | custo -59% [-64% a -52%]
+  worker e 3 de 3                        confirmadas 14/32 | rejeitadas 15/61 | S1 25/131 | S0 15/303 | dispara 1.50% | custo -66% [-70% a -60%]
+  worker e nota>=0,40                    confirmadas 29/32 | rejeitadas 38/61 | S1 69/131 | S0 49/303 | dispara 4.35% | custo -34% [-42% a -25%]
+  worker e nota>=0,50                    confirmadas 25/32 | rejeitadas 32/61 | S1 49/131 | S0 38/303 | dispara 3.43% | custo -44% [-51% a -36%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 29/32 | rejeitadas 43/61 | S1 96/131 | S0 73/303 | dispara 6.09% | custo -15% [-24% a -5%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 27/32 | rejeitadas 34/61 | S1 60/131 | S0 45/303 | dispara 4.02% | custo -38% [-45% a -29%]
+
+nvp_v1_low  n=102/577  US$ 0.004380/chamada
+  cena/sinais em S2C: DUMPING/3 36, DUMPING/2 16, PARKED/1 6, DUMPING/1 2, PARKED/0 1
+  cena/sinais em S2R: 
+  cena/sinais em S1: 
+  cena/sinais em S0: TRAFFIC/0 17, DUMPING/3 12, DUMPING/2 5, PARKED/1 3, DUMPING/1 2, EMPTY/0 1, TRAFFIC/1 1
+  worker (DUMPING e 2 de 3, conf>=85)    confirmadas 26/32 | rejeitadas  0/0 | S1  0/0 | S0 17/41 | dispara 9.40% | custo +83% [+56% a +114%]
+  DUMPING e 2 de 3 (sem conf)            confirmadas 26/32 | rejeitadas  0/0 | S1  0/0 | S0 17/41 | dispara 9.40% | custo +83% [+56% a +114%]
+  DUMPING e 1 de 3                       confirmadas 28/32 | rejeitadas  0/0 | S1  0/0 | S0 19/41 | dispara 10.36% | custo +94% [+65% a +124%]
+  so cena DUMPING                        confirmadas 28/32 | rejeitadas  0/0 | S1  0/0 | S0 19/41 | dispara 10.36% | custo +94% [+65% a +124%]
+  DUMPING ou (pessoa e chao novo)        confirmadas 28/32 | rejeitadas  0/0 | S1  0/0 | S0 19/41 | dispara 10.36% | custo +94% [+65% a +124%]
+  DUMPING ou pessoa manuseando           confirmadas 28/32 | rejeitadas  0/0 | S1  0/0 | S0 20/41 | dispara 10.80% | custo +99% [+70% a +128%]
+  DUMPING ou chao novo                   confirmadas 28/32 | rejeitadas  0/0 | S1  0/0 | S0 19/41 | dispara 10.36% | custo +94% [+65% a +124%]
+  pessoa manuseando (qualquer cena)      confirmadas 28/32 | rejeitadas  0/0 | S1  0/0 | S0 20/41 | dispara 10.80% | custo +99% [+70% a +128%]
+  worker e conf>=90                      confirmadas 26/32 | rejeitadas  0/0 | S1  0/0 | S0 17/41 | dispara 9.40% | custo +83% [+56% a +114%]
+  worker e conf>=95                      confirmadas 22/32 | rejeitadas  0/0 | S1  0/0 | S0 16/41 | dispara 8.81% | custo +77% [+50% a +107%]
+  worker e chao novo                     confirmadas 23/32 | rejeitadas  0/0 | S1  0/0 | S0 17/41 | dispara 9.15% | custo +81% [+53% a +111%]
+  worker e pessoa manuseando             confirmadas 26/32 | rejeitadas  0/0 | S1  0/0 | S0 17/41 | dispara 9.40% | custo +83% [+56% a +114%]
+  worker e pessoa e chao novo            confirmadas 23/32 | rejeitadas  0/0 | S1  0/0 | S0 17/41 | dispara 9.15% | custo +81% [+53% a +111%]
+  worker e 3 de 3                        confirmadas 19/32 | rejeitadas  0/0 | S1  0/0 | S0 12/41 | dispara 6.61% | custo +53% [+29% a +83%]
+  worker e nota>=0,40                    confirmadas 26/32 | rejeitadas  0/0 | S1  0/0 | S0  9/41 | dispara 5.87% | custo +44% [+25% a +74%]
+  worker e nota>=0,50                    confirmadas 23/32 | rejeitadas  0/0 | S1  0/0 | S0  8/41 | dispara 5.31% | custo +38% [+20% a +67%]
+  worker e (nota>=0,50 ou conf>=95)      confirmadas 25/32 | rejeitadas  0/0 | S1  0/0 | S0 16/41 | dispara 8.92% | custo +78% [+51% a +108%]
+  worker e (nota>=0,50 ou 3 de 3)        confirmadas 25/32 | rejeitadas  0/0 | S1  0/0 | S0 15/41 | dispara 8.48% | custo +73% [+47% a +104%]
+

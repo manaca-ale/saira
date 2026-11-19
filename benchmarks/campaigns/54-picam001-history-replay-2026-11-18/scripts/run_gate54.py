@@ -72,7 +72,38 @@ ARMS = {
                         "media": "low", "est": 0.0030},
     "g38f_v4_low_low": {"model": "gemini-3.8-flash", "prompt": "v4", "think": "low",
                         "media": "low", "est": 0.0030},
+    # 19/11 (sessao interativa): prompt g3 do worker (_prompts_g3.G3_GATE_PROMPT, camp 47), escrito
+    # para o Gemini 3: aceita descarte a pe, raciocinio antes do JSON, regra de ambiguidade pro-recall.
+    # A missao 3 so mediu V1 e V4; o V1 exige "vehicle STOPPED" e o Gemini 3 le isso ao pe da letra.
+    "g31l_g3_min_low": {"model": "gemini-3.1-flash-lite", "prompt": "g3", "think": "minimal",
+                        "media": "low", "est": 0.0014},
+    "g31l_g3_low_low": {"model": "gemini-3.1-flash-lite", "prompt": "g3", "think": "low",
+                        "media": "low", "est": 0.0018},
+    "g35l_g3_min_low": {"model": "gemini-3.5-flash-lite", "prompt": "g3", "think": "minimal",
+                        "media": "low", "est": 0.0020},
+    "g35l_g3_low_low": {"model": "gemini-3.5-flash-lite", "prompt": "g3", "think": "low",
+                        "media": "low", "est": 0.0026},
+    # 19/11: v1p = V1 com o descarte a pe permitido (prompts54.py); meio-termo entre o V1 e o g3.
+    "g31l_v1p_min_low": {"model": "gemini-3.1-flash-lite", "prompt": "v1p", "think": "minimal",
+                         "media": "low", "est": 0.0012},
+    "g31l_v1p_low_low": {"model": "gemini-3.1-flash-lite", "prompt": "v1p", "think": "low",
+                         "media": "low", "est": 0.0016},
+    "g35l_v1p_min_low": {"model": "gemini-3.5-flash-lite", "prompt": "v1p", "think": "minimal",
+                         "media": "low", "est": 0.0016},
+    "g38f_v1p_low_low": {"model": "gemini-3.8-flash", "prompt": "v1p", "think": "low",
+                         "media": "low", "est": 0.0030},
 }
+
+
+def apply_gate_prompt(variant: str) -> str:
+    """Prompts proprios da camp 54 (prompts54.GATE_PROMPTS) entram por rebind do prompt V1 do worker,
+    com o esquema e a pos-regra do V1; os demais (v1, v4, g3) seguem o bench53."""
+    import prompts54
+    if variant in prompts54.GATE_PROMPTS:
+        b.apply_prompt("v1")
+        b.dg.NEW_LITTER_SYSTEM_PROMPT = prompts54.GATE_PROMPTS[variant]
+        return "current"
+    return b.apply_prompt(variant)
 
 
 def sub_of(r) -> str:
@@ -185,7 +216,7 @@ def main():
     b._BUDGET = budget
     b._RUN_CTX.update({"campaign": "54", "stage": "gate54", "arm": a.arm, "rep": a.rep,
                        "dataset": "picam-historico", "backend": "aistudio"})
-    pv = b.apply_prompt(spec["prompt"])
+    pv = apply_gate_prompt(spec["prompt"])
     if spec.get("budget") is not None:
         b.cfg.GEMINI_AGENT1_THINKING_BUDGET = spec["budget"]
     if a.flex:
@@ -220,6 +251,11 @@ def main():
                 "new_litter": bool(gr.new_litter_detected), "conf": conf,
                 "fire": int(bool(gr.new_litter_detected) and conf >= b.TRIGGER_THR),
                 "scene_type": getattr(gr, "scene_type", ""),
+                # os 3 sinais da pos-regra do worker (cena DUMPING + 2 de 3), para explorar outras
+                # regras de disparo sem pagar de novo (acrescentado em 19/11)
+                "veh_stopped": bool(getattr(gr, "vehicle_stopped", False)),
+                "person_handling": bool(getattr(gr, "person_handling_material", False)),
+                "new_ground": bool(getattr(gr, "new_ground_material", False)),
                 "evidence": (getattr(gr, "evidence_summary", "") or "")[:300],
                 "tok_in": ti, "tok_out": to, "tok_think": tt,
                 "cost_usd": round(cost_usd(spec["model"], ti, to, tt, wallet="aistudio"), 8),

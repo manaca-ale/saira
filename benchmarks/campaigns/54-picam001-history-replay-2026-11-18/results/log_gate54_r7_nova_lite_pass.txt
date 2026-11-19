@@ -1,0 +1,23 @@
+[gate54/bedrock] braco=nvl_v1p_low modelo=nova-lite (amazon.nova-lite-v1:0) prompt=v1p imagens=low
+  conjunto=pass (limiar 0.3) eventos=577 {'S0': 304, 'S1': 131, 'S2C': 61, 'S2R': 73, 'S2X': 8} ja_feitos=211 a_rodar=366 sem_frames=0 estimativa=US$ 0.1281
+  [1/366] ok=1 erros=0 tok_in=4774 tok_out=198 US$/chamada=0.000334 lat=3312 ms | gasto=US$ 0.0003 (3 s)
+  [2/366] ok=2 erros=0 tok_in=4774 tok_out=170 US$/chamada=0.000327 lat=3375 ms | gasto=US$ 0.0007 (3 s)
+  [50/366] ok=50 erros=0 tok_in=4774 tok_out=194 US$/chamada=0.000333 lat=2780 ms | gasto=US$ 0.0165 (32 s)
+  [100/366] ok=100 erros=0 tok_in=4774 tok_out=171 US$/chamada=0.000327 lat=3109 ms | gasto=US$ 0.0330 (70 s)
+  [150/366] ok=150 erros=0 tok_in=4774 tok_out=181 US$/chamada=0.000330 lat=2483 ms | gasto=US$ 0.0495 (110 s)
+  [200/366] ok=200 erros=0 tok_in=4774 tok_out=180 US$/chamada=0.000330 lat=3780 ms | gasto=US$ 0.0660 (151 s)
+  [250/366] ok=250 erros=0 tok_in=4774 tok_out=210 US$/chamada=0.000337 lat=3391 ms | gasto=US$ 0.0825 (194 s)
+  [300/366] ok=300 erros=0 tok_in=4774 tok_out=167 US$/chamada=0.000327 lat=2405 ms | gasto=US$ 0.0990 (237 s)
+  [325/366] S0 evt-20260901_120116 ERR sem JSON na resposta (stop=max_tokens)
+  [350/366] ok=349 erros=1 tok_in=4774 tok_out=170 US$/chamada=0.000327 lat=4093 ms | gasto=US$ 0.1160 (283 s)
+  [366/366] ok=365 erros=1 tok_in=4774 tok_out=168 US$/chamada=0.000327 lat=3234 ms | gasto=US$ 0.1213 (298 s)
+  fim: ok=365 erros=1 gasto_desta_execucao=US$ 0.1213 total_carteira_bedrock=US$ 0.8447 (298 s)
+[gate54/bedrock] braco=nvl_v1p_low modelo=nova-lite (amazon.nova-lite-v1:0) prompt=v1p imagens=low
+  conjunto=s0fail (limiar 0.3) eventos=200 {'S0': 200} ja_feitos=0 a_rodar=200 sem_frames=0 estimativa=US$ 0.0700
+  [1/200] ok=1 erros=0 tok_in=4774 tok_out=162 US$/chamada=0.000325 lat=3094 ms | gasto=US$ 0.0003 (3 s)
+  [2/200] ok=2 erros=0 tok_in=4774 tok_out=155 US$/chamada=0.000324 lat=3109 ms | gasto=US$ 0.0006 (3 s)
+  [50/200] ok=50 erros=0 tok_in=4774 tok_out=179 US$/chamada=0.000329 lat=3405 ms | gasto=US$ 0.0165 (33 s)
+  [100/200] ok=100 erros=0 tok_in=4774 tok_out=162 US$/chamada=0.000325 lat=3157 ms | gasto=US$ 0.0330 (70 s)
+  [150/200] ok=150 erros=0 tok_in=4774 tok_out=176 US$/chamada=0.000329 lat=3702 ms | gasto=US$ 0.0495 (114 s)
+  [200/200] ok=200 erros=0 tok_in=4774 tok_out=167 US$/chamada=0.000327 lat=4000 ms | gasto=US$ 0.0660 (157 s)
+  fim: ok=200 erros=0 gasto_desta_execucao=US$ 0.0660 total_carteira_bedrock=US$ 1.0759 (157 s)
