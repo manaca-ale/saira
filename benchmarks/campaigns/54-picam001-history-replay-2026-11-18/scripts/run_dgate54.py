@@ -68,6 +68,7 @@ def main():
     ap.add_argument("--split", default="dev", choices=["dev", "aval", "all"])
     ap.add_argument("--strata", default="")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--every", type=int, default=1)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--max-usd", type=float, default=0.0)
     ap.add_argument("--dry-run", action="store_true")
@@ -75,6 +76,8 @@ def main():
 
     questions = QSETS[a.qset]
     events = load_sample(a.split, set(a.strata.split(",")) if a.strata else None)
+    if a.every > 1:
+        events = events[:: a.every]      # um a cada K, na ordem do sample.csv (fixo; retomavel)
     path = out_path(a.qset, a.res, a.rep)
     done = b.latest_ok(path) if path.exists() else {}
     todo = [e for e in events if e["event_id"] not in done]

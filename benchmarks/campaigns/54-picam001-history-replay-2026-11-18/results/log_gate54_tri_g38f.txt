@@ -1,0 +1,8 @@
+[gate54] braco=g38f_v1_low_low modelo=gemini-3.8-flash prompt=v1 budget=None think=low media=low flex=False
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=0 a_rodar=211 sem_frames=0 estimativa=US$ 0.9495
+  [50/211] ok=50 erros=0 gasto=US$ 0.1228 (56 s)
+  [100/211] ok=100 erros=0 gasto=US$ 0.2431 (102 s)
+  [150/211] ok=150 erros=0 gasto=US$ 0.3645 (147 s)
+  [200/211] ok=200 erros=0 gasto=US$ 0.4859 (193 s)
+  [211/211] ok=211 erros=0 gasto=US$ 0.5125 (204 s)
+  fim: ok=211 erros=0 chamadas={'n': 211, 'flex': 0, 'standard': 211} gasto_desta_execucao=US$ 0.5125 total_carteira=US$ 3.5990 (204 s)

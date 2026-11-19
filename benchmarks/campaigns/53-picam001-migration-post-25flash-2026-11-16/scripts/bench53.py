@@ -278,7 +278,12 @@ def use_backend(name: str) -> None:
     if name == "aistudio":
         from google import genai
         if _ais_client is None:
-            _ais_client = genai.Client(api_key=aistudio_key())
+            from google.genai import types as gt
+            # google-genai 3.4.0 usa "v1" por padrao na API do AI Studio, e la o modo JSON
+            # (response_schema) devolve 400; o worker precisa de v1beta. 600 s cobre o Flex.
+            _ais_client = genai.Client(
+                api_key=aistudio_key(),
+                http_options=gt.HttpOptions(api_version="v1beta", timeout=600 * 1000))
         dg._client = _ais_client
         cfg.GEMINI_USE_VERTEX = False       # sem fallback de regiao do Vertex
     else:
@@ -289,10 +294,32 @@ def label_of(arm: str) -> str:
     return arm + ("_ais" if _BACKEND["name"] == "aistudio" else "")
 
 
+# Flex na API do AI Studio: campo `service_tier: "flex"` no pedido (nao e cabecalho), metade do
+# preco, sem volta automatica para o padrao (503/429 quando falta capacidade). A resposta diz o
+# nivel usado em usage_metadata.service_tier. Lista de modelos lida em 2026-11-19 em
+# https://aistudio.google.com/docs/flex-inference
+AIS_FLEX_MODELS = ("gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-3.1-flash-lite",
+                   "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.8-flash")
+
+
 def flex_ok(model: str) -> bool:
     if _BACKEND["name"] == "aistudio":
-        return False            # o Flex daqui e o do Vertex (cabecalho HTTP)
+        return model in AIS_FLEX_MODELS
     return model.startswith("gemini-3")
+
+
+_orig_build_config = dg._build_generate_config
+
+
+def _build_config_with_tier(*args, **kwargs):
+    gc = _orig_build_config(*args, **kwargs)
+    if _BACKEND["name"] == "aistudio" and _FLEX["on"]:
+        from google.genai import types as gt
+        gc.service_tier = gt.ServiceTier.FLEX
+    return gc
+
+
+dg._build_generate_config = _build_config_with_tier
 
 
 
@@ -310,7 +337,12 @@ def _metered_call_model(image_paths, system_prompt, user_prompt, model_name, res
     try:
         md = getattr(resp, "usage_metadata", None)
         if md is not None and _BUDGET is not None:
-            traffic = str(getattr(md, "traffic_type", "") or "")
+            # Vertex informa traffic_type no usage_metadata; a API do AI Studio informa o nivel
+            # no cabecalho HTTP x-gemini-service-tier (medido em 2026-11-19: "standard" | "flex").
+            traffic = str(getattr(md, "traffic_type", "") or getattr(md, "service_tier", "") or "")
+            if not traffic:
+                hdr = getattr(getattr(resp, "sdk_http_response", None), "headers", None) or {}
+                traffic = str(hdr.get("x-gemini-service-tier", "") or "")
             is_flex = "FLEX" in traffic.upper()
             _BUDGET.charge(
                 model=model_name,
@@ -466,7 +498,9 @@ _FLEX = {"on": False}
 
 def make_override(spec, default_model: str):
     """None quando a chamada e identica a de producao (mesmo modelo, sem ajustes)."""
-    use_flex = _FLEX["on"] and flex_ok(spec["model"])
+    # Flex do Vertex pede cliente proprio (cabecalho); o do AI Studio entra pelo config
+    # (_build_config_with_tier) e usa o cliente do backend.
+    use_flex = _FLEX["on"] and flex_ok(spec["model"]) and _BACKEND["name"] != "aistudio"
     if (spec["model"] == default_model and not spec.get("think") and not spec.get("media")
             and not use_flex):
         return None
