@@ -79,6 +79,8 @@ EST = {("nova-lite", "low"): 0.00035, ("nova-lite", "orig"): 0.0007,
        ("nova-pro", "low"): 0.0045, ("nova-pro", "orig"): 0.0090}
 ARMS = {f"{code}_{pv}_{img}": {"alias": alias, "prompt": pv, "img": img, "est": EST[(alias, img)]}
         for alias, (_m, code) in NOVA.items() for pv in PROMPTS for img in ("low", "orig")}
+# bracos *_ctx: com o contexto da janela anterior que a producao mandava (ver run_gate54.prior_contexts)
+ARMS.update({k + "_ctx": {**v, "prior": "prod"} for k, v in list(ARMS.items())})
 
 
 def make_client():
@@ -159,6 +161,7 @@ def main():
            "dataset": "picam-historico", "backend": "bedrock"}
     bc._client = make_client()
     system = PROMPTS[spec["prompt"]]
+    prior = g.prior_contexts() if spec.get("prior") == "prod" else {}
 
     def one(ev):
         fr = ev["frames"]
@@ -168,6 +171,8 @@ def main():
                "prompt": spec["prompt"], "budget": None, "think": None, "media": spec["img"],
                "flex_requested": False, "n_sent": len(fr), "backend": "bedrock",
                "ts": dt.datetime.now().isoformat(timespec="seconds"), "error": ""}
+        p_type, p_delta, p_src = prior.get(ev["event_id"], (None, None, "desligado"))
+        rec.update({"prior_type": p_type, "prior_delta": p_delta, "prior_src": p_src})
         if budget.stop:
             rec["error"] = "budget_stop"
             return rec
@@ -175,7 +180,7 @@ def main():
             pay = bc.prepare_images(fr, mode=spec["img"])
             user = dg._new_litter_user_prompt(
                 first_frame_name=fr[0].name, last_frame_name=fr[-1].name, camera_context=b.camera_context(fr),
-                prior_window_context=None, mosaic=False, mid_frame_names=[p.name for p in fr[1:-1]])
+                prior_window_context=g.prior_text(p_type), mosaic=False, mid_frame_names=[p.name for p in fr[1:-1]])
             r = bc.converse(alias, system, user, pay.blobs, GeminiNewLitterReport,
                             max_tokens=2000, force_mode="text")
             if r.tok_in:
