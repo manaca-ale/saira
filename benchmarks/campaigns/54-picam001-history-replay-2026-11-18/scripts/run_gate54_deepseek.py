@@ -13,7 +13,9 @@ confianca >= 85). Registro no formato do run_gate54.py (`new_litter` e `conf` DE
 `agg_gate54.py` e `cmp_gate54_reps.py` leem sem mudanca; a resposta crua fica em `new_litter_raw`/`conf_raw`.
 
 Bracos: dsf_<prompt>_<img>[_ctx] (thinking desligado, como no testspace) e dsft_<prompt>_<img>[_ctx]
-(thinking ligado). Prompts v1, g3, v1p; imagens `low` (640 px, qualidade 70) ou `orig` (bytes do disco).
+(thinking ligado). Prompts v1, g3, v1p e `rcl` (o RECALL_GATE_PROMPT do testspace, copiado em prompts54.py;
+aqui com o esquema e a pos-regra do worker, nao com o RecallGateReport dele); imagens `low`
+(640 px, qualidade 70) ou `orig` (bytes do disco).
 `_ctx` = com o aviso da janela anterior que a producao mandava (run_gate54.prior_contexts).
 
 Custo: a trava cobra SEMPRE o preco de pico (0,30 / 1,20 por 1M); fora do pico (01h-03h e 07h-22h de
@@ -63,8 +65,9 @@ WALLET = "deepseek"
 
 # Estimativa por chamada (US$, preco de pico) para o --dry-run. `off`+`low` medido na sonda de 19/11 (2.541 tokens de entrada, ~270 de saida); o resto e chute.
 EST = {("off", "low"): 0.0012, ("off", "orig"): 0.0040, ("on", "low"): 0.0040, ("on", "orig"): 0.0060}
+PROMPT_NAMES = (*rb.PROMPTS, "rcl")
 ARMS = {f"{'dsft' if th == 'on' else 'dsf'}_{pv}_{img}": {"prompt": pv, "img": img, "think": th, "est": EST[(th, img)]}
-        for th in ("off", "on") for pv in rb.PROMPTS for img in ("low", "orig")}
+        for th in ("off", "on") for pv in PROMPT_NAMES for img in ("low", "orig")}
 ARMS.update({k + "_ctx": {**v, "prior": "prod"} for k, v in list(ARMS.items())})
 
 
@@ -74,6 +77,28 @@ def read_key() -> str:
         if line.startswith("DEEPSEEK_API_KEY="):
             return line.split("=", 1)[1].strip().strip('"').strip("'")
     raise SystemExit("DEEPSEEK_API_KEY nao encontrada no .env do testspace")
+
+
+def gate_prompt(name: str) -> str:
+    """Prompts do worker pelo run_gate54_bedrock; `rcl` = copia do RECALL_GATE_PROMPT do testspace (prompts54.py)."""
+    import prompts54
+    return prompts54.GATE_PROMPTS[name] if name == "rcl" else rb.PROMPTS[name]
+
+
+def fit_schema(text: str) -> tuple[str, list[str]]:
+    """Corta os textos que passam do tamanho maximo do esquema (com thinking ligado, 57% das respostas
+    estouravam os 500 caracteres e eram perdidas). Devolve o JSON ajustado e os campos cortados."""
+    try:
+        obj = json.loads(text)
+    except ValueError:
+        return text, []
+    cut = []
+    for k, sch in (GeminiNewLitterReport.model_json_schema().get("properties") or {}).items():
+        lim = sch.get("maxLength")
+        if lim and isinstance(obj.get(k), str) and len(obj[k]) > lim:
+            obj[k] = obj[k][:lim]
+            cut.append(k)
+    return (json.dumps(obj, ensure_ascii=False), cut) if cut else (text, [])
 
 
 def api_url() -> str:
@@ -187,7 +212,7 @@ def main():
     ctx = {"campaign": "54", "stage": "gate54", "arm": a.arm, "rep": a.rep,
            "dataset": "picam-historico", "backend": "deepseek"}
     key, url = read_key(), api_url()
-    system = system_with_schema(rb.PROMPTS[spec["prompt"]])
+    system = system_with_schema(gate_prompt(spec["prompt"]))
     prior = g.prior_contexts() if spec.get("prior") == "prod" else {}
 
     def one(ev):
@@ -225,11 +250,13 @@ def main():
             choices = res.get("choices") or []
             text = ((choices[0].get("message") or {}).get("content") or "") if choices else ""
             text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip())
+            text, cut = fit_schema(text)
+            rec["cut_fields"] = cut
             try:
                 rep = GeminiNewLitterReport.model_validate_json(text)
             except Exception as exc:  # noqa: BLE001
                 rec["error"] = f"json invalido: {type(exc).__name__}: {str(exc)[:160]}"
-                rec["raw"] = text[:300]
+                rec["raw"] = text[:1500]
                 return rec
             rep.confidence_0_100 = max(0, min(100, int(rep.confidence_0_100)))
             v1 = rb.apply_v1_gate(rep)

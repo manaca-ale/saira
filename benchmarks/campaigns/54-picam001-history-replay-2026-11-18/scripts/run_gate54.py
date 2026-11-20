@@ -103,6 +103,12 @@ ARMS = {
                           "prior": "prod", "est": 0.0009},
     "g31l_v1p_min_low_ctx": {"model": "gemini-3.1-flash-lite", "prompt": "v1p", "think": "minimal",
                              "media": "low", "prior": "prod", "est": 0.0012},
+    # 20/11 (missao 4b): rcl = prompt recall_v1 do testspace (prompts54.py), que levou o DeepSeek de 20 para
+    # 28 de 32 confirmadas; aqui no modelo Google de vida longa, para saber se a alavanca e o prompt.
+    "g35l_rcl_min_low_ctx": {"model": "gemini-3.5-flash-lite", "prompt": "rcl", "think": "minimal",
+                             "media": "low", "prior": "prod", "est": 0.0016},
+    "g35l_v1p_min_low_ctx": {"model": "gemini-3.5-flash-lite", "prompt": "v1p", "think": "minimal",
+                             "media": "low", "prior": "prod", "est": 0.0016},
 }
 
 # Contexto da janela anterior, como o worker monta (main.py, _process_with_gemini_cascade_window).

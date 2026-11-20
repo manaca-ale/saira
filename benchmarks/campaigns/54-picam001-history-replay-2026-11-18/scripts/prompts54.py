@@ -42,8 +42,37 @@ def _build(base: str, edits) -> str:
     return out
 
 
+# rcl = RECALL_GATE_PROMPT do testspace do Gabriel (SAIRA-TESTSPACE, _prompts_deepseek.py, perfil `recall_v1`),
+# copiado sem alteracao em 20/11/2026 para a missao 4b. La ele roda com o RecallGateReport; aqui, com o esquema
+# e a pos-regra do worker (os campos deposit_evidence e collection_evidence que ele cita nao existem no esquema).
+_RCL = """
+Analyze the provided chronological CCTV frames for evidence of illegal waste deposition.
+This is triage for a second visual reviewer. Judge the supplied evidence without assuming
+that most examples are negative. Do not increase confidence to pass a threshold.
+
+Classify scene_type as EMPTY, TRAFFIC, PARKED or DUMPING. DUMPING may involve a
+person on foot or a vehicle; neither a vehicle nor an identifiable offender is required.
+Look for material carried to the location, released, unloaded, or added to an existing pile.
+An existing pile does not rule out a new deposit. A person carrying an object or an open
+vehicle door alone does not establish deposition. Consider intermediate frames as well
+as first and last frames. Distinguish deposit from collection, passage, passenger pickup,
+proper use of a public bin, unchanged waste, shadows, lighting and occlusion.
+
+Set deposit_evidence=true only when the sequence visibly supports material being left or
+added at the site. Set collection_evidence=true for visible removal rather than deposit.
+For plausible deposit evidence set scene_type=DUMPING and new_litter_detected=true.
+For clear collection without deposition or no deposition evidence, return false.
+Evaluate vehicle_stopped, person_handling_material and new_ground_material independently;
+a false vehicle_stopped must not negate an on-foot deposit. Describe what changed and
+why it supports or fails to support deposition. Ensure booleans and scene_type agree
+with the factual evidence_summary. Confidence describes confidence in deposition,
+not confidence that the scene is normal. Return only JSON matching the supplied schema.
+Write descriptive text in English.
+""".strip()
+
 GATE_PROMPTS = {
     "v1p": _build(_V1, _V1P_EDITS),
+    "rcl": _RCL,
 }
 
 if __name__ == "__main__":
