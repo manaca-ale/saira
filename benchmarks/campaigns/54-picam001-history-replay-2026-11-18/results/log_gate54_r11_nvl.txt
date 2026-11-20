@@ -1,0 +1,11 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[gate54/bedrock] braco=nvl_v1p_low_ctx modelo=nova-lite (amazon.nova-lite-v1:0) prompt=v1p imagens=low
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=0 a_rodar=211 sem_frames=0 estimativa=US$ 0.0738
+  [1/211] ok=1 erros=0 tok_in=4819 tok_out=183 US$/chamada=0.000333 lat=3532 ms | gasto=US$ 0.0003 (3 s)
+  [2/211] ok=2 erros=0 tok_in=4819 tok_out=191 US$/chamada=0.000335 lat=3562 ms | gasto=US$ 0.0007 (3 s)
+  [50/211] ok=50 erros=0 tok_in=4819 tok_out=197 US$/chamada=0.000336 lat=2875 ms | gasto=US$ 0.0168 (36 s)
+  [100/211] ok=100 erros=0 tok_in=4814 tok_out=211 US$/chamada=0.000339 lat=3343 ms | gasto=US$ 0.0334 (77 s)
+  [150/211] ok=150 erros=0 tok_in=4820 tok_out=174 US$/chamada=0.000331 lat=3172 ms | gasto=US$ 0.0502 (119 s)
+  [200/211] ok=200 erros=0 tok_in=4819 tok_out=185 US$/chamada=0.000334 lat=3937 ms | gasto=US$ 0.0668 (163 s)
+  [211/211] ok=211 erros=0 tok_in=4819 tok_out=193 US$/chamada=0.000335 lat=3530 ms | gasto=US$ 0.0705 (173 s)
+  fim: ok=211 erros=0 gasto_desta_execucao=US$ 0.0705 total_carteira_bedrock=US$ 1.5671 (173 s)

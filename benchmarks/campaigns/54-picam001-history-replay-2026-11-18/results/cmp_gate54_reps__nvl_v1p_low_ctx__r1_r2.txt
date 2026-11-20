@@ -1,0 +1,8 @@
+nvl_v1p_low_ctx: r1 = 577 eventos, r2 = 211, em comum = 211
+  r1: Flex pedido em 0/211 | latencia p50 3.1 s, p90 3.9 s, p99 4.6 s, maxima 4.8 s | acima de 15 s: 0
+  r2: Flex pedido em 0/211 | latencia p50 3.1 s, p90 3.9 s, p99 4.5 s, maxima 4.8 s | acima de 15 s: 0
+  S2C: n=61 | dispara r1 55, r2 55, nos dois 55 | mesma resposta em 61/61 (100%) | dos sim de r1, repetem 55/55 (100%)
+  S2R: n=40 | dispara r1 22, r2 23, nos dois 22 | mesma resposta em 39/40 (98%) | dos sim de r1, repetem 22/22 (100%)
+  S1: n=50 | dispara r1 34, r2 35, nos dois 34 | mesma resposta em 49/50 (98%) | dos sim de r1, repetem 34/34 (100%)
+  S0: n=60 | dispara r1 8, r2 8, nos dois 8 | mesma resposta em 60/60 (100%) | dos sim de r1, repetem 8/8 (100%)
+  deteccoes confirmadas mantidas: r1 28/32, r2 28/32, nas duas 28, em alguma 28
