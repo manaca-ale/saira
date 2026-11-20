@@ -66,6 +66,11 @@ PRICES = {
     "nova-lite": (0.06, 0.24),
     "nova-2-lite": (0.33, 2.75),
     "nova-pro": (0.80, 3.20),
+    # DeepSeek (carteira `deepseek`, missao 4b; modelo usado no testspace do Gabriel, com `thinking` desligado):
+    # 0,15 / 0,60 fora do pico e 0,30 / 1,20 no pico (22h-01h e 03h-07h de Brasilia em dias uteis), valores
+    # anotados no handoff em 2026-11-19, NAO conferidos em fatura. A trava cobra SEMPRE o preco de pico, para
+    # errar a favor do teto; fora do pico o custo real e a metade (`discount=0.5` so com o horario conferido).
+    "deepseek-flash": (0.30, 1.20),
 }
 # Onde a API do AI Studio cobra diferente do Vertex (pagina aistudio.google.com/docs/pricing,
 # lida em 2026-11-16; NAO conferido em fatura). Vale ate 2026-12-31; depois, 1,50 / 7,50.
@@ -78,8 +83,8 @@ PRICES_AISTUDIO = {
 PRICES_2027: dict = {}
 
 # `bedrock` entrou em 2026-11-19 (triagem do Nova, teto aprovado pelo Alexandre no budget.json). A carteira
-# `deepseek` ja tem teto no budget.json, mas ainda NAO esta aqui: falta o preco (pico e fora do pico).
-WALLETS = ("vertex", "aistudio", "bedrock")
+# `deepseek` entrou em 2026-11-19 (missao 4b, teto de US$ 3,00 aprovado pelo Alexandre no budget.json).
+WALLETS = ("vertex", "aistudio", "bedrock", "deepseek")
 # Registros antigos nao tem o campo `wallet`: estes eram os que rodavam na chave do AI Studio.
 SEPARATE_BILLING_MODELS = {"gemini-decision-1"}
 SEPARATE_BILLING_ARMS = {"sondas_chave_aistudio"}
