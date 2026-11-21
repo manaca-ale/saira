@@ -236,6 +236,41 @@ def _user_prompt(
     )
 
 
+# Gate prompt "v1p" (campaign 54): the V1 prompt with ONE change of meaning — the deposit
+# does not require a vehicle. With the literal V1 the Gemini 3 models miss deposits made on
+# foot, with a wheelbarrow or a cart ("no vehicle is stopped for illegal dumping"). Built
+# from V1 by substitution so the difference is exactly these three lines; same schema and
+# same post-rule as V1. Must stay identical to benchmarks/campaigns/54-*/scripts/prompts54.py.
+_V1P_EDITS = (
+    ("- DUMPING: A vehicle is STOPPED and a person is ACTIVELY depositing material on the ground.",
+     "- DUMPING: A person is ACTIVELY depositing material on the ground or onto a waste pile. The material "
+     "may be unloaded from a STOPPED vehicle, or brought ON FOOT, in a wheelbarrow, on a handcart or on an "
+     "animal cart. A vehicle is NOT required."),
+    ("- person_handling_material: Is a person carrying, unloading, or depositing material near a vehicle?",
+     "- person_handling_material: Is a person carrying, unloading, or depositing material (from a vehicle, "
+     "on foot, or with a wheelbarrow or cart)?"),
+    ("- Pedestrians walking or standing = TRAFFIC",
+     "- Pedestrians walking or standing without depositing material = TRAFFIC"),
+)
+
+
+def _build_v1p_prompt(base: str) -> str:
+    out = base
+    for old, new in _V1P_EDITS:
+        if out.count(old) != 1:
+            raise RuntimeError(f"v1p gate prompt: V1 snippet not found exactly once: {old[:60]!r}")
+        out = out.replace(old, new)
+    return out
+
+
+NEW_LITTER_SYSTEM_PROMPT_V1P = _build_v1p_prompt(NEW_LITTER_SYSTEM_PROMPT)
+
+
+def new_litter_system_prompt(variant: str = "") -> str:
+    """V1 gate system prompt, or its "v1p" variant (see GEMINI_GATE_PROMPT_VARIANT)."""
+    return NEW_LITTER_SYSTEM_PROMPT_V1P if variant == "v1p" else NEW_LITTER_SYSTEM_PROMPT
+
+
 def _new_litter_user_prompt(
     first_frame_name: str,
     last_frame_name: str,
@@ -1189,8 +1224,17 @@ def analyze_new_litter_with_gemini(
         system_prompt = _prompts_g3.G3_GATE_PROMPT
         schema_cls = GeminiNewLitterReport
     else:
-        system_prompt = NEW_LITTER_SYSTEM_PROMPT
+        # Sem override (prod): a variante do prompt V1 vem do ambiente; vazio = V1.
+        system_prompt = (NEW_LITTER_SYSTEM_PROMPT if override
+                         else new_litter_system_prompt(config.GEMINI_GATE_PROMPT_VARIANT))
         schema_cls = GeminiNewLitterReport
+
+    # Sem override (prod): nível de raciocínio e resolução do gate vêm do ambiente;
+    # vazio = não envia (comportamento histórico, com thinking_budget).
+    gate_thinking_level = (override.thinking_level if override
+                           else (config.GEMINI_AGENT1_THINKING_LEVEL or None))
+    gate_media_resolution = (override.media_resolution if override
+                             else (config.GEMINI_AGENT1_MEDIA_RESOLUTION or None))
 
     mosaic_temp: Optional[Path] = None
     if use_mosaic:
@@ -1238,11 +1282,11 @@ def analyze_new_litter_with_gemini(
                         schema_cls.model_json_schema(),
                         (override.max_output_tokens if override and override.max_output_tokens
                          else config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS),
-                        thinking_budget=(None if override and override.thinking_level
+                        thinking_budget=(None if gate_thinking_level
                                          else config.GEMINI_AGENT1_THINKING_BUDGET),
                         seed=42,
-                        thinking_level=(override.thinking_level if override else None),
-                        media_resolution=(override.media_resolution if override else None),
+                        thinking_level=gate_thinking_level,
+                        media_resolution=gate_media_resolution,
                         client=(override.client if override else None),
                     )
                     response = fut.result(timeout=timeout_s)

@@ -149,6 +149,22 @@ GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "
 # With thinking on, keep GEMINI_MAX_OUTPUT_TOKENS >= 8192 and GEMINI_TIMEOUT_SECONDS >= 90.
 GEMINI_DETAIL_THINKING_LEVEL = os.getenv("GEMINI_DETAIL_THINKING_LEVEL", "").strip().lower()
 GEMINI_DETAIL_MEDIA_RESOLUTION = os.getenv("GEMINI_DETAIL_MEDIA_RESOLUTION", "").strip().lower()
+# Gate (Agent-1) on Gemini 3 models: same two knobs. Empty = do not send (historical
+# behaviour: thinking comes from GEMINI_AGENT1_THINKING_BUDGET). When the level is set,
+# the budget is NOT sent (the API rejects both together).
+GEMINI_AGENT1_THINKING_LEVEL = os.getenv("GEMINI_AGENT1_THINKING_LEVEL", "").strip().lower()
+GEMINI_AGENT1_MEDIA_RESOLUTION = os.getenv("GEMINI_AGENT1_MEDIA_RESOLUTION", "").strip().lower()
+# Gate prompt variant, applied only on the V1 ("current") gate path. "v1p" = V1 with ONE
+# change of meaning: the deposit does not require a vehicle (on foot, wheelbarrow, cart).
+# Campaign 54: with the literal V1 the Gemini 3 models miss on-foot deposits ("no vehicle
+# is stopped"); v1p keeps the V1 schema and post-rule. Empty = V1 unchanged.
+GEMINI_GATE_PROMPT_VARIANT = os.getenv("GEMINI_GATE_PROMPT_VARIANT", "").strip().lower()
+if GEMINI_GATE_PROMPT_VARIANT not in ("", "v1p"):
+    logging.getLogger(__name__).warning(
+        "Invalid GEMINI_GATE_PROMPT_VARIANT=%s. Falling back to the V1 prompt.",
+        GEMINI_GATE_PROMPT_VARIANT,
+    )
+    GEMINI_GATE_PROMPT_VARIANT = ""
 
 # --- Gemini circuit breaker (G2, resilience) --------------------------------
 # During a 429/RESOURCE_EXHAUSTED storm each window otherwise pays up to
@@ -318,6 +334,60 @@ SHADOW_BEDROCK_DEADLINE_S = int(os.getenv("SHADOW_BEDROCK_DEADLINE_S", "60"))
 # intenção do G2 do Gemini, sem tocar naquele caminho).
 SHADOW_BEDROCK_BREAKER_FAILS = int(os.getenv("SHADOW_BEDROCK_BREAKER_FAILS", "5"))
 SHADOW_BEDROCK_BREAKER_COOLDOWN_S = int(os.getenv("SHADOW_BEDROCK_BREAKER_COOLDOWN_S", "900"))
+
+# ── Funil da campanha 54: etapas novas, todas DESLIGADAS por padrão ───────────
+# Configuração congelada em benchmarks/campaigns/54-*/results/finalistas54__dev.md.
+# Nada aqui muda o comportamento enquanto as chaves *_ENABLED estiverem em false.
+#
+# 1) Filtro antes do gate: API de Decisões (gemini-decision-1, só no AI Studio), uma
+#    pergunta (`wl_v2`), os mesmos 5 frames do gate em resolução baixa. O evento segue
+#    para o gate se a nota for >= GATE_PREFILTER_THRESHOLD. Falha sempre ABERTA: sem
+#    chave, erro, timeout ou teto do dia estourado = o evento segue para o gate.
+#    GATE_PREFILTER_LOG_ONLY=true (padrão) só registra a nota, sem barrar nada.
+GATE_PREFILTER_ENABLED = os.getenv("GATE_PREFILTER_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+GATE_PREFILTER_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("GATE_PREFILTER_DEVICES", "").split(",")
+    if d.strip()
+}
+GATE_PREFILTER_LOG_ONLY = os.getenv("GATE_PREFILTER_LOG_ONLY", "true").strip().lower() in ("true", "1", "yes")
+GATE_PREFILTER_THRESHOLD = float(os.getenv("GATE_PREFILTER_THRESHOLD", "0.30"))
+GATE_PREFILTER_API_KEY = os.getenv("GATE_PREFILTER_API_KEY", "").strip()
+GATE_PREFILTER_ENDPOINT = os.getenv(
+    "GATE_PREFILTER_ENDPOINT", "https://generativelanguage.googleapis.com/v1beta/decisions"
+).strip()
+GATE_PREFILTER_MODEL = os.getenv("GATE_PREFILTER_MODEL", "gemini-decision-1").strip()
+GATE_PREFILTER_RESOLUTION = os.getenv("GATE_PREFILTER_RESOLUTION", "low").strip().lower()
+# Roda INLINE antes do gate: uma tentativa só, timeout curto (p90 medido: ~2 s).
+GATE_PREFILTER_TIMEOUT_SECONDS = int(os.getenv("GATE_PREFILTER_TIMEOUT_SECONDS", "10"))
+GATE_PREFILTER_PRICE_IN_PER_1M = float(os.getenv("GATE_PREFILTER_PRICE_IN_PER_1M", "0.10"))
+# Teto diário de gasto do filtro (US$). Estourou = falha aberta até o dia seguinte.
+GATE_PREFILTER_DAILY_BUDGET_USD = float(os.getenv("GATE_PREFILTER_DAILY_BUDGET_USD", "1.00"))
+GATE_PREFILTER_BREAKER_FAILS = int(os.getenv("GATE_PREFILTER_BREAKER_FAILS", "5"))
+GATE_PREFILTER_BREAKER_COOLDOWN_S = int(os.getenv("GATE_PREFILTER_BREAKER_COOLDOWN_S", "900"))
+
+# 2) Gate no AWS Bedrock (finalista A: Amazon Nova Lite, prompt v1p, imagens de 640 px).
+#    Mesmo esquema e mesma pós-regra do gate V1. Qualquer falha do Bedrock cai no gate
+#    Gemini configurado (GATE_BEDROCK_FALLBACK_GEMINI), para a janela não se perder.
+#    Região e credenciais: as do cliente Bedrock do worker (SHADOW_BEDROCK_REGION, AWS_*).
+GATE_BEDROCK_ENABLED = os.getenv("GATE_BEDROCK_ENABLED", "false").strip().lower() in ("true", "1", "yes")
+GATE_BEDROCK_DEVICES = {
+    d.strip().lower()
+    for d in os.getenv("GATE_BEDROCK_DEVICES", "").split(",")
+    if d.strip()
+}
+# Alias do registro em detector_bedrock.MODELS (NÃO o modelId cru do Bedrock).
+GATE_BEDROCK_ALIAS = os.getenv("GATE_BEDROCK_ALIAS", "nova-lite").strip()
+GATE_BEDROCK_PROMPT_VARIANT = os.getenv("GATE_BEDROCK_PROMPT_VARIANT", "v1p").strip().lower()
+GATE_BEDROCK_IMG_WIDTH = int(os.getenv("GATE_BEDROCK_IMG_WIDTH", "640"))
+GATE_BEDROCK_IMG_QUALITY = int(os.getenv("GATE_BEDROCK_IMG_QUALITY", "70"))
+GATE_BEDROCK_MAX_OUTPUT_TOKENS = int(os.getenv("GATE_BEDROCK_MAX_OUTPUT_TOKENS", "2000"))
+# Guardrails de latência (o gate roda na thread serial do pipeline; p90 medido: 4 s).
+GATE_BEDROCK_TIMEOUT_TRIES = int(os.getenv("GATE_BEDROCK_TIMEOUT_TRIES", "2"))
+GATE_BEDROCK_DEADLINE_S = int(os.getenv("GATE_BEDROCK_DEADLINE_S", "20"))
+GATE_BEDROCK_FALLBACK_GEMINI = os.getenv("GATE_BEDROCK_FALLBACK_GEMINI", "true").strip().lower() in ("true", "1", "yes")
+GATE_BEDROCK_BREAKER_FAILS = int(os.getenv("GATE_BEDROCK_BREAKER_FAILS", "5"))
+GATE_BEDROCK_BREAKER_COOLDOWN_S = int(os.getenv("GATE_BEDROCK_BREAKER_COOLDOWN_S", "900"))
 
 # ── SHADOW Camp 51 Fase B (gate candidato + kimi no detail) ───────────────────
 # Mede a taxa de passagem ABSOLUTA de dois gates candidatos em tráfego real — o
