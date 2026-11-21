@@ -12,6 +12,7 @@ Refaz os funis finalistas com leitor proprio (nao usa funnels54) e tenta derruba
   6. o que a regua proposta para a medicao final consegue distinguir com 47 confirmadas.
 
 Uso: python devil54.py > ../results/devil54__dev.txt
+     CAMP54_SPLIT=aval python devil54.py > ../results/devil54__aval.txt   (medicao final, missao 10; sem a secao 7)
 """
 from __future__ import annotations
 
@@ -95,10 +96,10 @@ class Data:
         self.gate, self.det = {}, {}
         for g, d in FUNNELS.values():
             if g not in self.gate:
-                self.gate[g] = {e: r for e, r in read_ok(RESULTS / f"gate54__{g}__r1.jsonl").items()
+                self.gate[g] = {e: r for e, r in read_ok(g54.out_path(g, 1)).items()
                                 if e in self.sub}
             if d not in self.det:
-                self.det[d] = read_ok(RESULTS / f"detail54__{d}__r1.jsonl")
+                self.det[d] = read_ok(RESULTS / f"detail54__{d}{g54.SFX}__r1.jsonl")
         self.leit = {}
         for name in ("s0_sim_controle54__revisao.tsv", "s0_sim_so_g3_54__revisao.tsv"):
             with (RESULTS / name).open(encoding="utf-8", newline="") as fh:
@@ -155,12 +156,45 @@ class Data:
         return alerts, sum(fire_rate.values()), cost / TODAY - 1
 
 
+def vertex_section(D):
+    """A com o detail 3.8-flash no Vertex (pendencia 11): so nos eventos em que o gate do A dispara e que
+    couberam na verba, S2C primeiro. Compara com o mesmo detail no AI Studio nos mesmos eventos."""
+    path = RESULTS / f"detail54__d38f_g3_low_low_vtx{g54.SFX}__r1.jsonl"
+    if not path.exists():
+        return
+    vx, ai = read_ok(path), D.det["d38f_g3_low_low"]
+    sec("8. funil A com o detail no Vertex (mesma chamada; so eventos com disparo do A que couberam na verba)")
+    for s in SUBS:
+        evs = [e for e in vx if D.sub.get(e) == s and e in ai and D.passes(e)]
+        if not evs:
+            continue
+        both = sum(bool(vx[e].get("disposal")) == bool(ai[e].get("disposal")) for e in evs)
+        print(f"  {s:<3} eventos {len(evs)} | sim no Vertex {sum(bool(vx[e].get('disposal')) for e in evs)} | "
+              f"sim no AI Studio {sum(bool(ai[e].get('disposal')) for e in evs)} | concordam {both}")
+    for s, lab in (("S2C", "confirmadas"), ("S2R", "rejeitadas")):
+        fired = [e for e in D.sub if D.sub[e] == s and D.state("A nova+3.8", e) in ("sim", "nao")]
+        cov = [e for e in fired if e in vx]
+        if not cov:
+            continue
+        dets = {D.det_of[e] for e in fired}
+        kept_ai = {D.det_of[e] for e in fired if ai[e].get("disposal")}
+        kept_vx = {D.det_of[e] for e in fired if (vx[e] if e in vx else ai[e]).get("disposal")}
+        print(f"  {lab}: deteccoes com disparo do A {len(dets)}; eventos com disparo {len(fired)}, no Vertex {len(cov)} | "
+              f"mantidas pelo A com o detail no AI Studio {len(kept_ai)}, com o Vertex (AI Studio onde faltou) {len(kept_vx)}")
+    lat = sorted(r["latency_ms"] for r in vx.values() if r.get("latency_ms"))
+    if lat:
+        print(f"  latencia do detail no Vertex, modo padrao: p50 {lat[len(lat) // 2] / 1000:.1f} s, "
+              f"p90 {lat[int(0.9 * len(lat))] / 1000:.1f} s, max {lat[-1] / 1000:.1f} s; "
+              f"custo medio US$ {statistics.fmean(r['cost_usd'] for r in vx.values()):.5f}/chamada")
+
+
 def sec(title):
     print(f"\n== {title}")
 
 
 def main():
     D = Data()
+    print(f"divisao: {g54.SPLIT}")
     names = list(FUNNELS)
     ev_by = {s: [e for e in D.sub if D.sub[e] == s] for s in SUBS}
 
@@ -300,6 +334,9 @@ def main():
               f"{st['sim'] + st['nao']} | alertas/1.000 vindos de S1 {al['S1']:.2f} ({al['S1'] / tot:.0%} do total); "
               f"de S2 {al['S2C'] + al['S2R'] + al['S2X']:.2f}; de S0 {al['S0']:.2f}")
 
+    if g54.SPLIT != "dev":
+        vertex_section(D)
+        return
     sec(f"7. regua da medicao final (finalista >= controle - 2 nas confirmadas), {N_AVAL_CONF} confirmadas")
     conf_l = sorted(conf)
     for f in ("A nova+3.8", "B 3.1fl+3.8"):

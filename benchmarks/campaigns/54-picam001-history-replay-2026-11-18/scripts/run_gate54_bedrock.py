@@ -146,7 +146,7 @@ def main():
     for e in events:
         n_sub[e["sub"]] = n_sub.get(e["sub"], 0) + 1
     print(f"[gate54/bedrock] braco={a.arm} modelo={alias} ({model_id}) prompt={spec['prompt']} imagens={spec['img']}")
-    print(f"  conjunto={a.set} (limiar {a.thr}) eventos={len(events)} {dict(sorted(n_sub.items()))} "
+    print(f"  divisao={g.SPLIT} conjunto={a.set} (limiar {a.thr}) eventos={len(events)} {dict(sorted(n_sub.items()))} "
           f"ja_feitos={len(events) - len(todo) - len(missing)} a_rodar={len(todo)} sem_frames={len(missing)} "
           f"estimativa=US$ {est:.4f}")
     if a.dry_run or not todo:

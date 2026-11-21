@@ -45,7 +45,14 @@ from bench_budget import Budget, cost_usd  # noqa: E402
 ROOT = Path(r"C:\Saira\data\historico-picam")
 FRAME_DIRS = (ROOT / "frames" / "gate5", ROOT / "frames" / "janela")
 RESULTS = HERE.parent / "results"
-FILTER_FILE = RESULTS / "dgate54__q5_gate5_low__r1.jsonl"
+# Conjunto: desenvolvimento (padrao) ou avaliacao. A avaliacao (missao 10, medicao final unica) so entra
+# com CAMP54_SPLIT=aval no ambiente, e grava em arquivos proprios (sufixo __aval) para nao misturar.
+import os  # noqa: E402
+SPLIT = os.environ.get("CAMP54_SPLIT", "dev")
+if SPLIT not in ("dev", "aval"):
+    raise SystemExit(f"CAMP54_SPLIT invalido: {SPLIT}")
+SFX = "" if SPLIT == "dev" else f"__{SPLIT}"
+FILTER_FILE = RESULTS / f"dgate54__q5_gate5_low{SFX}__r1.jsonl"
 FILTER_Q = "wl_v2"
 FLEX_TIMEOUT_S = 600
 
@@ -195,7 +202,7 @@ def load_dev():
     rows = []
     with (ROOT / "amostra" / "sample.csv").open(encoding="utf-8", newline="") as fh:
         for r in csv.DictReader(fh):
-            if r["split"] != "dev":
+            if r["split"] != SPLIT:
                 continue
             r["sub"] = sub_of(r)
             r["score"] = sc.get(r["event_id"])
@@ -229,7 +236,7 @@ def frame_path(name: str):
 
 def out_path(arm: str, rep: int) -> Path:
     RESULTS.mkdir(parents=True, exist_ok=True)
-    return RESULTS / f"gate54__{arm}__r{rep}.jsonl"
+    return RESULTS / f"gate54__{arm}{SFX}__r{rep}.jsonl"
 
 
 def main():
@@ -262,7 +269,7 @@ def main():
         n_sub[e["sub"]] = n_sub.get(e["sub"], 0) + 1
     print(f"[gate54] braco={a.arm} modelo={spec['model']} prompt={spec['prompt']} "
           f"budget={spec.get('budget')} think={spec.get('think')} media={spec.get('media')} flex={a.flex}")
-    print(f"  conjunto={a.set} (limiar {a.thr}) eventos={len(events)} {dict(sorted(n_sub.items()))} "
+    print(f"  divisao={SPLIT} conjunto={a.set} (limiar {a.thr}) eventos={len(events)} {dict(sorted(n_sub.items()))} "
           f"ja_feitos={len(events) - len(todo) - len(missing)} a_rodar={len(todo)} sem_frames={len(missing)} "
           f"estimativa=US$ {est:.4f}")
     if a.dry_run or not todo:

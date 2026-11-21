@@ -55,9 +55,11 @@ def load_sample(split: str, strata):
     return rows
 
 
-def out_path(qset, res, rep) -> Path:
+def out_path(qset, res, rep, split="dev") -> Path:
+    """a avaliacao grava em arquivo proprio (sufixo __aval), para nao misturar com o desenvolvimento"""
     RESULTS.mkdir(parents=True, exist_ok=True)
-    return RESULTS / f"dgate54__{qset}_gate5_{res}__r{rep}.jsonl"
+    sfx = "" if split in ("dev", "all") else f"__{split}"
+    return RESULTS / f"dgate54__{qset}_gate5_{res}{sfx}__r{rep}.jsonl"
 
 
 def main():
@@ -78,7 +80,7 @@ def main():
     events = load_sample(a.split, set(a.strata.split(",")) if a.strata else None)
     if a.every > 1:
         events = events[:: a.every]      # um a cada K, na ordem do sample.csv (fixo; retomavel)
-    path = out_path(a.qset, a.res, a.rep)
+    path = out_path(a.qset, a.res, a.rep, a.split)
     done = b.latest_ok(path) if path.exists() else {}
     todo = [e for e in events if e["event_id"] not in done]
     if a.limit:

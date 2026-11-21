@@ -74,12 +74,12 @@ ARMS = {
 }
 
 
-def gate_fires() -> dict:
-    """event_id -> {braco_do_gate: 1} (uniao de r1 e r2) nos gates de referencia."""
+def gate_fires(gates=GATE_REFS) -> dict:
+    """event_id -> {braco_do_gate: 1} (uniao de r1 e r2) nos gates de referencia (ou so nos de --gates)."""
     out = {}
-    for arm in GATE_REFS:
+    for arm in gates:
         for rep in (1, 2):
-            p = RESULTS / f"gate54__{arm}__r{rep}.jsonl"
+            p = g54.out_path(arm, rep)
             if not p.exists():
                 continue
             for r in b.latest_ok(p).values():
@@ -88,8 +88,8 @@ def gate_fires() -> dict:
     return out
 
 
-def build_events(subs=None, pick=0):
-    fires = gate_fires()
+def build_events(subs=None, pick=0, gates=GATE_REFS):
+    fires = gate_fires(gates)
     rows = [r for r in g54.build_set("pass", 0.30) if r["event_id"] in fires]
     for r in rows:
         r["gates"] = sorted(fires[r["event_id"]])
@@ -112,13 +112,14 @@ def camera_context(win, horario: bool):
 
 def out_path(arm: str, rep: int, backend: str = "aistudio"):
     RESULTS.mkdir(parents=True, exist_ok=True)
-    return RESULTS / f"detail54__{arm}{'_vtx' if backend == 'vertex' else ''}__r{rep}.jsonl"
+    return RESULTS / f"detail54__{arm}{'_vtx' if backend == 'vertex' else ''}{g54.SFX}__r{rep}.jsonl"
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", required=True, choices=sorted(ARMS))
     ap.add_argument("--subs", default="")
+    ap.add_argument("--gates", default="", help="so os disparos destes gates de referencia (virgula)")
     ap.add_argument("--pick", type=int, default=0)
     ap.add_argument("--rep", type=int, default=1)
     ap.add_argument("--limit", type=int, default=0)
@@ -130,7 +131,11 @@ def main():
     a = ap.parse_args()
 
     spec = ARMS[a.arm]
-    events = build_events(set(a.subs.split(",")) if a.subs else None, a.pick)
+    gates = tuple(x for x in a.gates.split(",") if x) or GATE_REFS
+    if set(gates) - set(GATE_REFS):
+        raise SystemExit(f"--gates fora de {GATE_REFS}")
+    events = build_events(set(a.subs.split(",")) if a.subs else None, a.pick, gates)
+    print(f"[detail54] divisao={g54.SPLIT} gates={','.join(gates)}")
     if a.backend == "vertex" and a.flex:
         raise SystemExit("--backend vertex roda so em modo padrao (sem --flex)")
     path = out_path(a.arm, a.rep, a.backend)
