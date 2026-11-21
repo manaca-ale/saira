@@ -1,0 +1,70 @@
+conjunto pass (dev): eventos {'S2C': 61, 'S1': 131, 'S0': 304, 'S2X': 8, 'S2R': 73} | deteccoes confirmadas 32, rejeitadas 61, sem rotulo 6 | veredito = final (com veto de grounding)
+
+== d25f_v1 (gemini-2.5-flash) eventos=323
+  por estrato (eventos):  sim final / n   | sim cru | vetados por grounding
+    S2C   53/58  = 91.4% [81% a 96%] |  54 |  1
+    S2R   46/65  = 70.8% [59% a 80%] |  46 |  0
+    S2X    6/7   = 85.7% [49% a 97%] |   6 |  0
+    S1    35/112 = 31.2% [23% a 40%] |  38 |  3
+    S0    41/81  = 50.6% [40% a 61%] |  42 |  1
+  producao x replay (detail rodou em producao, n=241): iguais 182 = 75.5% | prod sim/replay nao 25 | prod nao/replay sim 34
+  funil por gate (r1):   confirmadas mantidas | rejeitadas que sobrevivem | S2X | S1 sim/disparos | S0 sim/disparos
+    g25l_v1_t2048_ctx      21/32 (gate 22) | 26/61 (gate 38) | 4/6 | 25/82  |  8/15  | disparos sem detail: 3
+    g31l_v1p_min_low_ctx   26/32 (gate 27) | 30/61 (gate 35) | 2/6 | 24/47  | 32/53  | disparos sem detail: 3
+    nvl_v1p_low_ctx        26/32 (gate 28) | 26/61 (gate 36) | 4/6 | 26/90  | 17/44  | disparos sem detail: 2
+  alertas por 1.000 eventos (gate r1 -> este detail; S1 e S0 nao tem rotulo): total | de confirmadas | de rejeitadas | S2X | S1 | S0
+    g25l_v1_t2048_ctx      14.08 | 3.08 | 2.41 | 0.72 | 1.91 | 5.96
+    g31l_v1p_min_low_ctx   28.82 | 3.16 | 3.03 | 0.57 | 1.83 | 20.22
+    nvl_v1p_low_ctx        19.50 | 3.66 | 2.77 | 0.72 | 1.98 | 10.37
+  custo por chamada, modo padrao: AI Studio US$ 0.01009 | Vertex (sem os tokens do esquema) US$ 0.01009 | entrada media 8798, saida 319, pensamento 2662 | quadros enviados: mediana 32, max 44
+  latencia: so chamadas Flex (p50 15 s); nao vale para producao
+
+== d38f_g3_low_low (gemini-3.8-flash) eventos=267
+  por estrato (eventos):  sim final / n   | sim cru | vetados por grounding
+    S2C   49/59  = 83.1% [72% a 91%] |  51 |  2
+    S2R   36/65  = 55.4% [43% a 67%] |  40 |  4
+    S2X    4/7   = 57.1% [25% a 84%] |   4 |  0
+    S1    17/55  = 30.9% [20% a 44%] |  18 |  1
+    S0    35/81  = 43.2% [33% a 54%] |  41 |  6
+  producao x replay (detail rodou em producao, n=185): iguais 126 = 68.1% | prod sim/replay nao 42 | prod nao/replay sim 17
+  funil por gate (r1):   confirmadas mantidas | rejeitadas que sobrevivem | S2X | S1 sim/disparos | S0 sim/disparos
+    g25l_v1_t2048_ctx      19/32 (gate 22) | 21/61 (gate 38) | 2/6 | 11/82  | 10/15  | disparos sem detail: 42
+    g31l_v1p_min_low_ctx   25/32 (gate 27) | 23/61 (gate 35) | 2/6 | 12/47  | 31/53  | disparos sem detail: 31
+    nvl_v1p_low_ctx        25/32 (gate 28) | 19/61 (gate 36) | 2/6 | 16/90  | 13/44  | disparos sem detail: 46
+  alertas por 1.000 eventos (gate r1 -> este detail; S1 e S0 nao tem rotulo): total | de confirmadas | de rejeitadas | S2X | S1 | S0
+    g25l_v1_t2048_ctx      14.43 | 2.72 | 2.23 | 0.43 | 1.60 | 7.45
+    g31l_v1p_min_low_ctx   28.01 | 3.08 | 2.50 | 0.57 | 2.26 | 19.59
+    nvl_v1p_low_ctx        16.43 | 3.30 | 2.32 | 0.43 | 2.44 | 7.93
+  custo por chamada, modo padrao: AI Studio US$ 0.00822 | Vertex (sem os tokens do esquema) US$ 0.01644 | entrada media 9154, saida 357, pensamento 4 | quadros enviados: mediana 32, max 44
+  latencia em modo padrao (n=239): p50 8.0 s, p90 14.3 s
+  pareado com d25f_v1 (eventos em comum):
+    S2C  n= 58  os dois  46 | so d25f_v1   7 | so d38f_g3_low_low   2 | nenhum   3
+    S2R  n= 65  os dois  26 | so d25f_v1  20 | so d38f_g3_low_low  10 | nenhum   9
+    S2X  n=  7  os dois   4 | so d25f_v1   2 | so d38f_g3_low_low   0 | nenhum   1
+    S1   n= 55  os dois  11 | so d25f_v1  12 | so d38f_g3_low_low   6 | nenhum  26
+    S0   n= 81  os dois  22 | so d25f_v1  19 | so d38f_g3_low_low  13 | nenhum  27
+
+== d35l_v1_low_high (gemini-3.5-flash-lite) eventos=124
+  por estrato (eventos):  sim final / n   | sim cru | vetados por grounding
+    S2C   20/30  = 66.7% [49% a 81%] |  20 |  0
+    S2R   12/30  = 40.0% [25% a 58%] |  14 |  2
+    S2X    3/7   = 42.9% [16% a 75%] |   3 |  0
+    S1     3/30  = 10.0% [3% a 26%] |   5 |  2
+    S0     8/27  = 29.6% [16% a 48%] |   9 |  1
+  producao x replay (detail rodou em producao, n=97): iguais 62 = 63.9% | prod sim/replay nao 32 | prod nao/replay sim 3
+  funil por gate (r1):   confirmadas mantidas | rejeitadas que sobrevivem | S2X | S1 sim/disparos | S0 sim/disparos
+    g25l_v1_t2048_ctx      13/32 (gate 22) |  8/61 (gate 38) | 2/6 |  2/82  |  0/15  | disparos sem detail: 120
+    g31l_v1p_min_low_ctx   13/32 (gate 27) |  9/61 (gate 35) | 1/6 |  1/47  |  6/53  | disparos sem detail: 116
+    nvl_v1p_low_ctx        14/32 (gate 28) |  7/61 (gate 36) | 2/6 |  1/90  |  4/44  | disparos sem detail: 150
+  alertas por 1.000 eventos (gate r1 -> este detail; S1 e S0 nao tem rotulo): total | de confirmadas | de rejeitadas | S2X | S1 | S0
+    g25l_v1_t2048_ctx       5.06 | 2.50 | 1.53 | 0.43 | 0.60 | 0.00
+    g31l_v1p_min_low_ctx   13.93 | 2.39 | 1.78 | 0.29 | 0.45 | 9.03
+    nvl_v1p_low_ctx        12.94 | 2.60 | 1.53 | 0.43 | 0.31 | 8.07
+  custo por chamada, modo padrao: AI Studio US$ 0.00894 | Vertex (sem os tokens do esquema) US$ 0.00894 | entrada media 8617, saida 301, pensamento 2242 | quadros enviados: mediana 32.0, max 42
+  latencia: so chamadas Flex (p50 10 s); nao vale para producao
+  pareado com d25f_v1 (eventos em comum):
+    S2C  n= 29  os dois  18 | so d25f_v1  10 | so d35l_v1_low_high   1 | nenhum   0
+    S2R  n= 30  os dois  10 | so d25f_v1  13 | so d35l_v1_low_high   2 | nenhum   5
+    S2X  n=  7  os dois   3 | so d25f_v1   3 | so d35l_v1_low_high   0 | nenhum   1
+    S1   n= 30  os dois   3 | so d25f_v1   7 | so d35l_v1_low_high   0 | nenhum  20
+    S0   n= 27  os dois   5 | so d25f_v1   7 | so d35l_v1_low_high   3 | nenhum  12
