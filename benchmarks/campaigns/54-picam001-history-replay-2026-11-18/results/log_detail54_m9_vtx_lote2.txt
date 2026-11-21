@@ -1,0 +1,9 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[detail54] braco=d25f_v1 modelo=gemini-2.5-flash prompt=v1 think=None media=None frames=None aviso=prod horario=False flex=False backend=vertex
+  eventos=30 {'S1': 30} ja_feitos=15 a_rodar=15 sem_janela=0 frames_a_rodar=357 estimativa=US$ 0.1800
+gemini global exhausted (ClientError) — retrying on fallback region us-central1
+gemini error request_id=0fd12964-71d4-404f-ac2a-3a12a9b7c9d4 attempt=1/3 error=Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+gemini global exhausted (ClientError) — retrying on fallback region us-central1
+gemini error request_id=0fd12964-71d4-404f-ac2a-3a12a9b7c9d4 attempt=2/3 error=Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+  [15/15] ok=15 erros=0 gasto=US$ 0.1322 (78 s)
+  fim: ok=15 erros=0 chamadas={"n": 15, "flex": 0, "standard": 15} gasto_desta_execucao=US$ 0.1322 total_carteira=US$ 13.5372 (78 s)

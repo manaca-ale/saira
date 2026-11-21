@@ -1,0 +1,54 @@
+eventos S1 no Vertex: 30 | com chamada de detail de producao achada: 30
+sim: Vertex 6 | AI Studio r1 10 | AI Studio r2 9 | producao 0 (definicao de S1)
+sim BRUTO (antes do veto do bbox): Vertex 6 | r1 11 | r2 10
+
+(AI Studio r1, AI Studio r2, Vertex) -> eventos
+  (1, 1, 1): 4
+  (1, 1, 0): 5
+  (1, 0, 1): 1
+  (0, 0, 1): 1
+  (0, 0, 0): 19
+
+nos 9 'sim' estaveis do AI Studio: Vertex sim 4, nao 5
+nos 20 'nao' estaveis do AI Studio: Vertex sim 1, nao 19
+concordancia: Vertex x r1 24/30 | Vertex x r2 23/30 | r1 x r2 29/30 | Vertex x producao 24/30 | r1 x producao 20/30 | r2 x producao 21/30
+
+tokens de entrada (mesmo evento): Vertex - producao, e Vertex - AI Studio
+  Vertex - producao: {-8: 1, -1: 1, 0: 28}
+  Vertex - AI Studio r2: {434: 30}
+  pensamento medio: producao 2136 | Vertex 2244 | AI Studio r2 2410
+  saida media: producao 280 | Vertex 293 | AI Studio r2 297
+  custo medio por chamada: Vertex US$ 0.00884 | AI Studio r2 US$ 0.00914
+  latencia no Vertex, modo padrao: p50 13.8 s, p90 21.4 s, max 27.8 s
+
+evento | quadros | producao | r1 | r2 | Vertex (bruto, conf) | tok_in prod / Vertex | dia
+  evt-20260714_235435 | 30 | nao | nao | nao | nao (0, 95) | 10086 / 10078
+  evt-20260716_085413 | 18 | nao | SIM | nao | SIM (1, 95) | 6576 / 6576
+  evt-20260716_110425 | 26 | nao | nao | nao | nao (0, 95) | 8910 / 8910
+  evt-20260716_153908 | 25 | nao | SIM | SIM | nao (0, 95) | 8618 / 8618
+  evt-20260717_132112 | 27 | nao | SIM | SIM | nao (0, 100) | 9203 / 9202
+  evt-20260719_222812 | 22 | nao | nao | nao | nao (0, 100) | 7742 / 7742
+  evt-20260720_201537 | 19 | nao | nao | nao | nao (0, 100) | 6866 / 6866
+  evt-20260722_124935 | 12 | nao | SIM | SIM | nao (0, 95) | 4822 / 4822
+  evt-20260722_202055 | 32 | nao | nao | nao | nao (0, 95) | 10662 / 10662
+  evt-20260726_103617 | 32 | nao | nao | nao | nao (0, 95) | 10664 / 10664
+  evt-20260727_171033 | 23 | nao | SIM | SIM | SIM (1, 95) | 8034 / 8034
+  evt-20260727_181621 |  8 | nao | nao | nao | nao (0, 95) | 3654 / 3654
+  evt-20260729_201036 | 28 | nao | nao | nao | nao (0, 95) | 9494 / 9494
+  evt-20260801_131251 | 32 | nao | SIM | SIM | nao (0, 90) | 10662 / 10662
+  evt-20260803_231602 | 21 | nao | nao | nao | SIM (1, 95) | 7452 / 7452
+  evt-20260805_064725 | 32 | nao | nao | nao | nao (0, 90) | 10662 / 10662
+  evt-20260806_145334 | 32 | nao | nao | nao | nao (0, 100) | 10662 / 10662
+  evt-20260807_081038 | 10 | nao | SIM | SIM | SIM (1, 95) | 4241 / 4241
+  evt-20260809_154216 | 17 | nao | nao | nao | nao (0, 95) | 6277 / 6277
+  evt-20260813_143206 | 32 | nao | nao | nao | nao (0, 100) | 10662 / 10662
+  evt-20260824_203037 | 32 | nao | nao | nao | nao (0, 95) | 10664 / 10664
+  evt-20260825_092831 | 15 | nao | nao | nao | nao (0, 95) | 5700 / 5700
+  evt-20260825_130549 | 32 | nao | SIM | SIM | SIM (1, 95) | 10662 / 10662
+  evt-20260825_150320 | 32 | nao | nao | nao | nao (0, 100) | 10661 / 10661
+  evt-20260828_103421 | 32 | nao | SIM | SIM | nao (0, 95) | 10661 / 10661
+  evt-20260828_103627 | 32 | nao | nao | nao | nao (0, 100) | 10661 / 10661
+  evt-20260829_015401 | 10 | nao | SIM | SIM | SIM (1, 95) | 4238 / 4238
+  evt-20260901_085848 | 30 | nao | nao | nao | nao (0, 95) | 10078 / 10078
+  evt-20260901_101028 | 21 | nao | nao | nao | nao (0, 95) | 7445 / 7445
+  evt-20260905_064527 |  7 | nao | nao | nao | nao (0, 100) | 3362 / 3362

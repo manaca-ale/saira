@@ -13,6 +13,9 @@ Fiel ao caminho de producao (main.py, _process_with_gemini), ao contrario do ben
 O braco d25f_v1_c53 repete o modo da campanha 53 (sem aviso, com horario) so para a sonda de tokens.
 
 Paga pela carteira `aistudio` (trava bench_budget), um braco por execucao. Sempre --dry-run antes.
+--backend vertex (missao 9) roda a MESMA chamada no Vertex (conta de testes, endpoint global, como a
+producao), paga pela carteira `vertex` a preco do Vertex e grava em detail54__<braco>_vtx__r<rep>.jsonl.
+Serve para separar "plataforma" de "modelo" na discordancia replay x producao; nao aceita --flex.
 So o conjunto de DESENVOLVIMENTO (nao ha opcao para o de avaliacao). Conjunto (--set):
   fires   uniao dos eventos do `pass` em que algum gate de referencia dispara (r1 e r2 de
           g25l_v1_t2048_ctx, g31l_v1p_min_low_ctx e nvl_v1p_low_ctx), com a janela inteira em disco
@@ -107,9 +110,9 @@ def camera_context(win, horario: bool):
     return ctx
 
 
-def out_path(arm: str, rep: int):
+def out_path(arm: str, rep: int, backend: str = "aistudio"):
     RESULTS.mkdir(parents=True, exist_ok=True)
-    return RESULTS / f"detail54__{arm}__r{rep}.jsonl"
+    return RESULTS / f"detail54__{arm}{'_vtx' if backend == 'vertex' else ''}__r{rep}.jsonl"
 
 
 def main():
@@ -121,13 +124,16 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--flex", action="store_true")
+    ap.add_argument("--backend", default="aistudio", choices=("aistudio", "vertex"))
     ap.add_argument("--max-usd", type=float, default=0.0)
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
 
     spec = ARMS[a.arm]
     events = build_events(set(a.subs.split(",")) if a.subs else None, a.pick)
-    path = out_path(a.arm, a.rep)
+    if a.backend == "vertex" and a.flex:
+        raise SystemExit("--backend vertex roda so em modo padrao (sem --flex)")
+    path = out_path(a.arm, a.rep, a.backend)
     done = b.latest_ok(path) if path.exists() else {}
     todo = [e for e in events if e["event_id"] not in done]
     if a.limit:
@@ -137,12 +143,14 @@ def main():
     missing = {e["event_id"] for e in todo if len(e["frames"]) < 2 or any(f is None for f in e["frames"])}
     todo = [e for e in todo if e["event_id"] not in missing]
     est = len(todo) * spec["est"] * (0.5 if a.flex else 1.0)
+    if a.backend == "vertex" and spec["model"] in ("gemini-3.6-flash", "gemini-3.8-flash"):
+        est *= 2.0                       # no Vertex esses dois custam o dobro do AI Studio
     n_sub = {}
     for e in events:
         n_sub[e["sub"]] = n_sub.get(e["sub"], 0) + 1
     print(f"[detail54] braco={a.arm} modelo={spec['model']} prompt={spec['prompt']} think={spec.get('think')} "
           f"media={spec.get('media')} frames={spec.get('frames')} aviso={spec.get('prior', 'prod')} "
-          f"horario={bool(spec.get('horario'))} flex={a.flex}")
+          f"horario={bool(spec.get('horario'))} flex={a.flex} backend={a.backend}")
     print(f"  eventos={len(events)} {dict(sorted(n_sub.items()))} ja_feitos={len(events) - len(todo) - len(missing)} "
           f"a_rodar={len(todo)} sem_janela={len(missing)} frames_a_rodar={sum(len(e['frames']) for e in todo)} "
           f"estimativa=US$ {est:.4f}")
@@ -151,13 +159,13 @@ def main():
     if a.max_usd <= 0:
         raise SystemExit("informe --max-usd")
 
-    b.use_backend("aistudio")
-    budget = Budget(wallet="aistudio")
+    b.use_backend(a.backend)
+    budget = Budget(wallet=a.backend)
     budget.run_cap = a.max_usd
     budget.require(est, f"detail54/{a.arm}")
     b._BUDGET = budget
     b._RUN_CTX.update({"campaign": "54", "stage": "detail54", "arm": a.arm, "rep": a.rep,
-                       "dataset": "picam-historico", "backend": "aistudio"})
+                       "dataset": "picam-historico", "backend": a.backend})
     pv = b.apply_prompt(spec["prompt"])
     prior = g54.prior_contexts() if spec.get("prior", "prod") == "prod" else {}
     if a.flex:
@@ -176,7 +184,7 @@ def main():
                "bytes_sent": sum(p.stat().st_size for p in win),
                "sent_first": win[0].name, "sent_last": win[-1].name,
                "horario": bool(spec.get("horario")), "require_bbox": bool(b.cfg.GEMINI_REQUIRE_BBOX),
-               "backend": "aistudio", "ts": dt.datetime.now().isoformat(timespec="seconds"), "error": ""}
+               "backend": a.backend, "ts": dt.datetime.now().isoformat(timespec="seconds"), "error": ""}
         p_type, p_delta, p_src = prior.get(ev["event_id"], (None, None, "desligado"))
         rec.update({"prior_type": p_type, "prior_delta": p_delta, "prior_src": p_src})
         if budget.stop:
@@ -198,7 +206,7 @@ def main():
                 "offender_detected": bool(getattr(dr, "offender_detected", False)),
                 "evidence": (getattr(dr, "evidence_summary", "") or "")[:700],
                 "tok_in": ti, "tok_out": to, "tok_think": tt,
-                "cost_usd": round(cost_usd(spec["model"], ti, to, tt, wallet="aistudio"), 8),
+                "cost_usd": round(cost_usd(spec["model"], ti, to, tt, wallet=a.backend), 8),
                 "latency_ms": int((time.time() - t0) * 1000)})
             rec.update(b.raw_verdict(getattr(d, "raw_json", None), rec["disposal"]))
         except Exception as exc:  # noqa: BLE001
