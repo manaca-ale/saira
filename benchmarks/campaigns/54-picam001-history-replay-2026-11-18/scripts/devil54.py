@@ -101,7 +101,11 @@ class Data:
             if d not in self.det:
                 self.det[d] = read_ok(RESULTS / f"detail54__{d}{g54.SFX}__r1.jsonl")
         self.leit = {}
-        for name in ("s0_sim_controle54__revisao.tsv", "s0_sim_so_g3_54__revisao.tsv"):
+        names = (("s0_sim_controle54__revisao.tsv", "s0_sim_so_g3_54__revisao.tsv") if g54.SPLIT == "dev"
+                 else (f"s0_sim{g54.SFX}54__revisao.tsv",))   # avaliacao: leitura a olho da missao 10 (A e B)
+        for name in names:
+            if not (RESULTS / name).exists():
+                continue
             with (RESULTS / name).open(encoding="utf-8", newline="") as fh:
                 for r in csv.DictReader(fh, delimiter="\t"):
                     self.leit[r["event_id"]] = r["leitura"]

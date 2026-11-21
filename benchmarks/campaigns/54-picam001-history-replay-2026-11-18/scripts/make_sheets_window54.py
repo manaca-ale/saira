@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -48,7 +49,9 @@ def main():
             items.append((ev.strip(), cap.strip()))
     sample = {r["event_id"]: r for r in csv.DictReader((ROOT / "amostra" / "sample.csv").open(encoding="utf-8", newline=""))}
     det = {}
-    for line in (RESULTS / f"detail54__{a.arm}__r1.jsonl").read_text(encoding="utf-8").splitlines():
+    split = os.environ.get("CAMP54_SPLIT", "dev")   # aval so na medicao final (missao 10), depois de rodar
+    sfx = "" if split == "dev" else f"__{split}"
+    for line in (RESULTS / f"detail54__{a.arm}{sfx}__r1.jsonl").read_text(encoding="utf-8").splitlines():
         if line.strip():
             r = json.loads(line)
             if not r.get("error"):
@@ -58,8 +61,8 @@ def main():
     rows = []
     for ev, cap in items:
         r = sample[ev]
-        if r["split"] != "dev":
-            raise SystemExit(f"{ev} nao e do conjunto de desenvolvimento; nao olhar")
+        if r["split"] != split:
+            raise SystemExit(f"{ev} nao e do conjunto {split}; nao olhar")
         paths = [p for p in (find(n) for n in r["window"].split("|") if n) if p]
         if len(paths) < 2:
             print(f"{ev}: janela fora do disco")

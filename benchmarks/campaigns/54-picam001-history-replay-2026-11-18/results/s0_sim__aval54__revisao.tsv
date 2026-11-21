@@ -1,0 +1,52 @@
+event_id	grupo	leitura	nota
+evt-20260716_092211	soB	descarte_provavel	caixa nova aberta junto aos sacos
+evt-20260716_111009	soB	descarte_provavel	monte de material marrom novo
+evt-20260716_154455	soB	falso_provavel	catadores com carrinho
+evt-20260717_183151	soB	falso_provavel	pessoa revirando a pilha (noite)
+evt-20260718_222042	soB	falso_provavel	pessoa parada na borda (noite)
+evt-20260722_113112	soB	indeterminado	material amarelo aparece; homem mexendo na pilha
+evt-20260724_195416	soB	falso_provavel	pessoa mexendo em tábuas (noite)
+evt-20260727_103223	soB	falso_provavel	homem andando na pilha, sem mudança
+evt-20260802_072835	soB	indeterminado	pessoa com saco preto perto da tampa
+evt-20260804_220843	soB	falso_provavel	pessoa passando (noite)
+evt-20260804_222303	soB	falso_provavel	só carros (noite)
+evt-20260805_152335	soB	falso_provavel	homem curvado separando material
+evt-20260808_101024	soB	falso_provavel	carrinho de catador estacionado
+evt-20260810_112257	soB	indeterminado	ciclista com saco junto ao latão
+evt-20260812_110336	soB	descarte_provavel	roupas e sacos coloridos novos no canto
+evt-20260812_232407	soB	falso_provavel	pessoa com saco atravessando (noite)
+evt-20260814_175359	soB	falso_provavel	catador com sacos grandes
+evt-20260819_214913	soB	falso_provavel	mulher recolhendo tábuas (noite)
+evt-20260820_193122	soB	falso_provavel	pessoa revirando a pilha (noite)
+evt-20260830_004900	soB	indeterminado	placa branca entra no latão (noite)
+evt-20260830_082735	soB	falso_provavel	objeto no latão
+evt-20260830_094015	soB	falso_provavel	pessoas passando junto ao latão
+evt-20260901_091035	soB	indeterminado	homem mexendo em móveis brancos junto ao latão
+evt-20260901_173028	soB	descarte_provavel	saco plástico novo no chão
+evt-20260903_112032	soB	falso_provavel	catador com bag grande
+evt-20260905_014857	soB	indeterminado	objeto escuro aparece na pilha (noite)
+evt-20260905_073554	soB	descarte_provavel	monte marrom novo na pilha
+evt-20260906_065150	soB	descarte_provavel	homem com carrinho de mão na pilha
+evt-20260715_073137	soA	falso_provavel	homem com vara cutucando a pilha
+evt-20260718_120404	soA	indeterminado	caixa branca aparece ao fundo
+evt-20260718_222456	soA	indeterminado	homem mexendo em tábuas (noite)
+evt-20260723_130322	soA	descarte_provavel	colchão novo junto ao muro
+evt-20260804_173441	soA	indeterminado	tábua branca nova na pilha
+evt-20260814_120603	soA	descarte_provavel	homem leva um arbusto para a pilha
+evt-20260814_124107	soA	falso_provavel	pessoa passando, sem mudança
+evt-20260905_081122	soA	falso_provavel	monte já existente, sem mudança
+evt-20260715_084712	AB	descarte_provavel	Kombi descarregando sacos
+evt-20260716_154620	AB	falso_provavel	catadores com carrinho
+evt-20260717_165910	AB	falso_provavel	catadores com carrinho e bag
+evt-20260717_171032	AB	falso_provavel	catadores separando em bags
+evt-20260717_171237	AB	falso_provavel	catadores separando em bags
+evt-20260803_152834	AB	indeterminado	homem carregando tábuas na pilha
+evt-20260810_175605	AB	descarte_provavel	carrinho de carga junto ao latão, entulho novo
+evt-20260812_000154	AB	descarte_provavel	pessoa arrasta canos e os deixa (noite)
+evt-20260814_084959	AB	indeterminado	carrinho de mão virado na pilha; pode ser varrição
+evt-20260815_061705	AB	indeterminado	pessoas com sacos junto ao monte já existente
+evt-20260815_133346	AB	falso_provavel	pessoas passando
+evt-20260819_212435	AB	indeterminado	carroça com madeira junto à pilha (noite)
+evt-20260902_105718	AB	falso_provavel	caminhonete descarrega no latão
+evt-20260903_153154	AB	falso_provavel	catador quebrando madeira
+evt-20260906_151440	AB	indeterminado	pessoas passando junto à pilha

@@ -1,0 +1,77 @@
+divisao: aval
+
+== 0. conjunto
+  S2C eventos no pass  72 | passam no filtro  70 | deteccoes 47 | peso na camera 0.0045 | P(passa no filtro) 0.972 (70/72)
+  S2R eventos no pass 113 | passam no filtro 113 | deteccoes 100 | peso na camera 0.0079 | P(passa no filtro) 0.831 (113/136)
+  S2X eventos no pass  29 | passam no filtro  29 | deteccoes 21 | peso na camera 0.0013 | P(passa no filtro) 0.967 (29/30)
+  S1  eventos no pass 195 | passam no filtro 195 | deteccoes - | peso na camera 0.0188 | P(passa no filtro) 0.559 (195/349)
+  S0  eventos no pass 430 | passam no filtro 430 | deteccoes - | peso na camera 0.9676 | P(passa no filtro) 0.181 (430/2377)
+
+== 1. funil refeito com leitor proprio; filtro aplicado evento a evento
+  (funnels54 conta a deteccao como mantida mesmo quando o evento que dispara seria barrado pelo filtro)
+  hoje refeito  confirmadas 32/47 (sem aplicar o filtro: 33) | rejeitadas 50/100 (sem filtro: 50) | alertas/1.000 16.69 | dispara 2.81% | custo -50.6%
+      alertas/1.000 por estrato: S2C 2.92, S2R 3.23, S2X 0.65, S1 2.15, S0 7.73
+      eventos por estado: S2C: sim 47, nao 1, sem detail 0, gate nao 22, barrado 2, sem gate 0 | S2R: sim 56, nao 10, sem detail 0, gate nao 47, barrado 0, sem gate 0 | S2X: sim 15, nao 2, sem detail 0, gate nao 12, barrado 0, sem gate 0 | S1: sim 40, nao 78, sem detail 0, gate nao 77, barrado 0, sem gate 0 | S0: sim 19, nao 16, sem detail 0, gate nao 395, barrado 0, sem gate 0
+  A nova+3.8    confirmadas 30/47 (sem aplicar o filtro: 31) | rejeitadas 35/100 (sem filtro: 35) | alertas/1.000 17.56 | dispara 4.85% | custo -22.6%
+      alertas/1.000 por estrato: S2C 3.05, S2R 2.54, S2X 0.56, S1 2.04, S0 9.36
+      eventos por estado: S2C: sim 49, nao 8, sem detail 0, gate nao 13, barrado 2, sem gate 0 | S2R: sim 44, nao 31, sem detail 0, gate nao 38, barrado 0, sem gate 0 | S2X: sim 13, nao 9, sem detail 0, gate nao 7, barrado 0, sem gate 0 | S1: sim 38, nao 87, sem detail 0, gate nao 70, barrado 0, sem gate 0 | S0: sim 23, nao 58, sem detail 0, gate nao 349, barrado 0, sem gate 0
+  B 3.1fl+3.8   confirmadas 37/47 (sem aplicar o filtro: 38) | rejeitadas 44/100 (sem filtro: 44) | alertas/1.000 26.82 | dispara 4.67% | custo -16.8%
+      alertas/1.000 por estrato: S2C 3.48, S2R 3.00, S2X 0.73, S1 2.10, S0 17.50
+      eventos por estado: S2C: sim 56, nao 10, sem detail 0, gate nao 4, barrado 2, sem gate 0 | S2R: sim 52, nao 21, sem detail 0, gate nao 40, barrado 0, sem gate 0 | S2X: sim 17, nao 5, sem detail 0, gate nao 7, barrado 0, sem gate 0 | S1: sim 39, nao 29, sem detail 0, gate nao 127, barrado 0, sem gate 0 | S0: sim 43, nao 40, sem detail 0, gate nao 347, barrado 0, sem gate 0
+  confirmadas sem NENHUM evento que passe no filtro: 2 de 47
+
+== 2. pares nas deteccoes (filtro aplicado): os dois | so X | so Y | nenhum | McNemar exato bilateral
+  confirmadas A nova+3.8   x B 3.1fl+3.8 : 29 |  1 |  8 |  9 | p = 0.04
+  confirmadas A nova+3.8   x hoje refeito: 23 |  7 |  9 |  8 | p = 0.80
+  confirmadas B 3.1fl+3.8  x hoje refeito: 29 |  8 |  3 |  7 | p = 0.23
+  rejeitadas  A nova+3.8   x B 3.1fl+3.8 : 30 |  5 | 14 | 51 | p = 0.06
+  rejeitadas  A nova+3.8   x hoje refeito: 20 | 15 | 30 | 35 | p = 0.04
+  rejeitadas  B 3.1fl+3.8  x hoje refeito: 22 | 22 | 28 | 28 | p = 0.48
+  hoje refeito  confirmadas 32/47 = 68% (Wilson 95%: 54% a 80%)
+  A nova+3.8    confirmadas 30/47 = 64% (Wilson 95%: 50% a 76%)
+  B 3.1fl+3.8   confirmadas 37/47 = 79% (Wilson 95%: 65% a 88%)
+
+== 3. por periodo (config. da camera muda em 02/08) e por hora (noite = 18h a 6h)
+  -- antes de 02/08
+     hoje refeito  S2C 16/22 | S2R 14/28 | S1: dispara 44/67, sim 23/44 | S0: dispara 15/128, sim 9/15 | S0 sim lidos: descarte_provavel 1, falso_provavel 2, sem leitura 6
+     A nova+3.8    S2C 14/22 | S2R 8/28 | S1: dispara 48/67, sim 13/48 | S0: dispara 38/128, sim 9/38 | S0 sim lidos: descarte_provavel 2, falso_provavel 5, indeterminado 2
+     B 3.1fl+3.8   S2C 18/22 | S2R 13/28 | S1: dispara 26/67, sim 12/26 | S0: dispara 28/128, sim 13/28 | S0 sim lidos: descarte_provavel 3, falso_provavel 9, indeterminado 1
+  -- 02/08 em diante
+     hoje refeito  S2C 16/25 | S2R 36/72 | S1: dispara 74/128, sim 17/74 | S0: dispara 20/302, sim 10/20 | S0 sim lidos: descarte_provavel 1, falso_provavel 2, indeterminado 2, sem leitura 5
+     A nova+3.8    S2C 16/25 | S2R 27/72 | S1: dispara 77/128, sim 25/77 | S0: dispara 43/302, sim 14/43 | S0 sim lidos: descarte_provavel 3, falso_provavel 5, indeterminado 6
+     B 3.1fl+3.8   S2C 19/25 | S2R 31/72 | S1: dispara 42/128, sim 27/42 | S0: dispara 55/302, sim 30/55 | S0 sim lidos: descarte_provavel 6, falso_provavel 14, indeterminado 10
+  -- dia
+     hoje refeito  S2C 24/37 | S2R 41/78 | S1: dispara 73/122, sim 34/73 | S0: dispara 25/218, sim 14/25 | S0 sim lidos: descarte_provavel 2, falso_provavel 3, indeterminado 1, sem leitura 8
+     A nova+3.8    S2C 22/37 | S2R 29/78 | S1: dispara 68/122, sim 33/68 | S0: dispara 54/218, sim 20/54 | S0 sim lidos: descarte_provavel 4, falso_provavel 10, indeterminado 6
+     B 3.1fl+3.8   S2C 28/37 | S2R 36/78 | S1: dispara 54/122, sim 34/54 | S0: dispara 56/218, sim 31/56 | S0 sim lidos: descarte_provavel 8, falso_provavel 15, indeterminado 8
+  -- noite
+     hoje refeito  S2C 8/10 | S2R 9/22 | S1: dispara 45/73, sim 6/45 | S0: dispara 10/212, sim 5/10 | S0 sim lidos: falso_provavel 1, indeterminado 1, sem leitura 3
+     A nova+3.8    S2C 8/10 | S2R 6/22 | S1: dispara 57/73, sim 5/57 | S0: dispara 27/212, sim 3/27 | S0 sim lidos: descarte_provavel 1, indeterminado 2
+     B 3.1fl+3.8   S2C 9/10 | S2R 8/22 | S1: dispara 14/73, sim 5/14 | S0: dispara 27/212, sim 12/27 | S0 sim lidos: descarte_provavel 1, falso_provavel 8, indeterminado 3
+
+== 4. margem por reamostragem (2.000 sorteios; eventos de S0/S1 e deteccoes de S2 com reposicao; P(passa no filtro) do S0 e do S1 sorteado junto)
+  hoje refeito  alertas/1.000 16.7 [13.3 a 20.6] | so S0 7.7 [4.6 a 11.6] | custo -51% [-55% a -46%]
+  A nova+3.8    alertas/1.000 17.6 [13.7 a 21.9] | so S0 9.4 [5.7 a 13.4] | custo -23% [-32% a -13%]
+  B 3.1fl+3.8   alertas/1.000 26.8 [21.7 a 32.4] | so S0 17.5 [12.5 a 22.9] | custo -17% [-25% a -7%]
+  A nova+3.8 - B 3.1fl+3.8: alertas/1.000 [-14.3 a -4.7] (X menor em 100% dos sorteios) | custo, pontos [-16 a +4]
+  A nova+3.8 - hoje refeito: alertas/1.000 [-3.9 a +5.4] (X menor em 36% dos sorteios) | custo, pontos [+20 a +37]
+  B 3.1fl+3.8 - hoje refeito: alertas/1.000 [+4.5 a +15.6] (X menor em 0% dos sorteios) | custo, pontos [+26 a +42]
+
+== 5. leitura a olho dos S0: contagem bruta por tras das taxas e o que os indefinidos podem mudar
+  hoje refeito  S0 com sim: 19 eventos ({'descarte_provavel': 2, 'falso_provavel': 4, 'indeterminado': 2, 'sem leitura': 11}); cada evento vale 0.41 alerta/1.000 | falsos/1.000: 1.6 se os indefinidos forem descarte, 6.9 se forem falsos | descartes novos/1.000: 0.8 a 6.1
+  A nova+3.8    S0 com sim: 23 eventos ({'descarte_provavel': 5, 'falso_provavel': 10, 'indeterminado': 8}); cada evento vale 0.41 alerta/1.000 | falsos/1.000: 4.1 se os indefinidos forem descarte, 7.3 se forem falsos | descartes novos/1.000: 2.0 a 5.3
+  B 3.1fl+3.8   S0 com sim: 43 eventos ({'descarte_provavel': 9, 'falso_provavel': 23, 'indeterminado': 11}); cada evento vale 0.41 alerta/1.000 | falsos/1.000: 9.4 se os indefinidos forem descarte, 13.8 se forem falsos | descartes novos/1.000: 3.7 a 8.1
+  S0 com sim: A 23, B 43, os dois 15, so A 8, so B 28; hoje refeito 19 (em comum com A 6, com B 7)
+    so A     {'descarte_provavel': 2, 'falso_provavel': 3, 'indeterminado': 3}
+    so B     {'descarte_provavel': 6, 'falso_provavel': 16, 'indeterminado': 6}
+    os dois  {'descarte_provavel': 3, 'falso_provavel': 7, 'indeterminado': 5}
+
+== 6. S1 (gate de producao disparou, detail de producao disse nao; sem rotulo do operador)
+  hoje refeito  S1: dispara 118/195, detail sim 40/118 | alertas/1.000 vindos de S1 2.15 (13% do total); de S2 6.80; de S0 7.73
+  A nova+3.8    S1: dispara 125/195, detail sim 38/125 | alertas/1.000 vindos de S1 2.04 (12% do total); de S2 6.15; de S0 9.36
+  B 3.1fl+3.8   S1: dispara 68/195, detail sim 39/68 | alertas/1.000 vindos de S1 2.10 (8% do total); de S2 7.22; de S0 17.50
+
+== 8. funil A com o detail no Vertex (mesma chamada; so eventos com disparo do A que couberam na verba)
+  S2C eventos 57 | sim no Vertex 50 | sim no AI Studio 49 | concordam 54
+  confirmadas: deteccoes com disparo do A 33; eventos com disparo 57, no Vertex 57 | mantidas pelo A com o detail no AI Studio 30, com o Vertex (AI Studio onde faltou) 30
+  latencia do detail no Vertex, modo padrao: p50 20.0 s, p90 46.8 s, max 344.8 s; custo medio US$ 0.01926/chamada
