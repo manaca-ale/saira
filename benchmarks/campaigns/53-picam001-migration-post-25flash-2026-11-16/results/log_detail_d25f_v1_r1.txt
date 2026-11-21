@@ -1,0 +1,20 @@
+[detail] braco=d25f_v1 rep=1 modelo=gemini-2.5-flash prompt=v1 think=None media=None frames=None
+  eventos=57 ja_feitos=0 a_rodar=57 estimativa=US$ 0.798
+  orcamento: teto US$ 15.00 gasto US$ 0.1387 teto desta execucao US$ 1.00
+  [1/57] tp         evt-20260715_085108 disposal=1 conf=95
+  [2/57] fp         evt-20260715_120735 disposal=0 conf=95
+  [3/57] fp         evt-20260715_123608 disposal=0 conf=0
+  [4/57] fp         evt-20260715_073056 disposal=1 conf=85
+  [5/57] fp         evt-20260715_125447 disposal=0 conf=95
+  [6/57] tp         evt-20260715_181251 disposal=1 conf=95
+  [7/57] tp         evt-20260715_165230 disposal=1 conf=95
+  [8/57] tp         evt-20260715_181023 disposal=1 conf=95
+gemini timeout request_id=25e82b17-027a-4abe-ba63-2931ec1175fb attempt=1/3
+  [9/57] fp         evt-20260716_012139 disposal=1 conf=95
+  [10/57] tp         evt-20260715_222047 disposal=0 conf=90
+  [11/57] fp         evt-20260716_094309 disposal=0 conf=85
+  [12/57] fp         evt-20260716_123920 disposal=1 conf=95
+  [13/57] tp         evt-20260715_165556 disposal=1 conf=95
+  [14/57] fp         evt-20260716_151227 disposal=1 conf=90
+  [15/57] fp         evt-20260716_152303 disposal=0 conf=95
+  [16/57] fp         evt-20260716_161144 disposal=1 conf=95

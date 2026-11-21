@@ -1,0 +1,7 @@
+== detail54__d25f_v1__r1.jsonl: 323 linhas
+  pares=89 sem_par=234 diferenca: min=434 mediana=434 max=434 valores={434: 89}
+    aviso='': n=10 mediana=434.0 min=434 max=434
+    aviso='Entulho': n=60 mediana=434.0 min=434 max=434
+    aviso='Entulho, Poda': n=3 mediana=434 min=434 max=434
+    aviso='Lixo domiciliar': n=10 mediana=434.0 min=434 max=434
+    aviso='Mixed': n=6 mediana=434.0 min=434 max=434

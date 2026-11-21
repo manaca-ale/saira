@@ -1,0 +1,365 @@
+{
+  "gate": "g25l_v1:1",
+  "regra": {
+    "oficial_min_reais": 16,
+    "oficial_falsos_menos_que_o_g3": true,
+    "holdout_min_retidos_dos_que_passam_no_gate": 25
+  },
+  "official": {
+    "d38f_g3_low_low:1": {
+      "missing_detail": 0,
+      "cru": {
+        "reais": "18/18",
+        "falsos": "6/26",
+        "vazias": "2/40",
+        "n_reais": 18,
+        "n_falsos": 6
+      },
+      "com_veto": {
+        "reais": "16/18",
+        "falsos": "5/26",
+        "vazias": "2/40",
+        "n_reais": 16,
+        "n_falsos": 5
+      },
+      "falsos_confirmados_cru": [
+        "132e7692-e530-44e2-8d52-da564b5c61c8",
+        "56e59ca0-63ff-4cae-9f35-c10291ef1055",
+        "635f7de2-0919-4366-8255-d40fcfa791ae",
+        "781cd838-85f9-493f-83ad-45c55a6b3d89",
+        "caebb65d-f99b-469f-9067-208285e527df",
+        "ed0b1eb9-3439-4848-8a93-38e309715839"
+      ],
+      "reais_perdidas_cru": [],
+      "vazias_confirmadas_cru": [
+        "evt-20260722_095851",
+        "evt-20260722_124935"
+      ]
+    },
+    "d38f_g3_low_low:2": {
+      "missing_detail": 0,
+      "cru": {
+        "reais": "18/18",
+        "falsos": "6/26",
+        "vazias": "2/40",
+        "n_reais": 18,
+        "n_falsos": 6
+      },
+      "com_veto": {
+        "reais": "16/18",
+        "falsos": "4/26",
+        "vazias": "1/40",
+        "n_reais": 16,
+        "n_falsos": 4
+      },
+      "falsos_confirmados_cru": [
+        "132e7692-e530-44e2-8d52-da564b5c61c8",
+        "56e59ca0-63ff-4cae-9f35-c10291ef1055",
+        "635f7de2-0919-4366-8255-d40fcfa791ae",
+        "781cd838-85f9-493f-83ad-45c55a6b3d89",
+        "caebb65d-f99b-469f-9067-208285e527df",
+        "ed0b1eb9-3439-4848-8a93-38e309715839"
+      ],
+      "reais_perdidas_cru": [],
+      "vazias_confirmadas_cru": [
+        "evt-20260722_095851",
+        "evt-20260722_124935"
+      ]
+    },
+    "d38f_g3_low_low:3": {
+      "missing_detail": 0,
+      "cru": {
+        "reais": "18/18",
+        "falsos": "6/26",
+        "vazias": "2/40",
+        "n_reais": 18,
+        "n_falsos": 6
+      },
+      "com_veto": {
+        "reais": "16/18",
+        "falsos": "4/26",
+        "vazias": "2/40",
+        "n_reais": 16,
+        "n_falsos": 4
+      },
+      "falsos_confirmados_cru": [
+        "132e7692-e530-44e2-8d52-da564b5c61c8",
+        "56e59ca0-63ff-4cae-9f35-c10291ef1055",
+        "635f7de2-0919-4366-8255-d40fcfa791ae",
+        "781cd838-85f9-493f-83ad-45c55a6b3d89",
+        "caebb65d-f99b-469f-9067-208285e527df",
+        "ed0b1eb9-3439-4848-8a93-38e309715839"
+      ],
+      "reais_perdidas_cru": [],
+      "vazias_confirmadas_cru": [
+        "evt-20260722_095851",
+        "evt-20260722_124935"
+      ]
+    },
+    "d38f_v4_low_low:1": {
+      "missing_detail": 0,
+      "cru": {
+        "reais": "13/18",
+        "falsos": "0/26",
+        "vazias": "0/40",
+        "n_reais": 13,
+        "n_falsos": 0
+      },
+      "com_veto": {
+        "reais": "12/18",
+        "falsos": "0/26",
+        "vazias": "0/40",
+        "n_reais": 12,
+        "n_falsos": 0
+      },
+      "falsos_confirmados_cru": [],
+      "reais_perdidas_cru": [
+        "2a7571b8-d7ed-4e92-94a6-97cc13f2d3f1",
+        "2ec16c89-23e2-43de-af31-a9f7022725c6",
+        "3da2f5d5-808b-4f99-9ecb-6d3272e918c3",
+        "561d3021-99f3-4731-8727-1773c20e0e83",
+        "a7e3011f-d68a-4d6d-a451-c7d1fac89f96"
+      ],
+      "vazias_confirmadas_cru": [],
+      "passa_regra_oficial": false
+    },
+    "d38f_v1_low_low:1": {
+      "missing_detail": 0,
+      "cru": {
+        "reais": "17/18",
+        "falsos": "4/26",
+        "vazias": "0/40",
+        "n_reais": 17,
+        "n_falsos": 4
+      },
+      "com_veto": {
+        "reais": "16/18",
+        "falsos": "3/26",
+        "vazias": "0/40",
+        "n_reais": 16,
+        "n_falsos": 3
+      },
+      "falsos_confirmados_cru": [
+        "132e7692-e530-44e2-8d52-da564b5c61c8",
+        "56e59ca0-63ff-4cae-9f35-c10291ef1055",
+        "781cd838-85f9-493f-83ad-45c55a6b3d89",
+        "ed0b1eb9-3439-4848-8a93-38e309715839"
+      ],
+      "reais_perdidas_cru": [
+        "561d3021-99f3-4731-8727-1773c20e0e83"
+      ],
+      "vazias_confirmadas_cru": [],
+      "passa_regra_oficial": true
+    },
+    "g3_falsos_cru_min_max": [
+      6,
+      6
+    ],
+    "falsos_confirmados_por_alguem": [
+      {
+        "det_id": "132e7692-e530-44e2-8d52-da564b5c61c8",
+        "eventos": [
+          "evt-20260716_123717",
+          "evt-20260716_123920"
+        ],
+        "justificativa_operador": [
+          "Constatamos bastante lixo domiciliar, porém, não percebemos o momento do descarte. Prezença de catadores de recicláveis."
+        ],
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      },
+      {
+        "det_id": "56e59ca0-63ff-4cae-9f35-c10291ef1055",
+        "eventos": [
+          "evt-20260716_012139"
+        ],
+        "justificativa_operador": [
+          "Constatamos bastante lixo domiciliar, porém, não percebemos o momento do descarte. Prezença de catadores de recicláveis."
+        ],
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      },
+      {
+        "det_id": "635f7de2-0919-4366-8255-d40fcfa791ae",
+        "eventos": [
+          "evt-20260718_074618",
+          "evt-20260718_074821",
+          "evt-20260718_074955"
+        ],
+        "justificativa_operador": [
+          "Constatamos bastante lixo domiciliar, porém, não percebemos o momento do descarte. Prezença de catadores de recicláveis."
+        ],
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 0
+        }
+      },
+      {
+        "det_id": "781cd838-85f9-493f-83ad-45c55a6b3d89",
+        "eventos": [
+          "evt-20260717_131804"
+        ],
+        "justificativa_operador": [
+          "Constatamos bastante lixo domiciliar, porém, não percebemos o momento do descarte. Prezença de catadores de recicláveis."
+        ],
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      },
+      {
+        "det_id": "caebb65d-f99b-469f-9067-208285e527df",
+        "eventos": [
+          "evt-20260716_151227",
+          "evt-20260716_152303",
+          "evt-20260716_153511",
+          "evt-20260716_161144"
+        ],
+        "justificativa_operador": [
+          "Constatamos bastante lixo domiciliar, porém, não percebemos o momento do descarte. Prezença de catadores de recicláveis."
+        ],
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 0
+        }
+      },
+      {
+        "det_id": "ed0b1eb9-3439-4848-8a93-38e309715839",
+        "eventos": [
+          "evt-20260716_165803",
+          "evt-20260716_170433"
+        ],
+        "justificativa_operador": [
+          "Constatamos bastante lixo domiciliar, porém, não percebemos o momento do descarte. Prezença de catadores de recicláveis."
+        ],
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      }
+    ],
+    "reais_perdidas_por_alguem": [
+      {
+        "det_id": "2a7571b8-d7ed-4e92-94a6-97cc13f2d3f1",
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      },
+      {
+        "det_id": "2ec16c89-23e2-43de-af31-a9f7022725c6",
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      },
+      {
+        "det_id": "3da2f5d5-808b-4f99-9ecb-6d3272e918c3",
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      },
+      {
+        "det_id": "561d3021-99f3-4731-8727-1773c20e0e83",
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 0
+        }
+      },
+      {
+        "det_id": "a7e3011f-d68a-4d6d-a451-c7d1fac89f96",
+        "confirmam_cru": {
+          "d38f_g3_low_low:1": 1,
+          "d38f_g3_low_low:2": 1,
+          "d38f_g3_low_low:3": 1,
+          "d38f_v4_low_low:1": 0,
+          "d38f_v1_low_low:1": 1
+        }
+      }
+    ]
+  },
+  "pi-inicial-v1": {
+    "d38f_g3_low_low:1": {
+      "missing_detail": 0,
+      "confirmados_que_passam_no_gate": 27,
+      "retidos_cru": 26,
+      "retidos_com_veto": 26,
+      "cascata_cru": {
+        "confirmados": "26/46",
+        "rejeitados": "14/43"
+      },
+      "cascata_com_veto": {
+        "confirmados": "26/46",
+        "rejeitados": "12/43"
+      }
+    },
+    "d38f_g3_low_low:2": {
+      "missing_detail": 0,
+      "confirmados_que_passam_no_gate": 27,
+      "retidos_cru": 25,
+      "retidos_com_veto": 25,
+      "cascata_cru": {
+        "confirmados": "25/46",
+        "rejeitados": "17/43"
+      },
+      "cascata_com_veto": {
+        "confirmados": "25/46",
+        "rejeitados": "14/43"
+      }
+    },
+    "d38f_v1_low_low:1": {
+      "missing_detail": 0,
+      "confirmados_que_passam_no_gate": 27,
+      "retidos_cru": 25,
+      "retidos_com_veto": 25,
+      "cascata_cru": {
+        "confirmados": "25/46",
+        "rejeitados": "11/43"
+      },
+      "cascata_com_veto": {
+        "confirmados": "25/46",
+        "rejeitados": "10/43"
+      },
+      "passa_regra_holdout": true
+    }
+  },
+  "veredito_oficial": {
+    "d38f_v4_low_low": false,
+    "d38f_v1_low_low": true
+  }
+}

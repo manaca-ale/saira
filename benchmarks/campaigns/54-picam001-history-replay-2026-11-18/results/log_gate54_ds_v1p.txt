@@ -1,0 +1,14 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[gate54/deepseek] braco=dsf_v1p_low_ctx modelo=deepseek-flash prompt=v1p imagens=low thinking=off
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=2 a_rodar=209 sem_frames=0 estimativa=US$ 0.2508 (preco de pico)
+  [1/209] ok=1 erros=0 tok_in=2541 tok_out=221 tok_think=0 US$/chamada=0.001027 lat=3125 ms fire=1 | gasto=US$ 0.0010 (3 s)
+  [2/209] ok=2 erros=0 tok_in=2541 tok_out=227 tok_think=0 US$/chamada=0.001035 lat=3747 ms fire=1 | gasto=US$ 0.0021 (3 s)
+  [50/209] ok=50 erros=0 tok_in=2541 tok_out=277 tok_think=0 US$/chamada=0.001095 lat=3198 ms fire=0 | gasto=US$ 0.0538 (31 s)
+  [100/209] ok=100 erros=0 tok_in=2542 tok_out=238 tok_think=0 US$/chamada=0.001048 lat=3490 ms fire=0 | gasto=US$ 0.1071 (59 s)
+  [150/209] ok=150 erros=0 tok_in=2541 tok_out=272 tok_think=0 US$/chamada=0.001089 lat=3993 ms fire=0 | gasto=US$ 0.1604 (87 s)
+  [171/209] S0 evt-20260826_142642 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [200/209] ok=199 erros=1 tok_in=2541 tok_out=210 tok_think=0 US$/chamada=0.001014 lat=2792 ms fire=0 | gasto=US$ 0.2135 (115 s)
+  [209/209] ok=208 erros=1 tok_in=2541 tok_out=258 tok_think=0 US$/chamada=0.001072 lat=4064 ms fire=0 | gasto=US$ 0.2230 (121 s)
+  fim: ok=208 erros=1 gasto_desta_execucao=US$ 0.2230 total_carteira_deepseek=US$ 0.2252 (121 s)

@@ -220,6 +220,12 @@ services:
       - WORKER_METRICS_HOST=0.0.0.0
       - WORKER_METRICS_PORT=9108
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      # Detail on Gemini 3 models (camp 53): empty = parameter not sent.
+      - GEMINI_DETAIL_THINKING_LEVEL=${GEMINI_DETAIL_THINKING_LEVEL:-}
+      - GEMINI_DETAIL_MEDIA_RESOLUTION=${GEMINI_DETAIL_MEDIA_RESOLUTION:-}
+      # Detail grounding (camp 53): true = a confirmation needs one valid bbox.
+      - GEMINI_REQUIRE_BBOX=${GEMINI_REQUIRE_BBOX:-true}
+      - GEMINI_BBOX_MIN_AREA_RATIO=${GEMINI_BBOX_MIN_AREA_RATIO:-0.01}
       - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-45}
       - GEMINI_MAX_RETRIES=${GEMINI_MAX_RETRIES:-2}
       - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}

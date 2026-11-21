@@ -1,0 +1,8 @@
+g31l_v1p_min_low_ctx: r1 = 777 eventos, r2 = 211, em comum = 211
+  r1: Flex pedido em 211/211 | latencia p50 4.2 s, p90 13.9 s, p99 55.6 s, maxima 127.7 s | acima de 15 s: 21
+  r2: Flex pedido em 0/211 | latencia p50 2.6 s, p90 3.0 s, p99 5.0 s, maxima 8.0 s | acima de 15 s: 0
+  S2C: n=61 | dispara r1 46, r2 46, nos dois 46 | mesma resposta em 61/61 (100%) | dos sim de r1, repetem 46/46 (100%)
+  S2R: n=40 | dispara r1 27, r2 27, nos dois 27 | mesma resposta em 40/40 (100%) | dos sim de r1, repetem 27/27 (100%)
+  S1: n=50 | dispara r1 15, r2 15, nos dois 15 | mesma resposta em 50/50 (100%) | dos sim de r1, repetem 15/15 (100%)
+  S0: n=60 | dispara r1 16, r2 16, nos dois 16 | mesma resposta em 60/60 (100%) | dos sim de r1, repetem 16/16 (100%)
+  deteccoes confirmadas mantidas: r1 27/32, r2 27/32, nas duas 27, em alguma 27

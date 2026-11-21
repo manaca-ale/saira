@@ -1,0 +1,66 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[detail] braco=d38f_v1_low_low rep=1 modelo=gemini-3.8-flash prompt=v1 think=low media=low frames=None flex=True
+  eventos=57 ja_feitos=0 a_rodar=57 estimativa=US$ 0.513
+  orcamento (vertex): teto US$ 15.00 gasto US$ 12.3610 teto desta execucao US$ 0.55
+  [1/57] fp         evt-20260715_120735 disposal=0 conf=92
+  [2/57] fp         evt-20260715_123608 disposal=0 conf=85
+  [3/57] fp         evt-20260715_125447 disposal=0 conf=85
+gemini timeout request_id=1b1f192c-accb-4e47-9638-103b541d02a2 attempt=1/3
+gemini timeout request_id=495225b8-b609-4068-8336-0f77d990b728 attempt=1/3
+  [4/57] tp         evt-20260715_165230 disposal=1 conf=98
+  [5/57] tp         evt-20260715_165556 disposal=0 conf=85
+  [6/57] tp         evt-20260715_181251 disposal=1 conf=98
+  [7/57] tp         evt-20260715_181611 disposal=0 conf=85
+  [8/57] tp         evt-20260715_181023 disposal=1 conf=98
+  [9/57] fp         evt-20260716_012139 disposal=0 conf=0
+gemini timeout request_id=1b1f192c-accb-4e47-9638-103b541d02a2 attempt=2/3
+gemini timeout request_id=495225b8-b609-4068-8336-0f77d990b728 attempt=2/3
+  [10/57] tp         evt-20260715_222047 disposal=0 conf=0
+  [11/57] fp         evt-20260716_094309 disposal=0 conf=85
+  [12/57] fp         evt-20260715_073056 disposal=0 conf=85
+  [13/57] fp         evt-20260716_123920 disposal=1 conf=95
+  [14/57] fp         evt-20260716_152303 disposal=0 conf=85
+  [15/57] fp         evt-20260716_161144 disposal=0 conf=85
+  [16/57] fp         evt-20260716_165803 disposal=1 conf=95
+  [17/57] fp         evt-20260716_170433 disposal=1 conf=90
+  [18/57] fp         evt-20260716_151227 disposal=0 conf=85
+  [19/57] tp         evt-20260715_085108 disposal=1 conf=95
+  [20/57] tp         evt-20260716_170619 disposal=1 conf=98
+  [21/57] tp         evt-20260716_170823 disposal=0 conf=85
+  [22/57] fp         evt-20260717_131804 disposal=1 conf=98
+  [23/57] fp         evt-20260716_175905 disposal=0 conf=90
+  [24/57] tp         evt-20260717_170823 disposal=0 conf=85
+  [25/57] fp         evt-20260717_154354 disposal=0 conf=85
+  [26/57] tp         evt-20260717_163744 disposal=1 conf=98
+  [27/57] tp         evt-20260717_173848 disposal=1 conf=98
+  [28/57] fp         evt-20260717_201306 disposal=0 conf=95
+  [29/57] fp         evt-20260718_074618 disposal=0 conf=85
+  [30/57] tp         evt-20260718_115346 disposal=1 conf=98
+  [31/57] tp         evt-20260718_120030 disposal=1 conf=90
+  [32/57] tp         evt-20260718_212040 disposal=1 conf=98
+  [33/57] tp         evt-20260718_212254 disposal=1 conf=98
+  [34/57] tp         evt-20260718_215920 disposal=1 conf=95
+  [35/57] tp         evt-20260718_214234 disposal=1 conf=95
+  [36/57] tp         evt-20260718_220134 disposal=1 conf=98
+  [37/57] fp         evt-20260719_221320 disposal=0 conf=90
+  [38/57] tp         evt-20260720_112125 disposal=1 conf=98
+  [39/57] tp         evt-20260720_112330 disposal=1 conf=98
+  [40/57] fp         evt-20260718_074955 disposal=0 conf=85
+  [41/57] tp         evt-20260720_153503 disposal=1 conf=98
+  [42/57] fp         evt-20260718_074821 disposal=0 conf=95
+  [43/57] tp         evt-20260720_153841 disposal=0 conf=90
+  [44/57] tp         evt-20260720_153259 disposal=1 conf=98
+  [45/57] tp         evt-20260721_005751 disposal=1 conf=98
+  [46/57] tp         evt-20260721_083339 disposal=1 conf=95
+  [47/57] fp         evt-20260720_193207 disposal=0 conf=85
+  [48/57] tp         evt-20260721_083429 disposal=1 conf=98
+  [49/57] fp         evt-20260721_073733 disposal=0 conf=95
+  [50/57] baseline   evt-20260722_095851 disposal=0 conf=85
+  [51/57] tp         evt-20260721_083549 disposal=1 conf=98
+  [52/57] baseline   evt-20260722_122927 disposal=0 conf=90
+  [53/57] tp         evt-20260722_124619 disposal=1 conf=98
+  [54/57] baseline   evt-20260722_124935 disposal=0 conf=85
+  [55/57] tp         evt-20260720_112538 disposal=1 conf=98
+  [56/57] tp         evt-20260722_094905 disposal=1 conf=100
+  [57/57] fp         evt-20260722_115613 disposal=0 conf=85
+  fim: ok=57 erros=0 chamadas_cobradas=57 (flex=57 standard=0) gasto_desta_execucao=US$ 0.4657 total_semana=US$ 12.8267 (1227 s)

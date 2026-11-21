@@ -1,0 +1,62 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[detail] braco=d38f_v1_low_low rep=1 modelo=gemini-3.8-flash prompt=v1 think=low media=low frames=None flex=True
+  eventos=53 ja_feitos=0 a_rodar=53 estimativa=US$ 0.477
+  orcamento (vertex): teto US$ 15.00 gasto US$ 12.8419 teto desta execucao US$ 0.50
+  [1/53] tp         evt-20260723_061455 disposal=1 conf=95
+  [2/53] fp         evt-20260723_102504 disposal=1 conf=98
+  [3/53] tp         evt-20260724_165325 disposal=1 conf=95
+  [4/53] tp         evt-20260724_110516 disposal=1 conf=95
+  [5/53] fp         evt-20260724_123630 disposal=0 conf=78
+  [6/53] fp         evt-20260728_095001 disposal=0 conf=95
+  [7/53] fp         evt-20260726_124009 disposal=1 conf=98
+  [8/53] tp         evt-20260801_124849 disposal=1 conf=98
+  [9/53] fp         evt-20260801_132931 disposal=1 conf=95
+  [10/53] tp         evt-20260801_171911 disposal=1 conf=98
+  [11/53] fp         evt-20260804_093511 disposal=1 conf=95
+  [12/53] tp         evt-20260805_104753 disposal=1 conf=98
+  [13/53] fp         evt-20260806_132652 disposal=1 conf=95
+  [14/53] fp         evt-20260807_131934 disposal=0 conf=90
+gemini error request_id=76551fc4-c94b-4a03-b23e-10f9e28e0f65 attempt=1/3 error=504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}
+gemini error request_id=d2bffa36-cb6d-4546-9460-2aed769f05de attempt=1/3 error=504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}
+  [15/53] fp         evt-20260808_130658 disposal=0 conf=85
+gemini error request_id=7d26c002-329c-4a0b-8d13-d3f30c119736 attempt=1/3 error=504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}
+  [16/53] tp         evt-20260728_090418 disposal=1 conf=98
+  [17/53] fp         evt-20260810_153831 disposal=0 conf=15
+  [18/53] tp         evt-20260811_113635 disposal=1 conf=95
+  [19/53] fp         evt-20260812_123952 disposal=1 conf=95
+  [20/53] tp         evt-20260813_120747 disposal=1 conf=98
+  [21/53] tp         evt-20260801_090326 disposal=0 conf=85
+  [22/53] fp         evt-20260814_134339 disposal=1 conf=95
+  [23/53] tp         evt-20260815_141846 disposal=1 conf=90
+  [24/53] tp         evt-20260815_135913 disposal=1 conf=98
+  [25/53] tp         evt-20260818_091909 disposal=1 conf=98
+  [26/53] tp         evt-20260818_160927 disposal=1 conf=98
+  [27/53] tp         evt-20260819_093004 disposal=1 conf=95
+  [28/53] fp         evt-20260815_143506 disposal=0 conf=85
+gemini error request_id=d2bffa36-cb6d-4546-9460-2aed769f05de attempt=2/3 error=504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': 'DEADLINE_EXCEEDED'}}
+  [29/53] fp         evt-20260819_211523 disposal=1 conf=95
+  [30/53] tp         evt-20260813_082051 disposal=1 conf=98
+  [31/53] tp         evt-20260823_094953 disposal=1 conf=95
+  [32/53] tp         evt-20260825_033529 disposal=0 conf=85
+  [33/53] fp         evt-20260826_190910 disposal=0 conf=85
+  [34/53] tp         evt-20260824_204925 disposal=1 conf=98
+  [35/53] fp         evt-20260827_102113 disposal=0 conf=85
+  [36/53] tp         evt-20260730_101342 disposal=1 conf=98
+  [37/53] fp         evt-20260825_113156 disposal=0 conf=85
+  [38/53] fp         evt-20260828_182703 disposal=0 conf=15
+  [39/53] fp         evt-20260902_113018 disposal=0 conf=85
+  [40/53] tp         evt-20260901_071250 disposal=1 conf=98
+  [41/53] tp         evt-20260903_154012 disposal=1 conf=98
+  [42/53] tp         evt-20260904_123629 disposal=1 conf=90
+  [43/53] tp         evt-20260904_160035 disposal=1 conf=98
+  [44/53] tp         evt-20260904_172034 disposal=1 conf=98
+  [45/53] fp         evt-20260828_092742 disposal=0 conf=90
+  [46/53] fp         evt-20260904_220749 disposal=1 conf=92
+  [47/53] fp         evt-20260904_182118 disposal=0 conf=85
+  [48/53] fp         evt-20260905_063923 disposal=0 conf=0
+  [49/53] tp         evt-20260905_093423 disposal=1 conf=98
+  [50/53] fp         evt-20260906_193456 disposal=1 conf=98
+  [51/53] tp         evt-20260905_122758 disposal=1 conf=98
+  [52/53] fp         evt-20260907_102208 disposal=0 conf=85
+  [53/53] fp         evt-20260903_063641 disposal=0 conf=90
+  fim: ok=53 erros=0 chamadas_cobradas=53 (flex=53 standard=0) gasto_desta_execucao=US$ 0.4300 total_semana=US$ 13.2719 (912 s)

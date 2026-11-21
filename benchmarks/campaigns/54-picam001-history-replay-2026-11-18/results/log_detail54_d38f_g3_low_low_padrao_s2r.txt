@@ -1,0 +1,7 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[detail54] braco=d38f_g3_low_low modelo=gemini-3.8-flash prompt=g3 think=low media=low frames=None aviso=prod horario=False flex=False
+  eventos=65 {'S2R': 65} ja_feitos=4 a_rodar=61 sem_janela=0 frames_a_rodar=1680 estimativa=US$ 0.4880
+  [25/61] ok=25 erros=0 gasto=US$ 0.2095 (35 s)
+  [50/61] ok=50 erros=0 gasto=US$ 0.4227 (60 s)
+  [61/61] ok=61 erros=0 gasto=US$ 0.5069 (76 s)
+  fim: ok=61 erros=0 chamadas={"n": 61, "flex": 0, "standard": 61} gasto_desta_execucao=US$ 0.5069 total_carteira=US$ 12.0417 (76 s)

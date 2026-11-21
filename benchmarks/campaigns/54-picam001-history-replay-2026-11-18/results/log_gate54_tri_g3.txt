@@ -1,0 +1,16 @@
+[gate54] braco=g31l_v1_min_low modelo=gemini-3.1-flash-lite prompt=v1 budget=None think=minimal media=low flex=False
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=0 a_rodar=211 sem_frames=0 estimativa=US$ 0.2532
+  [50/211] ok=50 erros=0 gasto=US$ 0.0437 (24 s)
+  [100/211] ok=100 erros=0 gasto=US$ 0.0867 (45 s)
+  [150/211] ok=150 erros=0 gasto=US$ 0.1295 (68 s)
+  [200/211] ok=200 erros=0 gasto=US$ 0.1717 (90 s)
+  [211/211] ok=211 erros=0 gasto=US$ 0.1810 (94 s)
+  fim: ok=211 erros=0 chamadas={'n': 211, 'flex': 0, 'standard': 211} gasto_desta_execucao=US$ 0.1810 total_carteira=US$ 2.7567 (94 s)
+[gate54] braco=g35l_v1_min_low modelo=gemini-3.5-flash-lite prompt=v1 budget=None think=minimal media=low flex=False
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=0 a_rodar=211 sem_frames=0 estimativa=US$ 0.3376
+  [50/211] ok=50 erros=0 gasto=US$ 0.0611 (18 s)
+  [100/211] ok=100 erros=0 gasto=US$ 0.1200 (36 s)
+  [150/211] ok=150 erros=0 gasto=US$ 0.1787 (56 s)
+  [200/211] ok=200 erros=0 gasto=US$ 0.2364 (72 s)
+  [211/211] ok=211 erros=0 gasto=US$ 0.2490 (75 s)
+  fim: ok=211 erros=0 chamadas={'n': 211, 'flex': 0, 'standard': 211} gasto_desta_execucao=US$ 0.2490 total_carteira=US$ 3.1531 (75 s)

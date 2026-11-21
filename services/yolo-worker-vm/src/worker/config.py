@@ -139,6 +139,16 @@ GEMINI_AGENT1_TIMEOUT_SECONDS = int(os.getenv("GEMINI_AGENT1_TIMEOUT_SECONDS", s
 GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE = int(os.getenv("GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE", "85"))
 GEMINI_AGENT1_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_AGENT1_MAX_OUTPUT_TOKENS", "4096"))
 GEMINI_AGENT1_THINKING_BUDGET = int(os.getenv("GEMINI_AGENT1_THINKING_BUDGET", "2048"))
+# Detail (Agent-2) on Gemini 3 models: reasoning level and media resolution.
+# Empty = do not send the parameter (historical behaviour; gemini-2.5-flash reasons
+# by default). gemini-3.5-flash-lite — where gemini-2.5-flash requests are routed
+# from 2026-12-01 — does NOT reason by default: in campaign 53 the unchanged request
+# dropped detail recall from 15/19 to 9/19 on pi-cam-001, and thinking_level=high with
+# media_resolution=low brought it back to 15/19 with fewer false positives.
+# Values: thinking minimal|low|medium|high; media low|medium|high.
+# With thinking on, keep GEMINI_MAX_OUTPUT_TOKENS >= 8192 and GEMINI_TIMEOUT_SECONDS >= 90.
+GEMINI_DETAIL_THINKING_LEVEL = os.getenv("GEMINI_DETAIL_THINKING_LEVEL", "").strip().lower()
+GEMINI_DETAIL_MEDIA_RESOLUTION = os.getenv("GEMINI_DETAIL_MEDIA_RESOLUTION", "").strip().lower()
 
 # --- Gemini circuit breaker (G2, resilience) --------------------------------
 # During a 429/RESOURCE_EXHAUSTED storm each window otherwise pays up to
@@ -346,10 +356,14 @@ if GEMINI_PROMPT_VERSION not in ("current", "v2", "v3", "audit"):
 # Separate flag for the Detail agent (Agent-2). Allows running gate with V1
 # (default, validated) while testing the audit prompt only on the detail side.
 # Values: "current" (V1) | "v2" | "v3" | "audit" | "audit_v2"
+# - g3: Gemini-3 recall-first prompt (_prompts_g3), detail only. This is the ONLY value
+#   the worker honours today (main._detail_prompt_version, campaign 53); the other values
+#   have been inert since the audit experiments and stay inert, so deploying this change
+#   cannot switch a prompt on by accident through a stale .env entry.
 # - audit: V1 adversarial reviewer, force-false unless real_dumping (camp 15 FAIL)
 # - audit_v2: relaxed, force-false only for 5 unambiguous FP patterns (camp 16)
 GEMINI_DETAIL_PROMPT_VERSION = os.getenv("GEMINI_DETAIL_PROMPT_VERSION", "").strip().lower()
-if GEMINI_DETAIL_PROMPT_VERSION not in ("", "current", "v2", "v3", "audit", "audit_v2"):
+if GEMINI_DETAIL_PROMPT_VERSION not in ("", "current", "v2", "v3", "audit", "audit_v2", "g3"):
     logging.getLogger(__name__).warning(
         "Invalid GEMINI_DETAIL_PROMPT_VERSION=%s. Falling back to GEMINI_PROMPT_VERSION.",
         GEMINI_DETAIL_PROMPT_VERSION,
@@ -579,6 +593,17 @@ GEMINI_MOSAIC_AGENT2: str = os.getenv("GEMINI_MOSAIC_AGENT2", "off").strip().low
 
 # Visual grounding — require bounding box for Agent 2 infraction confirmation.
 GEMINI_REQUIRE_BBOX = os.getenv("GEMINI_REQUIRE_BBOX", "true").strip().lower() in ("true", "1", "yes")
+# Smallest bbox area, as a fraction of the image, that _validate_bbox keeps. 0.01 is the
+# historical value, tuned on ESP32 frames. On the HD Pi camera a person covers less than
+# 1% of the frame and gemini-3.8-flash draws tight boxes (0.25% to 0.99% in campaign 53),
+# so every box was dropped and, with GEMINI_REQUIRE_BBOX=true, real confirmations were
+# turned into "no". This setting only decides which boxes are KEPT; whether a
+# confirmation needs a box at all is GEMINI_REQUIRE_BBOX.
+try:
+    GEMINI_BBOX_MIN_AREA_RATIO = float(os.getenv("GEMINI_BBOX_MIN_AREA_RATIO", "0.01"))
+except ValueError:
+    GEMINI_BBOX_MIN_AREA_RATIO = 0.01
+GEMINI_BBOX_MIN_AREA_RATIO = min(0.60, max(0.0, GEMINI_BBOX_MIN_AREA_RATIO))
 
 # Token cost estimation (USD per 1M tokens) — gemini-2.5-flash pricing (non-thinking).
 GEMINI_INPUT_TOKEN_PRICE_PER_1M = float(os.getenv("GEMINI_INPUT_TOKEN_PRICE_PER_1M", "0.15"))

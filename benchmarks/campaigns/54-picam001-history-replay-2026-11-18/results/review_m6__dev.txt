@@ -1,0 +1,166 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+== 1. funil refeito (deteccoes com pelo menos um evento em que o gate dispara e o detail diz sim)
+  d25f_v1          g25l_v1_t2048_ctx      confirmadas 21/32 | rejeitadas 26/61 | S2X 4/6 | S1 sim 25 | S0 sim  8
+  d25f_v1          g31l_v1p_min_low_ctx   confirmadas 26/32 | rejeitadas 30/61 | S2X 2/6 | S1 sim 24 | S0 sim 32
+  d25f_v1          nvl_v1p_low_ctx        confirmadas 26/32 | rejeitadas 26/61 | S2X 4/6 | S1 sim 26 | S0 sim 17
+  d38f_g3_low_low  g25l_v1_t2048_ctx      confirmadas 19/32 | rejeitadas 21/61 | S2X 2/6 | S1 sim 21 | S0 sim 10
+  d38f_g3_low_low  g31l_v1p_min_low_ctx   confirmadas 25/32 | rejeitadas 23/61 | S2X 2/6 | S1 sim 25 | S0 sim 31
+  d38f_g3_low_low  nvl_v1p_low_ctx        confirmadas 25/32 | rejeitadas 19/61 | S2X 2/6 | S1 sim 25 | S0 sim 13
+
+== 2. disparos de gate sem veredito do detail de controle (d25f_v1)
+  uniao dos disparos dos tres gates no conjunto pass: 330 eventos {'S1': 112, 'S0': 88, 'S2C': 59, 'S2X': 7, 'S2R': 64}; com veredito do controle: 322
+  evt-20260723_090656 S0   nota 0.35 | gates ['nvl_v1p_low_ctx'] | producao: detail rodou=0 sim=0 | nunca foi chamado
+  evt-20260724_130940 S2C  nota 0.45 | gates ['nvl_v1p_low_ctx'] | producao: detail rodou=1 sim=1 | chamada com erro: RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for G
+  evt-20260724_150414 S0   nota 0.64 | gates ['g31l_v1p_min_low_ctx'] | producao: detail rodou=0 sim=0 | nunca foi chamado
+  evt-20260728_121418 S0   nota 0.33 | gates ['g25l_v1_t2048_ctx'] | producao: detail rodou=0 sim=0 | nunca foi chamado
+  evt-20260729_214228 S0   nota 0.38 | gates ['g25l_v1_t2048_ctx'] | producao: detail rodou=0 sim=0 | nunca foi chamado
+  evt-20260812_070415 S0   nota 0.49 | gates ['g31l_v1p_min_low_ctx'] | producao: detail rodou=0 sim=0 | nunca foi chamado
+  evt-20260824_060035 S0   nota 0.66 | gates ['g25l_v1_t2048_ctx'] | producao: detail rodou=0 sim=0 | nunca foi chamado
+  evt-20260906_081854 S0   nota 0.64 | gates ['g31l_v1p_min_low_ctx'] | producao: detail rodou=0 sim=0 | nunca foi chamado
+  eventos com detail de controle que nao sao disparo de nenhum gate _ctx r1: 1 {'S2R': 1}
+
+== 3. S0 com sim do detail de controle
+  S0 no dev com nota: 1623; passam no filtro: 304 (18.7%); peso do S0 na camera: 0.968
+  S0 com veredito do controle: 81; sim: 41
+  g25l_v1_t2048_ctx      disparos S0 15/304 | sim do detail 8/12 | alertas S0 por 1.000: 6.0 (so a margem do detail: 3.5 a 7.7; so a do gate: 3.6 a 9.6)
+  g31l_v1p_min_low_ctx   disparos S0 53/304 | sim do detail 32/50 | alertas S0 por 1.000: 20.2 (so a margem do detail: 15.8 a 24.0; so a do gate: 15.8 a 25.6)
+  nvl_v1p_low_ctx        disparos S0 44/304 | sim do detail 17/43 | alertas S0 por 1.000: 10.4 (so a margem do detail: 6.9 a 14.3; so a do gate: 7.9 a 13.5)
+    g3 nao                                   19
+    g3 sim                                   22
+    gates: g25l                              2
+    gates: g25l+g31l                         2
+    gates: g25l+g31l+nvl                     4
+    gates: g31l                              20
+    gates: g31l+nvl                          6
+    gates: nvl                               7
+    hora dia                                 23
+    hora noite                               18
+  lista gravada em ../results/s0_sim_controle54.tsv
+
+== 4. deteccoes rejeitadas que sobrevivem, por causa
+  d25f_v1 + g25l_v1_t2048_ctx: 26 rejeitadas
+       9  pessoa_mexendo_no_lixo
+       3  catador_provável
+       3  catador
+       2  sem revisao
+       2  inconclusivo
+       1  descarte_real
+       1  descarte_com_destino_misto
+       1  veiculo_sem_descarte
+       1  descarte_em_recipiente_provável
+       1  descarte_real_provável
+       1  coleta_publica
+       1  pedestre_passando
+      erro do operador: improvável 12, indeterminado 8, sem revisao 2, possível divergência de critério — o comentário confirma a ação, mas o tratamento de poda exige confirmação 1, possível — vale confirmar a posição da placa em relação à borda; a sequência mostra descarga real 1, indeterminado — comentário de descarte regular compatível com a caçamba, mas há material junto à borda externa 1, possível 1
+  d25f_v1 + g31l_v1p_min_low_ctx: 30 rejeitadas
+      10  pessoa_mexendo_no_lixo
+       5  catador
+       3  catador_provável
+       3  inconclusivo
+       1  descarte_real
+       1  descarte_com_destino_misto
+       1  veiculo_sem_descarte
+       1  descarte_em_recipiente_provável
+       1  catador / catador_provável
+       1  pedestre_passando
+       1  descarte_real_provável
+       1  inconclusivo / pessoa_mexendo_no_lixo
+       1  manuseio_de_vegetação_com_destino_incerto
+      erro do operador: improvável 14, indeterminado 9, improvável / indeterminado 2, possível divergência de critério — o comentário confirma a ação, mas o tratamento de poda exige confirmação 1, possível — vale confirmar a posição da placa em relação à borda; a sequência mostra descarga real 1, indeterminado — comentário de descarte regular compatível com a caçamba, mas há material junto à borda externa 1, possível 1, indeterminado — não se vê onde a vegetação ficou 1
+  d25f_v1 + nvl_v1p_low_ctx: 26 rejeitadas
+       8  pessoa_mexendo_no_lixo
+       4  inconclusivo
+       3  catador
+       2  catador_provável
+       2  veiculo_sem_descarte
+       1  descarte_real
+       1  descarte_com_destino_misto
+       1  descarte_em_recipiente_provável
+       1  catador / catador_provável / pessoa_mexendo_no_lixo
+       1  descarte_real_provável
+       1  coleta_publica
+       1  pedestre_passando
+      erro do operador: improvável 12, indeterminado 9, possível divergência de critério — o comentário confirma a ação, mas o tratamento de poda exige confirmação 1, possível — vale confirmar a posição da placa em relação à borda; a sequência mostra descarga real 1, indeterminado / indeterminado — comentário de descarte regular compatível com a caçamba, mas há material junto à borda externa 1, improvável / indeterminado 1, possível 1
+  d38f_g3_low_low + g25l_v1_t2048_ctx: 21 rejeitadas
+      10  pessoa_mexendo_no_lixo
+       2  descarte_em_recipiente_provável
+       2  catador
+       1  descarte_real
+       1  descarte_com_destino_misto
+       1  catador_provável
+       1  descarte_real_provável
+       1  coleta_publica_provável
+       1  inconclusivo
+       1  sem revisao
+      erro do operador: improvável 8, indeterminado 7, possível divergência de critério — o comentário confirma a ação, mas o tratamento de poda exige confirmação 1, possível — vale confirmar a posição da placa em relação à borda; a sequência mostra descarga real 1, indeterminado — a sequência ao lado da caçamba é compatível com o motivo do operador / indeterminado — comentário de descarte regular compatível com a caçamba, mas há material junto à borda externa 1, possível 1, improvável / indeterminado 1, sem revisao 1
+  d38f_g3_low_low + g31l_v1p_min_low_ctx: 23 rejeitadas
+      12  pessoa_mexendo_no_lixo
+       3  catador_provável
+       2  inconclusivo
+       2  catador
+       1  descarte_real
+       1  descarte_com_destino_misto
+       1  descarte_em_recipiente_provável
+       1  descarte_real_provável
+      erro do operador: indeterminado 9, improvável 8, improvável / indeterminado 2, possível divergência de critério — o comentário confirma a ação, mas o tratamento de poda exige confirmação 1, possível — vale confirmar a posição da placa em relação à borda; a sequência mostra descarga real 1, indeterminado — a sequência ao lado da caçamba é compatível com o motivo do operador / indeterminado — comentário de descarte regular compatível com a caçamba, mas há material junto à borda externa 1, possível 1
+  d38f_g3_low_low + nvl_v1p_low_ctx: 19 rejeitadas
+       8  pessoa_mexendo_no_lixo
+       2  descarte_em_recipiente_provável
+       2  inconclusivo
+       1  descarte_real
+       1  catador_provável
+       1  descarte_com_destino_misto
+       1  catador_provável / pessoa_mexendo_no_lixo
+       1  descarte_real_provável
+       1  coleta_publica_provável
+       1  catador
+      erro do operador: improvável 7, indeterminado 6, improvável / indeterminado 2, possível divergência de critério — o comentário confirma a ação, mas o tratamento de poda exige confirmação 1, possível — vale confirmar a posição da placa em relação à borda; a sequência mostra descarga real 1, indeterminado / indeterminado — a sequência ao lado da caçamba é compatível com o motivo do operador / indeterminado — comentário de descarte regular compatível com a caçamba, mas há material junto à borda externa 1, possível 1
+
+  comentarios do operador nas rejeitadas que sobrevivem ao controle + g31l (as mais numerosas):
+    evt-20260828_181447 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE APENAS MOVIMENTAÇÃO DO LIXO JÁ DESCARTADO
+    evt-20260904_182118 [catador] NÃO OCORREU DESCARTE, APENAS MOVIMENTAÇÃO DO LIXO JÁ DESCARTADO
+    evt-20260906_193456 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE, APENAS MOVIMENTAÇÃO DO QUE JÁ FOI DESCARTADO
+    evt-20260903_151614 [catador/catador_provável] não ocorreu descarte
+    evt-20260904_205527 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE, APENAS MOVIMENTAÇÃO DO LIXO JÁ DESCARTADO
+    evt-20260803_130037 [catador_provável] Notamos que a volumetria aumentou, porém, não é possível confirmar se de fato o flagrante do descarte.
+    evt-20260814_123301 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE IRREGULAR
+    evt-20260724_143839 [catador_provável] Notamos aumento da volumetria, porém, não flagramos o momento do descarte.
+    evt-20260826_082122 [manuseio_de_vegetação_com_destino_incerto] NÃO OCORREU DESCARTE
+    evt-20260902_113018 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE
+    evt-20260905_083358 [pedestre_passando] NÃO OCORREU DESCARTE
+    evt-20260904_093503 [veiculo_sem_descarte] NÃO OCORREU DESCARTE IRREGULAR
+    evt-20260815_114903 [descarte_com_destino_misto] HOUVE O DESCARTE, MAS DENTRO DO CONTAINER
+    evt-20260722_124619 [descarte_real_provável] Transito de pessoas.
+    evt-20260812_074108 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE
+    evt-20260724_120229 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE
+    evt-20260814_231255 [inconclusivo] NÃO OCORREU DESCARTE IRREGULAR
+    evt-20260812_123952 [catador_provável] NÃO OCORREU DESCARTE
+    evt-20260908_201641 [pessoa_mexendo_no_lixo] NÃO OCORREU DESCARTE
+    evt-20260813_172349 [catador] NÃO OCORREU DESCARTE
+    evt-20260722_115613 [catador] Sem flagrante de descarte.
+    evt-20260723_133156 [pessoa_mexendo_no_lixo] Sem flagrante de descarte.
+    evt-20260907_124004 [descarte_real] OCORREU DESCARTE DE FOLHAS DE COQUEIRO
+    evt-20260811_150445 [inconclusivo/pessoa_mexendo_no_lixo] Sem flagrante de descartes.
+    evt-20260726_124009 [inconclusivo] Notamos aumento da volumetria, porém, não flagramos o momento do descarte.
+    evt-20260725_124138 [catador] Notamos aumento da volumetria, porém, não flagramos o momento do descarte.
+    evt-20260729_010318 [inconclusivo] Sem descartes.
+    evt-20260903_145310 [catador] não ocorreu descarte
+    evt-20260731_145218 [descarte_em_recipiente_provável] Descarte regular.
+    evt-20260803_072848 [pessoa_mexendo_no_lixo] Notamos o aumento da volumetria, porém, não flagramos o momento do descarte.
+
+== 5. leitura a olho da janela inteira dos S0 com sim de algum detail (um revisor, sem cegamento)
+  eventos lidos: 54 -> descarte_provavel 11 | falso_provavel 25 | indeterminado 18
+  por causa: descarte_provavel/descarte_a_pe 6, descarte_provavel/descarte_carrinho 3, descarte_provavel/descarte_veiculo 2, falso_provavel/manuseio 14, falso_provavel/passagem 10, falso_provavel/retirada 1, indeterminado/equipe_uniformizada 1, indeterminado/manuseio 9, indeterminado/passagem 1, indeterminado/recipiente 3, indeterminado/retirada 1, indeterminado/veiculo_parado 3
+  noite (18h a 6h): descarte_provavel 2 | falso_provavel 14 | indeterminado 4
+  dia: descarte_provavel 9 | falso_provavel 11 | indeterminado 14
+  disparos do gate g25l_v1_t2048_ctx entre os lidos: descarte_provavel 5 | falso_provavel 5 | indeterminado 2
+  disparos do gate g31l_v1p_min_low_ctx entre os lidos: descarte_provavel 10 | falso_provavel 18 | indeterminado 14
+  disparos do gate nvl_v1p_low_ctx entre os lidos: descarte_provavel 3 | falso_provavel 10 | indeterminado 9
+  d25f_v1: S0 com sim 41 -> descarte_provavel 10 | falso_provavel 20 | indeterminado 11
+    g25l_v1_t2048_ctx      descarte_provavel 4 (3.0 por 1.000) | falso_provavel 3 (2.2 por 1.000) | indeterminado 1 (0.7 por 1.000)
+    g31l_v1p_min_low_ctx   descarte_provavel 10 (6.3 por 1.000) | falso_provavel 13 (8.2 por 1.000) | indeterminado 9 (5.7 por 1.000)
+    nvl_v1p_low_ctx        descarte_provavel 3 (1.8 por 1.000) | falso_provavel 8 (4.9 por 1.000) | indeterminado 6 (3.7 por 1.000)
+  d38f_g3_low_low: S0 com sim 35 -> descarte_provavel 9 | falso_provavel 13 | indeterminado 13
+    g25l_v1_t2048_ctx      descarte_provavel 5 (3.7 por 1.000) | falso_provavel 3 (2.2 por 1.000) | indeterminado 2 (1.5 por 1.000)
+    g31l_v1p_min_low_ctx   descarte_provavel 8 (5.1 por 1.000) | falso_provavel 13 (8.2 por 1.000) | indeterminado 10 (6.3 por 1.000)
+    nvl_v1p_low_ctx        descarte_provavel 3 (1.8 por 1.000) | falso_provavel 3 (1.8 por 1.000) | indeterminado 7 (4.3 por 1.000)

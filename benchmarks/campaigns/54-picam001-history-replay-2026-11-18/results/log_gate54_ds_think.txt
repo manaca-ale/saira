@@ -1,0 +1,213 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[gate54/deepseek] braco=dsft_v1p_low_ctx modelo=deepseek-flash prompt=v1p imagens=low thinking=on
+  conjunto=tri (limiar 0.3) eventos=121 {'S0': 60, 'S2C': 61} ja_feitos=0 a_rodar=121 sem_frames=0 estimativa=US$ 0.4840 (preco de pico)
+  [1/121] ok=1 erros=0 tok_in=2566 tok_out=326 tok_think=179 US$/chamada=0.001376 lat=6540 ms fire=0 | gasto=US$ 0.0014 (6 s)
+  [2/121] S2C evt-20260720_111909 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [3/121] S2C evt-20260720_112538 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [4/121] S2C evt-20260718_220134 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [5/121] S2C evt-20260721_083339 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [6/121] S2C evt-20260720_112330 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [7/121] S2C evt-20260723_062233 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [8/121] S2C evt-20260723_192649 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [10/121] S2C evt-20260723_193458 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [12/121] S2C evt-20260723_192908 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [14/121] S2C evt-20260724_081524 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [15/121] S2C evt-20260721_083549 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+  Invalid JSON: EOF while parsing a value at line 1 column 0 [type=json_invalid, input_value='', input_type=str]
+  
+  [16/121] S2C evt-20260725_203113 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [17/121] S2C evt-20260723_194258 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [18/121] S2C evt-20260724_081756 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [19/121] S2C evt-20260724_110516 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [21/121] S2C evt-20260725_203547 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [23/121] S2C evt-20260727_165233 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [27/121] S2C evt-20260730_101342 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [28/121] S2C evt-20260731_171645 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [29/121] S2C evt-20260731_160142 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [30/121] S2C evt-20260727_170157 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [32/121] S2C evt-20260731_171849 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [33/121] S2C evt-20260801_090326 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [34/121] S2C evt-20260803_112517 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [35/121] S2C evt-20260803_094821 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [37/121] S2C evt-20260803_113135 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [38/121] S2C evt-20260803_112727 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [39/121] S2C evt-20260810_183833 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [40/121] S2C evt-20260803_113339 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [41/121] S2C evt-20260814_114541 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [44/121] S2C evt-20260815_135913 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed in first
+  [45/121] S2C evt-20260819_201229 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [46/121] S2C evt-20260820_144144 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [47/121] S2C evt-20260818_091909 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [48/121] S2C evt-20260820_144348 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [49/121] S2C evt-20260814_115133 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [50/121] S2C evt-20260823_110447 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [51/121] S2C evt-20260815_141846 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [52/121] S2C evt-20260901_103555 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [53/121] S2C evt-20260825_033529 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [55/121] S2C evt-20260829_110620 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [56/121] S2C evt-20260902_104902 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [57/121] S2C evt-20260829_110416 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [59/121] S2C evt-20260901_103351 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [60/121] S0 evt-20260811_201403 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [61/121] S0 evt-20260717_182657 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value="(1) Fixed obje
+  [62/121] S2C evt-20260905_122758 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [63/121] S0 evt-20260725_184927 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [65/121] S0 evt-20260806_175801 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [71/121] S0 evt-20260716_045439 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [72/121] S2C evt-20260904_172034 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+  Invalid JSON: EOF while parsing a value at line 1 column 0 [type=json_invalid, input_value='', input_type=str]
+  
+  [73/121] S0 evt-20260907_124401 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) Fixed obje
+  [74/121] S0 evt-20260906_151736 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [76/121] S0 evt-20260718_182216 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value="Fixed objects 
+  [82/121] S0 evt-20260811_174805 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [84/121] S0 evt-20260801_190755 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [85/121] S0 evt-20260826_142642 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) Fixed obje
+  [86/121] S0 evt-20260808_040430 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [87/121] S0 evt-20260827_063719 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) Fixed obje
+  [93/121] S0 evt-20260820_190134 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) Fixed obje
+  [95/121] S0 evt-20260828_210639 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [98/121] S0 evt-20260812_070415 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [100/121] S0 evt-20260729_214228 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [102/121] S0 evt-20260718_102201 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [108/121] S0 evt-20260721_093407 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [112/121] S0 evt-20260730_121439 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='Fixed objects 
+  [113/121] S0 evt-20260820_201356 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [114/121] S0 evt-20260730_173815 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='First frame fi
+  [119/121] S0 evt-20260824_212757 ERR json invalido: ValidationError: 1 validation error for GeminiNewLitterReport
+scene_delta_analysis
+  String should have at most 500 characters [type=string_too_long, input_value='(1) First fram
+  [121/121] ok=52 erros=69 tok_in=2566 tok_out=313 tok_think=1595 US$/chamada=0.003059 lat=20000 ms fire=0 | gasto=US$ 0.2649 (217 s)
+  fim: ok=52 erros=69 gasto_desta_execucao=US$ 0.2649 total_carteira_deepseek=US$ 0.7109 (217 s)

@@ -1,0 +1,217 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[detail] braco=d38f_g3_low_min rep=1 modelo=gemini-3.8-flash prompt=g3 think=minimal media=low frames=None flex=True
+  eventos=53 ja_feitos=0 a_rodar=53 estimativa=US$ 0.265
+  orcamento: teto US$ 15.00 gasto US$ 5.1937 teto desta execucao US$ 0.35
+gemini error request_id=e6dd7f39-c4a3-4171-96dc-41da05ac1a74 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=eefffc68-79fa-49bd-9755-4f7ab0f6342e attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=4d8bebed-ab8f-40cf-bcae-1e05a016cfa3 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=db2f1054-38fd-4211-b116-c1af17b65823 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c7f72dbb-75a5-4fde-9746-bb1e4bec33c4 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=e6dd7f39-c4a3-4171-96dc-41da05ac1a74 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=eefffc68-79fa-49bd-9755-4f7ab0f6342e attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=4d8bebed-ab8f-40cf-bcae-1e05a016cfa3 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=db2f1054-38fd-4211-b116-c1af17b65823 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c7f72dbb-75a5-4fde-9746-bb1e4bec33c4 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=e6dd7f39-c4a3-4171-96dc-41da05ac1a74 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [1/53] tp         evt-20260723_061455 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=4d8bebed-ab8f-40cf-bcae-1e05a016cfa3 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [2/53] fp         evt-20260723_102504 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=eefffc68-79fa-49bd-9755-4f7ab0f6342e attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [3/53] fp         evt-20260726_124009 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=c5dcc96f-0fa3-42cc-8d13-89c8b84f8202 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c72fe5ec-0f49-4810-8bce-375e36d6f609 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=db2f1054-38fd-4211-b116-c1af17b65823 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [4/53] fp         evt-20260724_123630 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=c7f72dbb-75a5-4fde-9746-bb1e4bec33c4 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [5/53] tp         evt-20260724_110516 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=86b22e4f-8d1a-474a-b78c-30337041e2eb attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=b88351c1-b32d-46d9-8d85-f52b9759ecb5 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c5dcc96f-0fa3-42cc-8d13-89c8b84f8202 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=21b7c9ca-e39e-4cff-b28e-2a3049b8f58c attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=1085ee27-aabc-4ebe-b8f3-6e9babc11010 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c72fe5ec-0f49-4810-8bce-375e36d6f609 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=86b22e4f-8d1a-474a-b78c-30337041e2eb attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=b88351c1-b32d-46d9-8d85-f52b9759ecb5 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c5dcc96f-0fa3-42cc-8d13-89c8b84f8202 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [6/53] tp         evt-20260728_090418 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=21b7c9ca-e39e-4cff-b28e-2a3049b8f58c attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=1085ee27-aabc-4ebe-b8f3-6e9babc11010 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=86b22e4f-8d1a-474a-b78c-30337041e2eb attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [7/53] fp         evt-20260728_095001 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=c72fe5ec-0f49-4810-8bce-375e36d6f609 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [8/53] tp         evt-20260724_165325 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=b88351c1-b32d-46d9-8d85-f52b9759ecb5 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [9/53] tp         evt-20260730_101342 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=cfdfbc1e-4e51-4a8e-b45d-a798b928c9cc attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=21edd031-671e-406a-a2e2-fc6cd1788da8 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=21b7c9ca-e39e-4cff-b28e-2a3049b8f58c attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [10/53] tp         evt-20260801_124849 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=1085ee27-aabc-4ebe-b8f3-6e9babc11010 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [11/53] tp         evt-20260801_090326 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=32b1b291-7db1-497c-9427-fbd479c9e346 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=cfdfbc1e-4e51-4a8e-b45d-a798b928c9cc attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=21edd031-671e-406a-a2e2-fc6cd1788da8 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=b7560241-9ad3-4340-b64f-52c9f82c7458 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5f96061e-0159-4bac-8634-01793943f712 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=32b1b291-7db1-497c-9427-fbd479c9e346 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=cfdfbc1e-4e51-4a8e-b45d-a798b928c9cc attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [12/53] fp         evt-20260801_132931 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=21edd031-671e-406a-a2e2-fc6cd1788da8 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [13/53] tp         evt-20260801_171911 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=b7560241-9ad3-4340-b64f-52c9f82c7458 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5f96061e-0159-4bac-8634-01793943f712 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=32b1b291-7db1-497c-9427-fbd479c9e346 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [14/53] tp         evt-20260805_104753 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=e66c0fcd-75ac-4155-8ec6-49f37308abbc attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=b7560241-9ad3-4340-b64f-52c9f82c7458 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [15/53] fp         evt-20260806_132652 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=5401fe8e-5545-4510-bf91-db0f44fe62de attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5f96061e-0159-4bac-8634-01793943f712 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [16/53] fp         evt-20260807_131934 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=e66c0fcd-75ac-4155-8ec6-49f37308abbc attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=6e9d8447-7a2f-4bb0-9d69-48109ac7eda8 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5eabe265-36e2-4929-80eb-882da1b72bc0 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5401fe8e-5545-4510-bf91-db0f44fe62de attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=e66c0fcd-75ac-4155-8ec6-49f37308abbc attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [17/53] fp         evt-20260808_130658 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=6e9d8447-7a2f-4bb0-9d69-48109ac7eda8 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=fcb8a126-9706-4bcf-b7b6-a2eec5bf20e4 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5401fe8e-5545-4510-bf91-db0f44fe62de attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [18/53] tp         evt-20260811_113635 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=5eabe265-36e2-4929-80eb-882da1b72bc0 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=6e9d8447-7a2f-4bb0-9d69-48109ac7eda8 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [19/53] fp         evt-20260804_093511 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=773bf728-e213-4c7d-8126-e372916e6b3e attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=fcb8a126-9706-4bcf-b7b6-a2eec5bf20e4 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=cf4cafa3-bf6d-4bc1-842d-c1db77283e5f attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5eabe265-36e2-4929-80eb-882da1b72bc0 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [20/53] tp         evt-20260813_082051 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=773bf728-e213-4c7d-8126-e372916e6b3e attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=fcb8a126-9706-4bcf-b7b6-a2eec5bf20e4 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [21/53] tp         evt-20260813_120747 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=cf4cafa3-bf6d-4bc1-842d-c1db77283e5f attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5ab2ce1b-48e4-435a-ba79-51cf22d7df39 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=773bf728-e213-4c7d-8126-e372916e6b3e attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [22/53] fp         evt-20260812_123952 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=09211e8a-a95a-4748-8ac5-b6acf8e60f00 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=712a78ff-fcc9-48dc-8018-e806ad4d417d attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=cf4cafa3-bf6d-4bc1-842d-c1db77283e5f attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [23/53] tp         evt-20260815_135913 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=12d46fe4-214f-499a-afb3-e23a4681c685 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5ab2ce1b-48e4-435a-ba79-51cf22d7df39 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=712a78ff-fcc9-48dc-8018-e806ad4d417d attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=2581488c-1aa3-4493-9d97-13bb0c34fa1f attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=12d46fe4-214f-499a-afb3-e23a4681c685 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5ab2ce1b-48e4-435a-ba79-51cf22d7df39 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [24/53] tp         evt-20260815_141846 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=712a78ff-fcc9-48dc-8018-e806ad4d417d attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [25/53] fp         evt-20260815_143506 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=2581488c-1aa3-4493-9d97-13bb0c34fa1f attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=12d46fe4-214f-499a-afb3-e23a4681c685 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [26/53] tp         evt-20260818_091909 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=7b43cf19-8b1e-4b92-b7df-6228a4ed11b1 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=0af3e223-f306-451c-bbf8-bc4dd9b2e7d5 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=2581488c-1aa3-4493-9d97-13bb0c34fa1f attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [27/53] fp         evt-20260818_160927 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=7b43cf19-8b1e-4b92-b7df-6228a4ed11b1 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=0af3e223-f306-451c-bbf8-bc4dd9b2e7d5 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c028cb5f-af23-4961-963f-03743b72dd66 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=7b43cf19-8b1e-4b92-b7df-6228a4ed11b1 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [28/53] tp         evt-20260819_093004 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=09211e8a-a95a-4748-8ac5-b6acf8e60f00 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c028cb5f-af23-4961-963f-03743b72dd66 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=0af3e223-f306-451c-bbf8-bc4dd9b2e7d5 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [29/53] fp         evt-20260819_211523 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=5849785a-5b75-47f3-a828-f59414fdda3c attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c028cb5f-af23-4961-963f-03743b72dd66 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [30/53] tp         evt-20260824_204925 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=5849785a-5b75-47f3-a828-f59414fdda3c attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=6cedb8ac-bcb6-4a24-97b4-8f3a8c914d15 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=6cedb8ac-bcb6-4a24-97b4-8f3a8c914d15 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5849785a-5b75-47f3-a828-f59414fdda3c attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [31/53] fp         evt-20260825_113156 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=09211e8a-a95a-4748-8ac5-b6acf8e60f00 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [32/53] fp         evt-20260810_153831 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=6cedb8ac-bcb6-4a24-97b4-8f3a8c914d15 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [33/53] fp         evt-20260826_190910 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=c7bab13a-aec5-40b3-aec0-25875d4eef72 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c7bab13a-aec5-40b3-aec0-25875d4eef72 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=118f63f8-c898-4d58-8c6b-aee49066e730 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=e93f0065-9df6-4b6d-be3e-c7a19ec3294a attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=c7bab13a-aec5-40b3-aec0-25875d4eef72 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [34/53] fp         evt-20260827_102113 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=9c907fbf-3676-45d9-b98c-79e824aecf14 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5cde42ec-e702-486b-9602-87d382e9481f attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=9c907fbf-3676-45d9-b98c-79e824aecf14 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=9c907fbf-3676-45d9-b98c-79e824aecf14 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [35/53] tp         evt-20260901_071250 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=40f636b7-1757-4d31-843f-208f02b1d35d attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=f94b8c58-83ef-449f-b39d-9298bfb15606 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=f94b8c58-83ef-449f-b39d-9298bfb15606 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5cde42ec-e702-486b-9602-87d382e9481f attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=f94b8c58-83ef-449f-b39d-9298bfb15606 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [36/53] fp         evt-20260902_113018 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=118f63f8-c898-4d58-8c6b-aee49066e730 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=ffd7251e-f5fb-4574-b0cc-60d1f2bcd089 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=457e468c-2cdd-4ae4-9ca7-25efa2c2987a attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=457e468c-2cdd-4ae4-9ca7-25efa2c2987a attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=ffd7251e-f5fb-4574-b0cc-60d1f2bcd089 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=ffd7251e-f5fb-4574-b0cc-60d1f2bcd089 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [37/53] fp         evt-20260903_063641 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=5cde42ec-e702-486b-9602-87d382e9481f attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [38/53] fp         evt-20260828_092742 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=ec0f3816-7deb-4022-bf25-94981be8dc5c attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=e93f0065-9df6-4b6d-be3e-c7a19ec3294a attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=ec0f3816-7deb-4022-bf25-94981be8dc5c attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=457e468c-2cdd-4ae4-9ca7-25efa2c2987a attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [39/53] fp         evt-20260828_182703 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=118f63f8-c898-4d58-8c6b-aee49066e730 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [40/53] tp         evt-20260825_033529 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=ec0f3816-7deb-4022-bf25-94981be8dc5c attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [41/53] tp         evt-20260903_154012 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=bc72d098-a0d7-4c26-b404-7babffc72128 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5fb8d88a-d81e-463f-a7b7-07ad9546f154 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=786f92d0-93dc-40d1-a2ac-8bd8333f8a3b attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=bc72d098-a0d7-4c26-b404-7babffc72128 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=5fb8d88a-d81e-463f-a7b7-07ad9546f154 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=786f92d0-93dc-40d1-a2ac-8bd8333f8a3b attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=40f636b7-1757-4d31-843f-208f02b1d35d attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=bc72d098-a0d7-4c26-b404-7babffc72128 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [42/53] tp         evt-20260904_160035 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=5fb8d88a-d81e-463f-a7b7-07ad9546f154 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [43/53] tp         evt-20260904_172034 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=786f92d0-93dc-40d1-a2ac-8bd8333f8a3b attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [44/53] fp         evt-20260904_182118 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=2246a098-09a2-4d4a-9bed-183e71575295 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=13079dcc-7d12-4c8b-bf3b-4f9a95476f7e attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=7e94d955-25e2-4ad0-9924-44e83f264bb7 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=3f5950da-52f4-4765-a82f-6852f96d5a4b attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=2246a098-09a2-4d4a-9bed-183e71575295 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=13079dcc-7d12-4c8b-bf3b-4f9a95476f7e attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=7e94d955-25e2-4ad0-9924-44e83f264bb7 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=2246a098-09a2-4d4a-9bed-183e71575295 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [45/53] fp         evt-20260905_063923 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=13079dcc-7d12-4c8b-bf3b-4f9a95476f7e attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [46/53] fp         evt-20260904_220749 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=7e94d955-25e2-4ad0-9924-44e83f264bb7 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [47/53] tp         evt-20260905_093423 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=afa5ce05-5b0d-4640-99ac-7c78a45672a1 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=08163b5e-7c9e-4307-b89a-410ddff2e4cc attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=afa5ce05-5b0d-4640-99ac-7c78a45672a1 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=08163b5e-7c9e-4307-b89a-410ddff2e4cc attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=afa5ce05-5b0d-4640-99ac-7c78a45672a1 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [48/53] fp         evt-20260907_102208 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=08163b5e-7c9e-4307-b89a-410ddff2e4cc attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [49/53] tp         evt-20260905_122758 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=3f5950da-52f4-4765-a82f-6852f96d5a4b attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=e93f0065-9df6-4b6d-be3e-c7a19ec3294a attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [50/53] fp         evt-20260814_134339 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=002b4ddc-1ca4-4857-bdae-176b6b370e21 attempt=1/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=40f636b7-1757-4d31-843f-208f02b1d35d attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [51/53] tp         evt-20260823_094953 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=3f5950da-52f4-4765-a82f-6852f96d5a4b attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [52/53] tp         evt-20260904_123629 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+gemini error request_id=002b4ddc-1ca4-4857-bdae-176b6b370e21 attempt=2/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+gemini error request_id=002b4ddc-1ca4-4857-bdae-176b6b370e21 attempt=3/3 error=400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Thinking level is unsupported: THINKING_LEVEL_MINIMAL', 'status': 'INVALID_ARGUMENT'}}
+  [53/53] fp         evt-20260906_193456 ERR RuntimeError: Gemini inference failed after 3 attempts: 400 INVALID_AR
+  fim: ok=0 erros=53 chamadas_cobradas=0 (flex=0 standard=0) gasto_desta_execucao=US$ 0.0000 total_semana=US$ 5.1937 (1268 s)

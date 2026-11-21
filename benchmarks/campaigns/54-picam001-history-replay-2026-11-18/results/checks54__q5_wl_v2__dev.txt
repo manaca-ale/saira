@@ -1,0 +1,22 @@
+qset=q5 pergunta=wl_v2 | 32 deteccoes confirmadas; as 8 de nota mais baixa:
+  0.420  evt-20260803_094821  frames=29  metade=B
+  0.446  evt-20260724_130940  frames=32  metade=A
+  0.468  evt-20260902_104902  frames=32  metade=B
+  0.494  evt-20260819_182733  frames=32  metade=B
+  0.516  evt-20260723_062233  frames=8  metade=B
+  0.543  evt-20260819_201229  frames=28  metade=A
+  0.575  evt-20260905_080502  frames=20  metade=A
+  0.611  evt-20260825_033529  frames=15  metade=A
+
+limiar fixo por metade (S0 que passa; deteccoes confirmadas mantidas):
+  limiar 0.30 | A: S0 154/807 = 19.1%, confirmadas 16/16 | B: S0 150/816 = 18.4%, confirmadas 16/16
+  limiar 0.33 | A: S0 135/807 = 16.7%, confirmadas 16/16 | B: S0 124/816 = 15.2%, confirmadas 16/16
+  limiar 0.35 | A: S0 122/807 = 15.1%, confirmadas 16/16 | B: S0 113/816 = 13.8%, confirmadas 16/16
+
+eventos sem disparo (S0) com nota alta:
+  nota >= 0.7: 48/1623 = 2.96% [2.24 a 3.90]
+  nota >= 0.8: 30/1623 = 1.85% [1.30 a 2.63]
+  nota >= 0.9: 15/1623 = 0.92% [0.56 a 1.52]
+
+mesma pergunta em q5 e em q4 (2027 eventos): |diferenca| mediana 0.000, p90 0.000, maxima 0.000
+  diferenca media por estrato: S0 +0.000, S1 +0.000, S2C +0.000, S2R +0.000, S2X +0.000

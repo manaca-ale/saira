@@ -1,0 +1,67 @@
+[detail] braco=d35l_v1_routed rep=1 modelo=gemini-3.5-flash-lite prompt=v1 think=None media=None frames=None
+  eventos=57 ja_feitos=0 a_rodar=57 estimativa=US$ 1.710
+  orcamento: teto US$ 15.00 gasto US$ 0.1387 teto desta execucao US$ 1.90
+  [1/57] fp         evt-20260715_123608 disposal=0 conf=10
+  [2/57] tp         evt-20260715_085108 disposal=0 conf=10
+  [3/57] fp         evt-20260715_073056 disposal=0 conf=95
+  [4/57] fp         evt-20260715_120735 disposal=0 conf=95
+  [5/57] fp         evt-20260715_125447 disposal=0 conf=10
+  [6/57] tp         evt-20260715_165230 disposal=0 conf=85
+  [7/57] tp         evt-20260715_181023 disposal=1 conf=98
+  [8/57] tp         evt-20260715_165556 disposal=0 conf=90
+gemini global exhausted (ClientError) — retrying on fallback region us-central1
+  [9/57] tp         evt-20260715_222047 disposal=0 conf=95
+  [10/57] tp         evt-20260715_181251 disposal=1 conf=100
+gemini error request_id=0eb76c01-d7d6-4aff-a7c5-00affc002145 attempt=1/3 error=Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+  [11/57] tp         evt-20260715_181611 disposal=1 conf=95
+  [12/57] fp         evt-20260716_094309 disposal=0 conf=90
+  [13/57] fp         evt-20260716_123920 disposal=0 conf=10
+gemini global exhausted (ClientError) — retrying on fallback region us-central1
+  [14/57] fp         evt-20260716_151227 disposal=1 conf=95
+gemini error request_id=0eb76c01-d7d6-4aff-a7c5-00affc002145 attempt=2/3 error=Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+  [15/57] fp         evt-20260716_152303 disposal=0 conf=90
+  [16/57] fp         evt-20260716_161144 disposal=1 conf=95
+  [17/57] fp         evt-20260716_165803 disposal=0 conf=15
+  [18/57] fp         evt-20260716_170433 disposal=0 conf=15
+  [19/57] fp         evt-20260716_012139 disposal=1 conf=95
+  [20/57] tp         evt-20260716_170619 disposal=1 conf=95
+  [21/57] tp         evt-20260716_170823 disposal=0 conf=95
+  [22/57] fp         evt-20260716_175905 disposal=1 conf=98
+  [23/57] fp         evt-20260717_131804 disposal=0 conf=10
+  [24/57] tp         evt-20260717_163744 disposal=0 conf=95
+  [25/57] fp         evt-20260717_154354 disposal=0 conf=85
+  [26/57] tp         evt-20260717_173848 disposal=1 conf=98
+  [27/57] fp         evt-20260717_201306 disposal=0 conf=100
+  [28/57] fp         evt-20260718_074618 disposal=0 conf=95
+  [29/57] tp         evt-20260717_170823 disposal=0 conf=90
+  [30/57] fp         evt-20260718_074821 disposal=0 conf=95
+gemini global exhausted (ClientError) — retrying on fallback region us-central1
+  [31/57] fp         evt-20260718_074955 disposal=0 conf=95
+gemini error request_id=5775ccae-86f2-46c3-8a66-3cdebb3faafe attempt=1/3 error=Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+  [32/57] tp         evt-20260718_212040 disposal=1 conf=100
+  [33/57] tp         evt-20260718_115346 disposal=1 conf=100
+  [34/57] tp         evt-20260718_212254 disposal=1 conf=98
+  [35/57] tp         evt-20260718_120030 disposal=1 conf=95
+  [36/57] tp         evt-20260718_220134 disposal=0 conf=85
+  [37/57] fp         evt-20260719_221320 disposal=0 conf=20
+  [38/57] tp         evt-20260718_215920 disposal=1 conf=98
+  [39/57] tp         evt-20260720_112125 disposal=0 conf=10
+  [40/57] tp         evt-20260720_112538 disposal=0 conf=90
+  [41/57] tp         evt-20260720_153259 disposal=0 conf=95
+  [42/57] tp         evt-20260718_214234 disposal=0 conf=10
+  [43/57] tp         evt-20260720_153503 disposal=0 conf=10
+  [44/57] tp         evt-20260720_153841 disposal=0 conf=95
+  [45/57] fp         evt-20260720_193207 disposal=0 conf=10
+  [46/57] fp         evt-20260721_073733 disposal=0 conf=90
+  [47/57] tp         evt-20260721_005751 disposal=0 conf=10
+  [48/57] tp         evt-20260721_083339 disposal=1 conf=98
+  [49/57] tp         evt-20260720_112330 disposal=0 conf=95
+  [50/57] tp         evt-20260721_083429 disposal=1 conf=100
+  [51/57] tp         evt-20260721_083549 disposal=0 conf=85
+  [52/57] fp         evt-20260722_115613 disposal=1 conf=95
+  [53/57] tp         evt-20260722_094905 disposal=1 conf=100
+  [54/57] baseline   evt-20260722_122927 disposal=0 conf=90
+  [55/57] tp         evt-20260722_124619 disposal=1 conf=95
+  [56/57] baseline   evt-20260722_124935 disposal=1 conf=95
+  [57/57] baseline   evt-20260722_095851 disposal=0 conf=90
+  fim: ok=57 erros=0 chamadas_cobradas=57 gasto_desta_execucao=US$ 0.5597 total_semana=US$ 0.6984 (231 s)

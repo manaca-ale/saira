@@ -1,0 +1,158 @@
+{
+  "dataset": "pi-avancado-v1",
+  "n_eventos": 488,
+  "gate_hoje": "g25l_v1:1",
+  "dgate": "q1_gate5_low:1",
+  "ressalva": "fracao absoluta nao e a de producao (amostra com ~24% de deteccoes); usar a razao entre os gates",
+  "gates": {
+    "g25l_v1:1": {
+      "total": {
+        "passa": 82,
+        "n": 488,
+        "pct": 16.8
+      },
+      "sem estado": {
+        "passa": 18,
+        "n": 378,
+        "pct": 4.8
+      },
+      "REJEITADO": {
+        "passa": 63,
+        "n": 109,
+        "pct": 57.8
+      },
+      "CONFIRMADO": {
+        "passa": 1,
+        "n": 1,
+        "pct": 100.0
+      }
+    },
+    "decisions_t20": {
+      "total": {
+        "passa": 213,
+        "n": 488,
+        "pct": 43.6
+      },
+      "sem estado": {
+        "passa": 125,
+        "n": 378,
+        "pct": 33.1
+      },
+      "REJEITADO": {
+        "passa": 88,
+        "n": 109,
+        "pct": 80.7
+      },
+      "CONFIRMADO": {
+        "passa": 0,
+        "n": 1,
+        "pct": 0.0
+      }
+    },
+    "decisions_t25": {
+      "total": {
+        "passa": 121,
+        "n": 488,
+        "pct": 24.8
+      },
+      "sem estado": {
+        "passa": 55,
+        "n": 378,
+        "pct": 14.6
+      },
+      "REJEITADO": {
+        "passa": 66,
+        "n": 109,
+        "pct": 60.6
+      },
+      "CONFIRMADO": {
+        "passa": 0,
+        "n": 1,
+        "pct": 0.0
+      }
+    },
+    "decisions_t30": {
+      "total": {
+        "passa": 82,
+        "n": 488,
+        "pct": 16.8
+      },
+      "sem estado": {
+        "passa": 29,
+        "n": 378,
+        "pct": 7.7
+      },
+      "REJEITADO": {
+        "passa": 53,
+        "n": 109,
+        "pct": 48.6
+      },
+      "CONFIRMADO": {
+        "passa": 0,
+        "n": 1,
+        "pct": 0.0
+      }
+    }
+  },
+  "razao": {
+    "n_comum": 488,
+    "gate_hoje_passa": 82,
+    "custo_evento_hoje_recomendado": 0.001641,
+    "decisions_t20": {
+      "passa": 213,
+      "so_decisions": 151,
+      "so_gate_hoje": 20,
+      "razao": 2.598,
+      "p_prod": 0.0831,
+      "custo_evento": 0.001615,
+      "vs_gate_hoje_pct": -1.6,
+      "vs_producao_hoje_pct": 11.7
+    },
+    "decisions_t25": {
+      "passa": 121,
+      "so_decisions": 74,
+      "so_gate_hoje": 35,
+      "razao": 1.476,
+      "p_prod": 0.0472,
+      "custo_evento": 0.001008,
+      "vs_gate_hoje_pct": -38.6,
+      "vs_producao_hoje_pct": -30.3
+    },
+    "decisions_t30": {
+      "passa": 82,
+      "so_decisions": 45,
+      "so_gate_hoje": 45,
+      "razao": 1.0,
+      "p_prod": 0.032,
+      "custo_evento": 0.000751,
+      "vs_gate_hoje_pct": -54.2,
+      "vs_producao_hoje_pct": -48.0
+    }
+  },
+  "producao_hoje_custo_evento": 0.001446,
+  "razao_sem_estado": {
+    "n": 378,
+    "gate_hoje_passa": 18,
+    "decisions_t20": {
+      "passa": 125,
+      "razao": 6.944,
+      "p_prod": 0.2222,
+      "custo_evento": 0.003966,
+      "vs_producao_hoje_pct": 174.3
+    },
+    "decisions_t25": {
+      "passa": 55,
+      "razao": 3.056,
+      "p_prod": 0.0978,
+      "custo_evento": 0.001862,
+      "vs_producao_hoje_pct": 28.8
+    },
+    "decisions_t30": {
+      "passa": 29,
+      "razao": 1.611,
+      "p_prod": 0.0516,
+      "custo_evento": 0.001081,
+      "vs_producao_hoje_pct": -25.2
+    }
+  }
+}

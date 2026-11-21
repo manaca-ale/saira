@@ -1,0 +1,18 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[gate54/bedrock] braco=nvl_v1p_low_ctx modelo=nova-lite (amazon.nova-lite-v1:0) prompt=v1p imagens=low
+  conjunto=pass (limiar 0.3) eventos=577 {'S0': 304, 'S1': 131, 'S2C': 61, 'S2R': 73, 'S2X': 8} ja_feitos=0 a_rodar=577 sem_frames=0 estimativa=US$ 0.2019
+  [1/577] ok=1 erros=0 tok_in=4819 tok_out=193 US$/chamada=0.000335 lat=3484 ms | gasto=US$ 0.0003 (3 s)
+  [2/577] ok=2 erros=0 tok_in=4819 tok_out=184 US$/chamada=0.000333 lat=3656 ms | gasto=US$ 0.0007 (3 s)
+  [50/577] ok=50 erros=0 tok_in=4819 tok_out=192 US$/chamada=0.000335 lat=3250 ms | gasto=US$ 0.0168 (36 s)
+  [100/577] ok=100 erros=0 tok_in=4819 tok_out=167 US$/chamada=0.000329 lat=4609 ms | gasto=US$ 0.0334 (80 s)
+  [150/577] ok=150 erros=0 tok_in=4819 tok_out=201 US$/chamada=0.000337 lat=3280 ms | gasto=US$ 0.0501 (124 s)
+  [200/577] ok=200 erros=0 tok_in=4814 tok_out=184 US$/chamada=0.000333 lat=3156 ms | gasto=US$ 0.0668 (165 s)
+  [250/577] ok=250 erros=0 tok_in=4819 tok_out=194 US$/chamada=0.000336 lat=3562 ms | gasto=US$ 0.0835 (208 s)
+  [300/577] ok=300 erros=0 tok_in=4822 tok_out=194 US$/chamada=0.000336 lat=3250 ms | gasto=US$ 0.1002 (253 s)
+  [350/577] ok=350 erros=0 tok_in=4819 tok_out=199 US$/chamada=0.000337 lat=4327 ms | gasto=US$ 0.1169 (296 s)
+  [400/577] ok=400 erros=0 tok_in=4818 tok_out=165 US$/chamada=0.000329 lat=4609 ms | gasto=US$ 0.1336 (340 s)
+  [450/577] ok=450 erros=0 tok_in=4774 tok_out=160 US$/chamada=0.000325 lat=2297 ms | gasto=US$ 0.1502 (382 s)
+  [500/577] ok=500 erros=0 tok_in=4814 tok_out=194 US$/chamada=0.000335 lat=2937 ms | gasto=US$ 0.1669 (422 s)
+  [550/577] ok=550 erros=0 tok_in=4819 tok_out=195 US$/chamada=0.000336 lat=3938 ms | gasto=US$ 0.1836 (463 s)
+  [577/577] ok=577 erros=0 tok_in=4819 tok_out=171 US$/chamada=0.000330 lat=3375 ms | gasto=US$ 0.1925 (485 s)
+  fim: ok=577 erros=0 gasto_desta_execucao=US$ 0.1925 total_carteira_bedrock=US$ 1.4966 (485 s)

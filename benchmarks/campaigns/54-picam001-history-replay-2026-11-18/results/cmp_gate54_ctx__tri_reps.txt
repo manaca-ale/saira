@@ -1,0 +1,46 @@
+producao: dispara e passa no filtro em 2.22% dos eventos
+
+g25l_v1_t2048_ctx (r1) x g25l_v1_t2048_ctx (r2)  pares=211
+  g25l_v1_t2048_ctx            dispara 2.39% dos eventos [1.51% a 3.54%] = 1.08x a producao
+  g25l_v1_t2048_ctx            dispara 2.39% dos eventos [1.51% a 3.54%] = 1.08x a producao
+  S0   n= 60  os dois   3 | so o 1o   0 | so o 2o   0 | nenhum  57
+  S1   n= 50  os dois  36 | so o 1o   0 | so o 2o   0 | nenhum  14
+  S2C  n= 61  os dois  46 | so o 1o   0 | so o 2o   0 | nenhum  15
+  S2R  n= 40  os dois  26 | so o 1o   0 | so o 2o   0 | nenhum  14
+  contexto sem tipo  n= 22  dispara: 1o   6, 2o   6
+  contexto com tipo  n=189  dispara: 1o 105, 2o 105
+producao: dispara e passa no filtro em 2.22% dos eventos
+
+g25l_v1_t2048_ctx (r1) x g25l_v1_t2048_ctx_t01 (r1)  pares=211
+  g25l_v1_t2048_ctx            dispara 2.39% dos eventos [1.51% a 3.54%] = 1.08x a producao
+  g25l_v1_t2048_ctx_t01        dispara 2.64% dos eventos [1.66% a 3.95%] = 1.19x a producao
+  S0   n= 60  os dois   1 | so o 1o   2 | so o 2o   3 | nenhum  54
+  S1   n= 50  os dois  28 | so o 1o   8 | so o 2o   5 | nenhum   9
+  S2C  n= 61  os dois  42 | so o 1o   4 | so o 2o   7 | nenhum   8
+  S2R  n= 40  os dois  19 | so o 1o   7 | so o 2o   6 | nenhum   8
+  contexto sem tipo  n= 22  dispara: 1o   6, 2o   5
+  contexto com tipo  n=189  dispara: 1o 105, 2o 106
+
+g25l_v1_t2048 (r1) x g25l_v1_t2048_ctx (r1)  pares=777
+  g25l_v1_t2048                dispara 2.45% dos eventos [2.10% a 2.84%] = 1.10x a producao
+  g25l_v1_t2048_ctx            dispara 2.01% dos eventos [1.72% a 2.33%] = 0.91x a producao
+  S0   n=504  os dois   6 | so o 1o  21 | so o 2o  10 | nenhum 467
+  S1   n=131  os dois  63 | so o 1o  21 | so o 2o  19 | nenhum  28
+  S2C  n= 61  os dois  42 | so o 1o   8 | so o 2o   4 | nenhum   7
+  S2R  n= 73  os dois  34 | so o 1o  12 | so o 2o   9 | nenhum  18
+  S2X  n=  8  os dois   3 | so o 1o   1 | so o 2o   3 | nenhum   1
+  sem contexto       n=  9  dispara: 1o   0, 2o   0
+  contexto sem tipo  n=102  dispara: 1o  11, 2o   9
+  contexto com tipo  n=666  dispara: 1o 200, 2o 184
+
+nvl_v1p_low (r1) x nvl_v1p_low_ctx (r1)  pares=576
+  nvl_v1p_low                  dispara 6.10% dos eventos [5.28% a 6.99%] = 2.74x a producao
+  nvl_v1p_low_ctx              dispara 4.22% dos eventos [3.53% a 4.94%] = 1.90x a producao
+  S0   n=303  os dois  43 | so o 1o  30 | so o 2o   1 | nenhum 229
+  S1   n=131  os dois  90 | so o 1o   6 | so o 2o   0 | nenhum  35
+  S2C  n= 61  os dois  55 | so o 1o   2 | so o 2o   0 | nenhum   4
+  S2R  n= 73  os dois  45 | so o 1o   8 | so o 2o   0 | nenhum  20
+  S2X  n=  8  os dois   6 | so o 1o   1 | so o 2o   0 | nenhum   1
+  sem contexto       n=  4  dispara: 1o   1, 2o   1
+  contexto sem tipo  n= 61  dispara: 1o   9, 2o   8
+  contexto com tipo  n=511  dispara: 1o 276, 2o 231
