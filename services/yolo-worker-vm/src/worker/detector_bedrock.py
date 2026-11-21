@@ -61,6 +61,9 @@ class ModelSpec:
 MODELS: dict[str, ModelSpec] = {m.alias: m for m in [
     ModelSpec("kimi-k2.5", "moonshotai.kimi-k2.5", 48, (0.60, 3.00)),
     ModelSpec("magistral-small", "mistral.magistral-small-2509", 48, (0.50, 1.50)),
+    # Campanha 54: candidato a GATE (não a detail), só atrás do filtro (gate_prefilter).
+    # Preço de lista da AWS em us-east-1, lido em 19/11/2026. Não emite raciocínio.
+    ModelSpec("nova-lite", "amazon.nova-lite-v1:0", None, (0.06, 0.24)),
 ]}
 
 _RETRYABLE = ("ThrottlingException", "ServiceUnavailableException", "ModelTimeoutException",

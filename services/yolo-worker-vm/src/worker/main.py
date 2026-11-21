@@ -23,6 +23,8 @@ from . import detector_bedrock
 from . import detector_dinov2
 from . import detector_structural
 from . import event_windows
+from . import gate_bedrock
+from . import gate_prefilter
 from . import _shadow_gate51
 from ._prompts_v4picam import V4_DETAIL_PROMPT
 from .schemas_gemini import GeminiInfractionReport
@@ -1375,6 +1377,40 @@ def _gate_revote_eval(report, effective_threshold: int) -> dict[str, Any]:
     }
 
 
+def _run_gate(device_id: str, camera, **gate_kwargs):
+    """Gate do evento. Bedrock para os dispositivos de GATE_BEDROCK_DEVICES (desligado por
+    padrão); qualquer falha lá cai no gate Gemini configurado, para a janela não se perder."""
+    if gate_bedrock.enabled_for(device_id):
+        try:
+            return gate_bedrock.analyze_new_litter_with_bedrock(
+                first_frame=gate_kwargs["first_frame"],
+                last_frame=gate_kwargs["last_frame"],
+                camera_context=gate_kwargs.get("camera_context"),
+                request_id=gate_kwargs.get("request_id"),
+                prior_window_context=gate_kwargs.get("prior_window_context"),
+                mid_frames=gate_kwargs.get("mid_frames"),
+            )
+        except Exception as exc:  # noqa: BLE001
+            message = str(exc)
+            logger.warning(
+                json.dumps({
+                    "event": "gate_bedrock_failed",
+                    "device_id": device_id,
+                    "request_id": gate_kwargs.get("request_id"),
+                    "fallback_gemini": config.GATE_BEDROCK_FALLBACK_GEMINI,
+                    "error": message[:300],
+                }, ensure_ascii=False)
+            )
+            _log_gemini_call(
+                camera=camera, device_id=device_id, agent="gate",
+                model=gate_bedrock.model_id(), request_id=gate_kwargs.get("request_id"),
+                usage=None, latency_ms=None, success=False, error_message=message,
+            )
+            if not config.GATE_BEDROCK_FALLBACK_GEMINI:
+                raise
+    return analyze_new_litter_with_gemini(**gate_kwargs)
+
+
 def _process_with_gemini_cascade_window(
     window_paths: list[Path],
     device_id: str,
@@ -1557,8 +1593,48 @@ def _process_with_gemini_cascade_window(
                 )
                 g_first, g_last, g_mids, g_inference = first_frame, last_frame, mid_frames, None
 
+    # ------------------------------------------------------------------------
+    # Decisions pre-filter (campaign 54; GATE_PREFILTER_ENABLED, default false).
+    # One cheap call on the SAME frames the gate is about to see; below the
+    # threshold the window skips the gate. Fails open in every error path, and
+    # GATE_PREFILTER_LOG_ONLY (default true) records the score without skipping.
+    # ------------------------------------------------------------------------
+    if gate_prefilter.enabled_for(device_id):
+        prefilter = gate_prefilter.evaluate(
+            [g_first, *(g_mids or []), g_last], device_id=device_id, event_ref=gate_request_id,
+        )
+        if prefilter.ran:
+            _log_gemini_call(
+                camera=camera,
+                device_id=device_id,
+                agent="prefilter",
+                model=config.GATE_PREFILTER_MODEL,
+                request_id=prefilter.request_id,
+                usage=GeminiUsage(
+                    input_tokens=prefilter.tok_in, total_tokens=prefilter.tok_in,
+                    estimated_cost_usd=prefilter.cost_usd,
+                ),
+                latency_ms=prefilter.latency_ms,
+                success=not prefilter.error,
+                error_message=(prefilter.error or None),
+            )
+        if prefilter.should_skip:
+            # The gate did not run, so the litter flags keep their last known value;
+            # only the reference frame advances, as it does on every gated window.
+            save_state(device_id, {**state, "last_window_last_frame": str(last_frame)})
+            return False, {
+                "provider": "gemini_cascade",
+                "success": True,
+                "skipped": True,
+                "skip_reason": "decisions_prefilter",
+                "prefilter_score": prefilter.score,
+                "prefilter_threshold": prefilter.threshold,
+            }
+
     try:
-        gate = analyze_new_litter_with_gemini(
+        gate = _run_gate(
+            device_id,
+            camera,
             first_frame=g_first,
             last_frame=g_last,
             camera_context=camera_context,
@@ -1628,7 +1704,9 @@ def _process_with_gemini_cascade_window(
         revote_request_id = str(uuid4())
         _register_gemini_call(agent="gate", camera=camera)
         try:
-            revote = analyze_new_litter_with_gemini(
+            revote = _run_gate(
+                device_id,
+                camera,
                 first_frame=g_first,
                 last_frame=g_last,
                 camera_context=camera_context,
