@@ -1,6 +1,6 @@
 # Campanha 54 — plano de rollout para janeiro de 2027 (funil A)
 
-Escrito em 21/11/2026 (missão 11, slot `noiteA`). Funil escolhido pelo Alexandre em 21/11 às 17:03: **A, "por enquanto"**. Nada daqui foi aplicado em test nem em produção. Números em `results/final54__aval.md` (avaliação, uma rodada) e `results/finalistas54__dev.md` (configuração congelada).
+Escrito em 21/11/2026 (missão 11, slot `noiteA`); conferido contra `results/final54__aval.md` e `results/devil54__aval.txt` em 22/11 (slot `noiteB`), com duas correções de texto. Funil escolhido pelo Alexandre em 21/11 às 17:03: **A, "por enquanto"**. Nada daqui foi aplicado em test nem em produção. Números em `results/final54__aval.md` (avaliação, uma rodada) e `results/finalistas54__dev.md` (configuração congelada).
 
 ## O funil
 
@@ -22,6 +22,7 @@ Por que mudar, mesmo com o projeto parado: no Vertex, o gate e o detail de hoje 
 
 - A × hoje refeito: empate nas confirmadas (7 × 9 nos pares, p = 0,80) e nos alertas; menos rejeitadas (p = 0,04).
 - A × B: o B mantém mais confirmadas (8 × 1, p = 0,04) e levanta cerca de 10 alertas a mais por 1.000 eventos, a maioria falsos pela leitura a olho (catador, latão, revirar à noite).
+- Por que o A custa mais que o "hoje refeito" (−51%): essa linha já tem o filtro na frente do gate e do detail de hoje, que estão aposentados no Vertex. O A manda mais eventos ao detail (4,85% contra 2,81% dos eventos, `devil54__aval.txt`) e o detail novo custa cerca do dobro por chamada (US$ 0,0193 no Vertex contra US$ 0,0096 do de hoje em produção).
 - Nenhum funil chega a 90% das confirmadas de produção no replay, nem o gate de hoje refeito (68%). O número absoluto é do replay; a comparação entre funis é o que vale.
 
 ## Pré-requisitos (decisões e ações do Alexandre)
@@ -39,7 +40,7 @@ Cada passo só começa se o anterior passou no critério. Tudo pela pi-cam (`*_D
 Critério: erro do detail abaixo de 2% no `gemini_call_log`; custo por chamada perto de US$ 0,019.
 
 **Passo 2 — filtro só registrando (semana 1, junto).** `GATE_PREFILTER_ENABLED=true`, `GATE_PREFILTER_DEVICES=<pi-cam>`, `GATE_PREFILTER_LOG_ONLY=true` (padrão). O filtro chama, grava a nota e não barra nada.
-Critério: nota ≥ 0,30 em cerca de 15% a 30% das janelas avaliadas pelo gate (no replay: 839 de 2.964 eventos da avaliação, 28%, contando todos os confirmados; a amostra tem mais eventos com detecção que a produção); nenhuma confirmada pelo operador com nota abaixo de 0,30 (no replay o filtro barrou 2 de 72 eventos confirmados); erro do Decisions abaixo de 1%; custo do filtro perto de US$ 0,00017 por janela.
+Critério: nota ≥ 0,30 em cerca de 15% a 30% das janelas avaliadas pelo gate (no replay, pesado pela mistura de eventos da câmera: cerca de 20%, com 18% nos eventos sem disparo em produção; na amostra crua, 837 de 2.964, 28%, porque ela tem mais eventos com detecção que a produção; números da seção 0 de `results/devil54__aval.txt`); nenhuma confirmada pelo operador com nota abaixo de 0,30 (no replay o filtro barrou 2 de 72 eventos confirmados); erro do Decisions abaixo de 1%; custo do filtro perto de US$ 0,00017 por janela.
 
 **Passo 3 — filtro barrando e gate Nova Lite (semana 2).** `GATE_PREFILTER_LOG_ONLY=false`, `GATE_BEDROCK_ENABLED=true`, `GATE_BEDROCK_DEVICES=<pi-cam>`. Nunca ligar o Bedrock sem o filtro barrando: o Nova Lite só foi medido atrás dele. `GATE_BEDROCK_FALLBACK_GEMINI=true` (padrão): se o Bedrock falhar, o gate Gemini configurado assume.
 Critério, depois de 2 semanas: alertas por 1.000 eventos dentro de 13 a 22 (o A mediu 17,6); confirmadas pelo operador por semana sem queda clara contra as semanas de julho a setembro; p90 do gate Nova abaixo de 8 s (medido: 4,0 e 6,1 s); queda para o Gemini em menos de 2% das janelas; custo por evento abaixo de US$ 0,00133 (o de hoje).
