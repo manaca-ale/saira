@@ -20,8 +20,15 @@ on:
       - 'tools/**'
 
 jobs:
+  # --- TESTES (gate) ---
+  # Roda todas as suítes pytest (tests.yml). Se alguma falhar, nenhum deploy
+  # acontece: nem teste nem produção.
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   # --- AMBIENTE DE TESTE ---
   deploy-test:
+    needs: tests
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
@@ -85,6 +92,7 @@ jobs:
 
   # --- AMBIENTE DE PRODUCAO ---
   deploy-production:
+    needs: tests
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
