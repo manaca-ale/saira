@@ -211,6 +211,44 @@ def bedrock_call(monkeypatch):
     return seen
 
 
+
+def test_bedrock_gate_cuts_each_attempt_at_15s(bedrock_call, frames):
+    # regression (campaign 54, mission 9 item 3): the gate used to inherit the shadow
+    # client's 60 s read timeout per attempt; it must cut each attempt like the Gemini gate.
+    _bedrock_gate(frames)
+    assert bedrock_call["attempt_timeout_s"] == config.GATE_BEDROCK_ATTEMPT_TIMEOUT_S == 15
+    assert bedrock_call["deadline_s"] == config.GATE_BEDROCK_DEADLINE_S
+
+
+def test_converse_uses_a_client_with_the_attempt_timeout(monkeypatch):
+    made = []
+
+    class _Fake:
+        def __init__(self, timeout):
+            self.timeout = timeout
+
+        def converse(self, **body):
+            return {"output": {"message": {"content": [{"text": json.dumps(_gate_report())}]}},
+                    "usage": {"inputTokens": 10, "outputTokens": 5}, "stopReason": "end_turn"}
+
+    def fake_new_client(timeout):
+        made.append(timeout)
+        return _Fake(timeout)
+
+    detector_bedrock.reset_client()
+    monkeypatch.setattr(detector_bedrock, "_new_client", fake_new_client)
+    try:
+        for _ in range(2):
+            res = detector_bedrock.converse("nova-lite", "s", "u", [b"x"], GeminiNewLitterReport,
+                                            force_mode="text", attempt_timeout_s=15)
+            assert res.error == "" and res.report is not None
+        detector_bedrock.converse("nova-lite", "s", "u", [b"x"], GeminiNewLitterReport,
+                                  force_mode="text")
+        # one cached client per timeout; the shadow path keeps its own (60 s) client
+        assert made == [15, max(10, config.SHADOW_BEDROCK_DEADLINE_S)]
+    finally:
+        detector_bedrock.reset_client()
+
 def _bedrock_gate(frames):
     return gate_bedrock.analyze_new_litter_with_bedrock(
         first_frame=frames[0], last_frame=frames[-1], mid_frames=frames[1:-1],

@@ -385,6 +385,9 @@ GATE_BEDROCK_MAX_OUTPUT_TOKENS = int(os.getenv("GATE_BEDROCK_MAX_OUTPUT_TOKENS",
 # Guardrails de latência (o gate roda na thread serial do pipeline; p90 medido: 4 s).
 GATE_BEDROCK_TIMEOUT_TRIES = int(os.getenv("GATE_BEDROCK_TIMEOUT_TRIES", "2"))
 GATE_BEDROCK_DEADLINE_S = int(os.getenv("GATE_BEDROCK_DEADLINE_S", "20"))
+# Corte de CADA tentativa (tempo de leitura do cliente). Sem ele valiam os 60 s do shadow
+# (SHADOW_BEDROCK_DEADLINE_S); 15 s é o corte do gate Gemini (GEMINI_AGENT1_TIMEOUT_SECONDS).
+GATE_BEDROCK_ATTEMPT_TIMEOUT_S = int(os.getenv("GATE_BEDROCK_ATTEMPT_TIMEOUT_S", "15"))
 GATE_BEDROCK_FALLBACK_GEMINI = os.getenv("GATE_BEDROCK_FALLBACK_GEMINI", "true").strip().lower() in ("true", "1", "yes")
 GATE_BEDROCK_BREAKER_FAILS = int(os.getenv("GATE_BEDROCK_BREAKER_FAILS", "5"))
 GATE_BEDROCK_BREAKER_COOLDOWN_S = int(os.getenv("GATE_BEDROCK_BREAKER_COOLDOWN_S", "900"))

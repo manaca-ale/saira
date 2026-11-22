@@ -1621,6 +1621,11 @@ def _process_with_gemini_cascade_window(
         if prefilter.should_skip:
             # The gate did not run, so the litter flags keep their last known value;
             # only the reference frame advances, as it does on every gated window.
+            # Deliberate (campaign 54, mission 11): in production the gate sent the
+            # "previous window ALREADY had waste" notice on 98.7% of pi-cam gate calls,
+            # and on 98.6% of the windows right after one the filter would bar
+            # (probe_prior_after_skip54.py). Clearing the flag here would drop a notice
+            # the benchmark measured with; keeping it reproduces what was measured.
             save_state(device_id, {**state, "last_window_last_frame": str(last_frame)})
             return False, {
                 "provider": "gemini_cascade",

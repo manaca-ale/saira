@@ -101,6 +101,7 @@ def analyze_new_litter_with_bedrock(
         max_tokens=config.GATE_BEDROCK_MAX_OUTPUT_TOKENS, force_mode="text",
         timeout_tries=config.GATE_BEDROCK_TIMEOUT_TRIES,
         deadline_s=config.GATE_BEDROCK_DEADLINE_S,
+        attempt_timeout_s=config.GATE_BEDROCK_ATTEMPT_TIMEOUT_S,
     )
     if res.error or not res.json_valid or res.report is None:
         _breaker_note(ok=False)
