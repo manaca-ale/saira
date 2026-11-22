@@ -1,0 +1,56 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Sora, Segoe UI, sans-serif',
+    'primaryColor': '#E8E8F8',
+    'primaryTextColor': '#181448',
+    'primaryBorderColor': '#181448',
+    'lineColor': '#181448',
+    'edgeLabelBackground': '#FFFFFF',
+    'clusterBkg': '#F7F7FC',
+    'clusterBorder': '#B8B8D8'
+  }
+}}%%
+flowchart TB
+    subgraph TOP["Borda e CI/CD"]
+        direction LR
+        subgraph PI["Raspberry Pi em campo (sem container · systemd)"]
+            PI_SVC["saira-agent + saira-rtsp-buffer + saira-wan-watchdog<br/>Deploy manual via SSH sobre WireGuard (git pull + restart)"]
+        end
+        subgraph GH["GitHub Actions (CI/CD)"]
+            TST["tests.yml — 5 suítes pytest<br/>worker · backend · pi-agent · pi-tools · esp32-server"]
+            BR["Push develop → deploy-test<br/>Push main → deploy-production<br/>paths-ignore: raspberry-pi, plate-poc, firmware, tools"]
+            BR --> TST
+        end
+    end
+
+    subgraph EC2["AWS EC2 única — t3.xlarge (4 vCPU · 15 GiB RAM · 96 GB disco a 90% usado)"]
+        WG["WireGuard wg0<br/>10.8.0.1/24 (UDP 51820)"]
+        REPO["Checkout único /home/ubuntu/saira<br/>+ .env único compartilhado (services/.env)"]
+        EXT["Extras no mesmo host:<br/>plate-poc-server (10.8.0.1:5055)<br/>esp32-dashboard (:5003 legado)"]
+
+        subgraph PROD["Compose saira-prod (--profile worker)"]
+            P1["web :3000 · gateway :5000<br/>esp32-server :5005 · worker (:9108 interno)"]
+            P2["backend :8001 (0.0.0.0) · db PostGIS :5432 (0.0.0.0)<br/>redis (interno)"]
+            P3["Prometheus 127.0.0.1:9092 · Alertmanager :9093<br/>Grafana 127.0.0.1:3005 (túnel SSH)"]
+        end
+
+        subgraph TEST["Compose saira-test + saira-esp32-test (vars TEST_*)"]
+            T1["web :3001 (+ /rotulagem) · gateway :5001<br/>esp32-server :5002 · worker :9108"]
+            T2["backend :8002 · db :5433 · pgAdmin :5051<br/>Prometheus :9091 · Grafana :3004 · billing-exporter :9109"]
+        end
+    end
+
+    PI_SVC <-->|WireGuard 10.8.0.x| WG
+    TST -->|deploy.yml via SSH| REPO
+    WG --> PROD
+    WG -.->|Teste| TEST
+    REPO --> PROD
+    REPO --> TEST
+
+    classDef dark fill:#181448,stroke:#181448,color:#FFFFFF,font-weight:bold;
+    classDef warn fill:#FFF0F8,stroke:#F800A8,color:#181448;
+    classDef soft fill:#E8E8F8,stroke:#181448,color:#181448;
+    class TST,WG dark;
+    class REPO,P2 warn;
+    class PI_SVC,P1,P3,T1,T2,BR,EXT soft;

@@ -1,0 +1,64 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Sora, Segoe UI, sans-serif',
+    'actorBkg': '#181448',
+    'actorTextColor': '#FFFFFF',
+    'actorBorder': '#181448',
+    'signalColor': '#181448',
+    'signalTextColor': '#18144C',
+    'labelBoxBkgColor': '#181448',
+    'labelBoxBorderColor': '#181448',
+    'labelTextColor': '#FFFFFF',
+    'loopTextColor': '#181448',
+    'noteBkgColor': '#E8E8F8',
+    'noteTextColor': '#181448',
+    'noteBorderColor': '#181448'
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    participant PI as Raspberry Pi (saira-agent)
+    participant ESP as esp32-server (:5005)
+    participant WRK as yolo-worker (Funil A)
+    participant AI as IA (Decisions / Bedrock / Vertex)
+    participant DB as Postgres + Redis
+    participant WEB as Backend + Painel Web
+
+    Note over PI: RTSP substream atualiza latest.jpg<br/>Motion Gate (BGSUB 360p) detecta intrusão
+    PI->>ESP: POST /upload-batch (X-Device-Id, event_id, frames + ref pré)
+    ESP-->>PI: 200 OK (salva JPEGs e atualiza events/event_id.json)
+    Note over PI: Cena acalma — fecha evento (end ou end_transient)
+    PI->>ESP: POST /upload-batch (frame final, event_state=end)
+
+    loop Varredura do worker (manifestos fechados ou stale)
+        WRK->>WRK: Lê manifesto — descarta se transient ou menos de 3 frames
+        WRK->>WRK: Subamostra até 48 frames (teto 8 MB) e avalia BGSUB
+        WRK->>AI: 1. Decisions (gemini-decision-1, 5 frames, res. low)
+        AI-->>WRK: score (0..1) — se < 0,30 em enforce, encerra janela
+        WRK->>AI: 2. Gate Amazon Nova Lite (Bedrock, 5 frames 640px, v1p)
+        AI-->>WRK: new_litter + confiança (dispara >= 85 · falha cai no Gemini)
+        WRK->>AI: 3. Detail gemini-3.8-flash (Vertex, janela inteira, g3, timeout 90s)
+        AI-->>WRK: infraction_confirmed + tipo, material, volume, infratores
+    end
+
+    alt Descarte confirmado
+        WRK->>DB: INSERT detections, offenders, cascade_decisions, gemini_call_log
+        WRK->>DB: INSERT notifications (por RPA) e PUBLISH Redis notifications:all
+        WRK->>ESP: POST /device/id/trigger (CMD_PERSIST_CLIP:event_id)
+        ESP-->>PI: Long-poll /poll entrega comando — Pi move clipe RAM para SD
+        DB-->>WEB: SSE /api/v1/notifications/stream
+        Note over WEB: Operador recebe alerta em tempo real e classifica a ocorrência
+    else Sem descarte
+        WRK->>DB: INSERT gemini_call_log (+ cascade_decisions se chegou ao Detail)
+        WRK->>WRK: Move frames para sem_ocorrencia/
+    end
+
+    opt Operador solicita vídeo da ocorrência
+        WEB->>ESP: POST /device/id/trigger (CMD_VIDEO_CLIP:event_id)
+        ESP-->>PI: Long-poll entrega comando — Pi concatena cadeia MP4
+        PI->>ESP: POST /device/id/video (MP4 até 300 MB)
+        WEB->>ESP: Reproduz /uploads/videos/device/event_id.mp4
+    end
+
+    Note over WRK,DB: Diariamente às 03h BRT (D-1): sync S3 (ocorrencias/ e zip descartadas/) + atualização de image_url
