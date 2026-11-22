@@ -19,7 +19,7 @@ on:
 jobs:
   pytest:
     name: pytest (${{ matrix.name }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -33,12 +33,15 @@ jobs:
             install: |
               grep -viE '^\s*ultralytics' requirements.txt > /tmp/req.txt
               pip install -r /tmp/req.txt pytest
+            env: PYTHONPATH=src
             run: python -m pytest -q tests
           - name: backend
             dir: services/backend
             python: "3.11"
             apt: libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 libgdk-pixbuf-2.0-0 fonts-dejavu-core
             install: pip install -r requirements.txt
+            # Settings exige estas duas; valores fictícios (os testes não abrem banco).
+            env: DATABASE_URL=postgresql+asyncpg://ci:ci@localhost:5432/ci SECRET_KEY=ci-dummy-secret
             run: python -m pytest -q tests
           - name: pi-agent
             dir: services/raspberry-pi/agent
@@ -48,11 +51,13 @@ jobs:
           - name: pi-tools
             dir: services/raspberry-pi/tools
             python: "3.11"
-            install: pip install pytest
+            install: pip install requests pytest
             run: python -m pytest -q tests
           - name: esp32-server
             dir: esp32-server
             python: "3.9"
+            # 3.9 (igual à imagem do esp32-server) não existe no ubuntu-latest (26.04).
+            os: ubuntu-24.04
             install: pip install -r requirements.txt pytest
             run: python -m pytest -q test_command_queue.py test_rotate.py
     defaults:
@@ -77,4 +82,6 @@ jobs:
           ${{ matrix.install }}
 
       - name: Testes
-        run: ${{ matrix.run }}
+        run: |
+          for kv in ${{ matrix.env }}; do export "$kv"; done
+          ${{ matrix.run }}
