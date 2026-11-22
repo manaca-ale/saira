@@ -1,18 +1,16 @@
 name: Testes
 
 # Roda as suítes pytest de cada serviço.
-# - Em PRs e em pushes de branches que não são main/develop: direto.
+# - Em PRs (para qualquer branch) e sob demanda (workflow_dispatch).
 # - Em pushes de main/develop: chamado pelo deploy.yml (workflow_call) e o
 #   deploy só começa se TODAS as suítes passarem.
 # Sem rede externa, sem banco e sem chamada paga a modelo: os testes usam
 # mocks/fixtures (regra: todo bug corrigido ganha teste de regressão).
 
 on:
+  # Sem gatilho de push em branch: o PR já roda e evita run duplicado
+  # (cada run gasta ~5 min de Actions no repo privado).
   pull_request:
-  push:
-    branches-ignore:
-      - main
-      - develop
   workflow_dispatch:
   workflow_call:
 
