@@ -1,0 +1,6 @@
+# Aviso da janela anterior depois de janela barrada pelo filtro (missao 11, sem custo)
+
+Eventos com nota do filtro (dev + aval): 4991; eventos avaliados pelo gate na base: 31706
+Base geral (todos os avaliados): {'sem_aviso': 420, 'aviso': 31285, 'sem_par': 1}
+Evento anterior barrado: proximo com aviso 3527, sem aviso 50, sem par no log 0 -> aviso em 98.6% (3527/3577)
+Evento anterior passa: proximo com aviso 1404, sem aviso 10, sem par no log 0 -> aviso em 99.3% (1404/1414)
