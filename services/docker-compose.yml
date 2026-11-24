@@ -11,6 +11,7 @@
     environment:
       - TZ=America/Sao_Paulo
       - S3_BUCKET_HOST=${S3_BUCKET_NAME:-saira-images}.s3.${S3_REGION:-sa-east-1}.amazonaws.com
+      - MEDIA_LINK_SECRET=${MEDIA_LINK_SECRET:-dev-media-link-secret}
     restart: always
     depends_on:
       - backend
@@ -59,6 +60,7 @@
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - MEDIA_LINK_SECRET=${MEDIA_LINK_SECRET:-dev-media-link-secret}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}

@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     S3_BUCKET_NAME: str = ""
     S3_REGION: str = "us-east-1"
 
+    # Links assinados de foto e vídeo (o nginx do frontend confere com secure_link).
+    # Vazio = sem assinatura (só para desenvolvimento local; os composes de teste e produção exigem).
+    MEDIA_LINK_SECRET: str = ""
+    MEDIA_LINK_TTL_SECONDS: int = 3600
+
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
 

@@ -22,6 +22,7 @@ services:
     environment:
       - TZ=America/Sao_Paulo
       - S3_BUCKET_HOST=${S3_BUCKET_NAME:-saira-images}.s3.${S3_REGION:-sa-east-1}.amazonaws.com
+      - MEDIA_LINK_SECRET=${TEST_MEDIA_LINK_SECRET:?defina TEST_MEDIA_LINK_SECRET no .env (openssl rand -hex 32)}
     restart: always
     depends_on:
       - backend
@@ -70,6 +71,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://postgres:${TEST_POSTGRES_PASSWORD:-postgres}@db:5432/saira_db
       # Obrigatória e diferente da de produção (token de teste não abre a produção).
       - SECRET_KEY=${TEST_SECRET_KEY:?defina TEST_SECRET_KEY no .env (openssl rand -hex 32)}
+      - MEDIA_LINK_SECRET=${TEST_MEDIA_LINK_SECRET:?defina TEST_MEDIA_LINK_SECRET no .env (openssl rand -hex 32)}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}

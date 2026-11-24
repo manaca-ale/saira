@@ -40,7 +40,7 @@ ENV S3_BUCKET_HOST=saira-images.s3.sa-east-1.amazonaws.com
 # Expose port 80
 EXPOSE 80
 
-# Substitute S3_BUCKET_HOST into nginx config, then start Nginx.
-# Single-quoted arg to envsubst ensures only $S3_BUCKET_HOST is replaced,
+# Substitute S3_BUCKET_HOST and MEDIA_LINK_SECRET (links assinados de foto e vídeo) into nginx config, then start Nginx.
+# Single-quoted arg to envsubst ensures only these two are replaced,
 # leaving nginx variables ($host, $uri, etc.) intact.
-CMD ["/bin/sh", "-c", "envsubst '$S3_BUCKET_HOST' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+CMD ["/bin/sh", "-c", "envsubst '$S3_BUCKET_HOST $MEDIA_LINK_SECRET' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
