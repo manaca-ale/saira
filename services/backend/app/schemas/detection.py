@@ -1,9 +1,11 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer, field_validator
 from datetime import datetime
 from typing import Optional, List
 from decimal import Decimal
 from uuid import UUID
 from enum import Enum
+
+from app.core.media_links import sign_media_url, strip_media_signature
 
 
 class DetectionStatus(str, Enum):
@@ -40,6 +42,12 @@ class DetectionBase(BaseModel):
     image_url: Optional[str] = Field(None, max_length=512)
     confidence_score: Optional[Decimal] = Field(None, ge=0, le=1)
 
+    @field_validator("image_url", mode="before")
+    @classmethod
+    def _sem_assinatura(cls, v):
+        # O painel devolve o link assinado ao trocar o quadro; o banco guarda o caminho limpo.
+        return strip_media_signature(v)
+
 
 class DetectionCreate(DetectionBase):
     pass
@@ -52,6 +60,11 @@ class DetectionUpdate(BaseModel):
     material_type: Optional[str] = Field(None, max_length=100)
     volume_m3: Optional[Decimal] = None
     image_url: Optional[str] = Field(None, max_length=512)
+
+    @field_validator("image_url", mode="before")
+    @classmethod
+    def _sem_assinatura(cls, v):
+        return strip_media_signature(v)
 
 
 class DetectionClassify(BaseModel):
@@ -80,6 +93,10 @@ class DetectionResponse(DetectionBase):
     class Config:
         from_attributes = True
 
+    @field_serializer("image_url")
+    def _assinar_foto(self, v: Optional[str]) -> Optional[str]:
+        return sign_media_url(v)
+
 
 class DetectionVideoResponse(BaseModel):
     """Estado do clipe de vídeo de 2min da detecção (dispositivos event-driven).
@@ -97,6 +114,10 @@ class DetectionVideoResponse(BaseModel):
     status: str
     video_url: Optional[str] = None
     requested_at: Optional[datetime] = None
+
+    @field_serializer("video_url")
+    def _assinar_video(self, v: Optional[str]) -> Optional[str]:
+        return sign_media_url(v)
 
 
 class DetectionSearchItem(DetectionResponse):
@@ -133,6 +154,10 @@ class DetectionAnalyzedFrame(BaseModel):
     frame_name: str
     image_url: str
     is_default: bool = False
+
+    @field_serializer("image_url")
+    def _assinar_quadro(self, v: str) -> str:
+        return sign_media_url(v)
 
 
 class DetectionAnalyzedFramesResponse(BaseModel):
