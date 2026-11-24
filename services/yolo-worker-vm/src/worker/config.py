@@ -164,6 +164,11 @@ MAX_WINDOWS_PER_DEVICE_PER_CYCLE = int(os.getenv("MAX_WINDOWS_PER_DEVICE_PER_CYC
 # forever. "Flagrante em tempo real" — a frame from hours ago has no operational
 # value. 0 disables (keep the legacy behaviour of processing all ages).
 MAX_FRAME_AGE_SECONDS = int(os.getenv("MAX_FRAME_AGE_SECONDS", "0"))
+# Devices with no active camera (inactive or never registered) are skipped by the
+# scan, but their uploads keep piling up on disk (esp32_002: 14 GB in Oct/2026).
+# Raw frames older than this go to sem_ocorrencia without any AI call, and the
+# daily S3 sync removes them from the disk. 0 disables (legacy behaviour).
+INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS = int(os.getenv("INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS", "0"))
 
 # Number of interior ("mid") frames sent to the Agent-1 gate, evenly spaced across
 # the window (in addition to first + last). Brief on-foot dumps (arrive-deposit-leave

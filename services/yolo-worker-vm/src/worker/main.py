@@ -639,6 +639,38 @@ def _split_stale_frames(
     return fresh, stale
 
 
+def _age_out_unregistered_frames(
+    device_dir: Path,
+    max_age_s: int,
+    now: float,
+    max_moves: int = 5000,
+    mtime_fn=None,
+) -> int:
+    """Mark old raw frames of a device without an active camera as seen.
+
+    The worker skips devices with no active camera, but the esp32-server keeps
+    accepting their uploads: esp32_002 left 14 GB of raw frames that nothing
+    ever moved or cleaned (all cameras inactive since 2026-09-28). Frames under
+    ``<device>/AAAA/MM/DD/`` older than ``max_age_s`` go to ``sem_ocorrencia``
+    (no AI call), so the daily S3 sync zips and removes them like any other
+    non-occurrence. At most ``max_moves`` per call keeps the loop responsive on
+    a large backlog. ``max_age_s <= 0`` disables (legacy: leave them there).
+    Returns how many frames were moved.
+    """
+    if max_age_s <= 0:
+        return 0
+    raw = sorted(device_dir.glob("[0-9][0-9][0-9][0-9]/*/*/*.jpg"))
+    _, stale = _split_stale_frames(raw, max_age_s, now, mtime_fn=mtime_fn)
+    moved = 0
+    for jpg in stale[:max_moves]:
+        try:
+            mark_processed(jpg, device_dir, False)
+        except FileNotFoundError:
+            continue
+        moved += 1
+    return moved
+
+
 def _cap_newest_windows(windows: list, max_per_cycle: int) -> tuple[list, int]:
     """Keep only the newest ``max_per_cycle`` windows (G3 fairness).
 
@@ -2943,6 +2975,14 @@ def scan_and_process() -> int:
         camera = resolve_camera(device_id)
         if not camera:
             logger.debug("No camera registered for device_id=%s", device_id)
+            aged = _age_out_unregistered_frames(
+                device_dir, config.INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS, time.time()
+            )
+            if aged:
+                logger.info(
+                    "inactive device=%s: %d raw frame(s) older than %ds moved to sem_ocorrencia",
+                    device_id, aged, config.INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS,
+                )
             continue
 
         if (
