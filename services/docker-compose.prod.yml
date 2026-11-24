@@ -1,3 +1,11 @@
+# Rotação dos logs do Docker (json-file): sem isto o log cresce sem teto
+# (o esp32-server de produção chegou a 1,1 GB). 5 arquivos de 20 MB por container.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
 services:
   # Frontend (React + Vite)
   web:
@@ -6,8 +14,9 @@ services:
       args:
         - VITE_API_URL=/api/v1
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:80"   # cloudflared (saira.manaca.tech) usa localhost
     container_name: saira-web-prod
+    logging: *default-logging
     environment:
       - TZ=America/Sao_Paulo
       - S3_BUCKET_HOST=${S3_BUCKET_NAME:-saira-images}.s3.${S3_REGION:-sa-east-1}.amazonaws.com
@@ -19,10 +28,11 @@ services:
   api-gateway:
     image: nginx:alpine
     container_name: saira-gateway-prod
+    logging: *default-logging
     volumes:
       - ./nginx/gateway.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - "5000:80"
+      - "127.0.0.1:5000:80"   # cloudflared (api-saira.manaca.tech) usa localhost
     depends_on:
       - backend
     restart: always
@@ -31,11 +41,13 @@ services:
   backend:
     build: ./backend
     container_name: saira-backend-prod
+    logging: *default-logging
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001" # web e gateway falam com backend:8001 pela rede Docker
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/saira_db
+      # Obrigatória: assina os JWT. O padrão antigo estava escrito no repositório.
+      - SECRET_KEY=${SECRET_KEY:?defina SECRET_KEY no .env (openssl rand -hex 32)}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
@@ -116,14 +128,17 @@ services:
   db:
     image: postgis/postgis:15-3.4
     container_name: saira-db-prod
+    logging: *default-logging
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      # Só vale na criação do volume: trocar a senha de um banco existente pede
+      # ALTER USER antes (docs/operacao/servidor-janeiro-2027.md).
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=saira_db
       - TZ=America/Sao_Paulo
       - PGTZ=America/Sao_Paulo
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432" # acesso de fora só por túnel SSH
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
     healthcheck:
@@ -137,6 +152,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: saira-redis-prod
+    logging: *default-logging
     environment:
       - TZ=America/Sao_Paulo
     volumes:
@@ -154,6 +170,7 @@ services:
     build:
       context: ../esp32-server
     container_name: saira-esp32-server-prod
+    logging: *default-logging
     ports:
       - "5005:5000"
     environment:
@@ -188,6 +205,7 @@ services:
     build:
       context: ./yolo-worker-vm
     container_name: saira-yolo-worker-prod
+    logging: *default-logging
     profiles:
       - worker
     environment:
@@ -196,7 +214,7 @@ services:
       - P1_MODEL_PATH=/app/models/yolov8_2142.pt
       - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
       - CONF_THRESHOLD=0.25
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/saira_db
       - REDIS_URL=redis://redis:6379/0
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5005}
       - POLL_INTERVAL=${POLL_INTERVAL:-10}
@@ -235,6 +253,9 @@ services:
       - GEMINI_BREAKER_COOLDOWN_SECONDS=${GEMINI_BREAKER_COOLDOWN_SECONDS:-60}
       - MAX_WINDOWS_PER_DEVICE_PER_CYCLE=${MAX_WINDOWS_PER_DEVICE_PER_CYCLE:-30}
       - MAX_FRAME_AGE_SECONDS=${MAX_FRAME_AGE_SECONDS:-0}
+      # Câmera sem cadastro ativo: quadros brutos mais velhos que isto vão para
+      # sem_ocorrencia (sem IA) e saem do disco na migração diária ao S3. 0 = desligado.
+      - INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS=${INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS:-0}
       - GEMINI_AGENT1_MODEL=${GEMINI_AGENT1_MODEL:-gemini-2.5-flash}
       - GEMINI_AGENT1_TIMEOUT_SECONDS=${GEMINI_AGENT1_TIMEOUT_SECONDS:-15}
       - GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE=${GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE:-75}
@@ -399,6 +420,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.55.1
     container_name: saira-prometheus-prod
+    logging: *default-logging
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -423,6 +445,7 @@ services:
   alertmanager:
     image: prom/alertmanager:v0.27.0
     container_name: saira-alertmanager-prod
+    logging: *default-logging
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/alertmanager
@@ -438,6 +461,7 @@ services:
   grafana:
     image: grafana/grafana:11.3.1
     container_name: saira-grafana-prod
+    logging: *default-logging
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
