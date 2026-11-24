@@ -96,6 +96,50 @@ def mark_manifest_processed(path: Path) -> None:
     path.with_name(path.name + PROCESSED_SUFFIX).touch()
 
 
+ARCHIVE_DIRNAME = "arquivo"
+
+
+def archive_processed_manifests(device_dir: Path, now_epoch: float, min_age_s: int) -> int:
+    """Move manifests processed more than ``min_age_s`` ago to ``events/arquivo/AAAAMM/``.
+
+    Nothing ever removed them: pi-cam-001 kept 31,943 manifests (+ .lock and
+    .processed) from 24/06 to 04/09/2026, ~444 a day, and every scan cycle globs
+    and stats all of them twice (discover_ready_manifests and
+    pending_manifest_frames): 0.85 s per glob measured on the server on
+    2026-11-24. With six cameras for a year that is ~1M files and tens of
+    seconds per cycle, so POLL_INTERVAL stops mattering. The archive is a
+    sub-folder, out of ``events/*.json``. The age guard keeps recent ones in
+    place so a late update of the same event still finds its ``.processed``
+    marker (no reprocessing). ``min_age_s <= 0`` disables. Returns how many
+    manifests were moved.
+    """
+    if min_age_s <= 0:
+        return 0
+    events_dir = device_dir / "events"
+    if not events_dir.is_dir():
+        return 0
+    cutoff = now_epoch - min_age_s
+    moved = 0
+    for marker in events_dir.glob("*.json" + PROCESSED_SUFFIX):
+        try:
+            mtime = marker.stat().st_mtime
+        except FileNotFoundError:
+            continue
+        if mtime >= cutoff:
+            continue
+        manifest = marker.with_name(marker.name[: -len(PROCESSED_SUFFIX)])
+        dest = events_dir / ARCHIVE_DIRNAME / datetime.fromtimestamp(mtime).strftime("%Y%m")
+        dest.mkdir(parents=True, exist_ok=True)
+        # O manifesto primeiro: se cair no meio, o marcador que sobra só reprocessa nada.
+        for path in (manifest, manifest.with_name(manifest.name + ".lock"), marker):
+            try:
+                path.rename(dest / path.name)
+            except FileNotFoundError:
+                continue
+        moved += 1
+    return moved
+
+
 def discover_ready_manifests(device_dir: Path, now: datetime) -> list[EventManifest]:
     """Return unprocessed manifests that are closed — or stale-open.
 

@@ -58,6 +58,14 @@ jobs:
             os: ubuntu-24.04
             install: pip install -r requirements.txt pytest
             run: python -m pytest -q test_command_queue.py test_rotate.py
+          - name: infra
+            dir: tests/infra
+            python: "3.11"
+            # Lê os composes e o deploy.yml: portas internas só em 127.0.0.1,
+            # senhas e SECRET_KEY por variável, rotação de log, teste e produção
+            # em checkouts separados.
+            install: pip install pyyaml pytest
+            run: python -m pytest -q .
     defaults:
       run:
         working-directory: ${{ matrix.dir }}
