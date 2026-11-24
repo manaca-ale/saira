@@ -1,6 +1,12 @@
 services:
   esp32-receiver:
     build: .
+    # Rotação do log (o log do esp32-server sem teto chegou a 1,1 GB em produção).
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
     ports:
       # Test uses 5002. Production uses 5001.
       - "5002:5000"

@@ -82,7 +82,13 @@ class Settings(BaseSettings):
     CAMERA_OFFLINE_MONITOR_ENABLED: bool = True
     CAMERA_OFFLINE_THRESHOLD_SECONDS: int = 3600       # 1h sem upload = offline
     CAMERA_OFFLINE_CHECK_INTERVAL_MINUTES: int = 10
-    CAMERA_OFFLINE_REALERT_SECONDS: int = 21600        # re-alerta no máx. a cada 6h
+    CAMERA_OFFLINE_REALERT_SECONDS: int = 21600        # 1º re-alerta 6h depois; dobra a cada um
+    CAMERA_OFFLINE_REALERT_MAX_SECONDS: int = 86400    # teto do espaçamento (24h)
+    # Teto de e-mails POR QUEDA (0 = sem teto). Com 3: avisos em ~1h, ~7h e ~19h
+    # e depois SILÊNCIO até a câmera voltar (aí sai o e-mail de recuperação).
+    # Existe porque a pi-cam-001 ficou muda de 08 a 16/09/2026 e o re-alerta fixo
+    # de 6h rendeu 31 e-mails — a partir do terceiro nenhum trazia informação nova.
+    CAMERA_OFFLINE_MAX_ALERTS_PER_OUTAGE: int = 3
     OFFLINE_ALERT_RECIPIENTS: str = ""                 # vazio = fallback p/ BILLING_REPORT_RECIPIENTS
 
     # Camera DEGRADED alert (Pi event-driven) — a câmera segue online (keepalive
@@ -92,7 +98,9 @@ class Settings(BaseSettings):
     # episódio POR condição. Roda no mesmo ciclo do offline_monitor.
     CAMERA_HEALTH_MONITOR_ENABLED: bool = True
     CAMERA_HEALTH_STALE_CAPTURE_SECONDS: int = 900     # 15min sem captura = sem imagem
-    CAMERA_HEALTH_REALERT_SECONDS: int = 21600         # re-alerta no máx. a cada 6h
+    CAMERA_HEALTH_REALERT_SECONDS: int = 21600         # 1º re-alerta 6h depois; dobra a cada um
+    CAMERA_HEALTH_REALERT_MAX_SECONDS: int = 86400     # teto do espaçamento (24h)
+    CAMERA_HEALTH_MAX_ALERTS_PER_EPISODE: int = 3      # e-mails por (device, condição); 0 = sem teto
     # Histerese: a condição precisa persistir por 2 ciclos antes de virar
     # episódio/e-mail (evita tempestade em flap, ex.: subtensão no limiar).
     CAMERA_HEALTH_DEBOUNCE_ENABLED: bool = True

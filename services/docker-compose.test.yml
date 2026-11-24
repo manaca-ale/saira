@@ -1,3 +1,11 @@
+# Rotação dos logs do Docker (json-file): sem isto o log cresce sem teto
+# (o esp32-server de produção chegou a 1,1 GB). 5 arquivos de 20 MB por container.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
 services:
   # Frontend (React + Vite)
   web:
@@ -8,8 +16,9 @@ services:
         # Rotulagem interna: só em teste (prod não passa este arg).
         - VITE_ENABLE_LABELING=true
     ports:
-      - "3001:80"
+      - "127.0.0.1:3001:80"   # cloudflared (test-saira.manaca.tech) usa localhost
     container_name: saira-web-test
+    logging: *default-logging
     environment:
       - TZ=America/Sao_Paulo
       - S3_BUCKET_HOST=${S3_BUCKET_NAME:-saira-images}.s3.${S3_REGION:-sa-east-1}.amazonaws.com
@@ -24,10 +33,11 @@ services:
   api-gateway:
     image: nginx:alpine
     container_name: saira-gateway-test
+    logging: *default-logging
     volumes:
       - ./nginx/gateway.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - "5001:80"
+      - "127.0.0.1:5001:80"   # cloudflared (api-test-saira.manaca.tech) usa localhost
     depends_on:
       - backend
     restart: always
@@ -36,6 +46,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: saira-redis-test
+    logging: *default-logging
     environment:
       - TZ=America/Sao_Paulo
     volumes:
@@ -52,11 +63,13 @@ services:
   backend:
     build: ./backend
     container_name: saira-backend-test
+    logging: *default-logging
     ports:
-      - "8002:8001"
+      - "127.0.0.1:8002:8001"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/saira_db
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production-min-32-chars}
+      - DATABASE_URL=postgresql+asyncpg://postgres:${TEST_POSTGRES_PASSWORD:-postgres}@db:5432/saira_db
+      # Obrigatória e diferente da de produção (token de teste não abre a produção).
+      - SECRET_KEY=${TEST_SECRET_KEY:?defina TEST_SECRET_KEY no .env (openssl rand -hex 32)}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - CAMERA_UPLOADS_DIR=${CAMERA_UPLOADS_DIR:-/app/uploads}
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
@@ -142,6 +155,7 @@ services:
     build:
       context: ./yolo-worker-vm
     container_name: saira-yolo-worker-test
+    logging: *default-logging
     environment:
       - UPLOAD_DIR=/app/uploads
       - STATE_DIR=/app/state
@@ -151,7 +165,7 @@ services:
       - P1_MODEL_PATH=/app/models/yolov8_2142.pt
       - P2_MODEL_PATH=/app/models/yolov8_PeopleCar_200_n.pt
       - CONF_THRESHOLD=0.25
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saira_db
+      - DATABASE_URL=postgresql://postgres:${TEST_POSTGRES_PASSWORD:-postgres}@db:5432/saira_db
       - REDIS_URL=redis://redis:6379/0
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5002}
       # TEST_POLL_INTERVAL: var própria do teste — o .env do servidor é
@@ -190,6 +204,12 @@ services:
       - GEMINI_BREAKER_COOLDOWN_SECONDS=${GEMINI_BREAKER_COOLDOWN_SECONDS:-60}
       - MAX_WINDOWS_PER_DEVICE_PER_CYCLE=${MAX_WINDOWS_PER_DEVICE_PER_CYCLE:-30}
       - MAX_FRAME_AGE_SECONDS=${MAX_FRAME_AGE_SECONDS:-0}
+      # Câmera sem cadastro ativo: quadros brutos mais velhos que isto vão para
+      # sem_ocorrencia (sem IA) e saem do disco na migração diária ao S3. 0 = desligado.
+      - INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS=${TEST_INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS:-0}
+      # Manifestos de evento já processados, mais velhos que isto, vão para
+      # events/arquivo/AAAAMM (a varredura não cresce para sempre). 0 = desligado.
+      - EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS=${TEST_EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS:-0}
       - GEMINI_AGENT1_MODEL=${GEMINI_AGENT1_MODEL:-gemini-2.5-flash}
       - GEMINI_AGENT1_TIMEOUT_SECONDS=${GEMINI_AGENT1_TIMEOUT_SECONDS:-15}
       - GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE=${GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE:-75}
@@ -344,7 +364,7 @@ services:
       # read when GEMINI_USE_VERTEX=true; harmless when absent/off.
       - ./yolo-worker-vm/vertex-cred-config.json:/app/vertex-cred-config.json:ro
     ports:
-      - "9108:9108"
+      - "127.0.0.1:9108:9108"
       # To enable Drive sync: place your service account key on the server and uncomment:
       # - /home/ubuntu/saira/gdrive-sa-key.json:/app/gdrive-sa-key.json:ro
     networks:
@@ -361,6 +381,7 @@ services:
     build:
       context: ./observability/gemini-billing-exporter
     container_name: saira-gemini-billing-exporter-test
+    logging: *default-logging
     environment:
       - GCP_PROJECTS=[{"id":"gen-lang-client-0028842427","name":"Saira"},{"id":"gen-lang-client-0487533939","name":"Flora"},{"id":"gen-lang-client-0616161525","name":"Teste"},{"id":"manafin","name":"Manafin"}]
       - POLL_INTERVAL=${BILLING_POLL_INTERVAL:-300}
@@ -370,12 +391,13 @@ services:
     volumes:
       - ${GCP_ADC_PATH:-~/.config/gcloud/application_default_credentials.json}:/app/gcp-credentials.json:ro
     ports:
-      - "9109:9109"
+      - "127.0.0.1:9109:9109"
     restart: always
 
   prometheus:
     image: prom/prometheus:v2.55.1
     container_name: saira-prometheus-test
+    logging: *default-logging
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -384,7 +406,7 @@ services:
       - ./observability/prometheus/prometheus.test.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data_test:/prometheus
     ports:
-      - "9091:9090"
+      - "127.0.0.1:9091:9090"
     depends_on:
       - yolo-worker
     restart: always
@@ -392,16 +414,17 @@ services:
   grafana:
     image: grafana/grafana:11.3.1
     container_name: saira-grafana-test
+    logging: *default-logging
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_SECURITY_ADMIN_USER=${TEST_GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${TEST_GRAFANA_ADMIN_PASSWORD:-admin123}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data_test:/var/lib/grafana
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "3004:3000"
+      - "127.0.0.1:3004:3000"
     depends_on:
       - prometheus
     restart: always
@@ -410,14 +433,16 @@ services:
   db:
     image: postgis/postgis:15-3.4
     container_name: saira-db-test
+    logging: *default-logging
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      # Só vale na criação do volume (ver o compose de produção).
+      - POSTGRES_PASSWORD=${TEST_POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=saira_db
       - TZ=America/Sao_Paulo
       - PGTZ=America/Sao_Paulo
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data_test:/var/lib/postgresql/data
     healthcheck:
@@ -431,11 +456,12 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: saira-pgadmin-test
+    logging: *default-logging
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@saira.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_DEFAULT_EMAIL=${TEST_PGADMIN_EMAIL:-admin@saira.com}
+      - PGADMIN_DEFAULT_PASSWORD=${TEST_PGADMIN_PASSWORD:-admin}
     ports:
-      - "5051:80"
+      - "127.0.0.1:5051:80"
     depends_on:
       - db
     restart: always

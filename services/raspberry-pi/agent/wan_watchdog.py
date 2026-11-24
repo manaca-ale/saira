@@ -11,8 +11,9 @@ câmera até alguém ir a campo. Este daemon fecha esse buraco:
     dispara o reboot (API interna do firmware Tenda: /login/Auth com senha MD5 +
     goform/setModules {"reboot":{"action":"reboot"}});
   * se não voltar, INSISTE a cada REBOOT_RETRY_S (em 16/08 um reboot só não
-    bastou; o segundo, 52h depois, trouxe o LTE) — com teto diário
-    MAX_REBOOTS_PER_DAY para nunca virar loop destrutivo.
+    bastou; o segundo, 52h depois, trouxe o LTE) — nas REBOOT_FAST_ATTEMPTS
+    primeiras tentativas; depois o espaçamento dobra até REBOOT_RETRY_MAX_S,
+    então nunca vira loop destrutivo E nunca desiste enquanto a WAN estiver morta.
 
 Sem dependências além da stdlib (a Pi não tem folga de RAM para browser/Playwright;
 a UI do Tenda é uma SPA que fala JSON simples). Segredo do roteador fica em
@@ -60,7 +61,9 @@ class Config:
     check_interval_s: float
     wan_down_reboot_s: float
     reboot_retry_s: float
-    max_reboots_per_day: int
+    reboot_fast_attempts: int
+    reboot_retry_max_s: float
+    max_reboots_per_outage: int
     vpn_peer: str
     http_probe_urls: tuple
     state_file: Path
@@ -81,7 +84,9 @@ class Config:
             check_interval_s=float(os.environ.get("CHECK_INTERVAL_S", "60")),
             wan_down_reboot_s=float(os.environ.get("WAN_DOWN_REBOOT_S", "900")),
             reboot_retry_s=float(os.environ.get("REBOOT_RETRY_S", "1800")),
-            max_reboots_per_day=int(os.environ.get("MAX_REBOOTS_PER_DAY", "8")),
+            reboot_fast_attempts=int(os.environ.get("REBOOT_FAST_ATTEMPTS", "12")),
+            reboot_retry_max_s=float(os.environ.get("REBOOT_RETRY_MAX_S", "14400")),
+            max_reboots_per_outage=int(os.environ.get("MAX_REBOOTS_PER_OUTAGE", "0")),
             vpn_peer=os.environ.get("VPN_PEER", "10.8.0.1"),
             http_probe_urls=tuple(u.strip() for u in probes.split(",") if u.strip()),
             state_file=Path(os.environ.get("STATE_FILE", "/var/lib/saira/wan-watchdog.json")),
@@ -96,7 +101,7 @@ class State:
     down_since: Optional[float] = None      # epoch em que a WAN morreu (None = up)
     last_reboot_at: Optional[float] = None  # epoch do último reboot disparado
     reboots_this_outage: int = 0
-    reboots_today: int = 0
+    reboots_today: int = 0                  # só telemetria; NÃO barra mais reboots
     reboots_day: str = ""                   # YYYY-MM-DD do contador diário
     total_reboots: int = 0
     history: list = field(default_factory=list)  # últimos eventos (auditoria)
@@ -113,13 +118,41 @@ class State:
         return s
 
 
+def retry_interval_s(cfg: Config, reboots_this_outage: int) -> float:
+    """Espaçamento até a PRÓXIMA tentativa, dado quantos reboots este episódio já
+    teve. As primeiras reboot_fast_attempts saem no intervalo cheio
+    (reboot_retry_s); depois o espaçamento dobra a cada tentativa até o teto
+    reboot_retry_max_s.
+
+    O bloco rápido existe porque o campo mostra que às vezes só a insistência
+    resolve: no episódio de 02/09/2026 a WAN só voltou no 9º reboot seguido,
+    espaçados de 30 min. Backoff agressivo desde o início teria transformado
+    aquela queda de 6h40 num dia inteiro fora. Depois da 12ª tentativa a aposta
+    "é só insistir" já falhou, e aí o backoff evita ficar reiniciando o roteador
+    de 30 em 30 min por dias a fio.
+    """
+    extra = reboots_this_outage - cfg.reboot_fast_attempts + 1
+    if extra <= 0:
+        return cfg.reboot_retry_s
+    return min(cfg.reboot_retry_s * (2 ** extra), cfg.reboot_retry_max_s)
+
+
 def decide(cfg: Config, st: State, wan_up: bool, now: float, today: str) -> Optional[str]:
     """Função pura: muta `st` e devolve 'reboot' quando é hora de reiniciar o
     roteador, senão None. Regras:
       - WAN up -> zera o episódio (down_since/reboots_this_outage).
       - WAN down há menos que wan_down_reboot_s -> espera (blip normal do LTE).
-      - reboot recente (< reboot_retry_s) -> espera o roteador subir/registrar.
-      - teto diário atingido -> desiste até o dia virar (nunca loop infinito).
+      - reboot recente (< retry_interval_s) -> espera o roteador subir/registrar.
+      - teto POR EPISÓDIO (opt-in) atingido -> para de tentar nesta queda.
+
+    O teto costumava ser DIÁRIO e foi o que prolongou a queda de 08→09/09/2026:
+    a WAN caiu 21:13, o watchdog gastou 5 reboots até a meia-noite, mais 8 depois
+    que o contador virou, e às 03:58 desistiu — restando ~20h sem NENHUMA
+    tentativa. Pior: a queda de 02/09 só se resolveu porque atravessou a meia-noite
+    e ganhou orçamento novo, ou seja, a recuperação dependeu da hora do relógio,
+    não do problema. Agora quem controla a cadência é o backoff de
+    retry_interval_s(): a WAN morta nunca deixa de ser tentada, mas o espaçamento
+    cresce sozinho até 1 tentativa a cada reboot_retry_max_s.
     """
     if st.reboots_day != today:
         st.reboots_day, st.reboots_today = today, 0
@@ -137,9 +170,10 @@ def decide(cfg: Config, st: State, wan_up: bool, now: float, today: str) -> Opti
         return None
     if now - st.down_since < cfg.wan_down_reboot_s:
         return None
-    if st.last_reboot_at is not None and now - st.last_reboot_at < cfg.reboot_retry_s:
+    if (st.last_reboot_at is not None
+            and now - st.last_reboot_at < retry_interval_s(cfg, st.reboots_this_outage)):
         return None
-    if st.reboots_today >= cfg.max_reboots_per_day:
+    if cfg.max_reboots_per_outage and st.reboots_this_outage >= cfg.max_reboots_per_outage:
         return None
     return "reboot"
 
@@ -291,8 +325,11 @@ def main() -> int:
     if not cfg.router_password:
         log.error("ROUTER_PASSWORD vazio — watchdog sem poder de reboot; só monitorando")
     st = load_state(cfg.state_file)
-    log.info("wan-watchdog iniciado: roteador=%s reboot após %.0fs sem WAN, retry %.0fs, teto %d/dia",
-             cfg.router_url, cfg.wan_down_reboot_s, cfg.reboot_retry_s, cfg.max_reboots_per_day)
+    log.info("wan-watchdog iniciado: roteador=%s reboot após %.0fs sem WAN, "
+             "retry %.0fs nas %d primeiras e depois dobrando até %.0fs, teto/queda=%s",
+             cfg.router_url, cfg.wan_down_reboot_s, cfg.reboot_retry_s,
+             cfg.reboot_fast_attempts, cfg.reboot_retry_max_s,
+             cfg.max_reboots_per_outage or "sem teto")
     was_up: Optional[bool] = None
     while True:
         now = time.time()
