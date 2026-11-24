@@ -207,6 +207,9 @@ services:
       # Câmera sem cadastro ativo: quadros brutos mais velhos que isto vão para
       # sem_ocorrencia (sem IA) e saem do disco na migração diária ao S3. 0 = desligado.
       - INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS=${TEST_INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS:-0}
+      # Manifestos de evento já processados, mais velhos que isto, vão para
+      # events/arquivo/AAAAMM (a varredura não cresce para sempre). 0 = desligado.
+      - EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS=${TEST_EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS:-0}
       - GEMINI_AGENT1_MODEL=${GEMINI_AGENT1_MODEL:-gemini-2.5-flash}
       - GEMINI_AGENT1_TIMEOUT_SECONDS=${GEMINI_AGENT1_TIMEOUT_SECONDS:-15}
       - GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE=${GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE:-75}

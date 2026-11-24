@@ -249,14 +249,17 @@ e grave a mesma senha em `GRAFANA_ADMIN_PASSWORD` (teste: `TEST_GRAFANA_ADMIN_PA
 - **`POLL_INTERVAL=10` em produção** (hoje 180; o teste usa 5). O worker dorme `POLL_INTERVAL` entre varreduras (`main.py`, fim do loop). Nas Pi (`EVENT_DRIVEN_DEVICES`) a câmera fecha o evento e o worker só o pega na varredura seguinte: com 180 o alerta espera até 3 min a mais; com 10, até 10 s. Uma varredura custa um `glob` nos manifestos de cada Pi (32 mil arquivos na pi-cam-001 hoje), barato a cada 10 s. Os 180 vieram das ESP32 (`.env.bak_pre_poll180_20260521`): no caminho por janelas de tempo, a janela em aberto é processada na varredura, então intervalo curto quebra a janela em pedaços e multiplica chamadas ao modelo. **Se alguma ESP32 voltar a ficar ativa, volte para 180 ou corrija esse caminho antes.**
 - **`INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS=3600`** (produção) e `TEST_INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS=3600` (teste). Quadros brutos de câmera sem cadastro ativo, com mais de 1 h, vão para `sem_ocorrencia` sem IA; a migração das 03:00 zipa para o S3 e apaga. Não passe de ~3 h: a migração só pega o dia anterior, e um quadro movido depois das 03:00 do dia seguinte fica no disco. Ligar **depois** do passo 3.1 (senão a primeira varredura move 14 GB para pastas de datas velhas que a migração não pega).
 
+- **`EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS=172800`** (2 dias; teste: `TEST_EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS`). Nada apagava os manifestos de evento: a pi-cam-001 juntou 31.943 (~444 por dia, mais `.lock` e `.processed`), e cada varredura lê todos duas vezes. Medido no servidor em 24/11: **0,85 s por leitura** com uma Pi. Com 6 Pi por um ano seriam ~1 milhão de manifestos e dezenas de segundos por varredura, e aí o `POLL_INTERVAL` deixa de importar. Com a variável, os processados há mais de 2 dias vão para `events/arquivo/AAAAMM/` (fora da leitura), no máximo uma vez por hora por câmera. Os 2 dias de folga evitam reprocessar um evento que receba atualização atrasada.
+
 ```bash
 cd $P/services && cp -p .env .env.bak-poll-$(date +%Y%m%d)
 sed -i 's/^POLL_INTERVAL=180$/POLL_INTERVAL=10/' .env && grep '^POLL_INTERVAL=' .env
 echo 'INACTIVE_DEVICE_MAX_FRAME_AGE_SECONDS=3600' >> .env
+echo 'EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS=172800' >> .env
 docker compose -p saira-prod --profile worker -f docker-compose.prod.yml up -d --no-deps yolo-worker
 docker logs --since 1m saira-yolo-worker-prod 2>&1 | grep POLL_INTERVAL     # 10s
 ```
-(`INACTIVE_DEVICE_*` só tem efeito depois que o PR chegar em `main`.) Desfazer: voltar o `.env` e recriar o worker.
+(`INACTIVE_DEVICE_*` e `EVENT_MANIFEST_*` só têm efeito depois que o PR chegar em `main`. Desfazer o arquivamento: `mv events/arquivo/*/* events/`.) Desfazer: voltar o `.env` e recriar o worker.
 
 ## 9. IAM Role no lugar das chaves estáticas
 

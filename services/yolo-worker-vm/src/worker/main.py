@@ -2819,6 +2819,24 @@ def _gc_orphan_frames(device_dir: Path, device_id: str) -> int:
     return count
 
 
+_last_manifest_archive: dict[str, float] = {}
+
+
+def _maybe_archive_manifests(device_dir: Path, device_id: str, now: Optional[float] = None) -> int:
+    """At most once an hour per device, archive old processed manifests."""
+    age = config.EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS
+    if age <= 0:
+        return 0
+    now = time.time() if now is None else now
+    if now - _last_manifest_archive.get(device_id, 0.0) < 3600:
+        return 0
+    _last_manifest_archive[device_id] = now
+    moved = event_windows.archive_processed_manifests(device_dir, now, age)
+    if moved:
+        logger.info("events: device=%s archived %d processed manifest(s)", device_id, moved)
+    return moved
+
+
 def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
     """Process closed/stale event manifests for an event-driven device.
 
@@ -2829,6 +2847,7 @@ def _process_event_device(device_dir: Path, device_id: str, camera) -> int:
     """
     processed = 0
     upload_dir = Path(config.UPLOAD_DIR)
+    _maybe_archive_manifests(device_dir, device_id)
     manifests = event_windows.discover_ready_manifests(device_dir, datetime.now(BRASILIA))
 
     for manifest in manifests:

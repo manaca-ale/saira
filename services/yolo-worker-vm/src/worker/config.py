@@ -80,6 +80,10 @@ EVENT_DRIVEN_DEVICES = {
 EVENT_STALE_SECONDS = int(os.getenv("EVENT_STALE_SECONDS", "180"))
 # Events with fewer resolved frames than this skip Gemini (GC only).
 EVENT_MIN_FRAMES = int(os.getenv("EVENT_MIN_FRAMES", "3"))
+# Processed event manifests older than this (s) move to events/arquivo/AAAAMM so
+# the per-cycle glob does not grow forever (31,943 manifests = 0.85 s per glob on
+# pi-cam-001 in 2026-11). Checked at most once an hour per device. 0 disables.
+EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS = int(os.getenv("EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS", "0"))
 # Frames of an event-driven device not referenced by any pending manifest
 # (heartbeats, late spool retries) are marked processed without Gemini calls
 # once older than this grace period.
