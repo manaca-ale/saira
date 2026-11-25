@@ -1,0 +1,73 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Sora, Segoe UI, sans-serif',
+    'primaryColor': '#E8E8F8',
+    'primaryTextColor': '#181448',
+    'primaryBorderColor': '#181448',
+    'lineColor': '#181448',
+    'edgeLabelBackground': '#FFFFFF',
+    'clusterBkg': '#F7F7FC',
+    'clusterBorder': '#B8B8D8'
+  }
+}}%%
+flowchart LR
+    subgraph CAMPO["1. Campo — Kit Raspberry Pi (systemd)"]
+        CAM["Câmera IP Intelbras<br/>RTSP Main 1080p + Sub 480p"]
+        RTSP["saira-rtsp-buffer (ffmpeg)<br/>Ring tmpfs 140s + latest.jpg"]
+        AGENT["saira-agent (Python)<br/>BGSUB local + ClipStore + Spool"]
+        NET["Roteador 4G Tenda + WireGuard<br/>saira-wan-watchdog (reboot LAN)"]
+        CAM --> RTSP --> AGENT --> NET
+    end
+
+    subgraph EC2["2. Servidor AWS EC2 (t3.xlarge · Docker Compose saira-prod)"]
+        ESP["esp32-server :5005<br/>Upload + Manifestos + Poll"]
+        VOL[("Volume esp32_uploads<br/>Frames + events/*.json")]
+        WRK["yolo-worker (--profile worker)<br/>Funil A + Sync S3 D-1"]
+        DB[("PostgreSQL 15 + PostGIS<br/>saira-db-prod :5432")]
+        RED[("Redis 7<br/>Pub/Sub + Fila comandos")]
+        API["Backend FastAPI :8001<br/>API REST + SSE + Schedulers"]
+        WEB["Web React + Nginx :3000<br/>Gateway :5000"]
+        OBS["Prometheus + Alertmanager<br/>+ Grafana (127.0.0.1)"]
+
+        ESP --> VOL --> WRK
+        ESP <--> RED
+        WRK --> DB
+        WRK --> RED
+        WRK -.->|CMD_PERSIST_CLIP| ESP
+        API <--> DB
+        API <--> RED
+        API -.->|CMD_VIDEO_CLIP| ESP
+        WEB --> API
+        WEB -.->|/uploads| ESP
+        OBS -.->|:9108| WRK
+    end
+
+    subgraph NUVEM["3. Serviços Externos e Operação (Alvo Jan/2027)"]
+        DEC["Google AI Studio<br/>Decisions gemini-decision-1"]
+        BED["AWS Bedrock (us-east-1)<br/>Amazon Nova Lite (Gate)"]
+        VTX["Google Vertex AI (WIF)<br/>gemini-3.8-flash (Detail)"]
+        S3[("AWS S3 (sa-east-1)<br/>Bucket saira-images")]
+        RES["Resend (E-mail/SMTP)<br/>Billing, Offline e Alertas"]
+        OP["Operador / Fiscal EMLURB<br/>Navegador (HTTPS + SSE)"]
+    end
+
+    NET ==>|WireGuard 10.8.0.x → 10.8.0.1| ESP
+    WRK -->|1. Filtro| DEC
+    WRK -->|2. Gate| BED
+    WRK -->|3. Detail| VTX
+    WRK -->|Sync D-1 03h| S3
+    API -->|Exports ZIP| S3
+    WEB -.->|/s3-images| S3
+    API --> RES
+    OBS --> RES
+    WEB <--> OP
+
+    classDef dark fill:#181448,stroke:#181448,color:#FFFFFF,font-weight:bold;
+    classDef accent fill:#F800A8,stroke:#181448,color:#FFFFFF,font-weight:bold;
+    classDef soft fill:#E8E8F8,stroke:#181448,color:#181448;
+    classDef white fill:#FFFFFF,stroke:#181448,color:#181448;
+    class WRK,API,WEB dark;
+    class DEC,BED,VTX accent;
+    class VOL,DB,RED,S3 soft;
+    class CAM,RTSP,AGENT,NET,ESP,OBS,RES,OP white;

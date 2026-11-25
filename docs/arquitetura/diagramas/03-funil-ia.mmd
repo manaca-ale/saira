@@ -1,0 +1,48 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Sora, Segoe UI, sans-serif',
+    'primaryColor': '#E8E8F8',
+    'primaryTextColor': '#181448',
+    'primaryBorderColor': '#181448',
+    'lineColor': '#181448',
+    'edgeLabelBackground': '#FFFFFF'
+  }
+}}%%
+flowchart LR
+    IN(["Evento fechado da Pi<br/>Mediana 32 frames<br/>Teto 48 / 8 MB"])
+
+    E0["0. Regra / BGSUB<br/>Descarta transient,<br/>menos de 3 frames<br/>ou cena estática"]
+
+    E1["1. Pré-filtro Decisions<br/>gemini-decision-1 (AI Studio)<br/>Pergunta wl_v2 · 5 frames low<br/>Timeout 10s · ~US$ 0,00017<br/>Teto US$ 1/dia · Breaker 5/900s"]
+
+    E2["2. Gate Amazon Nova Lite<br/>AWS Bedrock (us-east-1)<br/>Prompt v1p · 5 frames 640px<br/>2 tent. · 15s/tent. · Deadline 20s<br/>Dispara: new_litter + conf >= 85"]
+
+    FB["Reserva Gemini (Falha aberta)<br/>Hoje: 2.5-flash-lite (aposentado)<br/>Futura: 3.1-flash-lite<br/>(thinking minimal, v1p)"]
+
+    E3["3. Detail gemini-3.8-flash<br/>Google Vertex AI (WIF keyless)<br/>Janela inteira · prompt g3<br/>thinking low · media low<br/>REQUIRE_BBOX=false · Timeout 90s<br/>~US$ 0,0193/chamada"]
+
+    OUT_DROP(["Descartado / Sem ocorrência<br/>Move p/ sem_ocorrencia/<br/>(Skip Decisions mantém aviso<br/>de pilha da janela anterior)"])
+
+    OUT_OK(["Ocorrência confirmada<br/>Coalescing 10 min · Postgres<br/>Alerta SSE (Redis)<br/>CMD_PERSIST_CLIP na Pi"])
+
+    IN --> E0
+    E0 -->|Passa| E1
+    E0 -.->|Suprimido| OUT_DROP
+    E1 -->|Nota >= 0,30<br/>ou FALHA ABERTA| E2
+    E1 -.->|Nota < 0,30<br/>e enforce| OUT_DROP
+    E2 -.->|Erro / timeout /<br/>breaker| FB
+    FB -->|Dispara| E3
+    E2 -->|Dispara ~4,85%| E3
+    E2 -.->|Não dispara| OUT_DROP
+    E3 -->|infraction_confirmed| OUT_OK
+    E3 -.->|Rejeitado| OUT_DROP
+
+    classDef dark fill:#181448,stroke:#181448,color:#FFFFFF,font-weight:bold;
+    classDef accent fill:#F800A8,stroke:#181448,color:#FFFFFF,font-weight:bold;
+    classDef soft fill:#E8E8F8,stroke:#181448,color:#181448;
+    classDef warn fill:#FFF0F8,stroke:#F800A8,color:#181448,stroke-dasharray: 5 3;
+    class E1,E2,E3 dark;
+    class OUT_OK accent;
+    class FB warn;
+    class IN,E0,OUT_DROP soft;
