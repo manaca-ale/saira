@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, computed_field
 from datetime import datetime
 from typing import Optional
+
+from app.core.roles import role_from_cargo
 
 
 class UserBase(BaseModel):
@@ -32,6 +34,12 @@ class UserResponse(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
+
+    @computed_field
+    @property
+    def role(self) -> str:
+        """Papel de acesso derivado do cargo ("admin" ou "operador")."""
+        return role_from_cargo(self.cargo).value
 
     class Config:
         from_attributes = True

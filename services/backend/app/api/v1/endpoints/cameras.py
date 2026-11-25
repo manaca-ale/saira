@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
 from geoalchemy2.functions import ST_SetSRID, ST_MakePoint
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_db, get_current_user, require_admin
 from app.core.redis import get_redis, init_redis
 from app.models.user import User
 from app.models.camera import Camera
@@ -255,7 +255,7 @@ async def set_camera_zoom(
     camera_id: int,
     zoom: float = Body(..., embed=True, ge=0.0, le=1.0),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ):
     """Ajusta o zoom óptico (0 = aberto, 1 = aproximado) — só dispositivos com
     lente motorizada (Pi/Intelbras) reagem. Enfileira CMD_ZOOM:<valor>; a câmera
@@ -268,7 +268,7 @@ async def set_camera_zoom(
 async def camera_autofocus(
     camera_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ):
     """Dispara o autofoco da lente motorizada (best-effort)."""
     device_id = await _enqueue_device_cmd(camera_id, db, "CMD_AUTOFOCUS")
@@ -370,7 +370,7 @@ async def set_camera_polygon(
     camera_id: int,
     payload: CameraPolygonUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ):
     """Grava a zona de interesse (pile_zone_polygon) no banco e a aplica AO VIVO:
     empurra pro esp32-server para o Pi recarregar por poll; câmeras esp32 aplicam
@@ -550,7 +550,7 @@ async def stop_camera_live(
 async def create_camera(
     camera_in: CameraCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Cria uma nova câmera"""
     # Criar geometria PostGIS
@@ -595,7 +595,7 @@ async def update_camera(
     camera_id: int,
     camera_update: CameraUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Atualiza uma câmera"""
     result = await db.execute(select(Camera).where(Camera.id == camera_id))
@@ -626,7 +626,7 @@ async def update_camera_bgsub_config(
     camera_id: int,
     payload: CameraBgsubConfigUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ):
     """Atualiza só os campos BGSUB de tuning (lr_fast/slow, threshold, etc).
 
@@ -655,7 +655,7 @@ async def update_camera_bgsub_config(
 async def delete_camera(
     camera_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Deleta uma câmera"""
     result = await db.execute(select(Camera).where(Camera.id == camera_id))

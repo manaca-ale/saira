@@ -14,7 +14,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_db, require_admin
 from app.core.config import settings
 from app.models.user import User
 from app.schemas.billing import (
@@ -41,7 +41,7 @@ async def get_daily_billing(
         None, description="Filter by agent ('gate' or 'detail')."
     ),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ) -> DailyBillingResponse:
     """Per-camera, per-agent Gemini cost breakdown for a given day (BRT)."""
     target = date or today_brt()
@@ -60,7 +60,7 @@ async def get_billing_range(
     start: date_cls = Query(..., description="Start date (BRT, inclusive)."),
     end: date_cls = Query(..., description="End date (BRT, inclusive)."),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ) -> BillingRangeResponse:
     """Daily totals across a date range — for time-series charts."""
     if end < start:
@@ -79,7 +79,7 @@ async def get_billing_range(
 async def post_test_email(
     payload: TestEmailRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ) -> TestEmailResponse:
     """Fire the daily report email immediately (uses payload.date or yesterday)."""
     target = payload.date or yesterday_brt()

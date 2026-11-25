@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, exists, literal_column, String
 from sqlalchemy.orm import selectinload, aliased
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_db, get_current_user, require_admin
 from app.models.user import User
 from app.models.camera import Camera
 from app.models.detection import Detection, DetectionStatus
@@ -241,7 +241,7 @@ async def update_offender(
 async def delete_offender(
     offender_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ):
     result = await db.execute(select(Offender).where(Offender.id == offender_id))
     offender = result.scalar_one_or_none()
