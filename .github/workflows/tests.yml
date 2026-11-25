@@ -58,6 +58,12 @@ jobs:
             os: ubuntu-24.04
             install: pip install -r requirements.txt pytest
             run: python -m pytest -q test_command_queue.py test_rotate.py
+          - name: camera-sim
+            dir: tools/camera_sim
+            python: "3.11"
+            # Simulador da pi-cam para o teste de ponta a ponta; testes sem rede.
+            install: pip install requests pytest
+            run: python -m pytest -q tests
           - name: infra
             dir: tests/infra
             python: "3.11"
