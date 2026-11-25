@@ -36,6 +36,13 @@ DETECTION_FRAMES_DIR = WORKER_STATE_DIR / "detection_frames"
 
 # Vídeo sob demanda (dispositivos event-driven / Pi relay).
 ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "").rstrip("/")
+ESP32_ADMIN_TOKEN = os.getenv("ESP32_ADMIN_TOKEN", "")
+
+
+def esp32_service_headers() -> dict:
+    """Cabeçalho de serviço para o esp32-server (vazio sem ESP32_ADMIN_TOKEN)."""
+    return {"X-Admin-Token": ESP32_ADMIN_TOKEN} if ESP32_ADMIN_TOKEN else {}
+
 CAMERA_UPLOADS_DIR = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
 VIDEO_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("/")
 VIDEO_REQUEST_TIMEOUT_S = int(os.getenv("VIDEO_REQUEST_TIMEOUT_S", "600"))
@@ -739,7 +746,9 @@ async def request_detection_video(
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.post(
-                trigger_url, json={"cmd": f"CMD_VIDEO_CLIP:{detection.event_ref}"}
+                trigger_url,
+                json={"cmd": f"CMD_VIDEO_CLIP:{detection.event_ref}"},
+                headers=esp32_service_headers(),
             )
         resp.raise_for_status()
     except httpx.HTTPError as exc:

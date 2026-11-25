@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import random
 import re
 import sys
@@ -58,6 +59,16 @@ class SimError(RuntimeError):
 
 
 # ── nomes e lotes ─────────────────────────────────────────────────────────────
+def edge_headers(device_id: str) -> dict:
+    """Cabeçalhos da borda. CAMERA_SIM_DEVICE_TOKEN só é preciso quando o
+    esp32-server está com EDGE_AUTH_REQUIRED ligado."""
+    headers = {"X-Device-Id": device_id}
+    token = os.environ.get("CAMERA_SIM_DEVICE_TOKEN", "").strip()
+    if token:
+        headers["X-Device-Token"] = token
+    return headers
+
+
 def frame_time(name: str) -> datetime:
     m = _NAME.match(name)
     if not m:
@@ -240,7 +251,7 @@ def build_requests(event: dict, base_url: str, device_id: str, tag: str,
         files = [("imageFile", (f"f{j:03d}.jpg", read_frame(n), "image/jpeg"))
                  for j, n in enumerate(batch)]
         out.append(Request(url=base_url.rstrip("/") + "/upload-batch",
-                           headers={"X-Device-Id": device_id}, data=data, files=files,
+                           headers=edge_headers(device_id), data=data, files=files,
                            offset_s=off / max(velocidade, 1e-6)))
     return out
 

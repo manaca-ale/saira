@@ -17,6 +17,7 @@ Sources:
 from __future__ import annotations
 
 import json
+import os
 import logging
 from datetime import date as date_cls, datetime, timedelta, timezone
 from pathlib import Path
@@ -45,6 +46,13 @@ logger = logging.getLogger(__name__)
 
 BRT = ZoneInfo("America/Sao_Paulo")
 ESP32_SERVER_BASE = "http://esp32-server:5000"
+ESP32_ADMIN_TOKEN = os.getenv("ESP32_ADMIN_TOKEN", "")
+
+
+def esp32_service_headers() -> dict:
+    """Cabeçalho de serviço para o esp32-server (vazio sem ESP32_ADMIN_TOKEN)."""
+    return {"X-Admin-Token": ESP32_ADMIN_TOKEN} if ESP32_ADMIN_TOKEN else {}
+
 EVENT_LOG_FILENAME = "server-events.jsonl"
 
 
@@ -90,7 +98,7 @@ async def _fetch_capture_interval_seconds(camera: Camera) -> int:
     url = f"{ESP32_SERVER_BASE}/device/{camera.device_id}/config.txt"
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
-            r = await client.get(url)
+            r = await client.get(url, headers=esp32_service_headers())
         if r.status_code == 200:
             for line in r.text.splitlines():
                 if line.startswith("timer_delay_ms="):

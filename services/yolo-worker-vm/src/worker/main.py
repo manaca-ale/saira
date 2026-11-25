@@ -404,6 +404,12 @@ def _persist_detection_summary(
 # ==========================================
 # HELPERS
 # ==========================================
+def _esp32_headers() -> dict:
+    """Cabeçalho de serviço do esp32-server (vazio sem ESP32_ADMIN_TOKEN)."""
+    token = getattr(config, "ESP32_ADMIN_TOKEN", "")
+    return {"X-Admin-Token": token} if token else {}
+
+
 def trigger_history_upload(device_id: str) -> None:
     """POST to esp32-server to request a bulk history upload from the device via SSE."""
     base = config.ESP32_SERVER_URL
@@ -411,7 +417,7 @@ def trigger_history_upload(device_id: str) -> None:
         return
     url = f"{base}/device/{device_id}/trigger"
     try:
-        resp = requests.post(url, json={"cmd": "CMD_BULK_UPLOAD"}, timeout=5)
+        resp = requests.post(url, json={"cmd": "CMD_BULK_UPLOAD"}, headers=_esp32_headers(), timeout=5)
         logger.info("trigger_history_upload device=%s -> HTTP %d", device_id, resp.status_code)
     except Exception as exc:
         logger.warning("trigger_history_upload device=%s failed: %s", device_id, exc)
@@ -430,7 +436,8 @@ def trigger_persist_clip(device_id: str, event_ref: str) -> None:
     url = f"{base}/device/{device_id}/trigger"
     try:
         resp = requests.post(
-            url, json={"cmd": f"CMD_PERSIST_CLIP:{event_ref}"}, timeout=5
+            url, json={"cmd": f"CMD_PERSIST_CLIP:{event_ref}"},
+            headers=_esp32_headers(), timeout=5
         )
         logger.info(
             "trigger_persist_clip device=%s event=%s -> HTTP %d",

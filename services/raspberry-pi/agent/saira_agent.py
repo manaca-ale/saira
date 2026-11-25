@@ -166,6 +166,19 @@ def setup_logging(cfg: Config) -> None:
         log.warning("Sem log em arquivo (%s): %s", cfg.log_file, exc)
 
 
+def ec2_auth_headers(cfg) -> dict:
+    """Cabeçalhos que identificam esta câmera no esp32-server.
+
+    O X-Device-Token só vai quando DEVICE_TOKEN está configurado: o servidor em
+    transição aceita sem ele, e com a exigência ligada recusa (401).
+    """
+    headers = {"X-Device-Id": cfg.device_id}
+    token = (getattr(cfg, "device_token", "") or "").strip()
+    if token:
+        headers["X-Device-Token"] = token
+    return headers
+
+
 class Agent:
     def __init__(self, cfg: Config) -> None:
         self.cfg = cfg
@@ -188,7 +201,7 @@ class Agent:
         # Sessões HTTP persistentes (keep-alive evita handshake por frame).
         self._cam_session = requests.Session()
         self._ec2_session = requests.Session()
-        self._ec2_session.headers.update({"X-Device-Id": cfg.device_id})
+        self._ec2_session.headers.update(ec2_auth_headers(cfg))
 
         cfg.spool_dir.mkdir(parents=True, exist_ok=True)
 
