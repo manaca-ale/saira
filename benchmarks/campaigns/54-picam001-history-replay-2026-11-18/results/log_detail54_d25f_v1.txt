@@ -1,0 +1,32 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[detail54] braco=d25f_v1 modelo=gemini-2.5-flash prompt=v1 think=None media=None frames=None aviso=prod horario=False flex=True
+  eventos=331 {'S0': 88, 'S1': 112, 'S2C': 59, 'S2R': 65, 'S2X': 7} ja_feitos=8 a_rodar=316 sem_janela=7 frames_a_rodar=8562 estimativa=US$ 1.8960
+gemini error request_id=561b1d1b-36a5-466a-9e3a-f117783860a9 attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+gemini error request_id=a507cde5-a9c7-4b9e-932c-25ea96cc82bb attempt=1/3 error=1 validation error for GeminiInfractionReport
+  Invalid JSON: EOF while parsing a list at line 17 column 32 [type=json_invalid, input_value='{\n  "baseline_descripti...er_bbox": [490, 350, 79', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.14/v/json_invalid
+  [25/316] ok=25 erros=0 gasto=US$ 0.1446 (85 s)
+gemini error request_id=a507cde5-a9c7-4b9e-932c-25ea96cc82bb attempt=2/3 error=1 validation error for GeminiInfractionReport
+  Invalid JSON: EOF while parsing a list at line 17 column 32 [type=json_invalid, input_value='{\n  "baseline_descripti...er_bbox": [490, 350, 79', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.14/v/json_invalid
+gemini error request_id=a507cde5-a9c7-4b9e-932c-25ea96cc82bb attempt=3/3 error=1 validation error for GeminiInfractionReport
+  Invalid JSON: EOF while parsing a list at line 17 column 32 [type=json_invalid, input_value='{\n  "baseline_descripti...er_bbox": [490, 350, 79', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.14/v/json_invalid
+  [43/316] S2C evt-20260724_130940 ERR RuntimeError: Gemini inference failed after 3 attempts: 1 validation error for GeminiInfractionReport
+  Invalid JSON: EOF while parsing a li
+  [50/316] ok=49 erros=1 gasto=US$ 0.3051 (164 s)
+  [75/316] ok=74 erros=1 gasto=US$ 0.4317 (230 s)
+  [100/316] ok=99 erros=1 gasto=US$ 0.5440 (292 s)
+  [125/316] ok=124 erros=1 gasto=US$ 0.6674 (349 s)
+  [150/316] ok=149 erros=1 gasto=US$ 0.7994 (413 s)
+gemini error request_id=2bd91b2c-b455-40ad-b72c-ba01d8c46485 attempt=1/3 error=1 validation error for GeminiInfractionReport
+  Invalid JSON: EOF while parsing a string at line 19 column 60 [type=json_invalid, input_value='{\n  "baseline_descripti...19-10-53-078566-004.jpg', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.14/v/json_invalid
+  [175/316] ok=174 erros=1 gasto=US$ 0.9309 (474 s)
+  [200/316] ok=199 erros=1 gasto=US$ 1.0501 (535 s)
+  [225/316] ok=224 erros=1 gasto=US$ 1.1879 (601 s)
+  [250/316] ok=249 erros=1 gasto=US$ 1.3016 (658 s)
+  [275/316] ok=274 erros=1 gasto=US$ 1.4332 (722 s)
+  [300/316] ok=299 erros=1 gasto=US$ 1.5596 (784 s)
+  [316/316] ok=315 erros=1 gasto=US$ 1.6313 (816 s)
+  fim: ok=315 erros=1 chamadas={"n": 319, "flex": 319, "standard": 0} gasto_desta_execucao=US$ 1.6313 total_carteira=US$ 9.5305 (816 s)

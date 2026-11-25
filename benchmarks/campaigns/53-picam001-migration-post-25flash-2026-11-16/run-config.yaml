@@ -1,0 +1,69 @@
+campaign: 53-picam001-migration-post-25flash
+date: 2026-11-16
+type: model-migration
+question: >
+  Em 01/12/2026 as requisicoes ao gemini-2.5-flash (detail de producao) passam a ser
+  roteadas para o gemini-3.5-flash-lite. O gate (gemini-2.5-flash-lite) nao tem data de
+  desligamento. (1) O que acontece com recall, FP e custo se ninguem mexer? (2) Qual
+  configuracao mantem recall >= 70% com custo por evento ate 20% acima do atual?
+
+source_of_dates_and_prices:
+  deprecations: https://aistudio.google.com/docs/deprecations   # lido em 2026-11-16
+  pricing: https://aistudio.google.com/docs/pricing             # lido em 2026-11-16
+  note: precos de lista Standard; tabela em benchmarks/scripts/bench_budget.py
+
+runner: scripts/bench53.py        # estagios gate / detail / score, cache em results/*.jsonl
+free_probe: scripts/probe_tokens.py   # countTokens (gratis): tokens de entrada por modelo e resolucao
+
+dataset:
+  root: data/datasets/official/cam_picam001    # restaurado do tarball de 2026-08-11 (SHA-256 conferido)
+  n_events: 122      # 35 tp (19 deteccoes) + 32 fp (25 deteccoes) + 15 indefinido + 40 baseline
+  labels: status do operador, com a revisao humana da camp 49 (Fase 0) ja aplicada
+  scored: tp (recall), fp (taxa de FP / precisao), baseline (disparo em cena vazia); indefinido fora
+  unit: deteccao (dispara se QUALQUER evento da deteccao dispara); evento como secundario
+
+prod_parity:
+  source: camp 52 (conferido no saira-yolo-worker-prod em 2026-08-04) + codigo em develop df27a1c
+  gate_model: gemini-2.5-flash-lite
+  detail_model: gemini-2.5-flash
+  gate_thinking_budget: 2048        # camps 47/49 usaram 1024; prod usa o default do codigo
+  detail_thinking: nao enviado (dinamico)
+  trigger_min_confidence: 85
+  window: subsample_frames(48) -> fit_frames_to_payload(8_000_000)
+  gate_frames: first + 3 mids uniformes + last (5 imagens individuais, sem mosaico)
+  prompt: V1 (GEMINI_PROMPT_VERSION=current), pos-gates V1 dentro do worker
+  alt_models: via worker.detector_gemini.ModelOverride (mesmo pos-processamento)
+  fidelity_check: gate V1 mediu 2.429 tokens de entrada; prod mediu 2.374 a 2.431 (camp 52)
+
+known_deviation:
+  - first_frame = win[0]; em prod pode ser o ultimo frame da janela anterior (estado nao reproduzivel)
+  - prior_window_context = None (limiar efetivo 85)
+  - sem BGSUB, sem re-vote do gate (GEMINI_GATE_REVOTE_ENABLED default false)
+  - GEMINI_MAX_OUTPUT_TOKENS = 8192 nas duas etapas (como nas camps 47/49; default do codigo 4096)
+  - GEMINI_TIMEOUT_SECONDS = 60 (default 30) para nao perder chamadas pagas por timeout do cliente
+  - a configuracao real do .env de producao NAO foi relida em novembro (exige acesso a prod)
+  - prompt V4 entra por rebind de NEW_LITTER_SYSTEM_PROMPT / SYSTEM_PROMPT (como na camp 49)
+
+auth:
+  mode: Vertex AI, token do gcloud (conta contato@manaca.tech) com renovacao automatica
+  why: a politica da organizacao bloqueia chave de conta de servico e chave de API vinculada
+  project: saira-tests-260520      # conta de faturamento "Saira - Testes" (0149F3), nunca Producao
+  location: global
+
+budget:
+  cap_usd: 15.00                   # R$ 100 aprovados em 2026-11-16 (PTAX 5,7324; ~13,8% de impostos)
+  ledger: ~/.saira-bench/api_ledger.jsonl
+  rule: toda resposta do modelo e cobrada no ledger a preco de lista, inclusive retries
+
+success_criteria:
+  recall_det_min: 70.0             # pedido do Alexandre
+  cost_per_event_max_ratio: 1.20   # ate 20% acima do pipeline atual, medido do mesmo jeito
+  guardrails:                      # nao pedidos, mas sem eles recall sozinho engana (camps 48 e 51)
+    baseline_fire_max: 5.0
+    fp_rate_det: nao pior que o controle + 10 pontos
+
+cost_ruler:
+  dataset: custo medio por evento do dataset (gate em todos + detail nos que passam)
+  prod_mix: custo_gate + p_passa * custo_detail, com p_passa de producao
+  why: no dataset ~metade dos eventos passa no gate; em producao passa uma fracao pequena,
+       entao o custo por evento de producao e dominado pelo gate

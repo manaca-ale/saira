@@ -1,0 +1,81 @@
+== 1. Quem ficou fora antes do sorteio ==
+manifestos no disco: 31943 | antes de 2026-07-14 (worker ainda nao lia a Pi): 17 | desde 2026-07-14: 31926 | avaliados pelo gate: 31706 | nao avaliados: 220
+motivo de fechamento (todos desde 14/07): {'end': 31873, '(vazio)': 53}
+nao avaliados por motivo de fechamento: {'end': 213, '(vazio)': 7}
+nao avaliados por numero de frames: {'10+': 214, '3 a 9': 1, '<3': 5}
+nao avaliados por semana: {'2026-07-13': 211, '2026-07-20': 3, '2026-07-27': 1, '2026-08-03': 3, '2026-08-10': 1, '2026-08-31': 1}
+nao avaliados por dia (os 5 maiores): [('2026-07-14', 192), ('2026-07-16', 18), ('2026-07-25', 2), ('2026-08-09', 2), ('2026-07-26', 1)]
+avaliados com menos de 3 frames no manifesto: 0 | avaliados com mais de uma linha de auditoria: 13
+chamadas no gemini_call_log desde 14/07 (agente, sucesso): {('gate', 't'): 31976, ('detail', 'f'): 91, ('detail', 't'): 1023, ('gate', 'f'): 178, ('shadow_gate', 't'): 6556, ('shadow_detail', 't'): 330}
+
+== 2. Corte da janela (subsample 48 + fit 8 MB) contra o window_size gravado ==
+S0: mais de 48 frames (subamostra por contagem) 777, cortado pelo teto de 8 MB 977, total 30678, identica 30672, julgado antes de o evento fechar 14, cortado pelo teto e identica 975, frames fora dos zips 1
+S1: mais de 48 frames (subamostra por contagem) 48, cortado pelo teto de 8 MB 52, total 595, identica 595, julgado antes de o evento fechar 0, cortado pelo teto e identica 52
+S2: total 432, identica 396, julgado antes de o evento fechar 1
+divergentes (fora da amostra): 42
+  por estrato: {'S0': 6, 'S2R': 25, 'S2X': 2, 'S2C': 9}
+  por semana: {'2026-07-13': 42}
+  reconstruida menos gravada (frames): {-32: 1, -24: 1, -20: 1, -17: 1, -14: 1, -11: 1, 1: 1, 6: 1, 7: 1, 8: 1, 9: 1, 15: 1, 18: 1, 21: 1, 26: 1, 27: 1, 28: 1, 38: 1, 45: 1, 46: 1, 48: 1, 49: 2, 52: 1, 54: 1, 55: 1, 57: 1, 59: 1, 60: 2, 61: 1, 62: 1, 64: 2, 65: 3, 70: 1, 74: 1, 75: 1, 76: 2}
+  S2C: eventos 142, divergentes 9 (6%); deteccoes 84, com pelo menos um evento na amostra 79, perdidas inteiras 5
+  S2R: eventos 249, divergentes 25 (10%); deteccoes 208, com pelo menos um evento na amostra 192, perdidas inteiras 16
+  S2X: eventos 41, divergentes 2 (5%); deteccoes 30, com pelo menos um evento na amostra 28, perdidas inteiras 2
+
+== 3. Estratos por versao do gate de movimento da Pi (eventos avaliados) ==
+versao | dias | eventos | S0 | S1 | S2C | S2R | S2X | gate disparou | janela mediana | frames medianos
+(sem versao) | 2026-07-14 a 2026-09-04 | 1834 | 93.73% | 3.71% | 0.71% | 1.58% | 0.27% | 6.27% | 25 | 37
+2026-07-18_15-59-56 | 2026-07-18 a 2026-07-23 | 3103 | 97.55% | 1.19% | 0.61% | 0.32% | 0.32% | 2.45% | 10 | 10
+2026-07-23_11-07-01 | 2026-07-23 a 2026-07-23 | 49 | 89.80% | 0.00% | 8.16% | 2.04% | 0.00% | 10.20% | 32 | 32
+2026-07-23_13-41-39 | 2026-07-23 a 2026-07-26 | 1368 | 94.52% | 2.63% | 1.54% | 1.10% | 0.22% | 5.48% | 32 | 32
+2026-07-26_13-32-54 | 2026-07-26 a 2026-07-29 | 1596 | 96.93% | 1.75% | 0.31% | 0.56% | 0.44% | 3.07% | 10 | 10
+2026-07-29_14-52-05 | 2026-07-29 a 2026-08-02 | 1857 | 95.96% | 2.15% | 0.70% | 1.08% | 0.11% | 4.04% | 25 | 25
+2026-08-02_07-29-35 | 2026-08-02 a 2026-09-08 | 21899 | 97.11% | 1.76% | 0.31% | 0.75% | 0.06% | 2.89% | 15 | 15
+periodo 14/07 a 01/08: 9707 eventos | S0 9312 (95.93%), S1 209 (2.15%), S2C 75 (0.77%), S2R 84 (0.87%), S2X 27 (0.28%) | gate disparou 4.07%
+periodo 02/08 a 08/09: 21999 eventos | S0 21367 (97.13%), S1 386 (1.75%), S2C 67 (0.30%), S2R 165 (0.75%), S2X 14 (0.06%) | gate disparou 2.87%
+
+== 4. Funil dos bracos com contexto: periodo inteiro x configuracao atual (02/08 em diante) ==
+
+[tudo] populacao 31706 | pesos S0 0.9676, S1 0.0188, S2C 0.0045, S2R 0.0079, S2X 0.0013
+  dev com nota do filtro: S0 304/1623, S1 131/246, S2C 61/61, S2R 73/88, S2X 8/9 | vai ao gate 20.3% | producao dispara 3.24% dos eventos (2.21% depois do filtro)
+  custo de hoje no periodo: US$ 0.001326/evento (gate US$ 0.001028/chamada, 1023 chamadas de detail)
+  g25l_v1_t2048_ctx: S0 15/304 = 4.9% | S1 82/131 = 62.6% | S2C 46/61 = 75.4% | S2R 43/73 = 58.9% | confirmadas 22/32 | dispara 2.33% (1.98% a 2.88%) | US$ 0.001009/chamada | funil -46% (-50% a -40%)
+  g31l_v1p_min_low_ctx: S0 53/304 = 17.4% | S1 47/131 = 35.9% | S2C 46/61 = 75.4% | S2R 42/73 = 57.5% | confirmadas 27/32 | dispara 4.29% (3.59% a 5.13%) | US$ 0.000871/chamada | funil -27% (-34% a -17%)
+  nvl_v1p_low_ctx: S0 44/304 = 14.5% | S1 90/131 = 68.7% | S2C 55/61 = 90.2% | S2R 45/73 = 61.6% | confirmadas 28/32 | dispara 4.20% (3.56% a 5.00%) | US$ 0.000334/chamada | funil -36% (-43% a -27%)
+
+[atual] populacao 21999 | pesos S0 0.9713, S1 0.0175, S2C 0.0030, S2R 0.0075, S2X 0.0006
+  dev com nota do filtro: S0 194/1133, S1 78/151, S2C 28/28, S2R 54/68, S2X 6/6 | vai ao gate 18.5% | producao dispara 2.87% dos eventos (1.87% depois do filtro)
+  custo de hoje no periodo: US$ 0.001295/evento (gate US$ 0.001033/chamada, 632 chamadas de detail)
+  g25l_v1_t2048_ctx: S0 4/194 = 2.1% | S1 46/78 = 59.0% | S2C 18/28 = 64.3% | S2R 29/54 = 53.7% | confirmadas 11/18 | dispara 1.44% (1.23% a 1.95%) | US$ 0.001005/chamada | funil -56% (-59% a -51%)
+  g31l_v1p_min_low_ctx: S0 32/194 = 16.5% | S1 26/78 = 33.3% | S2C 21/28 = 75.0% | S2R 30/54 = 55.6% | confirmadas 15/18 | dispara 3.65% (2.89% a 4.62%) | US$ 0.000870/chamada | funil -33% (-42% a -22%)
+  nvl_v1p_low_ctx: S0 27/194 = 13.9% | S1 50/78 = 64.1% | S2C 24/28 = 85.7% | S2R 31/54 = 57.4% | confirmadas 15/18 | dispara 3.54% (2.85% a 4.47%) | US$ 0.000334/chamada | funil -42% (-50% a -32%)
+
+[antes] populacao 9707 | pesos S0 0.9593, S1 0.0215, S2C 0.0077, S2R 0.0087, S2X 0.0028
+  dev com nota do filtro: S0 110/490, S1 53/95, S2C 33/33, S2R 19/20, S2X 2/3 | vai ao gate 24.5% | producao dispara 4.07% dos eventos (2.98% depois do filtro)
+  custo de hoje no periodo: US$ 0.001395/evento (gate US$ 0.001017/chamada, 391 chamadas de detail)
+  g25l_v1_t2048_ctx: S0 11/110 = 10.0% | S1 36/53 = 67.9% | S2C 28/33 = 84.8% | S2R 14/19 = 73.7% | confirmadas 11/14 | dispara 4.42% (3.49% a 5.93%) | US$ 0.001015/chamada | funil -24% (-34% a -8%)
+  g31l_v1p_min_low_ctx: S0 21/110 = 19.1% | S1 21/53 = 39.6% | S2C 25/33 = 75.8% | S2R 12/19 = 63.2% | confirmadas 12/14 | dispara 5.69% (4.35% a 7.49%) | US$ 0.000872/chamada | funil -13% (-27% a +6%)
+  nvl_v1p_low_ctx: S0 17/110 = 15.5% | S1 40/53 = 75.5% | S2C 31/33 = 93.9% | S2R 14/19 = 73.7% | confirmadas 13/14 | dispara 5.75% (4.55% a 7.45%) | US$ 0.000334/chamada | funil -22% (-34% a -4%)
+
+== 5. Sensibilidade ==
+confirmadas, g31l_v1p_min_low_ctx x controle (n=32): os dois mantem 20, so o candidato 7, so o controle 2, nenhum 3
+confirmadas, nvl_v1p_low_ctx x controle (n=32): os dois mantem 20, so o candidato 8, so o controle 2, nenhum 2
+confirmadas que NENHUM dos tres mantem: 1 de 32; que pelo menos um candidato mantem: 30
+eventos do tri x fora do tri (o v1p foi escrito olhando as perdas do tri):
+  g25l_v1_t2048_ctx: S0 tri 3/60 = 5.0% | S0 fora 12/244 = 4.9% | S1 tri 36/50 = 72.0% | S1 fora 46/81 = 56.8% | S2R tri 26/40 = 65.0% | S2R fora 17/33 = 51.5%
+  g31l_v1p_min_low_ctx: S0 tri 16/60 = 26.7% | S0 fora 37/244 = 15.2% | S1 tri 15/50 = 30.0% | S1 fora 32/81 = 39.5% | S2R tri 27/40 = 67.5% | S2R fora 15/33 = 45.5%
+  nvl_v1p_low_ctx: S0 tri 8/60 = 13.3% | S0 fora 36/244 = 14.8% | S1 tri 34/50 = 68.0% | S1 fora 56/81 = 69.1% | S2R tri 22/40 = 55.0% | S2R fora 23/33 = 69.7%
+origem do contexto reconstituido (log = contagem de tokens diz o texto; palpite = texto do mesmo tamanho):
+  g25l_v1_t2048_ctx: log S0 14/264 = 5.3% | log S1+S2 156/236 = 66.1% | log_palpite S0 1/40 = 2.5% | log_palpite S1+S2 21/37 = 56.8%
+  g31l_v1p_min_low_ctx: log S0 48/264 = 18.2% | log S1+S2 126/236 = 53.4% | log_palpite S0 5/40 = 12.5% | log_palpite S1+S2 13/37 = 35.1%
+  nvl_v1p_low_ctx: log S0 37/264 = 14.0% | log S1+S2 170/236 = 72.0% | log_palpite S0 7/40 = 17.5% | log_palpite S1+S2 26/37 = 70.3%
+tipo do contexto nos eventos do pass (controle): {'Entulho': 360, 'Lixo domiciliar': 84, 'Mixed': 49, 'Entulho, Poda': 17, 'Entulho, Lixo domiciliar': 2, 'sem tipo': 61, 'sem contexto': 4}
+
+== 6. Contexto da janela anterior nos eventos que foram ao detail em producao ==
+gate disparou (detail rodou): 1027 eventos | com contexto 1024 (99.7%), sem contexto 3 (0.3%)
+S2 confirmadas: 142 eventos | com contexto 142 (100.0%)
+gate nao disparou: 30679 eventos | com contexto 30261 (98.6%), sem contexto 417 (1.4%), sem par no log 1 (0.0%)
+
+== 7. Tokens de entrada do detail: producao x replay (campanha 53, d25f_v1, Vertex) ==
+producao (deteccoes com chamada no log): n=322 | tokens = 1317 + 292.0 x frames
+replay camp 53: n=57 | tokens = 1284 + 292.0 x frames
+mesmo evento e mesmo numero de frames nos dois: 31 | producao menos replay, em tokens: {29: 1, 34: 21, 35: 2, 36: 5, 39: 2}
+por tipo do contexto que o gate recebeu: {'Entulho, Lixo domiciliar': {39: 2}, 'Entulho': {34: 21, 35: 2}, 'Lixo domiciliar': {36: 5}, '': {29: 1}}

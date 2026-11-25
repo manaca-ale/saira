@@ -1,0 +1,28 @@
+limiar na auditoria: {85: 31976}
+confianca dos disparos: {85: 140, 90: 276, 95: 697, 98: 1}
+gate ok 31976, falhas 178: [('Gemini new-litter gate failed after 3 attempts: 429 RESOURCE', 129), ('Gemini new-litter gate failed after 3 attempts: Gemini gate ', 47), ('Gemini new-litter gate failed after 3 attempts: 1 validation', 2)]
+pensamento: media 1753 p50 1728 p5 1423 p95 2047 max 2049 | saida: media 198 max 317
+input_tokens - 2429 (0 = sem contexto da janela anterior):
+    +0     364   1.14%
+   +26      33   0.10%
+   +41    6022  18.83%
+   +42      21   0.07%
+   +45    2817   8.81%
+   +46   17952  56.14%
+   +47     346   1.08%
+   +48    3257  10.19%
+   +49     684   2.14%
+   +50      61   0.19%
+   +51     339   1.06%
+
+gate__g25l_v1__r0.jsonl                  n=    4 min=2429 p50=2429 max=2429 modas=2429x4 backend={'?': 4}
+gate__g25l_v1__r1.jsonl                  n=  122 min=2429 p50=2429 max=2429 modas=2429x122 backend={'?': 122}
+gate__g25l_v1__r2.jsonl                  n=  122 min=2429 p50=2429 max=2429 modas=2429x122 backend={'?': 122}
+gate__g25l_v1__r3.jsonl                  n=  122 min=2429 p50=2429 max=2429 modas=2429x122 backend={'?': 122}
+gate__g25l_v1__r4.jsonl                  n=  122 min=2429 p50=2429 max=2429 modas=2429x122 backend={'?': 122}
+gate__g25l_v1__r5.jsonl                  n=  122 min=2429 p50=2429 max=2429 modas=2429x122 backend={'vertex': 122}
+gate54__g25l_v1_t0__r1.jsonl             n=  210 min=2016 p50=2016 max=2016 modas=2016x210 backend={'aistudio': 210}
+gate54__g25l_v1_t1024__r1.jsonl          n=  777 min=1996 p50=2016 max=2016 modas=2016x776, 1996x1 backend={'aistudio': 777}
+gate54__g25l_v1_t2048__r1.jsonl          n=  777 min=1996 p50=2016 max=2016 modas=2016x776, 1996x1 backend={'aistudio': 777}
+gate54__g25l_v1_t2048_ctx__r1.jsonl      n=  212 min=2057 p50=2062 max=2067 modas=2062x170, 2064x23, 2061x6 backend={'aistudio': 212}
+gate54__g25l_v1_t512__r1.jsonl           n=  211 min=2016 p50=2016 max=2016 modas=2016x211 backend={'aistudio': 211}

@@ -1,0 +1,65 @@
+[
+ {
+  "flex_requested": false,
+  "tries": 1,
+  "latency_s": 1.4,
+  "usage_metadata": {
+   "candidates_token_count": 6,
+   "prompt_token_count": 1303,
+   "prompt_tokens_details": [
+    {
+     "modality": "TEXT",
+     "token_count": 13
+    },
+    {
+     "modality": "IMAGE",
+     "token_count": 1290
+    }
+   ],
+   "total_token_count": 1309
+  },
+  "response_keys": [
+   "automatic_function_calling_history",
+   "model_version",
+   "parsed",
+   "response_id",
+   "usage_metadata"
+  ],
+  "model_version": "gemini-2.5-flash-lite",
+  "headers": {
+   "x-gemini-service-tier": "standard"
+  }
+ },
+ {
+  "flex_requested": true,
+  "tries": 1,
+  "latency_s": 1.4,
+  "usage_metadata": {
+   "candidates_token_count": 6,
+   "prompt_token_count": 1303,
+   "prompt_tokens_details": [
+    {
+     "modality": "TEXT",
+     "token_count": 13
+    },
+    {
+     "modality": "IMAGE",
+     "token_count": 1290
+    }
+   ],
+   "total_token_count": 1309
+  },
+  "response_keys": [
+   "automatic_function_calling_history",
+   "model_version",
+   "parsed",
+   "response_id",
+   "usage_metadata"
+  ],
+  "model_version": "gemini-2.5-flash-lite",
+  "headers": {
+   "x-gemini-service-tier": "flex"
+  }
+ }
+]
+chamadas: {'n': 2, 'flex': 0, 'standard': 2} gasto US$ 0.000265

@@ -1,0 +1,22 @@
+{
+  "_nota": "Correções de rótulo aplicadas por cima do dataset oficial e do catálogo do pi-inicial-v1 (zip do Drive datasets_30-10-26, sha256 ad097fdc...). O dataset em C:\\Saira\\data e o catálogo em C:\\Saira-testspace NÃO são editados: bench53.py aplica este arquivo ao carregar eventos e ao ler os registros de resultado. BENCH_NO_LABEL_OVERRIDES=1 desliga (reproduz os números anteriores a 17/11/2026).",
+  "fonte": "Catálogo local do Gabriel Candelária (sha256 0ada1a0f...), que corrigiu estes três eventos. Em 17/11/2026 às 09:35 ele confirmou ao Alexandre que os rótulos corrigidos estavam errados no original e pediu para considerar as correções; disse também que não revisou todos os eventos caso a caso, então os demais rótulos podem ter ruído.",
+  "decidido_em": "2026-11-17",
+  "overrides": {
+    "evt-20260717_180936": {
+      "category": "fp",
+      "antes": "tp",
+      "motivo": "No oficial está em tp/ por aprovação global do operador em 30/07, não evento a evento; o Gabriel marcou REJEITADO. É o único evento da detecção 1d04290a."
+    },
+    "evt-20260815_114903": {
+      "category": "tp",
+      "antes": "fp",
+      "motivo": "REJEITADO no catálogo do Drive; o Gabriel marcou CONFIRMADO. Está no holdout."
+    },
+    "evt-20260818_160927": {
+      "category": "tp",
+      "antes": "fp",
+      "motivo": "REJEITADO no catálogo do Drive; o Gabriel marcou CONFIRMADO. Está no holdout."
+    }
+  }
+}

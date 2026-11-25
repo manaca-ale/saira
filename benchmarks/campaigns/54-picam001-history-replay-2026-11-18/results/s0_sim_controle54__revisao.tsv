@@ -1,0 +1,42 @@
+event_id	leitura	causa	nota
+evt-20260715_083956	indeterminado	manuseio	pessoa agachada na borda da pilha; não dá para ver se deixou ou tirou material
+evt-20260715_185755	falso_provavel	retirada	segura um painel branco em pé no início; no fim o painel não está mais no local
+evt-20260715_193813	descarte_provavel	descarte_a_pe	objeto laranja novo no chão no último quadro, no ponto indicado pelo detail
+evt-20260716_180428	indeterminado	manuseio	carrinho de mão e placas brancas; a placa já estava na pilha no início e termina na mão da pessoa
+evt-20260716_211546	falso_provavel	manuseio	várias pessoas curvadas sobre a pilha; o próprio resumo infere o descarte da permanência
+evt-20260717_182657	falso_provavel	manuseio	pessoa curvada sobre os sacos pretos do início ao fim (4 minutos)
+evt-20260717_193750	falso_provavel	manuseio	pessoa mexendo em sacos claros do início ao fim
+evt-20260718_102201	falso_provavel	manuseio	mulher com ferramenta remexendo a pilha; o resumo só descreve manuseio
+evt-20260725_145315	falso_provavel	passagem	só veículos passando; a região indicada está igual no início e no fim
+evt-20260725_184927	indeterminado	veiculo_parado	carro para à noite e alguém vai até a pilha; nada visível muda; o resumo diz "sugere"
+evt-20260726_174052	descarte_provavel	descarte_a_pe	mulher chega com sacola branca, despeja na pilha e sai
+evt-20260727_102114	indeterminado	manuseio	duas pessoas curvadas na pilha com um saco escuro; região indicada igual no início e no fim
+evt-20260727_135311	descarte_provavel	descarte_carrinho	carrinho de mão é virado na borda da pilha e a pessoa sai com ele
+evt-20260730_121439	descarte_provavel	descarte_a_pe	sacos laranja e caixa a mais no último quadro; a ação não aparece nos quadros de mais movimento
+evt-20260731_162137	descarte_provavel	descarte_a_pe	pessoa chega com volume nas costas e termina junto à pilha
+evt-20260801_093613	falso_provavel	passagem	pessoa de boné anda junto à pilha; região indicada igual no início e no fim
+evt-20260801_125849	descarte_provavel	descarte_veiculo	caminhão baú; volume preto novo na pilha e objeto circular deixado no chão
+evt-20260804_024511	indeterminado	passagem	pessoas passam à noite com volumes na cabeça; não se vê depósito
+evt-20260808_040430	falso_provavel	passagem	duas pessoas atravessam à noite; a região indicada é chão limpo e não muda
+evt-20260808_160014	falso_provavel	manuseio	pessoas agachadas na pilha do canto; o resumo só descreve manuseio
+evt-20260810_150335	falso_provavel	passagem	moto com colchão para e ajeita a carga; o colchão não fica no chão
+evt-20260812_134132	descarte_provavel	descarte_carrinho	carroça descarrega tábuas no chão; a tábua continua lá às 17:28
+evt-20260812_134336	descarte_provavel	descarte_carrinho	mesma descarga da janela anterior (segunda janela do mesmo ato)
+evt-20260812_172906	falso_provavel	passagem	pedestres, bicicletas e carros; nenhum carrinho despejando; pilha igual
+evt-20260812_235912	descarte_provavel	descarte_a_pe	saco preto e placas claras novos no ponto indicado no último quadro
+evt-20260813_113127	indeterminado	veiculo_parado	picape parada longe da pilha com a caçamba aberta; pilha sem mudança visível
+evt-20260814_025815	falso_provavel	manuseio	pessoa com cachorro curvada na pilha do início ao fim
+evt-20260814_060743	indeterminado	manuseio	homem com sacola branca se curva em dois pontos da pilha; pode estar catando ou despejando
+evt-20260814_181925	falso_provavel	manuseio	pessoa junto ao contêiner à noite; o resumo infere o descarte da permanência
+evt-20260819_214613	falso_provavel	manuseio	duas pessoas curvadas na pilha do início ao fim
+evt-20260820_090919	indeterminado	veiculo_parado	picape parada no fundo da cena; a região indicada é chão sem mudança
+evt-20260824_212757	falso_provavel	passagem	pessoas e cachorro atravessam à noite; a região indicada é chão limpo
+evt-20260827_204156	indeterminado	manuseio	pessoa com saco grande; outro saco aparece no chão no fim, com a pessoa ainda em cena (perfil de catador)
+evt-20260828_133048	indeterminado	manuseio	caixa de papelão nova junto à pilha, com a pessoa ainda ao lado no último quadro
+evt-20260901_120116	indeterminado	retirada	uma pessoa leva a chapa de papelão que estava no chão; outra mexe no saco grande
+evt-20260904_044339	falso_provavel	manuseio	ciclista para junto à pilha à noite; o resumo diz "manuseando ou adicionando"
+evt-20260904_120243	falso_provavel	passagem	dupla atravessa com carrinho de caixas de papelão; pilha igual no início e no fim
+evt-20260904_153507	falso_provavel	passagem	carro com reboque passa; o vaso sanitário citado como novo já estava na pilha no primeiro quadro
+evt-20260905_004619	falso_provavel	manuseio	pessoa varrendo e mexendo na pilha à noite; o resumo só descreve manuseio
+evt-20260905_052229	falso_provavel	manuseio	pessoa de camisa amarela com sacola se curva em vários pontos da pilha (catador)
+evt-20260906_162802	descarte_provavel	descarte_a_pe	adulto e criança vão até a pilha com sacolas, param e saem

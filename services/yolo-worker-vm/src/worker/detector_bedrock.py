@@ -61,12 +61,16 @@ class ModelSpec:
 MODELS: dict[str, ModelSpec] = {m.alias: m for m in [
     ModelSpec("kimi-k2.5", "moonshotai.kimi-k2.5", 48, (0.60, 3.00)),
     ModelSpec("magistral-small", "mistral.magistral-small-2509", 48, (0.50, 1.50)),
+    # Campanha 54: candidato a GATE (não a detail), só atrás do filtro (gate_prefilter).
+    # Preço de lista da AWS em us-east-1, lido em 19/11/2026. Não emite raciocínio.
+    ModelSpec("nova-lite", "amazon.nova-lite-v1:0", None, (0.06, 0.24)),
 ]}
 
 _RETRYABLE = ("ThrottlingException", "ServiceUnavailableException", "ModelTimeoutException",
               "ModelNotReadyException", "InternalServerException", "TooManyRequestsException")
 
 _client = None
+_clients_by_timeout: dict[int, Any] = {}
 # Modo de structured output por modelo ("tool" ou "text"), descoberto uma vez e cacheado.
 _json_mode: dict[str, str] = {}
 # Teto de max_tokens aprendido do erro "exceeds the model limit of N".
@@ -75,32 +79,46 @@ _max_out: dict[str, int] = {}
 _no_system: dict[str, bool] = {}
 
 
-def client():
-    """Cliente bedrock-runtime. Credenciais do ambiente (mesmo idioma do storage_s3)."""
-    global _client
-    if _client is None:
-        import boto3
-        from botocore.config import Config
+def client(read_timeout_s: Optional[int] = None):
+    """Cliente bedrock-runtime. Credenciais do ambiente (mesmo idioma do storage_s3).
 
-        kwargs: dict[str, Any] = {"region_name": config.SHADOW_BEDROCK_REGION}
-        if config.AWS_ACCESS_KEY_ID and config.AWS_SECRET_ACCESS_KEY:
-            kwargs["aws_access_key_id"] = config.AWS_ACCESS_KEY_ID
-            kwargs["aws_secret_access_key"] = config.AWS_SECRET_ACCESS_KEY
-        # Retentativa do botocore DESLIGADA: a nossa é explícita e checa o deadline. Com
-        # as duas ligadas o pior caso multiplica e trava a thread serial do pipeline.
-        kwargs["config"] = Config(
-            retries={"max_attempts": 1, "mode": "standard"},
-            read_timeout=max(10, config.SHADOW_BEDROCK_DEADLINE_S),
-            connect_timeout=10,
-        )
-        _client = boto3.client("bedrock-runtime", **kwargs)
+    Sem `read_timeout_s`, o cliente do shadow (tempo de leitura = SHADOW_BEDROCK_DEADLINE_S).
+    Com ele, um cliente próprio por valor: o gate (campanha 54) corta CADA tentativa em 15 s,
+    como o gate Gemini, em vez de herdar os 60 s do shadow.
+    """
+    global _client
+    if read_timeout_s is not None:
+        if read_timeout_s not in _clients_by_timeout:
+            _clients_by_timeout[read_timeout_s] = _new_client(read_timeout_s)
+        return _clients_by_timeout[read_timeout_s]
+    if _client is None:
+        _client = _new_client(max(10, config.SHADOW_BEDROCK_DEADLINE_S))
     return _client
+
+
+def _new_client(read_timeout_s: int):
+    import boto3
+    from botocore.config import Config
+
+    kwargs: dict[str, Any] = {"region_name": config.SHADOW_BEDROCK_REGION}
+    if config.AWS_ACCESS_KEY_ID and config.AWS_SECRET_ACCESS_KEY:
+        kwargs["aws_access_key_id"] = config.AWS_ACCESS_KEY_ID
+        kwargs["aws_secret_access_key"] = config.AWS_SECRET_ACCESS_KEY
+    # Retentativa do botocore DESLIGADA: a nossa é explícita e checa o deadline. Com
+    # as duas ligadas o pior caso multiplica e trava a thread serial do pipeline.
+    kwargs["config"] = Config(
+        retries={"max_attempts": 1, "mode": "standard"},
+        read_timeout=read_timeout_s,
+        connect_timeout=10,
+    )
+    return boto3.client("bedrock-runtime", **kwargs)
 
 
 def reset_client() -> None:
     """Descarta o cliente cacheado (usado pelos testes)."""
     global _client
     _client = None
+    _clients_by_timeout.clear()
 
 
 # ── JSON Schema a partir do contrato Pydantic de produção ────────────────────
@@ -288,7 +306,8 @@ def _json_from_text(text: str) -> Optional[dict]:
 def converse(alias: str, system: str, user: str, images: list[bytes], schema_cls,
              max_tokens: int = 8192, temperature: float = 0.0,
              timeout_tries: Optional[int] = None, force_mode: Optional[str] = None,
-             deadline_s: Optional[int] = None) -> BedrockResult:
+             deadline_s: Optional[int] = None,
+             attempt_timeout_s: Optional[int] = None) -> BedrockResult:
     """Uma chamada Converse com imagens + structured output. NUNCA levanta.
 
     Tenta `toolConfig` com `toolChoice` forçado (equivalente ao `response_schema` do
@@ -298,6 +317,8 @@ def converse(alias: str, system: str, user: str, images: list[bytes], schema_cls
 
     O `deadline_s` é um teto de wall-clock para a chamada INTEIRA (todas as tentativas):
     esta função roda na thread serial do pipeline e não pode virar backlog.
+    O `attempt_timeout_s` corta cada tentativa (tempo de leitura do cliente); sem ele vale o
+    do shadow.
     """
     tries = config.SHADOW_BEDROCK_TIMEOUT_TRIES if timeout_tries is None else timeout_tries
     deadline_s = config.SHADOW_BEDROCK_DEADLINE_S if deadline_s is None else deadline_s
@@ -349,7 +370,7 @@ def converse(alias: str, system: str, user: str, images: list[bytes], schema_cls
                 "toolChoice": {"tool": {"name": "report"}},
             }
         try:
-            resp = client().converse(**body)
+            resp = client(attempt_timeout_s).converse(**body)
         except Exception as exc:  # noqa: BLE001 — o shadow nunca pode derrubar prod
             name = type(exc).__name__
             msg = str(exc)

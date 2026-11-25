@@ -1,0 +1,16 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[dgate54] qset=q5 (1 perguntas) res=low rep=2 split=dev eventos=404 ja_feitos=0 a_rodar=404 sem_frames=0 estimativa=US$ 0.1030
+  [100/404] ok=100 erros=0 gasto=US$ 0.0169 (26 s)
+  [200/404] ok=200 erros=0 gasto=US$ 0.0338 (47 s)
+  [300/404] ok=300 erros=0 gasto=US$ 0.0507 (70 s)
+  [400/404] ok=400 erros=0 gasto=US$ 0.0676 (91 s)
+  [404/404] ok=404 erros=0 gasto=US$ 0.0683 (92 s)
+  fim: ok=404 erros=0 gasto_desta_execucao=US$ 0.0683 total_carteira=US$ 2.4968 (92 s)
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[dgate54] qset=q5 (1 perguntas) res=low rep=2 split=dev eventos=406 ja_feitos=0 a_rodar=406 sem_frames=0 estimativa=US$ 0.1035
+  [100/406] ok=100 erros=0 gasto=US$ 0.0169 (26 s)
+  [200/406] ok=200 erros=0 gasto=US$ 0.0338 (50 s)
+  [300/406] ok=300 erros=0 gasto=US$ 0.0507 (77 s)
+  [400/406] ok=400 erros=0 gasto=US$ 0.0676 (103 s)
+  [406/406] ok=406 erros=0 gasto=US$ 0.0687 (105 s)
+  fim: ok=406 erros=0 gasto_desta_execucao=US$ 0.0687 total_carteira=US$ 2.5654 (105 s)

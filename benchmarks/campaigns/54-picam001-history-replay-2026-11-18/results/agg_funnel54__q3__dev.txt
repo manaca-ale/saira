@@ -1,0 +1,70 @@
+qset=q3 split=dev dias 2026-07-14 a 2026-12-31 | populacao 31706: S0 30679, S1 595, S2C 142, S2R 249, S2X 41
+amostra: S0 1623, S1 246, S2C 61, S2R 88, S2X 9 | Decisions: 1632 tokens = US$ 0.000163 por chamada (12.3% do custo de hoje)
+
+so a regra gratuita (sem Decisions), nesta amostra:
+  frames>=0  limiar   -   | S0 passa 1623/1623 = 100.0% | S1 246/246 = 100.0% | confirmadas: eventos 61/61 = 100.0%, deteccoes 32/32 | rejeitadas deteccoes 73/73 | vai ao gate 100.0% | custo +13% [+13 a +13]
+  frames>=8  limiar   -   | S0 passa 1398/1623 = 86.1% | S1 235/246 = 95.5% | confirmadas: eventos 60/61 = 98.4%, deteccoes 32/32 | rejeitadas deteccoes 72/73 | vai ao gate 86.5% | custo +1% [+0 a +3]
+  frames>=10 limiar   -   | S0 passa 1186/1623 = 73.1% | S1 221/246 = 89.8% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 70/73 | vai ao gate 73.7% | custo -10% [-12 a -9]
+  frames>=12 limiar   -   | S0 passa 1045/1623 = 64.4% | S1 213/246 = 86.6% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 64/73 | vai ao gate 65.1% | custo -18% [-20 a -16]
+
+funil com nota = worth_look
+  frames>=0  limiar 0.200 | S0 passa 456/1623 = 28.1% | S1 150/246 = 61.0% | confirmadas: eventos 61/61 = 100.0%, deteccoes 32/32 | rejeitadas deteccoes 65/73 | vai ao gate 29.6% | custo -38% [-40 a -37]
+  frames>=0  limiar 0.220 | S0 passa 361/1623 = 22.2% | S1 135/246 = 54.9% | confirmadas: eventos 61/61 = 100.0%, deteccoes 32/32 | rejeitadas deteccoes 65/73 | vai ao gate 23.8% | custo -44% [-46 a -42]
+  frames>=0  limiar 0.250 | S0 passa 275/1623 = 16.9% | S1 116/246 = 47.2% | confirmadas: eventos 61/61 = 100.0%, deteccoes 32/32 | rejeitadas deteccoes 60/73 | vai ao gate 18.5% | custo -51% [-52 a -49]
+  frames>=0  limiar 0.280 | S0 passa 226/1623 = 13.9% | S1 99/246 = 40.2% | confirmadas: eventos 61/61 = 100.0%, deteccoes 32/32 | rejeitadas deteccoes 57/73 | vai ao gate 15.4% | custo -55% [-56 a -53]
+  frames>=0  limiar 0.300 | S0 passa 202/1623 = 12.4% | S1 95/246 = 38.6% | confirmadas: eventos 59/61 = 96.7%, deteccoes 30/32 | rejeitadas deteccoes 57/73 | vai ao gate 13.9% | custo -56% [-58 a -55]
+  frames>=0  limiar 0.350 | S0 passa 164/1623 = 10.1% | S1 76/246 = 30.9% | confirmadas: eventos 57/61 = 93.4%, deteccoes 29/32 | rejeitadas deteccoes 50/73 | vai ao gate 11.4% | custo -61% [-62 a -60]
+  frames>=0  limiar 0.400 | S0 passa 125/1623 = 7.7% | S1 61/246 = 24.8% | confirmadas: eventos 55/61 = 90.2%, deteccoes 27/32 | rejeitadas deteccoes 45/73 | vai ao gate 8.9% | custo -65% [-66 a -64]
+  frames>=8  limiar 0.200 | S0 passa 408/1623 = 25.1% | S1 142/246 = 57.7% | confirmadas: eventos 60/61 = 98.4%, deteccoes 32/32 | rejeitadas deteccoes 64/73 | vai ao gate 26.6% | custo -43% [-45 a -42]
+  frames>=8  limiar 0.220 | S0 passa 327/1623 = 20.1% | S1 127/246 = 51.6% | confirmadas: eventos 60/61 = 98.4%, deteccoes 32/32 | rejeitadas deteccoes 64/73 | vai ao gate 21.7% | custo -48% [-50 a -47]
+  frames>=8  limiar 0.250 | S0 passa 254/1623 = 15.7% | S1 109/246 = 44.3% | confirmadas: eventos 60/61 = 98.4%, deteccoes 32/32 | rejeitadas deteccoes 59/73 | vai ao gate 17.1% | custo -54% [-55 a -53]
+  frames>=8  limiar 0.280 | S0 passa 211/1623 = 13.0% | S1 92/246 = 37.4% | confirmadas: eventos 60/61 = 98.4%, deteccoes 32/32 | rejeitadas deteccoes 56/73 | vai ao gate 14.4% | custo -58% [-59 a -57]
+  frames>=8  limiar 0.300 | S0 passa 190/1623 = 11.7% | S1 89/246 = 36.2% | confirmadas: eventos 58/61 = 95.1%, deteccoes 30/32 | rejeitadas deteccoes 56/73 | vai ao gate 13.1% | custo -60% [-61 a -58]
+  frames>=8  limiar 0.350 | S0 passa 154/1623 = 9.5% | S1 73/246 = 29.7% | confirmadas: eventos 56/61 = 91.8%, deteccoes 29/32 | rejeitadas deteccoes 50/73 | vai ao gate 10.8% | custo -64% [-65 a -62]
+  frames>=8  limiar 0.400 | S0 passa 118/1623 = 7.3% | S1 60/246 = 24.4% | confirmadas: eventos 54/61 = 88.5%, deteccoes 27/32 | rejeitadas deteccoes 45/73 | vai ao gate 8.4% | custo -67% [-68 a -66]
+  frames>=10 limiar 0.200 | S0 passa 361/1623 = 22.2% | S1 136/246 = 55.3% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 62/73 | vai ao gate 23.7% | custo -48% [-50 a -47]
+  frames>=10 limiar 0.220 | S0 passa 294/1623 = 18.1% | S1 122/246 = 49.6% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 62/73 | vai ao gate 19.6% | custo -52% [-54 a -51]
+  frames>=10 limiar 0.250 | S0 passa 230/1623 = 14.2% | S1 104/246 = 42.3% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 57/73 | vai ao gate 15.6% | custo -58% [-59 a -57]
+  frames>=10 limiar 0.280 | S0 passa 195/1623 = 12.0% | S1 89/246 = 36.2% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 54/73 | vai ao gate 13.4% | custo -61% [-62 a -60]
+  frames>=10 limiar 0.300 | S0 passa 176/1623 = 10.8% | S1 86/246 = 35.0% | confirmadas: eventos 54/61 = 88.5%, deteccoes 28/32 | rejeitadas deteccoes 54/73 | vai ao gate 12.2% | custo -63% [-64 a -61]
+  frames>=10 limiar 0.350 | S0 passa 141/1623 = 8.7% | S1 71/246 = 28.9% | confirmadas: eventos 52/61 = 85.2%, deteccoes 27/32 | rejeitadas deteccoes 49/73 | vai ao gate 9.9% | custo -66% [-67 a -65]
+  frames>=10 limiar 0.400 | S0 passa 107/1623 = 6.6% | S1 59/246 = 24.0% | confirmadas: eventos 51/61 = 83.6%, deteccoes 26/32 | rejeitadas deteccoes 44/73 | vai ao gate 7.7% | custo -70% [-71 a -69]
+  frames>=12 limiar 0.200 | S0 passa 326/1623 = 20.1% | S1 128/246 = 52.0% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 58/73 | vai ao gate 21.5% | custo -52% [-53 a -51]
+  frames>=12 limiar 0.220 | S0 passa 265/1623 = 16.3% | S1 116/246 = 47.2% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 58/73 | vai ao gate 17.8% | custo -56% [-57 a -55]
+  frames>=12 limiar 0.250 | S0 passa 205/1623 = 12.6% | S1 99/246 = 40.2% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 54/73 | vai ao gate 14.1% | custo -61% [-62 a -60]
+  frames>=12 limiar 0.280 | S0 passa 175/1623 = 10.8% | S1 84/246 = 34.1% | confirmadas: eventos 56/61 = 91.8%, deteccoes 30/32 | rejeitadas deteccoes 50/73 | vai ao gate 12.1% | custo -64% [-65 a -63]
+  frames>=12 limiar 0.300 | S0 passa 158/1623 = 9.7% | S1 81/246 = 32.9% | confirmadas: eventos 54/61 = 88.5%, deteccoes 28/32 | rejeitadas deteccoes 50/73 | vai ao gate 11.1% | custo -65% [-66 a -64]
+  frames>=12 limiar 0.350 | S0 passa 126/1623 = 7.8% | S1 67/246 = 27.2% | confirmadas: eventos 52/61 = 85.2%, deteccoes 27/32 | rejeitadas deteccoes 45/73 | vai ao gate 9.0% | custo -69% [-70 a -68]
+  frames>=12 limiar 0.400 | S0 passa 97/1623 = 6.0% | S1 56/246 = 22.8% | confirmadas: eventos 51/61 = 83.6%, deteccoes 26/32 | rejeitadas deteccoes 41/73 | vai ao gate 7.1% | custo -72% [-73 a -71]
+
+=== ate 01/08 ===
+qset=q3 split=dev dias 2026-07-14 a 2026-08-01 | populacao 9707: S0 9312, S1 209, S2C 75, S2R 84, S2X 27
+amostra: S0 490, S1 95, S2C 33, S2R 20, S2X 3 | Decisions: 1632 tokens = US$ 0.000163 por chamada (12.3% do custo de hoje)
+
+so a regra gratuita (sem Decisions), nesta amostra:
+  frames>=0  limiar   -   | S0 passa 490/490 = 100.0% | S1 95/95 = 100.0% | confirmadas: eventos 33/33 = 100.0%, deteccoes 14/14 | rejeitadas deteccoes 16/16 | vai ao gate 100.0% | custo +22% [+22 a +22]
+  frames>=8  limiar   -   | S0 passa 415/490 = 84.7% | S1 93/95 = 97.9% | confirmadas: eventos 32/33 = 97.0%, deteccoes 14/14 | rejeitadas deteccoes 16/16 | vai ao gate 85.2% | custo +9% [+6 a +11]
+
+funil com nota = worth_look
+  frames>=0  limiar 0.220 | S0 passa 125/490 = 25.5% | S1 53/95 = 55.8% | confirmadas: eventos 33/33 = 100.0%, deteccoes 14/14 | rejeitadas deteccoes 15/16 | vai ao gate 27.5% | custo -34% [-36 a -31]
+  frames>=0  limiar 0.250 | S0 passa 94/490 = 19.2% | S1 49/95 = 51.6% | confirmadas: eventos 33/33 = 100.0%, deteccoes 14/14 | rejeitadas deteccoes 15/16 | vai ao gate 21.3% | custo -40% [-42 a -37]
+  frames>=0  limiar 0.280 | S0 passa 80/490 = 16.3% | S1 40/95 = 42.1% | confirmadas: eventos 33/33 = 100.0%, deteccoes 14/14 | rejeitadas deteccoes 15/16 | vai ao gate 18.3% | custo -44% [-47 a -42]
+  frames>=8  limiar 0.220 | S0 passa 115/490 = 23.5% | S1 52/95 = 54.7% | confirmadas: eventos 32/33 = 97.0%, deteccoes 14/14 | rejeitadas deteccoes 15/16 | vai ao gate 25.4% | custo -39% [-41 a -36]
+  frames>=8  limiar 0.250 | S0 passa 88/490 = 18.0% | S1 48/95 = 50.5% | confirmadas: eventos 32/33 = 97.0%, deteccoes 14/14 | rejeitadas deteccoes 15/16 | vai ao gate 19.9% | custo -44% [-47 a -42]
+  frames>=8  limiar 0.280 | S0 passa 75/490 = 15.3% | S1 39/95 = 41.1% | confirmadas: eventos 32/33 = 97.0%, deteccoes 14/14 | rejeitadas deteccoes 15/16 | vai ao gate 17.2% | custo -49% [-51 a -46]
+
+=== de 02/08 em diante ===
+qset=q3 split=dev dias 2026-08-02 a 2026-12-31 | populacao 21999: S0 21367, S1 386, S2C 67, S2R 165, S2X 14
+amostra: S0 1133, S1 151, S2C 28, S2R 68, S2X 6 | Decisions: 1632 tokens = US$ 0.000163 por chamada (12.3% do custo de hoje)
+
+so a regra gratuita (sem Decisions), nesta amostra:
+  frames>=0  limiar   -   | S0 passa 1133/1133 = 100.0% | S1 151/151 = 100.0% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 57/57 | vai ao gate 100.0% | custo +9% [+9 a +9]
+  frames>=8  limiar   -   | S0 passa 983/1133 = 86.8% | S1 142/151 = 94.0% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 56/57 | vai ao gate 87.0% | custo -2% [-4 a -1]
+
+funil com nota = worth_look
+  frames>=0  limiar 0.220 | S0 passa 236/1133 = 20.8% | S1 82/151 = 54.3% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 50/57 | vai ao gate 22.2% | custo -49% [-50 a -47]
+  frames>=0  limiar 0.250 | S0 passa 181/1133 = 16.0% | S1 67/151 = 44.4% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 45/57 | vai ao gate 17.2% | custo -55% [-57 a -54]
+  frames>=0  limiar 0.280 | S0 passa 146/1133 = 12.9% | S1 59/151 = 39.1% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 42/57 | vai ao gate 14.1% | custo -59% [-61 a -58]
+  frames>=8  limiar 0.220 | S0 passa 212/1133 = 18.7% | S1 75/151 = 49.7% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 49/57 | vai ao gate 20.1% | custo -53% [-55 a -51]
+  frames>=8  limiar 0.250 | S0 passa 166/1133 = 14.7% | S1 61/151 = 40.4% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 44/57 | vai ao gate 15.9% | custo -59% [-60 a -57]
+  frames>=8  limiar 0.280 | S0 passa 136/1133 = 12.0% | S1 53/151 = 35.1% | confirmadas: eventos 28/28 = 100.0%, deteccoes 18/18 | rejeitadas deteccoes 41/57 | vai ao gate 13.2% | custo -62% [-64 a -61]

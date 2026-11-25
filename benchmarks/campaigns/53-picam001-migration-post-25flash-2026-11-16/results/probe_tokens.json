@@ -1,0 +1,70 @@
+{
+  "event": "evt-20260716_175905",
+  "frames": 46,
+  "size": [
+    1280,
+    720
+  ],
+  "rows": [
+    {
+      "model": "gemini-2.5-flash-lite",
+      "texto": 647,
+      "padrao": 12515,
+      "padrao_por_frame": 258.0,
+      "low": 3683,
+      "low_por_frame": 66.0,
+      "medium": 12515,
+      "medium_por_frame": 258.0,
+      "high": 12515,
+      "high_por_frame": 258.0
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "texto": 647,
+      "padrao": 12515,
+      "padrao_por_frame": 258.0,
+      "low": 3683,
+      "low_por_frame": 66.0,
+      "medium": 12515,
+      "medium_por_frame": 258.0,
+      "high": 12515,
+      "high_por_frame": 258.0
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "texto": 647,
+      "padrao": 52167,
+      "padrao_por_frame": 1120.0,
+      "low": 13527,
+      "low_por_frame": 280.0,
+      "medium": 26407,
+      "medium_por_frame": 560.0,
+      "high": 52167,
+      "high_por_frame": 1120.0
+    },
+    {
+      "model": "gemini-3.5-flash-lite",
+      "texto": 647,
+      "padrao": 52167,
+      "padrao_por_frame": 1120.0,
+      "low": 13527,
+      "low_por_frame": 280.0,
+      "medium": 26407,
+      "medium_por_frame": 560.0,
+      "high": 52167,
+      "high_por_frame": 1120.0
+    },
+    {
+      "model": "gemini-3.6-flash",
+      "texto": 647,
+      "padrao": 52167,
+      "padrao_por_frame": 1120.0,
+      "low": 13527,
+      "low_por_frame": 280.0,
+      "medium": 26407,
+      "medium_por_frame": 560.0,
+      "high": 52167,
+      "high_por_frame": 1120.0
+    }
+  ]
+}

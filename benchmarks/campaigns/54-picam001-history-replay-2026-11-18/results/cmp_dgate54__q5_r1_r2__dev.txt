@@ -1,0 +1,12 @@
+qset=q5 pergunta=wl_v2 r1 (2026-11-18) x r2 (2026-11-19) eventos em comum=810
+correlacao de Pearson=1.0000 | |diferenca|: mediana=0.0000 p95=0.0000 max=0.0000 | identicas=810
+limiar 0.3:
+  S0   n= 406 passa r1=  73 (18.0%) r2=  73 (18.0%) | saiu=0 entrou=0
+  S1   n= 246 passa r1= 131 (53.3%) r2= 131 (53.3%) | saiu=0 entrou=0
+  S2C  n=  61 passa r1=  61 (100.0%) r2=  61 (100.0%) | saiu=0 entrou=0
+  S2R  n=  88 passa r1=  73 (83.0%) r2=  73 (83.0%) | saiu=0 entrou=0
+  S2X  n=   9 passa r1=   8 (88.9%) r2=   8 (88.9%) | saiu=0 entrou=0
+  tudo n=810 trocaram de lado=0 (0.0%)
+  deteccoes confirmadas mantidas r1: 32/32
+  deteccoes confirmadas mantidas r2: 32/32
+maiores diferencas: evt-20260714_233423 S1 0.122->0.122; evt-20260715_202531 S1 0.275->0.275; evt-20260715_204012 S1 0.382->0.382; evt-20260714_235435 S1 0.515->0.515; evt-20260714_220153 S2R 0.232->0.232; evt-20260715_114741 S1 0.199->0.199; evt-20260715_203600 S1 0.228->0.228; evt-20260715_224844 S1 0.295->0.295

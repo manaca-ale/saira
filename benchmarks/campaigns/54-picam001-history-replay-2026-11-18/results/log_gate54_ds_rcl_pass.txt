@@ -1,0 +1,16 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[gate54/deepseek] braco=dsf_rcl_low_ctx modelo=deepseek-flash prompt=rcl imagens=low thinking=off
+  conjunto=pass (limiar 0.3) eventos=577 {'S0': 304, 'S1': 131, 'S2C': 61, 'S2R': 73, 'S2X': 8} ja_feitos=121 a_rodar=456 sem_frames=0 estimativa=US$ 0.5472 (preco de pico)
+  [1/456] ok=1 erros=0 tok_in=2465 tok_out=288 tok_think=0 US$/chamada=0.001085 lat=3242 ms fire=0 | gasto=US$ 0.0011 (3 s)
+  [2/456] ok=2 erros=0 tok_in=2466 tok_out=296 tok_think=0 US$/chamada=0.001095 lat=3279 ms fire=0 | gasto=US$ 0.0022 (3 s)
+  [50/456] ok=50 erros=0 tok_in=2465 tok_out=279 tok_think=0 US$/chamada=0.001074 lat=3929 ms fire=0 | gasto=US$ 0.0547 (28 s)
+  [100/456] ok=100 erros=0 tok_in=2466 tok_out=308 tok_think=0 US$/chamada=0.001109 lat=4439 ms fire=0 | gasto=US$ 0.1100 (53 s)
+  [150/456] ok=150 erros=0 tok_in=2465 tok_out=260 tok_think=0 US$/chamada=0.001051 lat=2715 ms fire=0 | gasto=US$ 0.1649 (76 s)
+  [200/456] ok=200 erros=0 tok_in=2465 tok_out=248 tok_think=0 US$/chamada=0.001037 lat=3949 ms fire=0 | gasto=US$ 0.2198 (99 s)
+  [250/456] ok=250 erros=0 tok_in=2465 tok_out=301 tok_think=0 US$/chamada=0.001101 lat=3645 ms fire=0 | gasto=US$ 0.2748 (125 s)
+  [300/456] ok=300 erros=0 tok_in=2463 tok_out=322 tok_think=0 US$/chamada=0.001125 lat=4953 ms fire=0 | gasto=US$ 0.3300 (149 s)
+  [350/456] ok=350 erros=0 tok_in=2463 tok_out=333 tok_think=0 US$/chamada=0.001138 lat=3269 ms fire=0 | gasto=US$ 0.3846 (175 s)
+  [400/456] ok=400 erros=0 tok_in=2459 tok_out=276 tok_think=0 US$/chamada=0.001069 lat=3608 ms fire=0 | gasto=US$ 0.4393 (200 s)
+  [450/456] ok=450 erros=0 tok_in=2466 tok_out=306 tok_think=0 US$/chamada=0.001107 lat=4819 ms fire=0 | gasto=US$ 0.4940 (225 s)
+  [456/456] ok=456 erros=0 tok_in=2465 tok_out=302 tok_think=0 US$/chamada=0.001102 lat=4019 ms fire=0 | gasto=US$ 0.5005 (227 s)
+  fim: ok=456 erros=0 gasto_desta_execucao=US$ 0.5005 total_carteira_deepseek=US$ 1.5444 (227 s)

@@ -236,6 +236,41 @@ def _user_prompt(
     )
 
 
+# Gate prompt "v1p" (campaign 54): the V1 prompt with ONE change of meaning — the deposit
+# does not require a vehicle. With the literal V1 the Gemini 3 models miss deposits made on
+# foot, with a wheelbarrow or a cart ("no vehicle is stopped for illegal dumping"). Built
+# from V1 by substitution so the difference is exactly these three lines; same schema and
+# same post-rule as V1. Must stay identical to benchmarks/campaigns/54-*/scripts/prompts54.py.
+_V1P_EDITS = (
+    ("- DUMPING: A vehicle is STOPPED and a person is ACTIVELY depositing material on the ground.",
+     "- DUMPING: A person is ACTIVELY depositing material on the ground or onto a waste pile. The material "
+     "may be unloaded from a STOPPED vehicle, or brought ON FOOT, in a wheelbarrow, on a handcart or on an "
+     "animal cart. A vehicle is NOT required."),
+    ("- person_handling_material: Is a person carrying, unloading, or depositing material near a vehicle?",
+     "- person_handling_material: Is a person carrying, unloading, or depositing material (from a vehicle, "
+     "on foot, or with a wheelbarrow or cart)?"),
+    ("- Pedestrians walking or standing = TRAFFIC",
+     "- Pedestrians walking or standing without depositing material = TRAFFIC"),
+)
+
+
+def _build_v1p_prompt(base: str) -> str:
+    out = base
+    for old, new in _V1P_EDITS:
+        if out.count(old) != 1:
+            raise RuntimeError(f"v1p gate prompt: V1 snippet not found exactly once: {old[:60]!r}")
+        out = out.replace(old, new)
+    return out
+
+
+NEW_LITTER_SYSTEM_PROMPT_V1P = _build_v1p_prompt(NEW_LITTER_SYSTEM_PROMPT)
+
+
+def new_litter_system_prompt(variant: str = "") -> str:
+    """V1 gate system prompt, or its "v1p" variant (see GEMINI_GATE_PROMPT_VARIANT)."""
+    return NEW_LITTER_SYSTEM_PROMPT_V1P if variant == "v1p" else NEW_LITTER_SYSTEM_PROMPT
+
+
 def _new_litter_user_prompt(
     first_frame_name: str,
     last_frame_name: str,
@@ -676,13 +711,29 @@ def _call_model(
 _MODEL_PRICES = {
     "gemini-2.5-flash-lite": (0.10, 0.40),
     "gemini-2.5-flash": (0.30, 2.50),
-    "gemini-3.1-flash-lite": (0.125, 0.75),
+    # Preço Standard (chamada síncrona), conferido em 2026-11-16. Até a camp 53 esta
+    # linha trazia (0.125, 0.75), que é o preço Batch/Flex: o custo registrado do 3.1
+    # saía pela metade.
+    "gemini-3.1-flash-lite": (0.25, 1.50),
+    "gemini-3.5-flash-lite": (0.30, 2.50),
+    # Sem estas linhas o 3.6/3.8-flash caía no preço do gemini-2.5-flash (via "flash" em
+    # _price_key) e o custo registrado saía várias vezes menor que o cobrado. Preço do
+    # Vertex (global, chamada síncrona) conferido no catálogo de cobrança do Google Cloud em
+    # 2026-11-17 para o 3.8-flash; o 3.6-flash foi assumido igual. A página da API do AI
+    # Studio lista 0.75 / 3.75 até 31/12/2026: NÃO vale para o Vertex, que a produção usa.
+    "gemini-3.6-flash": (1.50, 7.50),
+    "gemini-3.8-flash": (1.50, 7.50),
 }
 
 
 def _price_key(model_name: str) -> str:
     """Normaliza nomes versionados (ex.: gemini-2.5-flash-002) para a chave de preço."""
     m = (model_name or "").strip().lower()
+    # Nome conhecido (ou versão dele) primeiro, do mais específico para o mais genérico,
+    # para "gemini-2.5-flash-lite" não cair em "gemini-2.5-flash".
+    for key in sorted(_MODEL_PRICES, key=len, reverse=True):
+        if m.startswith(key):
+            return key
     if "flash-lite" in m:
         # Gemini-3.x flash-lite tem preço próprio; senão cai no 2.5.
         if "gemini-3" in m or "-3." in m or "3.1" in m:
@@ -795,7 +846,8 @@ def _validate_bbox(bbox: object, label: str) -> Optional[list[int]]:
     if ratio > 0.60:
         logger.info("bbox_rejected_%s: covers %.1f%% of image (too large)", label, ratio * 100)
         return None
-    if ratio < 0.01:
+    min_ratio = float(getattr(config, "GEMINI_BBOX_MIN_AREA_RATIO", 0.01))
+    if ratio < min_ratio:
         logger.info("bbox_rejected_%s: covers %.2f%% of image (too small)", label, ratio * 100)
         return None
     return coords
@@ -1038,8 +1090,14 @@ def analyze_with_gemini(
                         schema_cls.model_json_schema(),
                         (override.max_output_tokens if override and override.max_output_tokens
                          else None),
-                        thinking_level=(override.thinking_level if override else None),
-                        media_resolution=(override.media_resolution if override else None),
+                        # Sem override (prod): nível de raciocínio e resolução vêm do
+                        # ambiente; vazio = não envia (comportamento do 2.5-flash).
+                        thinking_level=(
+                            override.thinking_level if override
+                            else (getattr(config, "GEMINI_DETAIL_THINKING_LEVEL", "") or None)),
+                        media_resolution=(
+                            override.media_resolution if override
+                            else (getattr(config, "GEMINI_DETAIL_MEDIA_RESOLUTION", "") or None)),
                         client=(override.client if override else None),
                     )
                     response = fut.result(timeout=max(1, config.GEMINI_TIMEOUT_SECONDS))
@@ -1166,8 +1224,17 @@ def analyze_new_litter_with_gemini(
         system_prompt = _prompts_g3.G3_GATE_PROMPT
         schema_cls = GeminiNewLitterReport
     else:
-        system_prompt = NEW_LITTER_SYSTEM_PROMPT
+        # Sem override (prod): a variante do prompt V1 vem do ambiente; vazio = V1.
+        system_prompt = (NEW_LITTER_SYSTEM_PROMPT if override
+                         else new_litter_system_prompt(config.GEMINI_GATE_PROMPT_VARIANT))
         schema_cls = GeminiNewLitterReport
+
+    # Sem override (prod): nível de raciocínio e resolução do gate vêm do ambiente;
+    # vazio = não envia (comportamento histórico, com thinking_budget).
+    gate_thinking_level = (override.thinking_level if override
+                           else (config.GEMINI_AGENT1_THINKING_LEVEL or None))
+    gate_media_resolution = (override.media_resolution if override
+                             else (config.GEMINI_AGENT1_MEDIA_RESOLUTION or None))
 
     mosaic_temp: Optional[Path] = None
     if use_mosaic:
@@ -1215,11 +1282,11 @@ def analyze_new_litter_with_gemini(
                         schema_cls.model_json_schema(),
                         (override.max_output_tokens if override and override.max_output_tokens
                          else config.GEMINI_AGENT1_MAX_OUTPUT_TOKENS),
-                        thinking_budget=(None if override and override.thinking_level
+                        thinking_budget=(None if gate_thinking_level
                                          else config.GEMINI_AGENT1_THINKING_BUDGET),
                         seed=42,
-                        thinking_level=(override.thinking_level if override else None),
-                        media_resolution=(override.media_resolution if override else None),
+                        thinking_level=gate_thinking_level,
+                        media_resolution=gate_media_resolution,
                         client=(override.client if override else None),
                     )
                     response = fut.result(timeout=timeout_s)

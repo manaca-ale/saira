@@ -190,8 +190,30 @@ services:
       - GCP_PROJECT=${GCP_PROJECT:-}
       - GCP_LOCATION=${GCP_LOCATION:-global}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
-      - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-30}
+      - GEMINI_MODEL=${TEST_GEMINI_MODEL:-${GEMINI_MODEL:-gemini-2.5-flash}}
+      # Detail on Gemini 3 models (camp 53): empty = parameter not sent.
+      - GEMINI_DETAIL_THINKING_LEVEL=${TEST_GEMINI_DETAIL_THINKING_LEVEL:-}
+      - GEMINI_DETAIL_MEDIA_RESOLUTION=${TEST_GEMINI_DETAIL_MEDIA_RESOLUTION:-}
+      # Campaign 54 funnel finalists (all off by default; see worker/config.py).
+      # TEST_* indirection (same idiom as TEST_SHADOW_*): arming the funnel on test
+      # must never arm production, even with a .env copied from production.
+      - GEMINI_AGENT1_THINKING_LEVEL=${TEST_GEMINI_AGENT1_THINKING_LEVEL:-}
+      - GEMINI_AGENT1_MEDIA_RESOLUTION=${TEST_GEMINI_AGENT1_MEDIA_RESOLUTION:-}
+      - GEMINI_GATE_PROMPT_VARIANT=${TEST_GEMINI_GATE_PROMPT_VARIANT:-}
+      - GATE_PREFILTER_ENABLED=${TEST_GATE_PREFILTER_ENABLED:-false}
+      - GATE_PREFILTER_DEVICES=${TEST_GATE_PREFILTER_DEVICES:-}
+      - GATE_PREFILTER_LOG_ONLY=${TEST_GATE_PREFILTER_LOG_ONLY:-true}
+      - GATE_PREFILTER_THRESHOLD=${TEST_GATE_PREFILTER_THRESHOLD:-0.30}
+      - GATE_PREFILTER_API_KEY=${TEST_GATE_PREFILTER_API_KEY:-}
+      - GATE_PREFILTER_DAILY_BUDGET_USD=${TEST_GATE_PREFILTER_DAILY_BUDGET_USD:-1.00}
+      - GATE_BEDROCK_ENABLED=${TEST_GATE_BEDROCK_ENABLED:-false}
+      - GATE_BEDROCK_DEVICES=${TEST_GATE_BEDROCK_DEVICES:-}
+      - GATE_BEDROCK_ALIAS=${TEST_GATE_BEDROCK_ALIAS:-nova-lite}
+      - GATE_BEDROCK_FALLBACK_GEMINI=${TEST_GATE_BEDROCK_FALLBACK_GEMINI:-true}
+      # Detail grounding (camp 53): true = a confirmation needs one valid bbox.
+      - GEMINI_REQUIRE_BBOX=${TEST_GEMINI_REQUIRE_BBOX:-true}
+      - GEMINI_BBOX_MIN_AREA_RATIO=${TEST_GEMINI_BBOX_MIN_AREA_RATIO:-0.01}
+      - GEMINI_TIMEOUT_SECONDS=${TEST_GEMINI_TIMEOUT_SECONDS:-${GEMINI_TIMEOUT_SECONDS:-30}}
       - GEMINI_MAX_RETRIES=${GEMINI_MAX_RETRIES:-2}
       - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.1}
       - GEMINI_MAX_OUTPUT_TOKENS=${GEMINI_MAX_OUTPUT_TOKENS:-2048}
@@ -212,7 +234,7 @@ services:
       # Manifestos de evento já processados, mais velhos que isto, vão para
       # events/arquivo/AAAAMM (a varredura não cresce para sempre). 0 = desligado.
       - EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS=${TEST_EVENT_MANIFEST_ARCHIVE_AFTER_SECONDS:-0}
-      - GEMINI_AGENT1_MODEL=${GEMINI_AGENT1_MODEL:-gemini-2.5-flash}
+      - GEMINI_AGENT1_MODEL=${TEST_GEMINI_AGENT1_MODEL:-${GEMINI_AGENT1_MODEL:-gemini-2.5-flash}}
       - GEMINI_AGENT1_TIMEOUT_SECONDS=${GEMINI_AGENT1_TIMEOUT_SECONDS:-15}
       - GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE=${GEMINI_AGENT1_TRIGGER_MIN_CONFIDENCE:-75}
       - GEMINI_AGENT1_MAX_OUTPUT_TOKENS=${GEMINI_AGENT1_MAX_OUTPUT_TOKENS:-4096}
@@ -221,10 +243,10 @@ services:
       # que o 25/50/75% legado pulava — o flash-lite precisa de vários frames do ato
       # pra reconstruir o depósito (com 1 frame diluído ele lê como passante).
       # +first +last = 12 imgs ≈ 4,5MB < limite de 8MB de payload.
-      - GEMINI_GATE_MID_FRAMES=${GEMINI_GATE_MID_FRAMES:-10}
+      - GEMINI_GATE_MID_FRAMES=${TEST_GEMINI_GATE_MID_FRAMES:-${GEMINI_GATE_MID_FRAMES:-10}}
       # Re-voto condicional do gate: re-roda 1× um negativo borderline (objeto novo
       # no chão / postura na pilha / confiança gray-zone) p/ cobrir flip do flash-lite.
-      - GEMINI_GATE_REVOTE_ENABLED=${GEMINI_GATE_REVOTE_ENABLED:-true}
+      - GEMINI_GATE_REVOTE_ENABLED=${TEST_GEMINI_GATE_REVOTE_ENABLED:-${GEMINI_GATE_REVOTE_ENABLED:-true}}
       - GEMINI_GATE_REVOTE_CONF_MIN=${GEMINI_GATE_REVOTE_CONF_MIN:-40}
       # Dual gate (full-frame + pile-crop, OR-escalate). Scoped to GATE_PILECROP_DEVICES.
       - GEMINI_GATE_PILECROP_ENABLED=${GEMINI_GATE_PILECROP_ENABLED:-false}
@@ -298,7 +320,7 @@ services:
       # caso da pi-cam-001). Var dedicada do teste — não afeta o .env de prod.
       - GEMINI_PROMPT_VERSION=${TEST_GEMINI_PROMPT_VERSION:-v3}
       # Detail Agent prompt override (audit research, blank = use GEMINI_PROMPT_VERSION)
-      - GEMINI_DETAIL_PROMPT_VERSION=${GEMINI_DETAIL_PROMPT_VERSION:-}
+      - GEMINI_DETAIL_PROMPT_VERSION=${TEST_GEMINI_DETAIL_PROMPT_VERSION:-${GEMINI_DETAIL_PROMPT_VERSION:-}}
       - TZ=America/Sao_Paulo
       - GDRIVE_ENABLED=${GDRIVE_ENABLED:-false}
       - GDRIVE_FOLDER_ID=${GDRIVE_FOLDER_ID:-1sds3yeef0o9j902X2taxFoEE0iU42sF4}
@@ -308,12 +330,12 @@ services:
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-saira-images}
       - S3_REGION=${S3_REGION:-sa-east-1}
       - S3_SYNC_HOUR=${S3_SYNC_HOUR:-3}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_ACCESS_KEY_ID=${TEST_AWS_ACCESS_KEY_ID:-${AWS_ACCESS_KEY_ID:-}}
+      - AWS_SECRET_ACCESS_KEY=${TEST_AWS_SECRET_ACCESS_KEY:-${AWS_SECRET_ACCESS_KEY:-}}
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
       # Event-driven devices (Pi relay): process motion-event manifests
       # immediately instead of fixed 120s windows; heartbeats GC'd w/o Gemini.
-      - EVENT_DRIVEN_DEVICES=${EVENT_DRIVEN_DEVICES:-pi-cam-001}
+      - EVENT_DRIVEN_DEVICES=${TEST_EVENT_DRIVEN_DEVICES:-${EVENT_DRIVEN_DEVICES:-pi-cam-001}}
       - EVENT_STALE_SECONDS=${EVENT_STALE_SECONDS:-180}
       - EVENT_MIN_FRAMES=${EVENT_MIN_FRAMES:-3}
       # Shadow de modelo Gemini-3.1 (Camp 47, log-only). Default OFF; paridade c/ prod.

@@ -1,0 +1,11 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[gate54/deepseek] braco=dsf_v1_low_ctx modelo=deepseek-flash prompt=v1 imagens=low thinking=off
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=0 a_rodar=211 sem_frames=0 estimativa=US$ 0.2532 (preco de pico)
+  [1/211] ok=1 erros=0 tok_in=2485 tok_out=245 tok_think=0 US$/chamada=0.001040 lat=2800 ms fire=1 | gasto=US$ 0.0010 (3 s)
+  [2/211] ok=2 erros=0 tok_in=2485 tok_out=282 tok_think=0 US$/chamada=0.001084 lat=2935 ms fire=0 | gasto=US$ 0.0021 (3 s)
+  [50/211] ok=50 erros=0 tok_in=2485 tok_out=296 tok_think=0 US$/chamada=0.001101 lat=2874 ms fire=0 | gasto=US$ 0.0528 (32 s)
+  [100/211] ok=100 erros=0 tok_in=2486 tok_out=257 tok_think=0 US$/chamada=0.001054 lat=2721 ms fire=0 | gasto=US$ 0.1051 (57 s)
+  [150/211] ok=150 erros=0 tok_in=2485 tok_out=218 tok_think=0 US$/chamada=0.001007 lat=3589 ms fire=0 | gasto=US$ 0.1576 (86 s)
+  [200/211] ok=200 erros=0 tok_in=2486 tok_out=278 tok_think=0 US$/chamada=0.001079 lat=2635 ms fire=0 | gasto=US$ 0.2094 (113 s)
+  [211/211] ok=211 erros=0 tok_in=2485 tok_out=252 tok_think=0 US$/chamada=0.001048 lat=2947 ms fire=0 | gasto=US$ 0.2208 (118 s)
+  fim: ok=211 erros=0 gasto_desta_execucao=US$ 0.2208 total_carteira_deepseek=US$ 0.2230 (118 s)

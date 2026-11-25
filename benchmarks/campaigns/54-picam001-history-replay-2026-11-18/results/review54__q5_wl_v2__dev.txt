@@ -1,0 +1,65 @@
+A. constantes de custo x registro de chamadas (14/07 a 08/09)
+  detail   chamadas   1114 | com sucesso   1023 | custo total US$ 9.5424 | custo so das com sucesso US$ 9.5424 | por chamada 0.008566 | por chamada com sucesso 0.009328
+  gate     chamadas  32154 | com sucesso  31976 | custo total US$ 32.8658 | custo so das com sucesso US$ 32.8658 | por chamada 0.001022 | por chamada com sucesso 0.001028
+  shadow_detail chamadas    330 | com sucesso    330 | custo total US$ 0.8325 | custo so das com sucesso US$ 0.8325 | por chamada 0.002523 | por chamada com sucesso 0.002523
+  shadow_gate chamadas   6556 | com sucesso   6556 | custo total US$ 7.2003 | custo so das com sucesso US$ 7.2003 | por chamada 0.001098 | por chamada com sucesso 0.001098
+  no script: N_EVT 31976 | C_GATE 0.001028 | C_DET_OLD 0.009328 | C_DET_NEW 0.014599 | TODAY 0.001327
+
+B. custo por evento refeito (pergunta wl_v2, limiar 0.30, 2027 eventos de desenvolvimento)
+  populacao 31706: S0 30679 (96.76%), S1 595 (1.88%), S2C 142 (0.45%), S2R 249 (0.79%), S2X 41 (0.13%)
+  fracao que passa por estrato: S0 18.7%, S1 53.3%, S2C 100.0%, S2R 83.0%, S2X 88.9%
+  filtro + gate de hoje + detail recomendado: US$ 0.000701 por evento = -47.1% (chegam ao gate 20.3%, chegam ao detail 2.21%)
+  filtro + gate de hoje + detail de hoje: US$ 0.000585 por evento = -55.9% (chegam ao gate 20.3%, chegam ao detail 2.21%)
+  sem filtro, detail recomendado: US$ 0.001501 = +13.1% (detail em 3.24%)
+  sem filtro, detail de hoje (deveria dar o custo de hoje): US$ 0.001330 = +0.3%
+  composicao do custo com filtro: Decisions 24%, gate 30%, detail 46%
+  intervalo de 95% por reamostragem de todos os estratos: -49.3% a -45.1% (mediana -47.1%)
+
+C. redacao ajustada (wl_v2) x redacao sem ajuste (worth_look), fora das 4 confirmadas usadas no ajuste
+  q3/worth_look: 28 confirmadas de fora do ajuste, menores notas 0.380, 0.437, 0.457; as 4 do ajuste: 0.281, 0.292, 0.335, 0.398
+      limiar que mantem as 28 de fora = 0.380 -> S0 passa 138/1623 = 8.5% [7.2 a 10.0] | AUC S0 x confirmadas de fora 0.977
+      limiar 0.22: de fora 28/28, do ajuste 4/4, S0 passa 361/1623 = 22.2%
+      limiar 0.30: de fora 28/28, do ajuste 2/4, S0 passa 202/1623 = 12.4%
+      limiar 0.35: de fora 28/28, do ajuste 1/4, S0 passa 164/1623 = 10.1%
+  q4/worth_look: 28 confirmadas de fora do ajuste, menores notas 0.346, 0.382, 0.441; as 4 do ajuste: 0.259, 0.287, 0.308, 0.384
+      limiar que mantem as 28 de fora = 0.346 -> S0 passa 171/1623 = 10.5% [9.1 a 12.1] | AUC S0 x confirmadas de fora 0.975
+      limiar 0.22: de fora 28/28, do ajuste 4/4, S0 passa 367/1623 = 22.6%
+      limiar 0.30: de fora 28/28, do ajuste 2/4, S0 passa 208/1623 = 12.8%
+      limiar 0.35: de fora 27/28, do ajuste 1/4, S0 passa 168/1623 = 10.4%
+  q4/wl_v2: 28 confirmadas de fora do ajuste, menores notas 0.468, 0.494, 0.516; as 4 do ajuste: 0.420, 0.446, 0.575, 0.611
+      limiar que mantem as 28 de fora = 0.468 -> S0 passa 143/1623 = 8.8% [7.5 a 10.3] | AUC S0 x confirmadas de fora 0.975
+      limiar 0.22: de fora 28/28, do ajuste 4/4, S0 passa 507/1623 = 31.2%
+      limiar 0.30: de fora 28/28, do ajuste 4/4, S0 passa 304/1623 = 18.7%
+      limiar 0.35: de fora 28/28, do ajuste 4/4, S0 passa 235/1623 = 14.5%
+  q5/wl_v2: 28 confirmadas de fora do ajuste, menores notas 0.468, 0.494, 0.516; as 4 do ajuste: 0.420, 0.446, 0.575, 0.611
+      limiar que mantem as 28 de fora = 0.468 -> S0 passa 143/1623 = 8.8% [7.5 a 10.3] | AUC S0 x confirmadas de fora 0.975
+      limiar 0.22: de fora 28/28, do ajuste 4/4, S0 passa 507/1623 = 31.2%
+      limiar 0.30: de fora 28/28, do ajuste 4/4, S0 passa 304/1623 = 18.7%
+      limiar 0.35: de fora 28/28, do ajuste 4/4, S0 passa 235/1623 = 14.5%
+
+D. limiar escolhido numa metade (mantem todas as confirmadas dela) aplicado na outra (wl_v2)
+  limiar de A = 0.446 -> em B: confirmadas 15/16, S0 passa 71/816 = 8.7%
+  com folga de 25% (limiar 0.335) -> em B: confirmadas 16/16, S0 passa 122/816 = 15.0%
+  limiar de B = 0.420 -> em A: confirmadas 16/16, S0 passa 91/807 = 11.3%
+  com folga de 25% (limiar 0.315) -> em A: confirmadas 16/16, S0 passa 146/807 = 18.1%
+
+F. eventos com detail 'sim' (S2) fora da amostra
+  S2C: 84 deteccoes na base | na amostra: desenvolvimento 32, avaliacao 47 | eventos fora da amostra 9 | deteccoes inteiras de fora 5
+  S2R: 208 deteccoes na base | na amostra: desenvolvimento 73, avaliacao 119 | eventos fora da amostra 25 | deteccoes inteiras de fora 16
+  S2X: 30 deteccoes na base | na amostra: desenvolvimento 7, avaliacao 21 | eventos fora da amostra 2 | deteccoes inteiras de fora 2
+
+G. passagem de S0 por semana e por periodo do dia (wl_v2 >= 0.30)
+  semana 2026-07-13: 34/127 = 26.8% [20 a 35]
+  semana 2026-07-20: 43/173 = 24.9% [19 a 32]
+  semana 2026-07-27: 41/217 = 18.9% [14 a 25]
+  semana 2026-08-03: 40/229 = 17.5% [13 a 23]
+  semana 2026-08-10: 40/184 = 21.7% [16 a 28]
+  semana 2026-08-17: 25/159 = 15.7% [11 a 22]
+  semana 2026-08-24: 36/255 = 14.1% [10 a 19]
+  semana 2026-08-31: 31/230 = 13.5% [10 a 18]
+  semana 2026-09-07: 14/49 = 28.6% [18 a 42]
+  periodo dia (06-17h): 166/949 = 17.5% [15 a 20]
+  periodo noite (18-05h): 138/674 = 20.5% [18 a 24]
+  S2R: eventos 73/88 = 83.0%; deteccoes 61/73 = 83.6%
+  S2X: eventos 8/9 = 88.9%; deteccoes 6/7 = 85.7%
+  S1: eventos 131/246 = 53.3%; deteccoes 131/246 = 53.3%

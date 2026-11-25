@@ -1,0 +1,14 @@
+event_id	leitura	causa	nota
+evt-20260717_175419	indeterminado	manuseio	pessoa de capa clara curvada na borda da pilha à noite; o saco branco ao lado já estava no primeiro quadro
+evt-20260717_182453	falso_provavel	manuseio	pessoa curvada sobre os sacos pretos do início ao fim (mesma cena de evt-20260717_182657)
+evt-20260720_140047	indeterminado	manuseio	objeto laranja muda de lugar e de forma na pilha; não dá para dizer se é material novo ou o mesmo revirado
+evt-20260726_104533	falso_provavel	manuseio	catador sem camisa com carroça laranja; os sacos claros já estavam na pilha no primeiro quadro
+evt-20260730_173815	indeterminado	recipiente	a região indicada é a caçamba, igual no início e no fim; pedestres passam e um deles chega perto da pilha
+evt-20260802_184604	falso_provavel	passagem	só carros à noite e um vulto que parece animal; região indicada igual no início e no fim
+evt-20260805_084245	indeterminado	equipe_uniformizada	trabalhadores de colete e capacete viram carrinhos de mão na pilha; pode ser entulho de obra ou a equipe de limpeza juntando material
+evt-20260806_151513	falso_provavel	manuseio	pessoa com cachorro se curva por instantes junto à pilha; região indicada igual no início e no fim
+evt-20260806_175801	falso_provavel	passagem	pessoa atravessa com volumes brancos e sai com eles; região indicada igual
+evt-20260827_103242	indeterminado	manuseio	mulher arrasta um fardo grande de sacos até a caçamba e segue mexendo nele no último quadro (perfil de catadora)
+evt-20260829_170343	indeterminado	recipiente	homem leva sacolas até a caçamba e se abaixa nela; se deixou, foi dentro do recipiente
+evt-20260830_073603	indeterminado	recipiente	mulher com sacolas vai até a caçamba; a placa de papelão no pátio já estava no primeiro quadro
+evt-20260904_090545	descarte_provavel	descarte_veiculo	painel grande de madeira encostado na mureta no último quadro, onde antes estava o carro branco

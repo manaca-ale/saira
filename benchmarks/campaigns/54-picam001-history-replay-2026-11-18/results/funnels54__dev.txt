@@ -1,0 +1,16 @@
+desenvolvimento, conjunto pass: confirmadas 32, rejeitadas 61 | passam no filtro 20.3% dos eventos | hoje (producao medida) US$ 0.001327/evento = gate US$ 0.001028 em todo evento + detail US$ 0.009328 por disparo | Decisions US$ 0.000169/evento
+  gate g25l_v1_t2048_ctx      US$ 0.001009/chamada, p90 em modo padrao nan s (nan = so chamadas Flex neste arquivo)
+  gate g31l_v1p_min_low_ctx   US$ 0.000871/chamada, p90 em modo padrao nan s (nan = so chamadas Flex neste arquivo)
+  gate nvl_v1p_low_ctx        US$ 0.000334/chamada, p90 em modo padrao 4.0 s (nan = so chamadas Flex neste arquivo)
+  detail d25f_v1            AI Studio US$ 0.01009/chamada, Vertex US$ 0.01009, p90 em modo padrao nan s
+  detail d38f_g3_low_low    AI Studio US$ 0.00815/chamada, Vertex US$ 0.01630, p90 em modo padrao 13.8 s
+
+funil | confirmadas | rejeitadas | alertas por 1.000 (S0: descarte provavel / falso / indeterminado) | dispara | custo/evento com o detail no AI Studio | no Vertex
+  g25l + d25f  | 21/32 | 26/61 | 14.08 (S0 3.0 / 2.2 / 0.7) | 2.33% | -54% [-57% a -50%] | -54% [-57% a -50%]
+  g31l + d25f  | 26/32 | 30/61 | 28.82 (S0 6.3 / 8.2 / 5.7) | 4.29% | -41% [-47% a -35%] | -41% [-47% a -35%]
+  nvl  + d25f  | 26/32 | 26/61 | 19.50 (S0 1.8 / 4.9 / 3.7) | 4.20% | -50% [-55% a -44%] | -50% [-55% a -44%]
+  g25l + d38f  | 19/32 | 21/61 | 14.43 (S0 3.7 / 2.2 / 1.5) | 2.33% | -57% [-60% a -54%] | -43% [-47% a -36%]
+  g31l + d38f  | 25/32 | 23/61 | 27.65 (S0 5.1 / 8.2 / 6.3) | 4.29% | -48% [-52% a -42%] | -21% [-30% a -11%]
+  nvl  + d38f  | 25/32 | 19/61 | 15.89 (S0 1.8 / 1.8 / 4.3) | 4.20% | -56% [-60% a -51%] | -31% [-38% a -21%]
+
+referencia: producao no mesmo conjunto = 32 confirmadas, 61 rejeitadas, alerta em 3,20% dos eventos. O replay do gate de hoje (g25l) e a regua justa das confirmadas.

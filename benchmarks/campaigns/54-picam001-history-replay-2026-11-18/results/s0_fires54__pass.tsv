@@ -1,0 +1,111 @@
+event_id	nota_wl_v2	janela_em_disco	g31l_v1p_min_low	nvl_v1p_low	g25l_v1_t2048	g25l_v1_t1024	justificativa_do_primeiro_braco
+evt-20260906_162802	0.963	1	1	1	1	0	Two individuals are observed walking towards the existing waste pile and depositing a bag of waste before walking away. The amount of material on the ground increases between the first and last frames
+evt-20260715_193813	0.958	1	1	0	0	0	A person is observed walking to a pre-existing waste pile, depositing a bag of material, and walking away. The material is clearly visible on the ground in the final frames.
+evt-20260727_135311	0.949	1	1	0	1	1	A person is observed using a wheelbarrow to deposit additional waste onto an existing large pile of debris.
+evt-20260808_155142	0.943	1	1	0	0	0	Two individuals are observed placing large white panels against a wall in the background, which constitutes the deposition of construction waste material.
+evt-20260904_044339	0.943	1	1	1	0	0	A person on a bicycle arrives at the scene, stops, and deposits a bag of waste onto an existing pile before riding away.
+evt-20260812_134132	0.937	1	1	1	1	1	A person is observed using a handcart to transport and deposit wooden furniture/debris onto an existing waste pile in the corner of the frame.
+evt-20260726_174052	0.931	1	1	0	0	0	A person is observed walking to an existing waste pile and depositing material from a bag before walking away. The pile size increases slightly due to the added material.
+evt-20260716_180428	0.930	1	1	1	1	1	A person is observed using a wheelbarrow to transport and deposit construction debris onto an existing waste pile in the scene.
+evt-20260716_211546	0.923	1	1	0	0	0	A person is observed in the sequence actively sorting through and depositing waste material onto an existing pile on the ground.
+evt-20260812_235912	0.922	1	1	0	0	0	Two individuals are observed in the scene depositing waste material onto an existing pile on the ground. The material is clearly visible in the final frame compared to the initial frame.
+evt-20260717_175419	0.912	1	1	1	0	0	A person is observed walking to the existing waste pile and depositing additional bags of waste. The scene shows active dumping behavior by an individual on foot.
+evt-20260801_093613	0.903	1	1	0	0	0	A person is observed walking through the scene carrying a large rectangular object (likely a window frame or similar construction debris) and depositing it onto the existing waste pile.
+evt-20260814_060743	0.873	1	1	0	1	1	A person is observed carrying a white bag and depositing its contents onto an existing waste pile in the scene.
+evt-20260905_004619	0.869	1	1	0	0	0	A person is observed in the scene depositing material onto an existing waste pile. The person is seen carrying an object and placing it on the ground, contributing to the accumulation of waste.
+evt-20260715_175410	0.829	1	0	1	0	0	Persons are actively depositing material on the ground, consistent with dumping behavior. A vehicle is stopped, and there is no new material on the ground.
+evt-20260827_204156	0.829	1	1	1	0	1	A person is observed walking through the scene carrying a large bag of material, which is then deposited on the ground in the final frame.
+evt-20260731_162137	0.828	1	1	0	0	0	A person is observed carrying a bag of material and depositing it onto an existing waste pile in the lower center of the frame.
+evt-20260807_105228	0.826	1	0	1	0	0	Person actively depositing material on the ground in the first frame, no new material in the last frame.
+evt-20260715_083956	0.823	1	1	0	0	1	Individuals are observed using a cart to transport and deposit waste onto an existing pile in the area.
+evt-20260718_034739	0.821	1	0	1	0	1	Person actively depositing material on the ground in the last frame, visible in the final frame.
+evt-20260830_073603	0.818	1	1	0	0	0	A person is observed approaching the waste container and depositing a bag of material into it, which constitutes active dumping behavior.
+evt-20260803_154144	0.808	1	0	1	1	0	Person actively depositing material on the ground in the initial frame, and a vehicle stopped in the final frame.
+evt-20260824_213003	0.793	1	1	1	0	0	Individuals are observed depositing material onto a fire in the background, which constitutes active dumping and waste burning.
+evt-20260808_040430	0.788	1	1	0	0	0	Two individuals are observed walking into the frame carrying bags, which they deposit on the ground before exiting the scene, resulting in new material accumulation.
+evt-20260806_175801	0.773	1	1	1	0	1	A person is observed placing a box and other items onto an existing waste pile in the scene. The material is clearly present in the final frames but absent or being actively deposited in the initial f
+evt-20260717_193750	0.758	1	1	0	0	0	A person is observed actively sorting through and depositing waste onto an existing pile over the course of the video sequence.
+evt-20260730_121439	0.751	1	1	1	0	0	A person is observed pushing a cart with material and depositing it onto an existing waste pile in the scene.
+evt-20260802_184604	0.739	1	1	0	0	0	A person arrives with a handcart, deposits material onto an existing waste pile, and then departs. The sequence clearly shows the act of dumping.
+evt-20260808_160014	0.731	1	1	0	0	0	A person is observed in the lower-left area of the frame repeatedly interacting with waste, depositing additional items onto the ground over the course of the video sequence.
+evt-20260802_130817	0.717	1	1	0	0	0	Two individuals are observed in the scene depositing waste onto an existing pile. The comparison between the first and last frames shows an increase in the volume of debris at the site.
+evt-20260814_181925	0.709	1	1	1	0	0	Individuals are observed carrying large bags and depositing material into an existing waste pile area. The accumulation of waste is visible across the sequence.
+evt-20260724_150118	0.696	1	1	1	0	0	Individuals are observed actively depositing bags of waste onto an existing large pile of debris throughout the sequence.
+evt-20260815_151425	0.693	1	1	0	1	0	A person is observed in the sequence actively depositing material onto an existing waste pile. The comparison between the first and last frames shows an increase in the volume of debris at the site.
+evt-20260908_052712	0.686	1	0	1	1	0	Person actively depositing material on the ground in the first frame, no new material in the last frame.
+evt-20260818_162703	0.685	1	0	1	0	0	A person is seen actively depositing material on the ground in the final frame, indicating active dumping behavior.
+evt-20260805_084245	0.682	1	1	1	1	0	A person wearing a high-visibility vest is observed using a wheelbarrow to deposit waste onto an existing pile in the final frame, which was not present in the initial frame.
+evt-20260904_153507	0.676	1	1	1	1	0	A vehicle with a trailer loaded with furniture and debris enters the scene, stops, and the trailer is emptied. The final frame shows the vehicle has departed, leaving behind a significant amount of ne
+evt-20260724_153138	0.655	1	0	1	0	0	Persons are seen actively depositing material on the ground in the final frame, consistent with dumping behavior.
+evt-20260901_231420	0.635	1	1	1	0	0	A vehicle is stopped at the edge of the frame while two individuals are observed actively unloading and depositing material onto the ground. The scene shows a clear accumulation of waste being created
+evt-20260725_145315	0.633	1	0	1	0	0	A person is actively depositing material on the ground in a dumping site. A vehicle is stopped, and a person is seen unloading material.
+evt-20260730_173815	0.605	1	1	1	1	0	A person is observed actively depositing waste into a container in the second frame, while a vehicle remains stationary in the background throughout the sequence. The presence of a pre-existing waste 
+evt-20260716_183647	0.601	1	1	0	0	0	A person is observed walking into the scene and depositing material onto an existing waste pile. The material is clearly visible in the final frames compared to the initial frame.
+evt-20260803_053318	0.596	1	1	0	0	0	A person is observed walking through the scene carrying an object and depositing it onto an existing waste pile, resulting in a visible change in the pile's composition.
+evt-20260811_194855	0.596	1	1	1	0	0	A person is observed walking into the frame and depositing material onto an existing waste pile. The material is clearly visible in the final frame but not in the initial frame.
+evt-20260805_103549	0.594	1	0	1	0	0	A person is seen actively depositing material on the ground in the final frame, while a vehicle is stopped in the scene.
+evt-20260721_201253	0.577	1	0	1	0	0	A person is actively depositing material on the ground in the final frame, which was not present in the initial frame.
+evt-20260829_170343	0.575	1	1	0	1	1	A vehicle arrives and stops in the scene, followed by a person who is observed depositing material into the existing waste container area.
+evt-20260814_205540	0.570	1	1	0	0	0	Two individuals are observed carrying large white panels and depositing them onto an existing waste pile in the scene.
+evt-20260819_214613	0.569	1	1	0	0	0	Individuals are observed actively sorting and depositing waste materials onto an existing pile in the area.
+evt-20260820_090919	0.563	1	0	1	0	0	A vehicle is stopped and a person is actively depositing material on the ground.
+evt-20260819_195809	0.557	1	0	1	0	0	A person is actively depositing material on the ground in the last frame, which was not present in the first frame.
+evt-20260717_152115	0.547	1	0	1	0	0	Person seen unloading material from a cart in the middle of the sequence, consistent with active dumping behavior.
+evt-20260901_120116	0.547	1	1		0	0	A person is observed carrying a cardboard box and depositing it into an existing waste pile, contributing to the accumulation of litter.
+evt-20260718_102201	0.538	1	1	0	0	0	A person is observed standing at an existing waste site and actively depositing additional items onto the pile over the course of the frames.
+evt-20260720_115413	0.534	1	1	0	0	0	A person is observed pushing a cart containing material into the scene and depositing it onto an existing waste pile.
+evt-20260904_232206	0.529	1	0	1	0	0	Person seen actively depositing material on the ground in the last frame, which was not present in the first frame.
+evt-20260804_024511	0.528	1	0	1	0	0	Persons are actively depositing material on the ground in the scene. A vehicle is stopped, and there is visible material handling.
+evt-20260729_062702	0.526	1	0	1	0	0	Person actively depositing material on the ground, visible in the last frame.
+evt-20260806_151513	0.526	1	1	0	1	0	A person is observed in the mid-frames actively placing material onto an existing waste pile. The final frame shows the person walking away, with the added material remaining on the ground.
+evt-20260725_003422	0.522	1	0	1	0	0	A person is actively depositing material on the ground in the last frame, which was not present in the first frame.
+evt-20260827_103242	0.520	1	1	1	0	0	A person is observed repeatedly interacting with a waste pile in the foreground, depositing material over the course of the sequence.
+evt-20260820_201356	0.519	1	0	1	0	0	Persons are seen actively depositing material on the ground in the final frame, which was not present in the initial frame.
+evt-20260803_154734	0.511	1	0	1	1	0	A person is seen unloading material from a bicycle in the initial frame, and the bicycle remains in the same position in the final frame.
+evt-20260717_182657	0.508	1	1	1	1	0	A person is observed repeatedly interacting with a large waste pile, depositing additional material onto it throughout the sequence.
+evt-20260721_200601	0.507	1	0	1	0	0	A vehicle stopped and a person is actively depositing material on the ground. New litter is visible in the last frame.
+evt-20260904_120243	0.500	1	0	1	0	0	Persons are seen unloading material from a stopped vehicle and on foot, indicating active dumping behavior.
+evt-20260725_200055	0.499	1	0	1	0	0	A vehicle stopped and a person was seen actively depositing material on the ground in the last frame.
+evt-20260814_025815	0.484	1	1	0	0	0	A person is observed in the scene actively interacting with and depositing waste material onto an existing pile over the course of the video sequence.
+evt-20260725_223817	0.475	1	0	1	0	0	A person is actively depositing material on the ground in the last frame, which was not present in the first frame.
+evt-20260717_123849	0.462	1	1	0	0	0	A person is observed walking into the scene and actively depositing material onto an existing waste pile in the final frames.
+evt-20260819_075608	0.461	1	0	1	0	1	A vehicle stopped and a person was seen actively depositing material on the ground.
+evt-20260828_133048	0.454	1	1	0	0	0	A person is observed depositing cardboard and other waste items into a pile in the lower left corner of the frame over the course of the sequence.
+evt-20260719_112106	0.440	1	1	0	0	0	A person is observed walking to the existing waste pile and depositing additional material, contributing to the accumulation of litter.
+evt-20260812_172906	0.440	1	0	1	0	0	A white car stopped and a person actively deposited material on the ground. The car was stationary in the middle frames, and the person was seen handling material.
+evt-20260726_121229	0.429	1	0	1	0	0	Persons are actively depositing material on the ground, indicating dumping behavior.
+evt-20260824_212757	0.428	1	1	0	0	0	Individuals are observed interacting with a pre-existing waste pile and depositing additional material, resulting in a visible increase in debris by the final frame.
+evt-20260905_170838	0.427	1	1	1	0	0	A person is observed repeatedly interacting with a pre-existing waste pile, depositing additional material throughout the sequence.
+evt-20260801_125849	0.426	1	1	1	1	1	A vehicle is parked at the edge of the frame, and individuals are observed unloading items from the vehicle onto an existing waste pile. New material is visible on the ground in the final frames compa
+evt-20260905_052229	0.423	1	0	1	0	0	Persons are seen actively depositing material on the ground, consistent with dumping behavior.
+evt-20260828_183339	0.415	1	0	1	0	0	A person is actively depositing material on the ground, and a vehicle is stationary in the scene.
+evt-20260726_104533	0.410	1	1	1	1	1	Multiple individuals are observed actively depositing waste materials from bags onto an existing large waste pile over the course of the video sequence.
+evt-20260812_134336	0.403	1	1	0	0	0	Individuals are observed using a handcart to transport and deposit material onto an existing waste pile in the scene.
+evt-20260811_174805	0.396	1	1	0	0	0	A person is observed walking through the scene and depositing material on the ground, which is visible in the final frame as a new pile.
+evt-20260720_140047	0.393	1	0	1	1	0	Person actively depositing material on the ground in the last frame, vehicle stopped.
+evt-20260726_222759	0.389	1	0	1	0	0	A person is actively depositing material on the ground in the last frame, which was not present in the first frame.
+evt-20260725_184927	0.384	1	1	1	1	1	A vehicle stops in the scene, and a person is observed exiting and depositing material onto an existing waste pile before the vehicle departs.
+evt-20260725_111146	0.377	1	0	1	0	0	A person is seen actively depositing material on the ground in the initial frame, and a vehicle is stationary in the scene.
+evt-20260717_182453	0.376	1	1	1	0	0	A person is observed repeatedly interacting with a pre-existing waste pile, depositing additional material over the course of the sequence.
+evt-20260727_102114	0.370	1	1	0	0	0	A person is observed depositing a large bag of waste onto an existing pile in the middle frames, resulting in a visible change in the waste accumulation by the final frame.
+evt-20260828_192908	0.370	1	0	1	0	0	A vehicle stopped and a person was seen actively depositing material on the ground.
+evt-20260715_185755	0.369	1	1	1	0	0	A person is observed carrying construction material (a large panel) and depositing it onto an existing waste pile in the scene.
+evt-20260726_043705	0.369	1	0	1	0	0	A vehicle stopped and a person is actively depositing material on the ground.
+evt-20260810_150335	0.363	1	1	1	0	0	A person on a motorcycle stops in the scene and is observed carrying a large mattress. The individual is seen transporting the mattress through the area, which constitutes active dumping behavior.
+evt-20260724_061508	0.339	1	1	0	0	0	A person is observed walking into the scene carrying a crate and depositing it onto an existing waste pile, confirming active dumping behavior.
+evt-20260724_154412	0.338	1	1	0	0	0	A person is observed repeatedly interacting with a large waste pile, depositing additional material throughout the sequence.
+evt-20260725_221843	0.338	1	0	1	0	0	A person is actively depositing material on the ground in the last frame, which was not present in the first frame.
+evt-20260801_190755	0.338	1	0	1	0	0	A person is seen depositing material on the ground in the last frame, which was not present in the first frame. A vehicle is also stopped in the scene.
+evt-20260721_094713	0.337	1	0	1	0	0	A person is seen actively depositing material on the ground in the last frame, indicating active dumping behavior.
+evt-20260804_210513	0.333	1	0	1	0	0	A vehicle stopped and a person was seen actively depositing material on the ground.
+evt-20260715_191638	0.330	1	0	1	0	0	A vehicle is stopped and a person is actively depositing material on the ground.
+evt-20260801_101611	0.328	1	0	1	0	0	Persons are actively depositing material on the ground, with a vehicle stopped nearby.
+evt-20260907_191317	0.328	1	0	1	0	0	A person is actively depositing material on the ground, visible in the final frame but not in the initial frame.
+evt-20260813_113127	0.326	1	1	1	0	0	A white pickup truck stops in the scene, and a person is observed unloading items from the truck bed onto the ground near an existing waste pile.
+evt-20260802_090407	0.325	1	0	1	0	0	Two individuals are seen unloading material from a blue cart in the initial frame. The material is deposited on the ground, and no new material is added in the final frame.
+evt-20260907_124401	0.324	1	0	1	0	0	Person actively depositing material on the ground in the last frame, while a vehicle is stopped.
+evt-20260905_145959	0.320	1	0	1	0	0	A person is seen actively depositing material on the ground in the initial frame, and a vehicle is stopped in the final frame.
+evt-20260822_193911	0.318	1	0	1	0	0	Persons are actively depositing material on the ground, visible in the final frame.
+evt-20260716_194004	0.315	1	0	1	1	0	A vehicle is stationary and a person is actively depositing material on the ground.
+evt-20260725_224743	0.305	1	0	1	0	0	A person is seen actively depositing material on the ground in the final frame, consistent with dumping behavior.
+evt-20260803_180843	0.301	1	0	1	0	0	A person is actively depositing material on the ground in the last frame, which was not present in the first frame. A vehicle is also stopped in the scene.

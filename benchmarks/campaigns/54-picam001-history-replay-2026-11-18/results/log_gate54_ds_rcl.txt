@@ -1,0 +1,9 @@
+Model file(s) not found (/app/models/yolov8_MDM_200_n.pt, /app/models/yolov8_PeopleCar_200_n.pt) - MOCK_MODE activated automatically. Provide model weights or set MOCK_MODE=true to suppress this warning.
+[gate54/deepseek] braco=dsf_rcl_low_ctx modelo=deepseek-flash prompt=rcl imagens=low thinking=off
+  conjunto=tri (limiar 0.3) eventos=121 {'S0': 60, 'S2C': 61} ja_feitos=0 a_rodar=121 sem_frames=0 estimativa=US$ 0.1452 (preco de pico)
+  [1/121] ok=1 erros=0 tok_in=2465 tok_out=276 tok_think=0 US$/chamada=0.001071 lat=3139 ms fire=0 | gasto=US$ 0.0011 (3 s)
+  [2/121] ok=2 erros=0 tok_in=2465 tok_out=296 tok_think=0 US$/chamada=0.001095 lat=3201 ms fire=0 | gasto=US$ 0.0022 (3 s)
+  [50/121] ok=50 erros=0 tok_in=2465 tok_out=288 tok_think=0 US$/chamada=0.001085 lat=3404 ms fire=0 | gasto=US$ 0.0556 (33 s)
+  [100/121] ok=100 erros=0 tok_in=2459 tok_out=282 tok_think=0 US$/chamada=0.001076 lat=3737 ms fire=0 | gasto=US$ 0.1101 (68 s)
+  [121/121] ok=121 erros=0 tok_in=2465 tok_out=290 tok_think=0 US$/chamada=0.001087 lat=18190 ms fire=0 | gasto=US$ 0.1330 (89 s)
+  fim: ok=121 erros=0 gasto_desta_execucao=US$ 0.1330 total_carteira_deepseek=US$ 1.0440 (89 s)

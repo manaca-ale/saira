@@ -1,0 +1,23 @@
+[gate54] braco=g35l_g3_min_low modelo=gemini-3.5-flash-lite prompt=g3 budget=None think=minimal media=low flex=True
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=0 a_rodar=211 sem_frames=0 estimativa=US$ 0.2110
+[gate54] braco=g35l_g3_min_low modelo=gemini-3.5-flash-lite prompt=g3 budget=None think=minimal media=low flex=True
+  conjunto=tri (limiar 0.3) eventos=211 {'S0': 60, 'S1': 50, 'S2C': 61, 'S2R': 40} ja_feitos=0 a_rodar=211 sem_frames=0 estimativa=US$ 0.2110
+gemini gate error request_id=ec5f45a3-de79-4556-a6fc-03a35ebb2ffb attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=f17e33e3-7847-4b7a-847c-8facaa6c367f attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=5bebe847-90a3-4a52-92ec-ee0c72366235 attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+  [50/211] ok=50 erros=0 gasto=US$ 0.0351 (25 s)
+gemini gate error request_id=420e2b6b-ae0f-407b-bdae-7fc7aef0577d attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=49d0b585-152b-438a-836f-4b929b00c143 attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=e90677ac-1900-4357-9c0c-7ae01da17741 attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=b4d9f160-17c2-497a-bc9f-01b166fcaccb attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=d7a62d30-3012-4fb9-b822-b5b5bd095c8d attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=b4d9f160-17c2-497a-bc9f-01b166fcaccb attempt=2/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+  [100/211] ok=100 erros=0 gasto=US$ 0.0695 (49 s)
+gemini gate error request_id=d9d708fe-5b8f-47eb-ad21-ce1fc7176fb2 attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=bf07495a-77de-4381-933c-348b0519c262 attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+  [150/211] ok=150 erros=0 gasto=US$ 0.1043 (78 s)
+gemini gate error request_id=426cab13-a2bd-4ed0-8d00-114ed851a31b attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+gemini gate error request_id=b29f8d64-7d63-468f-a9f8-ce0d63a1e03f attempt=1/3 error=503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status
+  [200/211] ok=200 erros=0 gasto=US$ 0.1384 (107 s)
+  [211/211] ok=211 erros=0 gasto=US$ 0.1459 (117 s)
+  fim: ok=211 erros=0 chamadas={'n': 211, 'flex': 211, 'standard': 0} gasto_desta_execucao=US$ 0.1459 total_carteira=US$ 4.9369 (117 s)
