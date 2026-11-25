@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.redis import get_redis
+from app.core.roles import is_admin
 from app.models.user import User
 from app.services.whatsapp_service import WhatsAppService
 
@@ -16,10 +17,7 @@ class WhatsAppTestRequest(BaseModel):
 
 
 def _ensure_admin(current_user: User) -> None:
-    cargo = (current_user.cargo or "").strip().lower()
-    if cargo in {"administrador", "admin"}:
-        return
-    if current_user.email == "admin@saira.com":
+    if is_admin(current_user):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

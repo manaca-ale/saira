@@ -11,6 +11,8 @@ interface User {
   cargo?: string;
   rpa?: string;
   is_active: boolean;
+  // Papel calculado pelo backend a partir do cargo: "admin" ou "operador".
+  role?: string;
 }
 
 interface SignInCredentials {
@@ -21,6 +23,7 @@ interface SignInCredentials {
 interface AuthContextData {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   loading: boolean;
   signIn: (credentials: SignInCredentials) => Promise<void>;
   signInWithConecta: (nextPath?: string) => Promise<void>;
@@ -158,6 +161,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         user,
         isAuthenticated: !!user,
+        isAdmin: user?.role === 'admin',
         loading,
         signIn,
         signInWithConecta,

@@ -63,6 +63,13 @@ def fake_user():
 
 
 @pytest.fixture
+def as_admin(fake_user):
+    """Faz o usuário do `client` ser administrador (rotas com require_admin)."""
+    fake_user.cargo = "Administrador"
+    return fake_user
+
+
+@pytest.fixture
 def fake_detection():
     return FakeDetection()
 

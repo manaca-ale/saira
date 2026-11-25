@@ -2,12 +2,17 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_db, require_admin
 from app.core.security import get_password_hash
+from app.core.roles import Role, role_from_cargo
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 
 router = APIRouter()
+
+
+def is_admin_cargo(cargo: Optional[str]) -> bool:
+    return role_from_cargo(cargo) is Role.ADMIN
 
 USER_SORTABLE_FIELDS: dict[str, Any] = {
     "name":       User.name,
@@ -32,7 +37,7 @@ async def get_users(
     sort_by: Optional[str] = Query(None, description="Campo para ordenação"),
     sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Lista usuários com filtros e paginação"""
     query = select(User)
@@ -69,7 +74,7 @@ async def get_users(
 async def get_user(
     user_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Busca um usuário por ID"""
     result = await db.execute(select(User).where(User.id == user_id))
@@ -88,7 +93,7 @@ async def get_user(
 async def create_user(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Cria um novo usuário"""
     # Verificar se email já existe
@@ -126,7 +131,7 @@ async def update_user(
     user_id: int,
     user_update: UserUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Atualiza um usuário"""
     result = await db.execute(select(User).where(User.id == user_id))
@@ -151,6 +156,17 @@ async def update_user(
     # Atualizar campos
     update_data = user_update.model_dump(exclude_unset=True)
 
+    # O administrador não tira o próprio acesso: sem isso, o último
+    # administrador se trancaria para fora e só o banco resolveria.
+    if user.id == current_user.id:
+        loses_role = "cargo" in update_data and not is_admin_cargo(update_data["cargo"])
+        deactivates = update_data.get("is_active") is False
+        if loses_role or deactivates:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Administrador não pode remover o próprio acesso",
+            )
+
     # Se houver senha, hashear
     if "password" in update_data:
         password = update_data.pop("password")
@@ -169,7 +185,7 @@ async def update_user(
 async def delete_user(
     user_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Deleta um usuário"""
     result = await db.execute(select(User).where(User.id == user_id))
@@ -179,6 +195,12 @@ async def delete_user(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
+        )
+
+    if user.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Administrador não pode apagar o próprio usuário",
         )
 
     await db.delete(user)

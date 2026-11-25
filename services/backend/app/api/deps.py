@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import AsyncSessionLocal
 from app.core.security import decode_access_token
+from app.core.roles import Role, role_from_cargo
 from app.models.user import User
 from app.schemas.user import UserResponse
 
@@ -66,6 +67,29 @@ async def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+def require_role(*roles: Role):
+    """Dependency que só deixa passar usuário logado com um dos papéis dados.
+
+    O papel vem do `cargo` (ver app.core.roles). Quem não tem o papel recebe 403.
+    """
+    allowed = frozenset(roles)
+
+    async def _require_role(current_user: User = Depends(get_current_user)) -> User:
+        if role_from_cargo(current_user.cargo) not in allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Acesso restrito a: " + ", ".join(sorted(r.value for r in allowed)),
+            )
+        return current_user
+
+    _require_role.required_roles = allowed
+    return _require_role
+
+
+# Gestão de usuários, configuração de câmera e custos: só administrador.
+require_admin = require_role(Role.ADMIN)
 
 
 async def get_current_user_from_query(

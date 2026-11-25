@@ -87,7 +87,7 @@ Prefixo global: `/api/v1`
 ### 5.1 Auth
 
 - `POST /auth/login`
-- `POST /auth/register`
+- ~~`POST /auth/register`~~ (removido em 25/11/2026: era aberto; usuário novo só por `POST /users/`, com administrador)
 - `GET /auth/me`
 
 ### 5.2 Integracao Conecta
