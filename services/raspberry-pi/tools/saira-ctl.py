@@ -38,9 +38,14 @@ def _base(args) -> str:
     return (args.base or DEFAULT_BASE).rstrip("/")
 
 
+def _admin_headers(args) -> dict:
+    token = getattr(args, "token", None) or ADMIN_TOKEN
+    return {"X-Admin-Token": token} if token else {}
+
+
 def _trigger(args, cmd: str) -> dict:
     url = f"{_base(args)}/device/{args.device}/trigger"
-    r = requests.post(url, json={"cmd": cmd}, timeout=15)
+    r = requests.post(url, json={"cmd": cmd}, headers=_admin_headers(args), timeout=15)
     r.raise_for_status()
     return r.json()
 
@@ -53,7 +58,7 @@ def cmd_cmd(args) -> int:
 
 def cmd_health(args) -> int:
     url = f"{_base(args)}/device/{args.device}/health"
-    r = requests.get(url, timeout=15)
+    r = requests.get(url, headers=_admin_headers(args), timeout=15)
     if r.status_code == 404:
         print(f"(sem telemetria reportada ainda por {args.device})")
         return 1
@@ -90,7 +95,7 @@ def cmd_config(args) -> int:
 
 def cmd_get_config(args) -> int:
     url = f"{_base(args)}/device/{args.device}/config.txt"
-    r = requests.get(url, timeout=15)
+    r = requests.get(url, headers=_admin_headers(args), timeout=15)
     r.raise_for_status()
     print(r.text)
     return 0
@@ -104,7 +109,7 @@ def cmd_safe_mode(args) -> int:
 
 def _list_logs(args) -> list[dict]:
     url = f"{_base(args)}/device/{args.device}/logs"
-    r = requests.get(url, timeout=15)
+    r = requests.get(url, headers=_admin_headers(args), timeout=15)
     r.raise_for_status()
     return r.json().get("logs", [])
 

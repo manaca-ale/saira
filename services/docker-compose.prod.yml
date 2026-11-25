@@ -59,6 +59,7 @@ services:
       # yolo-worker (que não atende o endpoint) e no backend do compose de TESTE,
       # que é por onde a feature passou.
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      - ESP32_ADMIN_TOKEN=${ESP32_ADMIN_TOKEN:-}
       - VIDEO_REQUEST_TIMEOUT_S=${VIDEO_REQUEST_TIMEOUT_S:-600}
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
       - ENABLE_CONECTA_LOGIN=${ENABLE_CONECTA_LOGIN:-false}
@@ -179,6 +180,9 @@ services:
       - UPLOAD_DIR=/app/uploads
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5005}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - EDGE_AUTH_REQUIRED=${EDGE_AUTH_REQUIRED:-false}
+      - EDGE_DEVICE_TOKENS=${EDGE_DEVICE_TOKENS:-}
+      - EDGE_SHARED_TOKEN=${EDGE_SHARED_TOKEN:-}
       - GUNICORN_WORKERS=2
       - GUNICORN_THREADS=4
       - TZ=America/Sao_Paulo
@@ -373,6 +377,7 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      - ESP32_ADMIN_TOKEN=${ESP32_ADMIN_TOKEN:-}
       # Event-driven devices (Pi relay): process motion-event manifests
       # immediately instead of fixed 120s windows; heartbeats GC'd w/o Gemini.
       # Ausente aqui até 14/07/2026: no cutover da pi-cam-001 para prod (24/06) a

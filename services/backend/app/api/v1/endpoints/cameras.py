@@ -53,6 +53,11 @@ ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "http://esp32-server:5000").rst
 # Vazio nesta implantação (o esp32-server só exige o header se ele mesmo tiver um
 # token configurado — ver server.py set_device_config).
 ESP32_ADMIN_TOKEN = os.getenv("ESP32_ADMIN_TOKEN", "")
+
+
+def esp32_service_headers() -> dict:
+    """Cabeçalho de serviço para o esp32-server (vazio sem ESP32_ADMIN_TOKEN)."""
+    return {"X-Admin-Token": ESP32_ADMIN_TOKEN} if ESP32_ADMIN_TOKEN else {}
 # Frame de referência em que a zona de interesse (pile_zone_polygon) é desenhada
 # (igual ao worker BGSUB e ao motion_gate do Pi). Coordenadas em pixels absolutos.
 POLYGON_REF_W = 1280
@@ -214,7 +219,7 @@ async def request_camera_snapshot(
     url = f"{ESP32_SERVER_URL}/device/{device_id}/trigger"
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
-            resp = await client.post(url, json={"cmd": "CMD_SNAPSHOT"})
+            resp = await client.post(url, json={"cmd": "CMD_SNAPSHOT"}, headers=esp32_service_headers())
             resp.raise_for_status()
     except httpx.HTTPError as exc:
         raise HTTPException(
@@ -240,7 +245,7 @@ async def _enqueue_device_cmd(camera_id: int, db: AsyncSession, cmd: str) -> str
     url = f"{ESP32_SERVER_URL}/device/{device_id}/trigger"
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
-            resp = await client.post(url, json={"cmd": cmd})
+            resp = await client.post(url, json={"cmd": cmd}, headers=esp32_service_headers())
             resp.raise_for_status()
     except httpx.HTTPError as exc:
         raise HTTPException(

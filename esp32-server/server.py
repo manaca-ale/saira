@@ -11,6 +11,7 @@ from flask import Flask, request, send_from_directory, render_template, Response
 from datetime import datetime, timedelta
 import os
 import hashlib
+import hmac
 import re
 import heapq
 import json
@@ -125,6 +126,120 @@ _last_event_log_mtime = 0.0
 
 def _admin_token() -> str:
     return os.getenv("ADMIN_TOKEN", "")
+
+
+# ==========================================
+# AUTENTICAÇÃO DA BORDA
+# ==========================================
+# Quem fala com este servidor:
+#   - o dispositivo (Pi/ESP32): manda X-Device-Token (um token por dispositivo em
+#     EDGE_DEVICE_TOKENS="id1:token1,id2:token2"; EDGE_SHARED_TOKEN vale só para
+#     dispositivo sem token próprio, ex.: o simulador de câmera);
+#   - serviços e operadores (backend, worker, saira-ctl): mandam X-Admin-Token
+#     (ADMIN_TOKEN), que também abre as rotas do dispositivo.
+# Transição: com EDGE_AUTH_REQUIRED desligado (padrão) nada é recusado; o pedido
+# que seria recusado só aparece no log como [EDGE-AUTH]. Ligar só depois de toda
+# a frota e os serviços estarem mandando token.
+EDGE_DEVICE_ENDPOINTS = frozenset({
+    "upload_file", "upload_batch", "receive_status",
+    "device_keepalive", "device_poll", "device_events",
+    "device_bulk_upload", "device_video_clip", "get_device_config",
+    "get_ota_firmware", "get_ota_manifest",
+})
+EDGE_SERVICE_ENDPOINTS = frozenset({
+    "device_trigger", "set_device_config", "upload_ota_firmware",
+    "device_health", "dashboard_camera_registration_create",
+})
+# Mesma rota, lados diferentes: o dispositivo escreve (POST), o operador lê (GET).
+EDGE_MIXED_ENDPOINTS = frozenset({"device_logs"})
+EDGE_WARN_INTERVAL_S = 300.0
+_edge_warned: dict = {}
+
+
+def _edge_auth_required() -> bool:
+    return os.getenv("EDGE_AUTH_REQUIRED", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _edge_device_tokens() -> dict:
+    tokens = {}
+    for pair in os.getenv("EDGE_DEVICE_TOKENS", "").split(","):
+        device_id, sep, token = pair.strip().partition(":")
+        if sep and device_id.strip() and token.strip():
+            tokens[device_id.strip()] = token.strip()
+    return tokens
+
+
+def _edge_token_equal(got: str, expected: str) -> bool:
+    if not got or not expected:
+        return False
+    return hmac.compare_digest(got.encode("utf-8"), expected.encode("utf-8"))
+
+
+def _edge_request_device_id() -> str:
+    view_args = request.view_args or {}
+    return (view_args.get("device_id") or request.headers.get("X-Device-Id", "") or "").strip()
+
+
+def _edge_endpoint_kind(endpoint: Optional[str], method: str) -> Optional[str]:
+    if endpoint in EDGE_DEVICE_ENDPOINTS:
+        return "device"
+    if endpoint in EDGE_SERVICE_ENDPOINTS:
+        return "service"
+    if endpoint in EDGE_MIXED_ENDPOINTS:
+        return "device" if method == "POST" else "service"
+    return None
+
+
+def _edge_auth_failure() -> Optional[str]:
+    """Motivo pelo qual o pedido seria recusado, ou None se pode passar."""
+    kind = _edge_endpoint_kind(request.endpoint, request.method)
+    if kind is None:
+        return None
+    if _edge_token_equal(request.headers.get("X-Admin-Token", ""), _admin_token()):
+        return None
+    if kind == "service":
+        return "X-Admin-Token ausente ou invalido"
+    got = request.headers.get("X-Device-Token", "").strip()
+    if not got:
+        return "X-Device-Token ausente"
+    own_token = _edge_device_tokens().get(_edge_request_device_id())
+    if own_token:
+        # Dispositivo com token próprio só entra com o dele: um token roubado
+        # de outra câmera (ou o compartilhado) não serve para se passar por ela.
+        return None if _edge_token_equal(got, own_token) else "X-Device-Token nao confere com o dispositivo"
+    if _edge_token_equal(got, os.getenv("EDGE_SHARED_TOKEN", "").strip()):
+        return None
+    return "X-Device-Token invalido"
+
+
+def _edge_auth_warn(reason: str) -> None:
+    key = (request.endpoint, _edge_request_device_id(), reason)
+    now = time.time()
+    if now - _edge_warned.get(key, 0.0) < EDGE_WARN_INTERVAL_S:
+        return
+    if len(_edge_warned) > 2000:
+        _edge_warned.clear()
+    _edge_warned[key] = now
+    print(
+        f"[EDGE-AUTH] transicao: {request.method} {request.path} "
+        f"device={key[1] or '-'} seria recusado ({reason})",
+        flush=True,
+    )
+
+
+@app.before_request
+def _edge_auth_gate():
+    reason = _edge_auth_failure()
+    if reason is None:
+        return None
+    if not _edge_auth_required():
+        _edge_auth_warn(reason)
+        return None
+    return Response(
+        json.dumps({"status": "error", "message": f"unauthorized: {reason}"}),
+        status=401,
+        mimetype="application/json",
+    )
 
 
 def _public_base_url() -> str:
