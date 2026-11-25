@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, literal_column
 from datetime import date, datetime
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
@@ -80,14 +80,17 @@ async def get_occurrences_by_month(
     current_user: User = Depends(get_current_user)
 ):
     """Retorna ocorrências confirmadas agrupadas por mês"""
+    # O formato vai como literal: como parâmetro, o asyncpg manda $1, $2 e $3 separados no SELECT,
+    # GROUP BY e ORDER BY, e o Postgres recusa com GroupingError (500 achado em 24/11/2026).
+    month = func.to_char(Detection.timestamp, literal_column("'YYYY-MM'"))
     result = await db.execute(
         select(
-            func.to_char(Detection.timestamp, 'YYYY-MM').label('month'),
+            month.label('month'),
             func.count(Detection.id).label('count')
         )
         .where(Detection.status == DetectionStatus.CONFIRMADO)
-        .group_by(func.to_char(Detection.timestamp, 'YYYY-MM'))
-        .order_by(func.to_char(Detection.timestamp, 'YYYY-MM').desc())
+        .group_by(month)
+        .order_by(month.desc())
         .limit(12)
     )
 

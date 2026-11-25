@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from datetime import datetime
 from typing import Literal, Optional
 from decimal import Decimal
+
+from app.core.media_links import sign_media_url
 
 
 # Polygon = list of [x, y] points. pile_zone_polygon = list of polygons.
@@ -91,6 +93,10 @@ class CameraLatestImageResponse(BaseModel):
     image_url: Optional[str] = None
     captured_at: Optional[datetime] = None
     file_path: Optional[str] = None
+
+    @field_serializer("image_url")
+    def _assinar_foto(self, v: Optional[str]) -> Optional[str]:
+        return sign_media_url(v)
 
 
 class CameraZoomResponse(BaseModel):
