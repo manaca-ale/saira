@@ -96,7 +96,10 @@ export const UserModal: React.FC<UserModalProps> = ({
         rpa: "",
       });
     }
-  }, [initialData]);
+    // Só ao trocar de usuário (ou abrir "Novo"): depois de "Reenviar convite" a
+    // página atualiza initialData do mesmo usuário e o aviso de envio não pode sumir.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
