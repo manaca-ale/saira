@@ -27,6 +27,10 @@ PUBLIC_ROUTES = {
     ("GET", "/integrations/conecta/logout-url"),
     ("POST", "/integrations/conecta/revoke-consent"),  # valida o token no Conecta
     ("GET", "/reports/daily"),
+    # senha por link de uso único (convite e recuperação): o próprio link autentica
+    ("POST", "/auth/password/forgot"),
+    ("POST", "/auth/password/token"),
+    ("POST", "/auth/password/set"),
 }
 
 # Rotas só de administrador. Todo o resto exige login (operador ou administrador).
@@ -37,6 +41,7 @@ ADMIN_ROUTES = {
     ("POST", "/users/"),
     ("PATCH", "/users/{user_id}"),
     ("DELETE", "/users/{user_id}"),
+    ("POST", "/users/{user_id}/invite"),
     # configuração de câmera (muda o que a câmera vê e o que o sistema detecta)
     ("POST", "/cameras/"),
     ("PATCH", "/cameras/{camera_id}"),
@@ -133,6 +138,7 @@ OPERATOR_FORBIDDEN = [
                          "cargo": "Administrador"}),
     ("patch", "/users/1", {"cargo": "Administrador"}),
     ("delete", "/users/2", None),
+    ("post", "/users/2/invite", None),
     ("post", "/cameras/", {}),
     ("patch", "/cameras/1", {}),
     ("patch", "/cameras/1/bgsub_config", {}),

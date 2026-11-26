@@ -8,9 +8,17 @@ from app.core.config import settings
 password_hash = PasswordHash((Argon2Hasher(),))
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifica se a senha em texto plano corresponde à senha hasheada"""
-    return password_hash.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: Optional[str]) -> bool:
+    """Verifica se a senha em texto plano corresponde à senha hasheada.
+
+    Sem hash (convite pendente) ou hash ilegível: nenhuma senha serve.
+    """
+    if not hashed_password:
+        return False
+    try:
+        return password_hash.verify(plain_password, hashed_password)
+    except Exception:
+        return False
 
 
 def get_password_hash(password: str) -> str:
@@ -28,6 +36,15 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+
+def create_user_access_token(user) -> str:
+    """JWT do usuário com a versão de sessão ("ver"); trocar a senha soma 1 e
+    invalida os tokens anteriores (ver app.api.deps.get_current_user)."""
+    return create_access_token(
+        data={"sub": user.email, "ver": int(getattr(user, "token_version", 0) or 0)},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
 
 
 def decode_access_token(token: str) -> Optional[dict]:
