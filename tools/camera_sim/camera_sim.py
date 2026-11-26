@@ -413,7 +413,8 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     e = sub.add_parser("enviar")
     e.add_argument("--eventos", type=Path, required=True)
     e.add_argument("--rodada", required=True)
-    e.add_argument("--url", default="http://127.0.0.1:5002")
+    # 15002 e não 5002: nesta máquina a 5002 local pode ser de outro contêiner (testspace)
+    e.add_argument("--url", default="http://127.0.0.1:15002")
     e.add_argument("--device", default="pi-cam-sim-001")
     e.add_argument("--tag", required=True, help="marca da rodada no event_id (ex.: 0, 1)")
     e.add_argument("--quadros", type=Path, nargs="+",
