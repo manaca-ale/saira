@@ -24,6 +24,7 @@ def send_email(
     subject: str,
     html_body: str,
     text_body: Optional[str] = None,
+    from_name: Optional[str] = None,
 ) -> bool:
     if not to_addrs:
         logger.warning("send_email called with empty to_addrs — skipping")
@@ -40,9 +41,10 @@ def send_email(
         return False
 
     resend.api_key = settings.RESEND_API_KEY
+    display_name = from_name if from_name is not None else settings.EMAIL_FROM_NAME
     from_address = (
-        f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>"
-        if settings.EMAIL_FROM_NAME
+        f"{display_name} <{settings.EMAIL_FROM}>"
+        if display_name
         else settings.EMAIL_FROM
     )
     params: dict = {
@@ -58,7 +60,7 @@ def send_email(
         result = resend.Emails.send(params)
         email_id = result.get("id") if isinstance(result, dict) else None
         logger.info(
-            "billing email sent: recipients=%d subject=%r resend_id=%s",
+            "email sent: recipients=%d subject=%r resend_id=%s",
             len(to_addrs), subject, email_id,
         )
         return True

@@ -25,8 +25,15 @@ class FakeUser:
         self.password_hash = "fake"
         self.is_active = is_active
         self.last_login_at = last_login_at
+        self.must_change_password = False
+        self.token_version = 0
+        self.password_changed_at = None
         self.created_at = now_brazil()
         self.updated_at = now_brazil()
+
+    @property
+    def invite_pending(self):
+        return self.password_hash is None
 
 
 class FakeDetection:
@@ -60,6 +67,13 @@ class FakeNotification:
 @pytest.fixture
 def fake_user():
     return FakeUser()
+
+
+@pytest.fixture
+def as_admin(fake_user):
+    """Faz o usuário do `client` ser administrador (rotas com require_admin)."""
+    fake_user.cargo = "Administrador"
+    return fake_user
 
 
 @pytest.fixture

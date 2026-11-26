@@ -90,7 +90,7 @@ async def test_get_zoom_null_when_no_health(client, monkeypatch):
 
 # ── POST /cameras/{id}/polygon ───────────────────────────────────────────
 @pytest.mark.asyncio
-async def test_post_polygon_saves_and_pushes(client, monkeypatch):
+async def test_post_polygon_saves_and_pushes(client, monkeypatch, as_admin):
     ac, mock_db = client
     cam = FakeCamera()
     mock_db.execute = _db_returns(_exec_result(cam))
@@ -108,7 +108,7 @@ async def test_post_polygon_saves_and_pushes(client, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_post_polygon_rejects_invalid(client, monkeypatch):
+async def test_post_polygon_rejects_invalid(client, monkeypatch, as_admin):
     ac, mock_db = client
     monkeypatch.setattr(cameras, "_push_polygon_to_device", AsyncMock(return_value=(True, None)))
     resp = await ac.post("/api/v1/cameras/1/polygon", json={"polygon": [[[0, 0], [1, 1]]]})
@@ -116,7 +116,7 @@ async def test_post_polygon_rejects_invalid(client, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_post_polygon_empty_clears(client, monkeypatch):
+async def test_post_polygon_empty_clears(client, monkeypatch, as_admin):
     ac, mock_db = client
     cam = FakeCamera()
     cam.pile_zone_polygon = _SQUARE
