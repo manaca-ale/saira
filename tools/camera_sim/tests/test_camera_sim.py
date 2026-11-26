@@ -147,3 +147,88 @@ def test_schedule_at_original_time_of_day_keeps_a_gap():
     plan = cs.schedule(evs, now, hora_original=True, intervalo_s=30, min_gap_s=10)
     assert [(e["event_id"], at.isoformat()) for at, e in plan] == [
         ("a", "2026-11-25T21:45:16"), ("b", "2026-11-25T21:45:26"), ("c", "2026-11-26T08:00:00")]
+
+
+class _Resp:
+    status_code = 200
+
+
+def _send(events, tmp_path, frames_dir, post, **over):
+    kw = dict(base_url="http://x", device_id="pi-cam-sim-001", tag="1", frame_dirs=[frames_dir],
+              manifest_dir=None, log_path=tmp_path / "l.jsonl", seco=False, limite=50,
+              hora_original=True, intervalo_s=0, velocidade=1e6, post=post)
+    kw.update(over)
+    return cs.run_send(events, **kw)
+
+
+def test_parallel_event_starts_while_the_previous_one_is_still_on_air(frames_dir, tmp_path):
+    """Regressão: um atrás do outro, 33 h de eventos não cabem em 24 h e a hora do dia
+    (que o gate recebe) atrasava até 12 h. Com `paralelo`, o 2º evento começa na hora
+    marcada mesmo com o 1º ainda mandando lotes."""
+    import threading
+
+    b_started = threading.Event()
+    seen = []
+
+    def post(url, headers, data, files, timeout):
+        if data["event_id"].endswith("evt-a") and data["event_state"] == "end":
+            # o fim de A só sai depois que B começou: sem paralelismo, B nunca começaria
+            assert b_started.wait(5), "B não começou enquanto A estava no ar"
+        seen.append((data["event_id"], data["event_state"]))
+        if data["event_id"].endswith("evt-b"):
+            b_started.set()
+        return _Resp()
+
+    now = datetime(2026, 11, 25, 21, 45, 0)
+    evs = [_event(event_id="evt-a", inicio="21:45:01"), _event(event_id="evt-b", inicio="21:45:02")]
+    recs = _send(evs, tmp_path, frames_dir, post, paralelo=2, sleep=lambda s: None,
+                 clock=lambda: now)
+    assert [r["http"] for r in recs] == [[200, 200, 200], [200, 200, 200]]
+    assert seen.index(("sim1-evt-b", "active")) < seen.index(("sim1-evt-a", "end"))
+    # dentro de cada evento a ordem dos lotes continua a da Pi
+    for eid in ("sim1-evt-a", "sim1-evt-b"):
+        assert [s for i, s in seen if i == eid] == ["active", "active", "end"]
+    assert len((tmp_path / "l.jsonl").read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_batch_is_retried_only_when_there_is_no_response(frames_dir, tmp_path):
+    n = {"calls": 0}
+
+    def post(url, headers, data, files, timeout):
+        n["calls"] += 1
+        if n["calls"] == 2:
+            raise ConnectionError("túnel caído")
+        return _Resp()
+
+    recs = _send([_event()], tmp_path, frames_dir, post, hora_original=False, tentativas=3,
+                 sleep=lambda s: None)
+    assert recs[0]["http"] == [200, 200, 200] and recs[0]["erro"] == ""
+    assert recs[0]["novas_tentativas"] == 1 and n["calls"] == 4
+
+
+def test_no_response_after_every_attempt_stops_the_event(frames_dir, tmp_path):
+    def post(url, headers, data, files, timeout):
+        raise ConnectionError("túnel caído")
+
+    recs = _send([_event()], tmp_path, frames_dir, post, hora_original=False, tentativas=2,
+                 sleep=lambda s: None)
+    assert recs[0]["http"] == [0] and "túnel caído" in recs[0]["erro"]
+
+
+def test_resume_skips_what_the_log_already_has_as_sent(frames_dir, tmp_path):
+    log = tmp_path / "l.jsonl"
+    log.write_text("\n".join(json.dumps(r) for r in (
+        {"event_id": "evt-ok", "seco": False, "http": [200, 200], "erro": ""},
+        {"event_id": "evt-falhou", "seco": False, "http": [200, 0], "erro": "ConnectionError"},
+        {"event_id": "evt-seco", "seco": True, "http": [], "erro": ""},
+    )) + "\n", encoding="utf-8")
+    sent = []
+
+    def post(url, headers, data, files, timeout):
+        sent.append(data["event_id"])
+        return _Resp()
+
+    evs = [_event(event_id=i) for i in ("evt-ok", "evt-falhou", "evt-seco", "evt-novo")]
+    _send(evs, tmp_path, frames_dir, post, hora_original=False, retomar=True,
+          sleep=lambda s: None)
+    assert sorted(set(sent)) == ["sim1-evt-falhou", "sim1-evt-novo", "sim1-evt-seco"]
