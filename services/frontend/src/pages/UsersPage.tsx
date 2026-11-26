@@ -424,6 +424,11 @@ export const UsersPage: React.FC = () => {
                             Convite pendente
                           </span>
                         )}
+                        {!row.invite_pending && row.must_change_password && (
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">
+                            Senha provisória
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-5 text-sm text-[#1a1a1a]">
                         <Tooltip text={row.email}>

@@ -9,6 +9,7 @@ import {
   Bell,
   Camera as CameraIcon,
   Tags,
+  KeyRound,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -123,6 +124,16 @@ export const Sidebar: React.FC = () => {
               className="w-full h-full object-cover"
             />
           </div>
+          <button
+            onClick={() => navigate("/trocar-senha")}
+            title="Trocar senha"
+            aria-label="Trocar senha"
+            className={`transition-colors mt-2 ${
+              location.pathname === "/trocar-senha" ? "text-[#d9f99d]" : "text-gray-500 hover:text-white"
+            }`}
+          >
+            <KeyRound size={20} />
+          </button>
           <button
             onClick={handleLogoutClick}
             className="text-gray-500 hover:text-red-500 transition-colors mt-2"
