@@ -28,11 +28,20 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
       // Limpar token e redirecionar para login
       localStorage.removeItem('@Saira:token');
       localStorage.removeItem('@Saira:user');
       window.location.href = '/login';
+    }
+    // Senha provisória: o backend só libera /auth/me e a troca de senha.
+    const detail = (error.response?.data as any)?.detail;
+    if (
+      error.response?.status === 403 &&
+      detail === 'password_change_required' &&
+      window.location.pathname !== '/trocar-senha'
+    ) {
+      window.location.href = '/trocar-senha';
     }
     return Promise.reject(error);
   }

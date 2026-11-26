@@ -19,7 +19,7 @@ import {
   FilterAutocomplete,
   FilterMultiSelect,
 } from "../components/SharedFilters";
-import { getUsers, deleteUser, createUser, updateUser } from "../services/userService";
+import { getUsers, deleteUser, createUser, updateUser, sendInvite } from "../services/userService";
 import type { User, CreateUserData } from "../services/userService";
 import type { UserFormData } from "../components/UserModal";
 
@@ -68,6 +68,7 @@ export const UsersPage: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastText, setToastText] = useState("Usuário salvo com sucesso!");
   const [isUserModalClosing, setIsUserModalClosing] = useState(false);
   const [isDeleteModalClosing, setIsDeleteModalClosing] = useState(false);
 
@@ -203,14 +204,11 @@ export const UsersPage: React.FC = () => {
     };
 
     if (selectedUser) {
-      if (data.password.trim()) {
-        payload.password = data.password.trim();
-      }
-
       try {
         await updateUser(selectedUser.id, payload);
         await loadUsers();
         handleCloseUserModal();
+        setToastText("Usuário salvo com sucesso!");
         setShowSuccessToast(true);
         setTimeout(() => setShowSuccessToast(false), 3000);
       } catch (e) {
@@ -223,15 +221,11 @@ export const UsersPage: React.FC = () => {
       return;
     }
 
-    if (!data.password || data.password.trim().length < 8) {
-      throw new Error("A senha deve ter pelo menos 8 caracteres.");
-    }
-
+    // Sem senha: o backend cria com convite pendente e manda o link por e-mail.
     try {
-      await createUser({
+      const created = await createUser({
         name: payload.name || "",
         email: payload.email || "",
-        password: data.password.trim(),
         phone: payload.phone,
         secretaria: payload.secretaria,
         cargo: payload.cargo,
@@ -240,6 +234,11 @@ export const UsersPage: React.FC = () => {
       });
       await loadUsers();
       handleCloseUserModal();
+      setToastText(
+        created.invite_email_sent === false
+          ? "Usuário criado, mas o e-mail do convite falhou. Abra o usuário e use \"Reenviar convite\"."
+          : `Usuário criado. Convite enviado para ${created.email}.`,
+      );
       setShowSuccessToast(true);
       setTimeout(() => setShowSuccessToast(false), 3000);
     } catch (e) {
@@ -248,6 +247,20 @@ export const UsersPage: React.FC = () => {
         throw new Error(detail === "Email already registered" ? "E-mail já cadastrado." : detail);
       }
       throw new Error("Não foi possível criar o usuário.");
+    }
+  };
+
+  const handleSendInvite = async (): Promise<string> => {
+    try {
+      const result = await sendInvite(selectedUser.id);
+      await loadUsers();
+      setSelectedUser({ ...selectedUser, ...result });
+      return result.invite_email_sent === false
+        ? "Convite gravado, mas o e-mail falhou. Tente de novo em instantes."
+        : `Convite enviado para ${result.email}. O link vale por 48 horas.`;
+    } catch (e) {
+      const detail = (e as any)?.response?.data?.detail;
+      throw new Error(typeof detail === "string" ? detail : "Não foi possível enviar o convite.");
     }
   };
 
@@ -298,7 +311,7 @@ export const UsersPage: React.FC = () => {
                 <Info size={12} strokeWidth={4} />
               </div>
               <span className="font-semibold text-sm">
-                Usuário salvo com sucesso!
+                {toastText}
               </span>
               <button
                 onClick={() => setShowSuccessToast(false)}
@@ -406,6 +419,16 @@ export const UsersPage: React.FC = () => {
                             {row.name}
                           </span>
                         </Tooltip>
+                        {row.invite_pending && (
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            Convite pendente
+                          </span>
+                        )}
+                        {!row.invite_pending && row.must_change_password && (
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">
+                            Senha provisória
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-5 text-sm text-[#1a1a1a]">
                         <Tooltip text={row.email}>
@@ -548,6 +571,7 @@ export const UsersPage: React.FC = () => {
         <UserModal
           onClose={handleCloseUserModal}
           onSave={handleSaveUser}
+          onSendInvite={selectedUser ? handleSendInvite : undefined}
           initialData={selectedUser}
           isClosing={isUserModalClosing}
         />

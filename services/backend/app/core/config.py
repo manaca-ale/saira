@@ -113,6 +113,18 @@ class Settings(BaseSettings):
     # só alertar "sem eventos" se o operador definir uma janela esperada.
     CAMERA_HEALTH_NO_EVENTS_HOURS: int = 0
 
+    # Acesso de usuários: convite, "esqueci minha senha" e troca obrigatória
+    # (docs/specs/acesso-usuarios.md). Os links apontam para APP_PUBLIC_URL;
+    # vazio usa REPORT_DASHBOARD_URL (WEB_APP_URL é localhost na produção).
+    APP_PUBLIC_URL: str = ""
+    ACCESS_EMAIL_FROM_NAME: str = "SAÍRA"
+    ACCESS_INVITE_TTL_HOURS: int = 48
+    PASSWORD_RESET_TTL_MINUTES: int = 60
+    PASSWORD_FORGOT_MAX_PER_EMAIL_HOUR: int = 3
+    PASSWORD_FORGOT_MAX_PER_IP_HOUR: int = 10
+    LOGIN_MAX_FAILURES_PER_EMAIL: int = 10
+    LOGIN_FAILURE_WINDOW_MINUTES: int = 15
+
     # Geocodificação
     NOMINATIM_BASE_URL: str = "https://nominatim.openstreetmap.org"
     NOMINATIM_USER_AGENT: str = "saira-dashboard/1.0 (contato@saira.com)"
