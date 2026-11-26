@@ -4,11 +4,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.api.deps import get_db, get_current_user
-from app.core.security import verify_password, create_access_token, get_password_hash
+from app.core.security import verify_password, create_access_token
 from app.core.config import settings
 from app.models.user import User
 from app.schemas.auth import Token, LoginRequest
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserResponse
 from app.core.timezone import now_brazil
 
 router = APIRouter()
@@ -19,14 +19,14 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
-    """Login e geraÃ§Ã£o de token JWT"""
+    """Login e geração de token JWT"""
     if not settings.ENABLE_LOCAL_LOGIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Local login is disabled for this environment",
         )
 
-    # Buscar usuÃ¡rio por email
+    # Buscar usuário por email
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalar_one_or_none()
 
@@ -55,45 +55,13 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    user_in: UserCreate,
-    db: AsyncSession = Depends(get_db)
-):
-    """Cadastro de novo usuÃ¡rio"""
-    # Verificar se email jÃ¡ existe
-    result = await db.execute(select(User).where(User.email == user_in.email))
-    existing_user = result.scalar_one_or_none()
-
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-
-    # Criar novo usuÃ¡rio
-    password_hash = get_password_hash(user_in.password)
-    db_user = User(
-        name=user_in.name,
-        email=user_in.email,
-        phone=user_in.phone,
-        secretaria=user_in.secretaria,
-        cargo=user_in.cargo,
-        rpa=user_in.rpa,
-        password_hash=password_hash,
-        is_active=user_in.is_active
-    )
-
-    db.add(db_user)
-    await db.commit()
-    await db.refresh(db_user)
-
-    return db_user
+# POST /auth/register foi removido em 25/11/2026: era aberto (qualquer um se
+# cadastrava já ativo). Usuário novo só por POST /users/, que exige administrador.
 
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ):
-    """Retorna dados do usuÃ¡rio logado"""
+    """Retorna dados do usuário logado"""
     return current_user

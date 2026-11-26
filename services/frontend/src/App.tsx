@@ -17,6 +17,15 @@ import { LabelingPage } from "./pages/LabelingPage";
 import { NotificationDrawer } from "./components/NotificationDrawer";
 import { NotificationToastContainer } from "./components/NotificationToast";
 import { labelingEnabled } from "./config/features";
+import { useAuth } from "./contexts/AuthContext";
+import type { ReactNode } from "react";
+
+// Páginas só de administrador: quem não é volta para o painel.
+function AdminOnly({ children }: { children: ReactNode }) {
+  const { isAdmin, loading } = useAuth();
+  if (loading) return null;
+  return isAdmin ? <>{children}</> : <Navigate to="/dashboard" replace />;
+}
 
 function App() {
   return (
@@ -32,10 +41,10 @@ function App() {
           {labelingEnabled && (
             <Route path="/rotulagem" element={<LabelingPage />} />
           )}
-          <Route path="/users" element={<UsersPage />} />
+          <Route path="/users" element={<AdminOnly><UsersPage /></AdminOnly>} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/cameras" element={<CameraSnapshotsPage />} />
-          <Route path="/settings/cameras" element={<CamerasSettingsPage />} />
+          <Route path="/settings/cameras" element={<AdminOnly><CamerasSettingsPage /></AdminOnly>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <NotificationDrawer />
