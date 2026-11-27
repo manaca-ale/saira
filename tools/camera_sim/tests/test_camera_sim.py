@@ -45,7 +45,8 @@ def test_batches_follow_the_pi_batch_indexes():
     assert [round(x[0], 1) for x in b] == [0.0, 5.7, 11.4]
 
 
-def test_requests_are_the_pi_upload_batch(frames_dir):
+def test_requests_are_the_pi_upload_batch(frames_dir, monkeypatch):
+    monkeypatch.delenv("CAMERA_SIM_DEVICE_TOKEN", raising=False)
     reqs = cs.build_requests(_event(), "http://127.0.0.1:5002/", "pi-cam-sim-001", "0",
                              lambda n: (frames_dir / n).read_bytes(),
                              manifest={"gate_fg_px": 812, "gate_delta_px": None})
@@ -57,6 +58,48 @@ def test_requests_are_the_pi_upload_batch(frames_dir):
     field, (name, data, mime) = reqs[0].files[0]
     assert (field, name, mime, data) == ("imageFile", "f000.jpg", "image/jpeg", JPEG)
     assert [f[1][0] for f in reqs[2].files] == ["f000.jpg", "f001.jpg"]
+
+
+def test_device_token_goes_in_every_batch_when_set(frames_dir, monkeypatch):
+    # Com EDGE_AUTH_REQUIRED ligado no esp32-server, lote sem X-Device-Token leva 401.
+    monkeypatch.setenv("CAMERA_SIM_DEVICE_TOKEN", "  tok-sim-123  ")
+    reqs = cs.build_requests(_event(), "http://x", "pi-cam-sim-001", "0",
+                             lambda n: (frames_dir / n).read_bytes())
+    assert len(reqs) == 3
+    assert all(r.headers == {"X-Device-Id": "pi-cam-sim-001", "X-Device-Token": "tok-sim-123"}
+               for r in reqs)
+
+
+@pytest.mark.parametrize("value", [None, "", "   "])
+def test_no_device_token_header_when_unset_or_blank(frames_dir, monkeypatch, value):
+    # Transição (EDGE_AUTH_REQUIRED desligado): o simulador segue igual, sem cabeçalho vazio.
+    if value is None:
+        monkeypatch.delenv("CAMERA_SIM_DEVICE_TOKEN", raising=False)
+    else:
+        monkeypatch.setenv("CAMERA_SIM_DEVICE_TOKEN", value)
+    reqs = cs.build_requests(_event(), "http://x", "pi-cam-sim-001", "0",
+                             lambda n: (frames_dir / n).read_bytes())
+    assert all(r.headers == {"X-Device-Id": "pi-cam-sim-001"} for r in reqs)
+
+
+def test_send_delivers_the_device_token_to_the_post(frames_dir, tmp_path, monkeypatch):
+    monkeypatch.setenv("CAMERA_SIM_DEVICE_TOKEN", "tok-sim-123")
+    seen = []
+
+    class Resp:
+        status_code = 200
+
+    def post(url, headers, data, files, timeout):
+        seen.append(headers)
+        return Resp()
+
+    cs.run_send([_event()], base_url="http://x", device_id="pi-cam-sim-001", tag="0",
+                frame_dirs=[frames_dir], manifest_dir=None, log_path=tmp_path / "log.jsonl",
+                seco=False, limite=10, hora_original=False, intervalo_s=0, velocidade=1000,
+                post=post, sleep=lambda s: None)
+    assert len(seen) == 3 and all(h.get("X-Device-Token") == "tok-sim-123" for h in seen)
+    # o token não vai para o log do envio
+    assert "tok-sim-123" not in (tmp_path / "log.jsonl").read_text(encoding="utf-8")
 
 
 def test_speed_scales_the_gap_between_batches(frames_dir):
