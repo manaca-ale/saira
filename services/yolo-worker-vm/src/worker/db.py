@@ -9,6 +9,7 @@ import psycopg2
 import psycopg2.extras
 import psycopg2.pool
 import redis
+from saira_notification_policy import format_rpa_label, is_same_rpa
 
 from . import config
 from .models import CameraInfo, DetectionRecord, OffenderRecord
@@ -390,9 +391,7 @@ def insert_offenders(offenders: list[OffenderRecord]) -> None:
 def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
     """Insert Notification records for all active users that share the same RPA.
 
-    Mirrors the logic in backend/app/services/notification_service.py so that
-    worker-created detections produce persistent notification history.
-    Returns the number of rows inserted.
+    Returns the number of rows inserted for the worker-created detection.
     """
     conn = _get_conn()
     count = 0
@@ -401,19 +400,7 @@ def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
         cur.execute("SELECT id, rpa FROM users WHERE is_active = true")
         users = cur.fetchall()
 
-        def _rpa_key(value: Optional[str]) -> str:
-            raw = (value or "").strip().lower()
-            digits = "".join(ch for ch in raw if ch.isdigit())
-            return digits if digits else raw.replace(" ", "").replace("-", "")
-
-        det_key = _rpa_key(camera.rpa)
-        _rpa_raw = (camera.rpa or "").strip()
-        if not _rpa_raw:
-            rpa_label = "RPA ?"
-        elif _rpa_raw.lower().startswith("rpa"):
-            rpa_label = _rpa_raw  # already "RPA 5" / "RPA-1" — avoid "RPA RPA 5"
-        else:
-            rpa_label = f"RPA {_rpa_raw}"
+        rpa_label = format_rpa_label(camera.rpa)
         location = ", ".join(filter(None, [camera.logradouro, camera.bairro]))
         meta = json.dumps({
             "rpa": camera.rpa,
@@ -423,9 +410,7 @@ def insert_notifications(detection: DetectionRecord, camera: CameraInfo) -> int:
         })
 
         for user_id, user_rpa in users:
-            user_key = _rpa_key(user_rpa)
-            # No RPA assigned to the user = no restriction → receives every RPA.
-            if user_key and user_key != det_key:
+            if not is_same_rpa(user_rpa, camera.rpa):
                 continue
             cur.execute(
                 """

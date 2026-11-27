@@ -48,14 +48,6 @@ def _to_float(value: object, fallback: float = 0.0) -> float:
         return fallback
 
 
-def _format_rpa_key(value: str | None) -> str:
-    raw = (value or "").strip().lower()
-    digits = "".join(ch for ch in raw if ch.isdigit())
-    if digits:
-        return digits
-    return raw.replace(" ", "").replace("-", "")
-
-
 def _build_detection_link(detection_id: str) -> str:
     base = settings.WEB_APP_URL.rstrip("/")
     return f"{base}/detections?detection_id={detection_id}"
@@ -265,11 +257,3 @@ class WhatsAppService:
                 delivered += 1
 
         return delivered
-
-    @staticmethod
-    def is_same_rpa(user_rpa: str | None, detection_rpa: str | None) -> bool:
-        user_key = _format_rpa_key(user_rpa)
-        # No RPA assigned to the user = no restriction → matches every RPA.
-        if not user_key:
-            return True
-        return user_key == _format_rpa_key(detection_rpa)

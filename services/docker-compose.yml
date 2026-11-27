@@ -53,7 +53,9 @@
 
   # Backend API (FastAPI)
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: saira-backend-api
     ports:
       - "8001:8001"

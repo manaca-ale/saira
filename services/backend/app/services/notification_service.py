@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 from uuid import UUID
 
 import redis.asyncio as aioredis
+from saira_notification_policy import format_rpa_label, is_same_rpa
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,15 +17,6 @@ from app.services.whatsapp_service import WhatsAppService
 
 logger = logging.getLogger(__name__)
 BRAZIL_TZ = ZoneInfo("America/Sao_Paulo")
-
-
-def _format_rpa_label(raw_rpa: str | None) -> str:
-    value = (raw_rpa or "").strip()
-    if not value:
-        return "RPA ?"
-    if value.lower().startswith("rpa"):
-        return value
-    return f"RPA {value}"
 
 
 async def on_new_detection(
@@ -39,14 +31,14 @@ async def on_new_detection(
     whatsapp_service = WhatsAppService()
     users = [
         user for user in active_users
-        if whatsapp_service.is_same_rpa(user.rpa, detection.rpa)
+        if is_same_rpa(user.rpa, detection.rpa)
     ]
 
     if not users:
         return
 
     notifications = []
-    rpa_label = _format_rpa_label(detection.rpa)
+    rpa_label = format_rpa_label(detection.rpa)
     for user in users:
         notif = Notification(
             user_id=user.id,

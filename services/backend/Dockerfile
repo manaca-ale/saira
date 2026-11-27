@@ -18,11 +18,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar código
-COPY . .
+COPY backend/ .
+COPY yolo-worker-vm/src/saira_notification_policy.py /opt/saira-shared/
+ENV PYTHONPATH=/opt/saira-shared
 
 # Tornar script de inicialização executável
 RUN chmod +x start.sh
