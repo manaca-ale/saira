@@ -47,7 +47,10 @@ Validade do convite: **48 h** (`ACCESS_INVITE_TTL_HOURS`).
    Passou do limite: a resposta continua `202` igual, mas nenhum e-mail sai
    (responder `429` só por e-mail revelaria que alguém pediu para aquele
    endereço). Por IP o excesso responde `429`, porque não revela nada sobre
-   contas.
+   contas. O IP é o endereço público mais à direita do `X-Forwarded-For`
+   (`app/core/client_ip.py`), não o `request.client`: com
+   `--forwarded-allow-ips="*"` o uvicorn põe ali o primeiro endereço da
+   cadeia, que o visitante escreve (conferido no teste em 27/11/2026).
 
 Validade do link de recuperação: **60 min** (`PASSWORD_RESET_TTL_MINUTES`).
 

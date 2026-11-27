@@ -479,3 +479,84 @@ def test_emails_have_html_and_text_and_no_mojibake():
         for bad in ("Ã", "â€", "�"):
             assert bad not in subject + html + text
     assert "26/11/2026 às 09:00" in messages[2][2]  # horário de Brasília
+
+
+# --- IP do cliente atrás do proxy -------------------------------------------
+# Produção: Cloudflare → nginx → uvicorn com --proxy-headers e
+# --forwarded-allow-ips="*". O uvicorn põe em request.client o primeiro
+# endereço do X-Forwarded-For, que o visitante escreve. Os testes abaixo rodam
+# o app atrás do mesmo middleware do uvicorn para reproduzir isso.
+
+REAL_CHAIN = "2804:14d:aea0:4615::1, 172.24.0.1"  # IP real (Cloudflare) + nginx do Docker
+
+
+@pytest_asyncio.fixture
+async def api_behind_proxy(sessionmaker_):
+    from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+
+    from app.api.deps import get_db
+    from app.main import app
+
+    async def override_get_db():
+        async with sessionmaker_() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
+
+    app.dependency_overrides[get_db] = override_get_db
+    proxied = ProxyHeadersMiddleware(app, trusted_hosts="*")
+    async with AsyncClient(transport=ASGITransport(app=proxied), base_url="http://test") as ac:
+        yield ac
+    app.dependency_overrides.clear()
+
+
+async def test_forgot_password_ip_limit_ignores_spoofed_forwarded_for(api_behind_proxy, sent):
+    # Regressão (27/11/2026): trocar o primeiro endereço do X-Forwarded-For a
+    # cada pedido furava o limite por IP.
+    codes = []
+    for i in range(11):
+        r = await api_behind_proxy.post(
+            f"{API}/auth/password/forgot",
+            json={"email": f"spoof{i}@example.com"},
+            headers={"X-Forwarded-For": f"203.0.113.{i}, {REAL_CHAIN}"},
+        )
+        codes.append(r.status_code)
+    assert codes[:10] == [202] * 10
+    assert codes[10] == 429
+
+
+async def test_reset_token_records_the_real_client_ip(api_behind_proxy, sent, sessionmaker_):
+    await _add_user(sessionmaker_, "ip@example.com", "senha-antiga-1")
+    await api_behind_proxy.post(
+        f"{API}/auth/password/forgot",
+        json={"email": "ip@example.com"},
+        headers={"X-Forwarded-For": f"203.0.113.9, {REAL_CHAIN}"},
+    )
+    async with sessionmaker_() as s:
+        token = (await s.execute(select(UserActionToken))).scalar_one()
+    assert token.request_ip == "2804:14d:aea0:4615::1"
+
+
+@pytest.mark.parametrize(
+    "forwarded, peer, expected",
+    [
+        ("203.0.113.5, 2804:14d::1, 172.24.0.1", "172.24.0.5", "2804:14d::1"),  # forjado à esquerda
+        ("2804:14d::1, 172.24.0.1", "172.24.0.5", "2804:14d::1"),  # cadeia normal
+        ("8.8.8.8", "10.0.0.2", "8.8.8.8"),
+        ("172.18.0.1", "172.18.0.3", "172.18.0.1"),  # compose local: só rede interna
+        ("10.0.0.9, 172.18.0.1", "172.18.0.3", "10.0.0.9"),
+        ("lixo, 172.18.0.1", "172.18.0.3", "lixo"),
+        (None, "198.51.100.7", "198.51.100.7"),  # sem proxy
+    ],
+)
+def test_client_ip_takes_the_rightmost_public_address(forwarded, peer, expected):
+    from starlette.requests import Request
+
+    from app.core.client_ip import client_ip
+
+    headers = [(b"x-forwarded-for", forwarded.encode())] if forwarded else []
+    request = Request({"type": "http", "headers": headers, "client": (peer, 1234)})
+    assert client_ip(request) == expected
