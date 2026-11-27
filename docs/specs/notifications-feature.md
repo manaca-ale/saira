@@ -173,8 +173,20 @@ Response: {
 }
 ```
 
-#### `GET /api/v1/notifications/stream`
-Endpoint SSE. Mantém conexão aberta e envia eventos em tempo real.
+#### `POST /api/v1/notifications/stream-ticket`
+Devolve um bilhete de uso único para abrir o SSE. Exige o login normal (`Authorization: Bearer`).
+
+```
+Response: {
+  ticket: string,      // aleatório, não é o JWT
+  expires_in: 60       // segundos
+}
+```
+
+O bilhete fica no Redis (`saira:sse:ticket:<bilhete>`) por 60 s, guarda o e-mail e a versão de sessão de quem pediu e é apagado na primeira conexão.
+
+#### `GET /api/v1/notifications/stream?ticket=<bilhete>`
+Endpoint SSE. Mantém conexão aberta e envia eventos em tempo real. Responde 401 se o bilhete não existe, venceu, já foi usado ou é de antes de uma troca de senha. O JWT não vai na URL (`?token=` não existe mais).
 
 ```
 Event format:
@@ -263,9 +275,22 @@ class NotificationService:
 ```python
 from sse_starlette.sse import EventSourceResponse
 
+@router.post("/notifications/stream-ticket")
+async def create_stream_ticket(
+    current_user: User = Depends(get_current_user),
+    redis=Depends(get_ticket_redis),
+):
+    ticket = secrets.token_urlsafe(32)
+    await redis.setex(
+        f"{SSE_TICKET_PREFIX}{ticket}", SSE_TICKET_TTL_SECONDS, sse_ticket_value(current_user)
+    )
+    return {"ticket": ticket, "expires_in": SSE_TICKET_TTL_SECONDS}
+
+
 @router.get("/notifications/stream")
 async def notification_stream(
-    current_user: User = Depends(get_current_user),
+    # lê e apaga o bilhete (app/api/deps.py)
+    current_user: User = Depends(get_current_user_from_sse_ticket),
 ):
     async def event_generator():
         pubsub = redis.pubsub()
@@ -384,19 +409,25 @@ class NotificationSSEService {
   private eventSource: EventSource | null = null;
   private listeners: Set<(notification: Notification) => void> = new Set();
 
-  connect(token: string): void {
-    this.eventSource = new EventSource(
-      `/api/v1/notifications/stream?token=${token}`
+  async connect(): Promise<void> {
+    // Cada conexão pede um bilhete novo com o login normal (cabeçalho Authorization).
+    const { data } = await api.post("/notifications/stream-ticket");
+    const source = new EventSource(
+      `/api/v1/notifications/stream?ticket=${encodeURIComponent(data.ticket)}`
     );
+    this.eventSource = source;
 
-    this.eventSource.addEventListener("new_detection", (event) => {
+    source.addEventListener("new_detection", (event) => {
       const notification = JSON.parse(event.data);
       this.listeners.forEach((cb) => cb(notification));
     });
 
-    this.eventSource.onerror = () => {
-      // EventSource reconecta automaticamente
-      // Mas podemos adicionar backoff customizado se necessário
+    source.onerror = () => {
+      // O bilhete vale uma conexão só: a reconexão automática do EventSource
+      // usaria o bilhete gasto. Fecha e reconecta à mão, com bilhete novo
+      // e espera crescente (1 s a 30 s).
+      source.close();
+      this.scheduleRetry();
     };
   }
 
@@ -643,8 +674,8 @@ O sistema de câmeras pode gerar rajadas de detecções. Para evitar flood de no
 
 ### 10.4 Segurança
 
-- SSE endpoint requer autenticação (token via query param já que EventSource não suporta headers custom)
-- Validar que o token no query param do SSE é tratado com mesmo nível de segurança do header Authorization
+- SSE endpoint requer autenticação. O EventSource não manda cabeçalho, então a URL leva um bilhete de uso único (60 s, uma conexão), pedido antes em `POST /notifications/stream-ticket` com o login normal
+- O JWT nunca vai na URL: ele vale 24 h, serve para qualquer rota e ficaria nos logs do proxy. O bilhete que aparece no log já foi gasto
 - Não expor números de WhatsApp na API pública (endpoints de config são admin-only)
 
 ### 10.5 Offline / Reconexão

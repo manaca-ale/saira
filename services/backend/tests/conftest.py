@@ -111,7 +111,7 @@ def auth_token():
 async def client(auth_token, fake_user):
     """httpx AsyncClient with dependency overrides for app."""
     from app.main import app
-    from app.api.deps import get_db, get_current_user, get_current_user_from_query
+    from app.api.deps import get_db, get_current_user, get_current_user_from_sse_ticket
 
     mock_db = AsyncMock()
 
@@ -121,12 +121,12 @@ async def client(auth_token, fake_user):
     async def override_get_current_user():
         return fake_user
 
-    async def override_get_current_user_from_query():
+    async def override_get_current_user_from_sse_ticket():
         return fake_user
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
-    app.dependency_overrides[get_current_user_from_query] = override_get_current_user_from_query
+    app.dependency_overrides[get_current_user_from_sse_ticket] = override_get_current_user_from_sse_ticket
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:

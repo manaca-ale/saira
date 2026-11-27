@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import secrets
 from typing import Optional
 from uuid import UUID
 
@@ -8,7 +9,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
-from app.api.deps import get_db, get_current_user, get_current_user_from_query
+from app.api.deps import (
+    SSE_TICKET_PREFIX,
+    SSE_TICKET_TTL_SECONDS,
+    get_current_user,
+    get_current_user_from_sse_ticket,
+    get_db,
+    get_ticket_redis,
+    sse_ticket_value,
+)
 from app.core.redis import get_redis
 from app.models.user import User
 from app.schemas.notification import (
@@ -52,9 +61,22 @@ async def get_notification_summary(
     return NotificationSummaryResponse(**data)
 
 
+@router.post("/stream-ticket")
+async def create_stream_ticket(
+    current_user: User = Depends(get_current_user),
+    redis=Depends(get_ticket_redis),
+):
+    """Bilhete de uso único para abrir o SSE (o JWT não vai mais na URL)."""
+    ticket = secrets.token_urlsafe(32)
+    await redis.setex(
+        f"{SSE_TICKET_PREFIX}{ticket}", SSE_TICKET_TTL_SECONDS, sse_ticket_value(current_user)
+    )
+    return {"ticket": ticket, "expires_in": SSE_TICKET_TTL_SECONDS}
+
+
 @router.get("/stream")
 async def notification_stream(
-    current_user: User = Depends(get_current_user_from_query),
+    current_user: User = Depends(get_current_user_from_sse_ticket),
 ):
     """SSE stream de notificações em tempo real."""
     redis = get_redis()
