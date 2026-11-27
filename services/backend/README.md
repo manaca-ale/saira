@@ -123,7 +123,7 @@ CRUD de cameras de monitoramento com coordenadas PostGIS.
 pip install -r requirements.txt
 
 # Rodar localmente
-uvicorn app.main:app --reload --port 8001
+PYTHONPATH=../yolo-worker-vm/src uvicorn app.main:app --reload --port 8001
 
 # Migracoes
 alembic upgrade head

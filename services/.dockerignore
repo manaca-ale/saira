@@ -1,0 +1,26 @@
+# The backend builds from services/ so it can copy the RPA policy.
+*
+!backend/
+backend/*
+!backend/.env.example
+!backend/Dockerfile
+!backend/README.md
+!backend/alembic.ini
+!backend/alembic/
+!backend/alembic/**
+!backend/app/
+!backend/app/**
+!backend/*.py
+!backend/pytest.ini
+!backend/requirements.txt
+!backend/start.sh
+!backend/tests/
+!backend/tests/**
+!backend/waha_qr.png
+!yolo-worker-vm/
+yolo-worker-vm/*
+!yolo-worker-vm/src/
+yolo-worker-vm/src/*
+!yolo-worker-vm/src/saira_notification_policy.py
+**/__pycache__
+**/*.py[cod]

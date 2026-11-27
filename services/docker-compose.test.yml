@@ -62,7 +62,9 @@ services:
 
   # Backend API (FastAPI)
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: saira-backend-test
     logging: *default-logging
     ports:
