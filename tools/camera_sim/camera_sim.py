@@ -35,7 +35,9 @@ import os
 import random
 import re
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -288,21 +290,47 @@ def find_frame(name: str, frame_dirs: list[Path]) -> Path:
     raise SimError(f"quadro não encontrado: {name}")
 
 
+def sent_ok(log_path: Path) -> set[str]:
+    """event_id dos eventos que o log já tem como enviados sem erro (para `--retomar`)."""
+    done: set[str] = set()
+    if not log_path.is_file():
+        return done
+    for line in log_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        r = json.loads(line)
+        if not r.get("seco") and not r.get("erro") and r.get("http") and all(c == 200 for c in r["http"]):
+            done.add(r["event_id"])
+    return done
+
+
 def run_send(events: list[dict], *, base_url: str, device_id: str, tag: str,
              frame_dirs: list[Path], manifest_dir: Optional[Path], log_path: Path,
              seco: bool, limite: int, hora_original: bool, intervalo_s: float,
              velocidade: float, post: Optional[Callable] = None,
              sleep: Callable[[float], None] = time.sleep,
-             clock: Callable[[], datetime] = datetime.now) -> list[dict]:
+             clock: Callable[[], datetime] = datetime.now,
+             paralelo: int = 1, tentativas: int = 1, pausa_tentativa_s: float = 5.0,
+             retomar: bool = False) -> list[dict]:
+    """Manda os eventos. `paralelo` > 1 deixa um evento começar na hora marcada mesmo com
+    o anterior ainda no ar: a Pi nunca sobrepõe eventos, mas a amostra junta 4 meses num
+    dia só (33 h de eventos em 24 h) e, um atrás do outro, a hora do dia se perderia. O
+    worker trata cada evento pelo seu manifesto, então a sobreposição não mistura quadros.
+    `tentativas` repete o lote só quando não houve resposta (túnel caído); `retomar` pula
+    os eventos que o log já tem como enviados sem erro."""
     check_device(device_id)
     for e in events:
         if e.get("split") != "dev":
             raise SimError(f"{e['event_id']} não é do conjunto dev")
     events = [e for e in events if e["fonte"] != "faltam"][:max(0, limite)]
+    if retomar:
+        done = sent_ok(log_path)
+        events = [e for e in events if e["event_id"] not in done]
     plan = schedule(events, clock(), hora_original, intervalo_s)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    out = []
-    for at, e in plan:
+    log_lock = threading.Lock()
+
+    def send_event(at: datetime, e: dict) -> dict:
         manifest = None
         if manifest_dir is not None:
             mp = manifest_dir / f"{e['event_id']}.json"
@@ -317,27 +345,51 @@ def run_send(events: list[dict], *, base_url: str, device_id: str, tag: str,
                "bytes": sum(len(f[1][1]) for r in reqs for f in r.files), "seco": seco,
                "http": [], "enviado_em": [], "erro": ""}
         if not seco:
-            wait = (at - clock()).total_seconds()
-            if wait > 0:
-                sleep(wait)
+            rec["atraso_s"] = round(max(0.0, (clock() - at).total_seconds()), 1)
             t0 = time.monotonic()
             for r in reqs:
                 lag = r.offset_s - (time.monotonic() - t0)
                 if lag > 0:
                     sleep(lag)
-                try:
-                    resp = post(r.url, headers=r.headers, data=r.data, files=r.files, timeout=60)
-                    rec["http"].append(resp.status_code)
-                except Exception as exc:  # noqa: BLE001 — registra e segue para o próximo
+                for k in range(max(1, tentativas)):
+                    try:
+                        resp = post(r.url, headers=r.headers, data=r.data, files=r.files, timeout=60)
+                        rec["http"].append(resp.status_code)
+                        rec["erro"] = ""
+                        break
+                    except Exception as exc:  # noqa: BLE001 — registra e segue para o próximo
+                        rec["erro"] = f"{type(exc).__name__}: {exc}"[:300]
+                        if k + 1 < max(1, tentativas):
+                            rec["novas_tentativas"] = rec.get("novas_tentativas", 0) + 1
+                            sleep(pausa_tentativa_s)
+                if rec["erro"]:
                     rec["http"].append(0)
-                    rec["erro"] = f"{type(exc).__name__}: {exc}"[:300]
                 rec["enviado_em"].append(datetime.now().isoformat(timespec="milliseconds"))
                 if rec["erro"]:
                     break
-        with log_path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
-        out.append(rec)
-    return out
+        with log_lock:
+            with log_path.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        return rec
+
+    def wait_until(at: datetime) -> None:
+        if not seco:
+            wait = (at - clock()).total_seconds()
+            if wait > 0:
+                sleep(wait)
+
+    if paralelo <= 1 or seco:
+        out = []
+        for at, e in plan:
+            wait_until(at)
+            out.append(send_event(at, e))
+        return out
+    with ThreadPoolExecutor(max_workers=paralelo) as pool:
+        futures = []
+        for at, e in plan:
+            wait_until(at)
+            futures.append(pool.submit(send_event, at, e))
+        return [f.result() for f in futures]
 
 
 # ── linha de comando ──────────────────────────────────────────────────────────
@@ -361,7 +413,8 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     e = sub.add_parser("enviar")
     e.add_argument("--eventos", type=Path, required=True)
     e.add_argument("--rodada", required=True)
-    e.add_argument("--url", default="http://127.0.0.1:5002")
+    # 15002 e não 5002: nesta máquina a 5002 local pode ser de outro contêiner (testspace)
+    e.add_argument("--url", default="http://127.0.0.1:15002")
     e.add_argument("--device", default="pi-cam-sim-001")
     e.add_argument("--tag", required=True, help="marca da rodada no event_id (ex.: 0, 1)")
     e.add_argument("--quadros", type=Path, nargs="+",
@@ -373,6 +426,12 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     e.add_argument("--hora-original", action="store_true")
     e.add_argument("--intervalo", type=float, default=30.0)
     e.add_argument("--velocidade", type=float, default=1.0)
+    e.add_argument("--paralelo", type=int, default=1,
+                   help="eventos no ar ao mesmo tempo (com --hora-original, para a hora não atrasar)")
+    e.add_argument("--tentativas", type=int, default=1,
+                   help="vezes que um lote é tentado quando não há resposta (túnel caído)")
+    e.add_argument("--retomar", action="store_true",
+                   help="pula os eventos que o log já tem como enviados sem erro")
     a = ap.parse_args(list(argv) if argv is not None else None)
 
     if a.cmd == "montar":
@@ -389,12 +448,17 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     post = None
     if not a.seco:
         import requests
-        session = requests.Session()
-        post = session.post
+        local = threading.local()
+
+        def post(url, **kw):  # uma sessão por thread: requests.Session não é segura entre threads
+            if not hasattr(local, "session"):
+                local.session = requests.Session()
+            return local.session.post(url, **kw)
     recs = run_send(events, base_url=a.url, device_id=a.device, tag=a.tag,
                     frame_dirs=a.quadros, manifest_dir=a.manifestos, log_path=a.log,
                     seco=a.seco, limite=a.limite, hora_original=a.hora_original,
-                    intervalo_s=a.intervalo, velocidade=a.velocidade, post=post)
+                    intervalo_s=a.intervalo, velocidade=a.velocidade, post=post,
+                    paralelo=a.paralelo, tentativas=a.tentativas, retomar=a.retomar)
     n_err = sum(1 for r in recs if r["erro"] or any(c != 200 for c in r["http"]))
     print(f"{len(recs)} eventos {'montados (seco)' if a.seco else 'enviados'}, "
           f"{sum(r['n_quadros'] for r in recs)} quadros, "
