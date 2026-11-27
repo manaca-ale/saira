@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 from app.api.deps import get_db, get_current_user
 from app.core import rate_limit
+from app.core.client_ip import client_ip
 from app.core.password_policy import password_problem
 from app.core.security import verify_password, create_user_access_token
 from app.core.config import settings
@@ -34,8 +35,9 @@ FORGOT_MESSAGE = (
 
 
 def _client_ip(request: Request) -> str:
-    # uvicorn roda com --proxy-headers: request.client já é o IP de quem chamou.
-    return request.client.host if request.client else "desconhecido"
+    # Não é request.client: o uvicorn põe ali o endereço que o visitante escreve
+    # no X-Forwarded-For (ver app/core/client_ip.py).
+    return client_ip(request)
 
 
 def _login_key(email: str) -> str:
