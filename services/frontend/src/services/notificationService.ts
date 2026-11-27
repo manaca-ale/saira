@@ -82,9 +82,10 @@ class NotificationSSEService {
       const { data } = await api.post<{ ticket: string }>("/notifications/stream-ticket");
       ticket = data.ticket;
     } catch (err) {
-      // Sessão vencida: quem cuida é o fluxo de login, não adianta insistir.
+      // Sessão vencida (401) ou senha provisória/usuário desativado (403):
+      // quem cuida é o fluxo de login, não adianta insistir.
       const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status !== 401 && generation === this.generation) this.scheduleRetry();
+      if (status !== 401 && status !== 403 && generation === this.generation) this.scheduleRetry();
       return;
     }
     if (!this.wanted || generation !== this.generation) return;

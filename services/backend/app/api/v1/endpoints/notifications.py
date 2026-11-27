@@ -16,6 +16,7 @@ from app.api.deps import (
     get_current_user_from_sse_ticket,
     get_db,
     get_ticket_redis,
+    sse_ticket_value,
 )
 from app.core.redis import get_redis
 from app.models.user import User
@@ -68,7 +69,7 @@ async def create_stream_ticket(
     """Bilhete de uso único para abrir o SSE (o JWT não vai mais na URL)."""
     ticket = secrets.token_urlsafe(32)
     await redis.setex(
-        f"{SSE_TICKET_PREFIX}{ticket}", SSE_TICKET_TTL_SECONDS, current_user.email
+        f"{SSE_TICKET_PREFIX}{ticket}", SSE_TICKET_TTL_SECONDS, sse_ticket_value(current_user)
     )
     return {"ticket": ticket, "expires_in": SSE_TICKET_TTL_SECONDS}
 

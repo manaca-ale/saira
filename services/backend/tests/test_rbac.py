@@ -64,7 +64,6 @@ ADMIN_ROUTES = {
 # autenticação do SSE, que não usa o header Authorization).
 AUTH_DEP_NAMES = {
     "get_current_user",
-    "get_current_user_from_query",
     "get_current_user_from_sse_ticket",
 }
 

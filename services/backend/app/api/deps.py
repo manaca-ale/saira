@@ -1,3 +1,4 @@
+import json
 from typing import AsyncGenerator
 from fastapi import Depends, HTTPException, Query, Request, status
 from fastapi.security import OAuth2PasswordBearer
@@ -132,6 +133,12 @@ async def get_ticket_redis():
     return await get_redis_client()
 
 
+def sse_ticket_value(user: User) -> str:
+    """O que o bilhete guarda: o e-mail e a versão de sessão de quem pediu
+    (trocar a senha invalida também os bilhetes já emitidos)."""
+    return json.dumps({"sub": user.email, "ver": int(getattr(user, "token_version", 0) or 0)})
+
+
 async def get_current_user_from_sse_ticket(
     ticket: str = Query(..., min_length=16, max_length=128),
     db: AsyncSession = Depends(get_db),
@@ -149,12 +156,16 @@ async def get_current_user_from_sse_ticket(
     # não passam as duas.
     if not raw or not await redis.delete(key):
         raise invalid_ticket
-    email = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+    try:
+        payload = json.loads(raw.decode("utf-8") if isinstance(raw, bytes) else str(raw))
+        email = payload["sub"]
+    except (ValueError, KeyError, TypeError):
+        raise invalid_ticket
 
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
-    if user is None:
+    if user is None or not token_version_matches(payload, user):
         raise invalid_ticket
 
     if not user.is_active:

@@ -3,6 +3,7 @@
 Antes, o painel abria /notifications/stream?token=<JWT>; o token de 24 h
 ficava nos logs do proxy e servia para qualquer rota da API.
 """
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -37,8 +38,13 @@ class FakeDB:
         return SimpleNamespace(scalar_one_or_none=lambda: self.user)
 
 
-def _user(active=True):
-    return SimpleNamespace(email="operador@recife.pe.gov.br", is_active=active)
+def _user(active=True, token_version=0, must_change_password=False):
+    return SimpleNamespace(
+        email="operador@recife.pe.gov.br",
+        is_active=active,
+        token_version=token_version,
+        must_change_password=must_change_password,
+    )
 
 
 async def _ticket(redis, user):
@@ -53,7 +59,7 @@ async def test_ticket_is_random_short_lived_and_not_the_jwt():
     assert first != second and len(first) >= 32
     assert "." not in first  # não é um JWT
     key = f"{deps.SSE_TICKET_PREFIX}{first}"
-    assert redis.store[key] == "operador@recife.pe.gov.br"
+    assert json.loads(redis.store[key]) == {"sub": "operador@recife.pe.gov.br", "ver": 0}
     assert 0 < redis.ttl[key] <= 60
 
 
@@ -77,7 +83,7 @@ async def test_unknown_or_expired_ticket_is_401():
 
 async def test_ticket_value_in_bytes_is_accepted():
     redis, user = FakeRedis(), _user()
-    redis.store[f"{deps.SSE_TICKET_PREFIX}abc"] = b"operador@recife.pe.gov.br"
+    redis.store[f"{deps.SSE_TICKET_PREFIX}abc"] = deps.sse_ticket_value(user).encode("utf-8")
     got = await deps.get_current_user_from_sse_ticket(ticket="abc", db=FakeDB(user), redis=redis)
     assert got is user
 
@@ -89,6 +95,34 @@ async def test_inactive_user_is_403_and_ticket_is_spent():
         await deps.get_current_user_from_sse_ticket(ticket=ticket, db=FakeDB(user), redis=redis)
     assert exc.value.status_code == 403
     assert redis.store == {}
+
+
+async def test_password_change_kills_tickets_already_issued():
+    # Trocar a senha soma 1 em token_version: o bilhete emitido antes não abre o stream.
+    redis, user = FakeRedis(), _user(token_version=3)
+    ticket = await _ticket(redis, user)
+    user.token_version = 4
+    with pytest.raises(HTTPException) as exc:
+        await deps.get_current_user_from_sse_ticket(ticket=ticket, db=FakeDB(user), redis=redis)
+    assert exc.value.status_code == 401
+    assert redis.store == {}
+
+
+async def test_user_with_provisional_password_does_not_open_the_stream():
+    redis, user = FakeRedis(), _user(must_change_password=True)
+    ticket = await _ticket(redis, user)
+    with pytest.raises(HTTPException) as exc:
+        await deps.get_current_user_from_sse_ticket(ticket=ticket, db=FakeDB(user), redis=redis)
+    assert exc.value.status_code == 403
+    assert exc.value.detail == deps.PASSWORD_CHANGE_REQUIRED
+
+
+async def test_malformed_ticket_value_is_401():
+    redis = FakeRedis()
+    redis.store[f"{deps.SSE_TICKET_PREFIX}abc"] = b"operador@recife.pe.gov.br"
+    with pytest.raises(HTTPException) as exc:
+        await deps.get_current_user_from_sse_ticket(ticket="abc", db=FakeDB(_user()), redis=redis)
+    assert exc.value.status_code == 401
 
 
 def _query_params(dependant):
