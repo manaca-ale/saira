@@ -18,6 +18,9 @@ services:
       - EDGE_AUTH_REQUIRED=${EDGE_AUTH_REQUIRED:-false}
       - EDGE_DEVICE_TOKENS=${EDGE_DEVICE_TOKENS:-}
       - EDGE_SHARED_TOKEN=${EDGE_SHARED_TOKEN:-}
+      # Login do painel antigo de câmeras no backend. Sem a senha ele não tenta entrar.
+      - CORE_API_LOGIN_EMAIL=${CORE_API_LOGIN_EMAIL:-admin@saira.com}
+      - CORE_API_LOGIN_PASSWORD=${CORE_API_LOGIN_PASSWORD:-}
       - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
       - GUNICORN_THREADS=${GUNICORN_THREADS:-8}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}

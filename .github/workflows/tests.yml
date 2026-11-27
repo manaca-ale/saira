@@ -57,7 +57,7 @@ jobs:
             # 3.9 (igual à imagem do esp32-server) não existe no ubuntu-latest (26.04).
             os: ubuntu-24.04
             install: pip install -r requirements.txt pytest
-            run: python -m pytest -q test_command_queue.py test_rotate.py test_edge_auth.py
+            run: python -m pytest -q test_command_queue.py test_rotate.py test_edge_auth.py test_core_login.py
           - name: camera-sim
             dir: tools/camera_sim
             python: "3.11"

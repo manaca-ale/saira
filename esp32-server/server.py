@@ -76,14 +76,21 @@ CAPTURE_FILENAME_TZ = ZoneInfo(os.getenv("CAPTURE_FILENAME_TZ", "America/Sao_Pau
 UNKNOWN_DEVICE_IDS = {"unknown", "unknown_device", "unknow", "unknow_device"}
 CORE_API_BASE_URL = (os.getenv("CORE_API_BASE_URL", "") or "").strip().rstrip("/")
 CORE_API_LOGIN_EMAIL = (os.getenv("CORE_API_LOGIN_EMAIL", "admin@saira.com") or "").strip()
-CORE_API_LOGIN_PASSWORD = os.getenv("CORE_API_LOGIN_PASSWORD", "admin123")
+# Sem senha padrão no código: sem CORE_API_LOGIN_PASSWORD o painel antigo não
+# tenta entrar no backend (antes tentava a senha de fábrica do seed).
+CORE_API_LOGIN_PASSWORD = os.getenv("CORE_API_LOGIN_PASSWORD", "") or ""
 CORE_API_TIMEOUT_SECONDS = max(2.0, float(os.getenv("CORE_API_TIMEOUT_SECONDS", "8") or "8"))
 CORE_API_CAMERA_LIMIT = _int_env("CORE_API_CAMERA_LIMIT", 500, minimum=10)
+# Login recusado: espera antes de tentar de novo. O backend bloqueia o e-mail por
+# 15 min depois de 10 senhas erradas, e cada abertura do painel antigo contava
+# uma (por worker do gunicorn: 15 min de espera mantém a soma abaixo do limite).
+CORE_API_LOGIN_RETRY_SECONDS = _int_env("CORE_API_LOGIN_RETRY_SECONDS", 900, minimum=60)
 
 _core_api_lock = threading.Lock()
 _core_api_cached_base = ""
 _core_api_cached_token = ""
 _core_api_cached_expiry = 0.0
+_core_api_login_refused_until: dict[str, float] = {}
 
 def _get_upload_root() -> str:
     # Allow overriding storage location on EC2 (e.g. /data/saira/uploads).
@@ -297,6 +304,12 @@ def _core_api_login(base_url: str, force_refresh: bool = False) -> str:
             and now < _core_api_cached_expiry
         ):
             return _core_api_cached_token
+        wait = _core_api_login_refused_until.get(base_url, 0.0) - now
+
+    if not CORE_API_LOGIN_PASSWORD:
+        raise RuntimeError("CORE_API_LOGIN_PASSWORD não definida")
+    if wait > 0:
+        raise RuntimeError(f"login recusado há pouco; nova tentativa em {int(wait) + 1} s")
 
     login_url = f"{base_url}/auth/login"
     resp = requests.post(
@@ -308,6 +321,9 @@ def _core_api_login(base_url: str, force_refresh: bool = False) -> str:
         timeout=CORE_API_TIMEOUT_SECONDS,
     )
     if resp.status_code != 200:
+        if 400 <= resp.status_code < 500:
+            with _core_api_lock:
+                _core_api_login_refused_until[base_url] = time.time() + CORE_API_LOGIN_RETRY_SECONDS
         raise RuntimeError(f"login {resp.status_code}: {resp.text[:180]}")
 
     payload = resp.json() if resp.content else {}

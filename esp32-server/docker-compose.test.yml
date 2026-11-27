@@ -24,6 +24,9 @@ services:
       - EDGE_AUTH_REQUIRED=${EDGE_AUTH_REQUIRED:-false}
       - EDGE_DEVICE_TOKENS=${EDGE_DEVICE_TOKENS:-}
       - EDGE_SHARED_TOKEN=${EDGE_SHARED_TOKEN:-}
+      # Login do painel antigo de câmeras no backend. Sem a senha ele não tenta entrar.
+      - CORE_API_LOGIN_EMAIL=${CORE_API_LOGIN_EMAIL:-admin@saira.com}
+      - CORE_API_LOGIN_PASSWORD=${CORE_API_LOGIN_PASSWORD:-}
       # Teto do clipe de vídeo (mp4) sob CMD_VIDEO_CLIP — 300 MB (paridade c/ prod).
       - MAX_VIDEO_BYTES=${MAX_VIDEO_BYTES:-314572800}
       # 1 gevent worker: required for in-process queue to work correctly for
