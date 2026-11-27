@@ -260,3 +260,46 @@ async def test_get_summary_without_last_login(mock_db):
     assert result["since_last_login"] == 2
     assert result["last_login_at"] is None
     assert result["by_rpa"] == {}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("detection_rpa", "expected_ids"),
+    [
+        ("RPA-3", [1, 2, 3, 4, 5, 6]),
+        (None, [1, 2, 3]),
+        ("sul oeste", [1, 2, 3, 8]),
+        ("RPA 03", [1, 2, 3, 9]),
+        ("RPA ٣", [1, 2, 3, 10]),
+    ],
+)
+async def test_on_new_detection_selects_active_users_by_rpa(
+    mock_db, fake_redis, detection_rpa, expected_ids
+):
+    from app.services.notification_service import on_new_detection
+
+    user_rpas = [None, " ", " - ", "3", " rpa 3 ", "RPA-3", "RPA-4", " Sul-Oeste ", "03", "٣"]
+    active_users = []
+    for user_id, rpa in enumerate(user_rpas, start=1):
+        user = FakeUser(id=user_id)
+        user.rpa = rpa
+        active_users.append(user)
+    result = MagicMock()
+    result.scalars.return_value.all.return_value = active_users
+    mock_db.execute.return_value = result
+    detection = FakeDetection(rpa=detection_rpa)
+
+    with patch(
+        "app.services.whatsapp_service.WhatsAppService.send_occurrence_alert", return_value=0
+    ) as send_alert:
+        await on_new_detection(detection, mock_db, fake_redis)
+
+    query = str(mock_db.execute.await_args.args[0]).lower()
+    assert "where users.is_active = true" in query
+    assert [notification.user_id for notification in mock_db.add_all.call_args.args[0]] == expected_ids
+    assert [call.args[0] for call in fake_redis.publish.await_args_list] == [
+        *(f"notifications:user:{user_id}" for user_id in expected_ids),
+        "notifications:all",
+    ]
+    assert [user.id for user in send_alert.call_args.args[0]] == expected_ids
+    assert send_alert.call_args.args[1] is detection
