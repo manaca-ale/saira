@@ -7,6 +7,7 @@ from app.models.gemini_call_log import GeminiCallLog
 from app.models.image_export import ImageExport
 from app.models.camera_heartbeat import CameraHeartbeat
 from app.models.cascade_decision import CascadeDecision
+from app.models.user_action_token import UserActionToken
 
 __all__ = [
     "User", "Camera", "Detection", "DetectionStatus",
@@ -16,4 +17,5 @@ __all__ = [
     "ImageExport",
     "CameraHeartbeat",
     "CascadeDecision",
+    "UserActionToken",
 ]

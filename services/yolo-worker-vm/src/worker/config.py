@@ -103,6 +103,8 @@ GDRIVE_SYNC_HOUR = int(os.getenv("GDRIVE_SYNC_HOUR", "3"))  # 03:00 Brasilia by 
 
 # esp32-server base URL - used to trigger history bulk-upload after detection.
 ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "").strip().rstrip("/")
+# Token de serviço do esp32-server (X-Admin-Token); vazio = não manda.
+ESP32_ADMIN_TOKEN = os.getenv("ESP32_ADMIN_TOKEN", "").strip()
 
 # Mock mode - set MOCK_MODE=true to run without real YOLO model files.
 MOCK_MODE = os.getenv("MOCK_MODE", "false").strip().lower() in ("true", "1", "yes")

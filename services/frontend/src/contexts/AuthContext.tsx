@@ -11,6 +11,10 @@ interface User {
   cargo?: string;
   rpa?: string;
   is_active: boolean;
+  // Papel calculado pelo backend a partir do cargo: "admin" ou "operador".
+  role?: string;
+  // Senha provisória: o backend bloqueia as rotas até a troca (/trocar-senha).
+  must_change_password?: boolean;
 }
 
 interface SignInCredentials {
@@ -21,8 +25,11 @@ interface SignInCredentials {
 interface AuthContextData {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   loading: boolean;
-  signIn: (credentials: SignInCredentials) => Promise<void>;
+  signIn: (credentials: SignInCredentials) => Promise<User>;
+  // Troca o token guardado (a troca de senha derruba o anterior) e recarrega o usuário.
+  replaceSessionToken: (accessToken: string) => Promise<User>;
   signInWithConecta: (nextPath?: string) => Promise<void>;
   completeConectaLogin: (ticket: string) => Promise<void>;
   signOut: (options?: { global?: boolean }) => Promise<void>;
@@ -62,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loadUserFromStorage();
   }, []);
 
-  async function signIn({ email, password }: SignInCredentials) {
+  async function signIn({ email, password }: SignInCredentials): Promise<User> {
     try {
       // API usa OAuth2PasswordRequestForm que espera form-data com 'username'
       const formData = new URLSearchParams();
@@ -87,12 +94,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Atualizar estado
       setUser(userData);
+      return userData;
     } catch (error: any) {
       if (error.response?.status === 401) {
         throw new Error('Credenciais inválidas');
       }
+      if (error.response?.status === 429 && typeof error.response?.data?.detail === 'string') {
+        throw new Error(error.response.data.detail);
+      }
       throw new Error('Erro ao fazer login. Tente novamente.');
     }
+  }
+
+  async function replaceSessionToken(accessToken: string): Promise<User> {
+    localStorage.setItem('@Saira:token', accessToken);
+    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    const userResponse = await api.get('/auth/me');
+    localStorage.setItem('@Saira:user', JSON.stringify(userResponse.data));
+    setUser(userResponse.data);
+    return userResponse.data;
   }
 
   async function signInWithConecta(nextPath = '/dashboard') {
@@ -158,8 +178,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         user,
         isAuthenticated: !!user,
+        isAdmin: user?.role === 'admin',
         loading,
         signIn,
+        replaceSessionToken,
         signInWithConecta,
         completeConectaLogin,
         signOut,

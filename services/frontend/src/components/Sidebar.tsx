@@ -9,6 +9,7 @@ import {
   Bell,
   Camera as CameraIcon,
   Tags,
+  KeyRound,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -19,7 +20,7 @@ export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { unreadCount, toggleDrawer } = useNotifications();
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
 
   // --- Modal State ---
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -32,7 +33,8 @@ export const Sidebar: React.FC = () => {
     { icon: Cctv, path: "/detections" },
     // Rotulagem: ferramenta interna, só aparece onde a flag está ligada (teste).
     ...(labelingEnabled ? [{ icon: Tags, path: "/rotulagem" }] : []),
-    { icon: Users, path: "/users" },
+    // Gestão de usuários e configuração de câmera: só administrador (o backend responde 403 aos demais).
+    ...(isAdmin ? [{ icon: Users, path: "/users" }] : []),
   ];
   const settingsPath = "/settings/cameras";
   const isSettingsActive = location.pathname.startsWith("/settings");
@@ -103,16 +105,18 @@ export const Sidebar: React.FC = () => {
         </nav>
 
         <div className="flex flex-col gap-6 w-full items-center mb-4">
-          <button
-            onClick={() => navigate(settingsPath)}
-            className={`transition-colors ${
-              isSettingsActive
-                ? "text-[#d9f99d]"
-                : "text-gray-500 hover:text-white"
-            }`}
-          >
-            <Settings size={24} />
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => navigate(settingsPath)}
+              className={`transition-colors ${
+                isSettingsActive
+                  ? "text-[#d9f99d]"
+                  : "text-gray-500 hover:text-white"
+              }`}
+            >
+              <Settings size={24} />
+            </button>
+          )}
           <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden border-2 border-transparent hover:border-[#d9f99d] transition-all cursor-pointer">
             <img
               src="https://i.pravatar.cc/150?u=admin"
@@ -120,6 +124,16 @@ export const Sidebar: React.FC = () => {
               className="w-full h-full object-cover"
             />
           </div>
+          <button
+            onClick={() => navigate("/trocar-senha")}
+            title="Trocar senha"
+            aria-label="Trocar senha"
+            className={`transition-colors mt-2 ${
+              location.pathname === "/trocar-senha" ? "text-[#d9f99d]" : "text-gray-500 hover:text-white"
+            }`}
+          >
+            <KeyRound size={20} />
+          </button>
           <button
             onClick={handleLogoutClick}
             className="text-gray-500 hover:text-red-500 transition-colors mt-2"

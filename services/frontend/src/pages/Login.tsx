@@ -14,6 +14,7 @@ import { InputField } from "../components/InputField";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tooltip } from "../components/Tooltip";
 import { useAuth } from "../contexts/AuthContext";
+import { requestPasswordReset } from "../services/passwordService";
 import conectaLogo from "../assets/conecta.webp";
 import versaoIcone1 from "../assets/Versão icone 1.png";
 
@@ -30,7 +31,8 @@ export const Login: React.FC = () => {
       : "/dashboard";
 
   // --- Login Form State ---
-  const [email, setEmail] = useState("");
+  // ?email= vem da tela "Senha criada" (link do convite ou da recuperação).
+  const [email, setEmail] = useState(searchParams.get("email") || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,6 +44,7 @@ export const Login: React.FC = () => {
   const [isForgotClosing, setIsForgotClosing] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [forgotError, setForgotError] = useState("");
+  const [forgotSending, setForgotSending] = useState(false);
 
   // --- Register Modal State ---
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -73,10 +76,11 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      await signIn({ email, password });
-      navigate(redirectTarget);
-    } catch (err) {
-      setError("Email ou senha incorretos.");
+      const signedUser = await signIn({ email, password });
+      navigate(signedUser?.must_change_password ? "/trocar-senha" : redirectTarget);
+    } catch (err: any) {
+      // 429 (muitas tentativas) traz a mensagem do backend; o resto é senha errada.
+      setError(err?.message?.startsWith("Muitas") ? err.message : "Email ou senha incorretos.");
     } finally {
       setLoading(false);
     }
@@ -97,7 +101,7 @@ export const Login: React.FC = () => {
   const triggerToast = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 4000); // Hide after 4 seconds
+    setTimeout(() => setShowToast(false), 8000);
   };
 
   // --- Forgot Password Logic ---
@@ -110,7 +114,8 @@ export const Login: React.FC = () => {
     }, 500);
   };
 
-  const handleSendRecovery = (e: React.FormEvent) => {
+  // Pede o link de recuperação. A resposta é a mesma exista ou não a conta.
+  const handleSendRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError("");
 
@@ -119,18 +124,24 @@ export const Login: React.FC = () => {
       return;
     }
 
-    const subject = encodeURIComponent("Recuperação de Senha");
-    const body = encodeURIComponent(
-      `Solicito a recuperação de senha para o usuário: ${recoveryEmail}`,
-    );
-
-    window.location.href = `mailto:suporte@saira.com?subject=${subject}&body=${body}`;
-
-    closeForgotModal();
-    setRecoveryEmail("");
-
-    // NEW: Show success feedback
-    triggerToast("Email de recuperação enviado com sucesso!");
+    setForgotSending(true);
+    try {
+      const { message } = await requestPasswordReset(recoveryEmail.trim());
+      closeForgotModal();
+      setRecoveryEmail("");
+      triggerToast(message);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      setForgotError(
+        typeof detail === "string"
+          ? detail
+          : err?.response?.status === 422
+            ? "Informe um e-mail válido."
+            : "Não foi possível enviar agora. Tente de novo em instantes.",
+      );
+    } finally {
+      setForgotSending(false);
+    }
   };
 
   // --- Register Logic ---
@@ -431,8 +442,8 @@ export const Login: React.FC = () => {
                 Recuperar Senha
               </h2>
               <p className="text-zinc-400 text-sm">
-                Digite o email associado à sua conta para receber as instruções
-                de recuperação.
+                Digite o e-mail da sua conta. Se ele estiver cadastrado, você
+                recebe um link para criar uma senha nova (vale por 1 hora).
               </p>
             </div>
 
@@ -466,9 +477,10 @@ export const Login: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 text-sm font-bold text-black bg-[#d9f99d] hover:bg-[#bef264] rounded-xl transition-colors shadow-lg shadow-[#d9f99d]/20 select-none"
+                  disabled={forgotSending}
+                  className="flex-1 py-3 text-sm font-bold text-black bg-[#d9f99d] hover:bg-[#bef264] rounded-xl transition-colors shadow-lg shadow-[#d9f99d]/20 select-none disabled:opacity-50"
                 >
-                  Enviar Email
+                  {forgotSending ? "Enviando..." : "Enviar link"}
                 </button>
               </div>
             </div>

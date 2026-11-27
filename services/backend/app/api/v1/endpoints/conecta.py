@@ -1,6 +1,5 @@
 import json
 import secrets
-from datetime import timedelta
 from typing import Any
 from urllib.parse import urlencode
 
@@ -13,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db
 from app.core.config import settings
 from app.core.redis import get_redis, init_redis
-from app.core.security import create_access_token, get_password_hash
+from app.core.security import create_user_access_token, get_password_hash
 from app.models.user import User
 from app.schemas.auth import Token
 from app.schemas.conecta import (
@@ -183,10 +182,7 @@ async def conecta_callback(
             status_code=status.HTTP_302_FOUND,
         )
 
-    local_token = create_access_token(
-        data={"sub": user.email},
-        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-    )
+    local_token = create_user_access_token(user)
     ticket = secrets.token_urlsafe(32)
     await redis.setex(
         f"{TICKET_KEY_PREFIX}{ticket}",

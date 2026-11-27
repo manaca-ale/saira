@@ -2,10 +2,18 @@
 # Junta, do ambiente de TESTE (só leitura), o que o comparar.py precisa.
 # Uso: coletar.sh <pasta_de_coleta> <log_do_envio.jsonl> [device_id]
 set -euo pipefail
+# Comando que roda no servidor e empacota os manifestos dos eventos simulados (sem os
+# .lock e .processed, e também os que o worker já moveu para events/arquivo/AAAAMM/).
+# O `find` escolhe os arquivos: `tar c --wildcards 'sim*.json'` não expande nada na
+# criação e a coleta vinha vazia sem erro (R0 de 26/11/2026).
+manifests_cmd() {
+  printf '%s' "cd '$1' 2>/dev/null && find . -name 'sim*.json' -print0 | tar cf - --null -T - --transform='s|.*/||' || tar cf - -T /dev/null"
+}
+if [ "${1:-}" = "--cmd-manifestos" ]; then manifests_cmd "$2"; exit 0; fi
 OUT=$1; LOG=$2; DEV=${3:-pi-cam-sim-001}
 mkdir -p "$OUT/manifestos" "$OUT/cascade_audit" "$OUT/prefilter_audit"
 cp "$LOG" "$OUT/envios.jsonl"
-ssh saira-prod "cd /home/ubuntu/saira-test/esp32-server/uploads/$DEV/events 2>/dev/null && tar cf - --wildcards 'sim*.json' || tar cf - -T /dev/null" \
+ssh saira-prod "$(manifests_cmd "/home/ubuntu/saira-test/esp32-server/uploads/$DEV/events")" \
   | tar xf - -C "$OUT/manifestos"
 ssh saira-prod "docker exec saira-yolo-worker-test sh -c 'cd /app/state && tar cf - gemini_cascade_audit/*/$DEV.jsonl gate_prefilter_audit/*/$DEV.jsonl 2>/dev/null || true'" \
   | tar xf - -C "$OUT"

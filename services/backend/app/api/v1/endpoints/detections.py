@@ -9,7 +9,8 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func, or_, exists
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_db, get_current_user, require_admin
+from app.core.roles import is_admin
 from app.core.database import AsyncSessionLocal
 from app.core.redis import get_redis
 from app.models.user import User
@@ -35,6 +36,13 @@ DETECTION_FRAMES_DIR = WORKER_STATE_DIR / "detection_frames"
 
 # Vídeo sob demanda (dispositivos event-driven / Pi relay).
 ESP32_SERVER_URL = os.getenv("ESP32_SERVER_URL", "").rstrip("/")
+ESP32_ADMIN_TOKEN = os.getenv("ESP32_ADMIN_TOKEN", "")
+
+
+def esp32_service_headers() -> dict:
+    """Cabeçalho de serviço para o esp32-server (vazio sem ESP32_ADMIN_TOKEN)."""
+    return {"X-Admin-Token": ESP32_ADMIN_TOKEN} if ESP32_ADMIN_TOKEN else {}
+
 CAMERA_UPLOADS_DIR = Path(os.getenv("CAMERA_UPLOADS_DIR", "/app/uploads"))
 VIDEO_PUBLIC_BASE_URL = os.getenv("CAMERA_UPLOAD_PUBLIC_BASE_URL", "").rstrip("/")
 VIDEO_REQUEST_TIMEOUT_S = int(os.getenv("VIDEO_REQUEST_TIMEOUT_S", "600"))
@@ -540,7 +548,7 @@ async def get_detection_context_frames(
 async def create_detection(
     detection_in: DetectionCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Cria uma nova detecção"""
     db_detection = Detection(
@@ -604,6 +612,14 @@ async def update_detection(
     # Atualizar campos
     update_data = detection_update.model_dump(exclude_unset=True)
 
+    # O status do operador passa por POST /classify, que registra quem
+    # classificou e não deixa voltar para Pendente. Por aqui, só administrador.
+    if "status" in update_data and not is_admin(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Só administrador altera o status por esta rota; use /classify",
+        )
+
     for key, value in update_data.items():
         setattr(detection, key, value)
 
@@ -617,7 +633,7 @@ async def update_detection(
 async def delete_detection(
     detection_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """Deleta uma detecção"""
     result = await db.execute(select(Detection).where(Detection.id == detection_id))
@@ -730,7 +746,9 @@ async def request_detection_video(
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.post(
-                trigger_url, json={"cmd": f"CMD_VIDEO_CLIP:{detection.event_ref}"}
+                trigger_url,
+                json={"cmd": f"CMD_VIDEO_CLIP:{detection.event_ref}"},
+                headers=esp32_service_headers(),
             )
         resp.raise_for_status()
     except httpx.HTTPError as exc:

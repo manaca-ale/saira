@@ -21,6 +21,9 @@ services:
       - DEFAULT_CONFIG_FILE=${DEFAULT_CONFIG_FILE:-default.txt}
       - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - EDGE_AUTH_REQUIRED=${EDGE_AUTH_REQUIRED:-false}
+      - EDGE_DEVICE_TOKENS=${EDGE_DEVICE_TOKENS:-}
+      - EDGE_SHARED_TOKEN=${EDGE_SHARED_TOKEN:-}
       # Teto do clipe de vídeo (mp4) sob CMD_VIDEO_CLIP — 300 MB (paridade c/ prod).
       - MAX_VIDEO_BYTES=${MAX_VIDEO_BYTES:-314572800}
       # 1 gevent worker: required for in-process queue to work correctly for

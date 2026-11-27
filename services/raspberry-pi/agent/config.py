@@ -223,6 +223,8 @@ class Config:
     video_url: str = field(init=False)
     logs_url: str = field(init=False)
     status_url: str = field(init=False)
+    # Token desta câmera no esp32-server (cabeçalho X-Device-Token). Vazio = não manda.
+    device_token: str = ""
 
     def __post_init__(self) -> None:
         base = self.ec2_base.rstrip("/")
@@ -242,6 +244,7 @@ def load_config() -> Config:
     return Config(
         device_id=_env("DEVICE_ID", "pi-cam-001"),
         ec2_base=_env("EC2_BASE", "http://10.8.0.1:5002"),
+        device_token=_env("DEVICE_TOKEN", "").strip(),
         ip_cam_url=_env("IP_CAM_URL", "http://192.168.0.142:80/snap.jpg"),
         ip_cam_user=_env("IP_CAM_USER", "admin"),
         ip_cam_pass=_env("IP_CAM_PASS", "admin"),

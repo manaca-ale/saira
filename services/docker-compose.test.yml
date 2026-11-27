@@ -77,6 +77,7 @@ services:
       - CAMERA_UPLOAD_PUBLIC_BASE_URL=${CAMERA_UPLOAD_PUBLIC_BASE_URL:-}
       # Vídeo sob demanda (dispositivos event-driven / Pi relay)
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      - ESP32_ADMIN_TOKEN=${ESP32_ADMIN_TOKEN:-}
       - VIDEO_REQUEST_TIMEOUT_S=${VIDEO_REQUEST_TIMEOUT_S:-600}
       - REDIS_URL=redis://redis:6379/0
       - ENABLE_LOCAL_LOGIN=${ENABLE_LOCAL_LOGIN:-true}
@@ -333,6 +334,7 @@ services:
       - AWS_ACCESS_KEY_ID=${TEST_AWS_ACCESS_KEY_ID:-${AWS_ACCESS_KEY_ID:-}}
       - AWS_SECRET_ACCESS_KEY=${TEST_AWS_SECRET_ACCESS_KEY:-${AWS_SECRET_ACCESS_KEY:-}}
       - ESP32_SERVER_URL=${ESP32_SERVER_URL:-http://esp32-server:5000}
+      - ESP32_ADMIN_TOKEN=${ESP32_ADMIN_TOKEN:-}
       # Event-driven devices (Pi relay): process motion-event manifests
       # immediately instead of fixed 120s windows; heartbeats GC'd w/o Gemini.
       - EVENT_DRIVEN_DEVICES=${TEST_EVENT_DRIVEN_DEVICES:-${EVENT_DRIVEN_DEVICES:-pi-cam-001}}
